@@ -1,14 +1,28 @@
 [project]
 name = "issue-flow"
 version = "0.1.0"
-description = "Add your description here"
+description = "Agents should behave. Let them follow the issue flow."
 readme = "README.md"
 authors = [
     { name = "jepegit", email = "jepe@ife.no" }
 ]
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "jinja2>=3.1.6",
+    "python-dotenv>=1.2.2",
+    "rich>=14.3.3",
+    "typer>=0.24.1",
+]
+
+[project.scripts]
+issue-flow = "issue_flow.cli:main"
 
 [build-system]
 requires = ["uv_build>=0.10.2,<0.11.0"]
 build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+    "ruff>=0.15.9",
+]

@@ -1,0 +1,86 @@
+---
+description: Issue-flow workflow rules for LLMs
+globs:
+alwaysApply: true
+---
+
+
+# Issue-flow best practices
+
+
+## Running python
+
+This is a python project. It uses a python environment (.venv) managed by uv.
+
+❌ BAD:
+```bash
+python run_script.py
+```
+
+✅ GOOD:
+```bash
+uv run run_script.py
+```
+
+### Package Management with `uv`
+
+**✅ Use `uv` exclusively**
+
+- All Python dependencies **must be installed, synchronized, and locked** using `uv`.
+- Never use `pip`, `pip-tools`, or `poetry` directly for dependency management.
+
+**🔁 Managing Dependencies**
+
+```bash
+# Add or upgrade dependencies
+uv add <package>
+
+# Remove dependencies
+uv remove <package>
+
+# Reinstall all dependencies from lock file
+uv sync
+```
+
+**🔁 Scripts**
+
+```bash
+# Run script with proper dependencies
+uv run script.py
+```
+
+
+## Issue tracking structure
+
+```bash
+{{ project_name }}/
+    {{ issueflows_dir }}/
+        {{ tools_folder }}/
+        {{ current_issues_folder }}/
+            issueXX_original.md
+            issueXX_status.md
+        {{ partly_solved_folder }}/
+        {{ solved_folder }}/
+    pyproject.toml
+    readme.md
+    ...
+```
+
+
+## Development information
+
+
+### Working on issues
+
+After each iteration, update the documents in `{{ issueflows_dir }}/{{ current_issues_folder }}` (should contain one file labelled `_original` that consists of the original issue description, and supplementary status files describing what has been done, current status, and remaining work).
+Use an explicit status checkbox in the status file:
+- `- [x] Done` when fully resolved
+- `- [ ] Done` when not fully resolved
+
+### When finishing an issue
+
+If the issue is fully resolved (no additional subtasks present), move the original and status markdown files to `{{ issueflows_dir }}/{{ solved_folder }}`. Else, move them to `{{ issueflows_dir }}/{{ partly_solved_folder }}`.
+
+### Scripts that can help us when working on issues
+
+If you want, you can put small scripts etc. that you have made and think could be useful in the future in our llm tools folder: `{{ issueflows_dir }}/{{ tools_folder }}`. Also, feel free to use the tools in our llm tools folder if you find someone that could be useful.
