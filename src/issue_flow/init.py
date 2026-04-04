@@ -81,3 +81,7 @@ def _create_issueflow_dirs(project_root: Path, settings: Settings) -> None:
         else:
             dir_path.mkdir(parents=True, exist_ok=True)
             console.print(f"  [green]mkdir[/green]  {settings.issueflows_dir}/{subdir_name}/")
+
+        gitkeep = dir_path / ".gitkeep"
+        if not gitkeep.exists():
+            gitkeep.touch()

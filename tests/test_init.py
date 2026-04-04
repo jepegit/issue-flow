@@ -19,6 +19,16 @@ def test_init_creates_directories(tmp_path: Path) -> None:
     assert (issueflows / "03-solved-issues").is_dir()
 
 
+def test_init_creates_gitkeep_files(tmp_path: Path) -> None:
+    """Each .issueflows/ subdirectory should contain a .gitkeep file."""
+    run_init(tmp_path)
+
+    issueflows = tmp_path / ".issueflows"
+    for subdir in ["00-tools", "01-current-issues", "02-partly-solved-issues", "03-solved-issues"]:
+        gitkeep = issueflows / subdir / ".gitkeep"
+        assert gitkeep.is_file(), f"{subdir}/.gitkeep should exist"
+
+
 def test_init_creates_cursor_commands(tmp_path: Path) -> None:
     """Running init should create all three slash-command files."""
     run_init(tmp_path)
