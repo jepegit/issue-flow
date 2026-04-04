@@ -65,6 +65,11 @@ issue-flow/
   tests/                  # Test files
   docs/                   # Documentation (you are here)
   .github/workflows/      # CI and publishing automation
+  .issueflows/            # Yes, we are also using issue-flow
+      00-tools/                 # Helper scripts and utilities
+      01-current-issues/        # Active issues being worked on
+      02-partly-solved-issues/  # Issues with partial progress
+      03-solved-issues/         # Completed issues
 ```
 
 ---
