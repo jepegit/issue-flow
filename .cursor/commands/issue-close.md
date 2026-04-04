@@ -1,0 +1,36 @@
+# Close out the current issue
+
+Run this when implementation is done and you are ready to land the work.
+
+## Input
+
+Optional: branch name, PR title, or anything special (e.g. draft PR, skip issue doc update, commit all changes).
+
+## Typical steps
+
+1. **Sanity check**
+   - Run tests and any checks you rely on (e.g. `uv run pytest`).
+   - Skim the diff so the commit matches what you intend to ship.
+
+2. **Issue tracking in the repo** (see project rules under `.issueflows/01-current-issues`)
+   - Update the status file for this issue: clear checklist, remaining work, and use `- [x] Done` only when fully resolved.
+   - If the issue is fully resolved, move its markdown files from `.issueflows/01-current-issues` to `.issueflows/03-solved-issues`. If partially resolved, move to `.issueflows/02-partly-solved-issues`.
+
+3. **Commit and fix merge conflicts**
+   - Unless told to commit all, stage the right files (avoid unrelated changes).
+   - Write a commit message that states what changed and why in normal sentences.
+   - Make sure you have pulled the last changes from the default branch (e.g. `main`) and check for and fix merge conflicts.
+
+4. **Push**
+   - Push your branch to `origin` (or the remote you use).
+
+5. **Pull request**
+   - Open a PR against the default branch (e.g. `main`).
+   - Describe the change, how to test it, and link the GitHub issue (e.g. `Closes #123` or `Refs #123` in the PR body).
+
+6. **After review**
+   - Address feedback, push updates, and merge when approved and CI is green.
+
+## Output
+
+Summarize what was committed, pushed, and the PR URL (or next step if blocked).
