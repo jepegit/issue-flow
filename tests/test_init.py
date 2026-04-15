@@ -94,6 +94,15 @@ def test_init_templates_reference_issueflows_dir(tmp_path: Path) -> None:
         assert ".issueflows/" in content, f"{filename} should reference .issueflows/"
 
 
+def test_init_issue_init_documents_branch_inference(tmp_path: Path) -> None:
+    """issue-init.md should describe resolving an issue from the current branch when no args."""
+    run_init(tmp_path)
+    content = (tmp_path / ".cursor" / "commands" / "issue-init.md").read_text(encoding="utf-8")
+    assert "git branch --show-current" in content
+    assert "You have not provided an issue reference" in content
+    assert "issue-style branch" in content
+
+
 def test_init_detects_project_name(tmp_path: Path) -> None:
     """If a pyproject.toml exists, its name should appear in the rule file."""
     pyproject = tmp_path / "pyproject.toml"

@@ -3,22 +3,31 @@
 Create an `*_original.md` file in `.issueflows/01-current-issues` from a GitHub issue.
 
 ## Input
-The user will provide one of:
+The user may provide one of:
 - an issue number (e.g. `123`)
 - or a full GitHub issue URL
 
-Use the text provided after this slash command as the issue reference.
+The text after this slash command is the **issue reference**. It may also be **empty or only whitespace** (user ran `/issue-init` with no arguments).
 
 ## Steps
 
 0. Check that the required folders exist (`.issueflows/00-tools`, `.issueflows/01-current-issues`, `.issueflows/02-partly-solved-issues`, `.issueflows/03-solved-issues`). If not, create them after asking for permission.
 
-1. Resolve the issue reference from the user input.
-   - If input is a full URL, extract `owner`, `repo`, and `issue number`.
-   - If input is only an issue number:
-     - derive `owner/repo` from `git remote` (prefer `origin`)
-     - support both SSH and HTTPS remote URL formats
-     - if parsing fails, ask the user for either full issue URL or `owner/repo`
+1. Resolve the issue reference.
+   - **A. No non-empty issue reference** (missing or whitespace-only after the command):
+     - Run `git branch --show-current` to get the current branch name.
+     - If the branch name is empty **or** equals `main` or `master` (**case-insensitive**): **stop**. Tell the user the issue cannot be inferred from this branch and they must run `/issue-init` with an issue number, a full GitHub issue URL, or `owner/repo/#number`.
+     - Else if the branch name matches an **issue-style branch**: ASCII digits at the start, then `-`, then at least one more character (example: `42-fix-login-bug`). Let `NN` be the leading digit sequence.
+       - Ask: "You have not provided an issue reference. Should I use issue #NN from the current branch `<branchname>`?" (use the real branch name).
+       - If the user **confirms**, treat `NN` as the issue number and continue with the bullets under **B** as if the user had typed only `NN`.
+       - If the user **declines** or is **unclear**, ask for an issue number, full URL, or `owner/repo`, and do not proceed until you have a clear reference.
+     - Else (branch does not match that pattern): **do not guess.** Ask the user for an issue number, full GitHub issue URL, or `owner/repo/#number`, and do not proceed until they provide it.
+   - **B. You have a concrete issue reference** (from user input or from **A** after confirmation):
+     - If the reference is a full URL, extract `owner`, `repo`, and `issue number`.
+     - If the reference is only an issue number:
+       - derive `owner/repo` from `git remote` (prefer `origin`)
+       - support both SSH and HTTPS remote URL formats
+       - if parsing fails, ask the user for either full issue URL or `owner/repo`
 
 2. Fetch issue data using GitHub CLI (explicit repo if needed):
    - title
@@ -61,6 +70,7 @@ Use the text provided after this slash command as the issue reference.
 Report:
 - issue number fetched
 - repository used (`owner/repo`)
+- if the issue number was inferred from the current branch after the user confirmed in step **1 A**, state the branch name and that `#NN` was inferred from it
 - file path created
 - archive moves performed (source -> destination, grouped by issue number)
 - whether the operation succeeded
@@ -73,9 +83,10 @@ Report:
   - move pre-existing issue files from `.issueflows/01-current-issues` to `.issueflows/02-partly-solved-issues` or `.issueflows/03-solved-issues` according to the archive rule above
 - If `.issueflows/01-current-issues` does not exist, report an error and stop.
 - If archive destination directories do not exist, report an error and stop.
-- Prefer deterministic behavior: always state which repo was resolved before writing the file.
+- Prefer deterministic behavior: always state which repo was resolved before writing the file (including when the issue number came from branch inference).
 
 ## Example invocations
 - `/issue-init 123`
 - `/issue-init https://github.com/owner/repo/issues/123`
 - `/issue-init owner/repo/#123`
+- `/issue-init` (no trailing text: on an issue-style branch like `123-fix-bug`, ask for confirmation then proceed as for issue `123`)

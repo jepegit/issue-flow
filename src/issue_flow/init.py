@@ -67,7 +67,11 @@ def run_init(project_root: Path, force: bool = False) -> None:
     if not written_files and not skipped_files:
         console.print("[bold]Nothing to do.[/bold]")
 
-    console.print("\n[dim]Run [bold]/issue-init <number>[/bold] in Cursor to start tracking a GitHub issue.[/dim]\n")
+    console.print(
+        "\n[dim]Run [bold]/issue-init <number>[/bold] or [bold]/issue-init[/bold] "
+        "(on a branch like [bold]42-slug[/bold], after confirmation) in Cursor "
+        "to start tracking a GitHub issue.[/dim]\n"
+    )
 
 
 def _create_issueflow_dirs(project_root: Path, settings: Settings) -> None:

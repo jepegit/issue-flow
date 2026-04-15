@@ -14,7 +14,7 @@ This repo uses three Cursor **slash commands** under `.cursor/commands/` that li
 
 **When:** You have a GitHub issue you want to work on (or archive older "current" issues before starting a new one).
 
-**What you pass:** Either an issue number (e.g. `42`) or a full GitHub issue URL. The assistant resolves `owner/repo` from `git remote origin` when you only pass a number.
+**What you pass:** Either an issue number (e.g. `42`), a full GitHub issue URL, or nothing after `/issue-init`—in that case, on a branch named like `42-short-description`, the assistant may ask to use `#42` from the branch (and refuses to guess on `main`/`master`). The assistant resolves `owner/repo` from `git remote origin` when you only pass a number.
 
 **What happens:**
 
