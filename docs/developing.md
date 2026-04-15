@@ -43,6 +43,7 @@ Here are the commands you'll use most often:
 | Add a dependency | `uv add <package>` |
 | Add a dev dependency | `uv add --dev <package>` |
 | Run the CLI locally | `uv run issue-flow --help` |
+| Refresh scaffold in a test project (same as installed package templates) | `uv run issue-flow update <DIR>` |
 
 Always use `uv run` instead of calling `python` directly. This makes sure you're using the right virtual environment and dependencies.
 
@@ -56,7 +57,7 @@ issue-flow/
     __init__.py           # Version string
     cli.py                # Command-line interface (typer)
     config.py             # Settings loaded from .env / environment
-    init.py               # The "init" command logic
+    init.py               # `init` and `update` command logic
     templating.py         # Jinja2 template loading
     templates/            # Templates rendered by "init"
       commands/           # Cursor slash command templates

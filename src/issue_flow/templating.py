@@ -25,7 +25,11 @@ class _PackageLoader(BaseLoader):
     ) -> tuple[str, str, callable]:
         # template is e.g. "commands/issue-init.md.j2"
         parts = template.replace("\\", "/").split("/")
-        package = _TEMPLATES_PACKAGE + "." + ".".join(parts[:-1]) if len(parts) > 1 else _TEMPLATES_PACKAGE
+        package = (
+            _TEMPLATES_PACKAGE + "." + ".".join(parts[:-1])
+            if len(parts) > 1
+            else _TEMPLATES_PACKAGE
+        )
         filename = parts[-1]
 
         try:
