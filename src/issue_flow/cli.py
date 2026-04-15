@@ -39,6 +39,22 @@ def init(
     run_init(project_root=project_dir, force=force)
 
 
+@app.command()
+def update(
+    project_dir: Path = typer.Argument(
+        default=Path("."),
+        help="Project root directory (defaults to current directory).",
+        exists=True,
+        file_okay=False,
+        resolve_path=True,
+    ),
+) -> None:
+    """Refresh packaged Cursor commands, rules, and workflow doc from this package."""
+    from issue_flow.init import run_update
+
+    run_update(project_root=project_dir)
+
+
 def main() -> None:
     """Entry point for the `issue-flow` console script."""
     app()

@@ -59,14 +59,33 @@ That's it. Open the project in Cursor and use `/issue-init`, `/issue-start`, `/i
 
 ```
 issue-flow init [PROJECT_DIR] [--force]
+issue-flow update [PROJECT_DIR]
 ```
+
+### `issue-flow init`
 
 | Argument / Option | Description |
 |---|---|
 | `PROJECT_DIR` | Project root directory. Defaults to `.` (current directory). |
-| `--force`, `-f` | Overwrite existing files instead of skipping them. |
+| `--force`, `-f` | Overwrite generated Cursor commands, rules, and workflow doc instead of skipping them. |
 
-Running `init` a second time is safe — existing files are skipped unless `--force` is passed.
+Running `init` again without `--force` is safe: generated scaffold files that already exist are skipped, and **issue markdown under `.issueflows/` is never touched** by `init` or `update`. When the CLI detects an existing scaffold, it reminds you about `update` and `--force`.
+
+### `issue-flow update`
+
+| Argument / Option | Description |
+|---|---|
+| `PROJECT_DIR` | Project root directory. Defaults to `.` (current directory). |
+
+Use `update` after upgrading the **issue-flow** package to refresh the packaged slash commands, Cursor rule, and `docs/cursor-issue-workflow.md` from the version you have installed. This **overwrites** those generated files (unlike a plain second `init`). It still does not modify arbitrary files under `.issueflows/` (for example your `issue*_original.md` / `issue*_status.md` files), and it creates any **new** `.issueflows/` subdirectories required by the current package.
+
+### When to use which
+
+| Goal | Command |
+|---|---|
+| First-time setup, or add missing files only | `issue-flow init` |
+| Pull newer templates after `uv tool upgrade issue-flow` (or similar) | `issue-flow update` |
+| Replace generated scaffolds without upgrading logic | `issue-flow init --force` |
 
 ## Configuration
 
