@@ -44,6 +44,20 @@ def test_init_creates_cursor_commands(tmp_path: Path) -> None:
     assert (commands_dir / "issue-close.md").is_file()
 
 
+def test_init_creates_cursor_skills(tmp_path: Path) -> None:
+    """Running init should create bundled Agent Skills under .cursor/skills/."""
+    run_init(tmp_path)
+
+    skills = tmp_path / ".cursor" / "skills"
+    for name in ("issueflow-issue-init", "issueflow-issue-start", "issueflow-issue-close"):
+        skill_file = skills / name / "SKILL.md"
+        assert skill_file.is_file(), f"expected {skill_file}"
+        text = skill_file.read_text(encoding="utf-8")
+        assert text.startswith("---")
+        assert f"name: {name}" in text
+        assert "disable-model-invocation: true" in text
+
+
 def test_init_creates_cursor_rule(tmp_path: Path) -> None:
     run_init(tmp_path)
     rule = tmp_path / ".cursor" / "rules" / "issueflow-rules.mdc"

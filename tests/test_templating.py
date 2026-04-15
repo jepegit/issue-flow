@@ -52,5 +52,5 @@ def test_resolve_output_path() -> None:
     assert path == Path(".cursor/commands/issue-init.md")
 
 
-def test_manifest_has_five_entries() -> None:
-    assert len(TEMPLATE_MANIFEST) == 5
+def test_manifest_entry_count() -> None:
+    assert len(TEMPLATE_MANIFEST) == 8

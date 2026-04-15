@@ -20,6 +20,10 @@ your-project/
       issue-init.md         # /issue-init — fetch a GitHub issue locally
       issue-start.md        # /issue-start — plan and implement
       issue-close.md        # /issue-close — test, commit, push, PR
+    skills/                 # Optional Agent Skills (explicit / @ invoke)
+      issueflow-issue-init/SKILL.md
+      issueflow-issue-start/SKILL.md
+      issueflow-issue-close/SKILL.md
     rules/
       issueflow-rules.mdc   # Always-on Cursor rule for the workflow
   docs/
@@ -31,6 +35,8 @@ The three Cursor slash commands give agents a repeatable flow:
 1. `/issue-init 42` — pulls GitHub issue #42 into `.issueflows/01-current-issues/` and archives older issues.
 2. `/issue-start` — reads the issue file, plans, and implements.
 3. `/issue-close` — runs tests, updates status files, commits, pushes, and opens a PR.
+
+The matching **Agent Skills** (under `.cursor/skills/`) carry the same workflows for on-demand use with `/issueflow-issue-init`, `/issueflow-issue-start`, or `/issueflow-issue-close` (see [Cursor Agent Skills](https://cursor.com/docs/context/skills)).
 
 ## Installation
 

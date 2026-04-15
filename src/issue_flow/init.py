@@ -67,7 +67,7 @@ def _already_initialized(
 
 
 def run_init(project_root: Path, force: bool = False) -> None:
-    """Scaffold .issueflows/ directories and .cursor/ config files.
+    """Scaffold .issueflows/ directories and .cursor/ config (commands, rules, skills).
 
     Re-running without ``force`` skips existing manifest outputs so local
     edits and issue markdown under ``.issueflows/`` are preserved. Manifest
@@ -112,12 +112,14 @@ def run_init(project_root: Path, force: bool = False) -> None:
     console.print(
         "\n[dim]Run [bold]/issue-init <number>[/bold] or [bold]/issue-init[/bold] "
         "(on a branch like [bold]42-slug[/bold], after confirmation) in Cursor "
-        "to start tracking a GitHub issue.[/dim]\n"
+        "to start tracking a GitHub issue. "
+        "Optional Agent Skills live under [bold].cursor/skills/[/bold] "
+        "([bold]/issueflow-issue-init[/bold], etc.).[/dim]\n"
     )
 
 
 def run_update(project_root: Path) -> None:
-    """Refresh packaged scaffold files (Cursor commands, rule, workflow doc).
+    """Refresh packaged scaffold files (commands, rule, skills, workflow doc).
 
     Overwrites every path in ``TEMPLATE_MANIFEST`` with the templates from the
     installed package. Does not read or delete other files under ``.issueflows/``
