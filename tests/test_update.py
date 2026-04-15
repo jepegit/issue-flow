@@ -36,6 +36,20 @@ def test_update_preserves_issue_markdown(tmp_path: Path) -> None:
     assert issue_file.read_text(encoding="utf-8") == distinctive
 
 
+def test_update_overwrites_skill_files(tmp_path: Path) -> None:
+    """update should refresh packaged skills like other manifest outputs."""
+    run_init(tmp_path)
+
+    skill = tmp_path / ".cursor" / "skills" / "issueflow-issue-init" / "SKILL.md"
+    skill.write_text("custom skill", encoding="utf-8")
+
+    run_update(tmp_path)
+
+    content = skill.read_text(encoding="utf-8")
+    assert content != "custom skill"
+    assert "name: issueflow-issue-init" in content
+
+
 def test_update_recreates_removed_subdir(tmp_path: Path) -> None:
     """If an issueflows subdir was removed, update should recreate it."""
     run_init(tmp_path)

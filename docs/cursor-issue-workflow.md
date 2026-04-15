@@ -10,6 +10,20 @@ This repo uses three Cursor **slash commands** under `.cursor/commands/` that li
 
 ---
 
+## Agent Skills (optional)
+
+`issue-flow init` / `issue-flow update` also install **Cursor Agent Skills** under `.cursor/skills/` — longer, on-demand playbooks that mirror the three commands:
+
+| Skill folder | Invoke (examples) | Role |
+|--------------|-------------------|------|
+| `issueflow-issue-init` | `/issueflow-issue-init` or attach `@issueflow-issue-init` | Same flow as `/issue-init` (resolve reference, `gh`, archive, write `*_original.md`). |
+| `issueflow-issue-start` | `/issueflow-issue-start` | Plan + confirmation + scope + implement from `.issueflows/01-current-issues/`. |
+| `issueflow-issue-close` | `/issueflow-issue-close` | Tests, status checkboxes, move issue docs, commit, push, PR. |
+
+Each skill sets `disable-model-invocation: true` so it is included when you **explicitly** invoke it, not on every chat. See [Agent Skills](https://cursor.com/docs/context/skills) in the Cursor docs.
+
+---
+
 ## 1. `/issue-init` — capture the issue locally
 
 **When:** You have a GitHub issue you want to work on (or archive older "current" issues before starting a new one).
@@ -80,4 +94,4 @@ Commit → push → PR → merge
     └── issue docs in .issueflows/03-solved-issues/ or .issueflows/02-partly-solved-issues/ when appropriate
 ```
 
-The command definitions are the source of truth: `.cursor/commands/issue-init.md`, `issue-start.md`, and `issue-close.md`. This document is a readable overview only.
+The command definitions are the source of truth: `.cursor/commands/issue-init.md`, `issue-start.md`, and `issue-close.md`. The skill packages under `.cursor/skills/` repeat the same workflows for explicit invocation. This document is a readable overview only.

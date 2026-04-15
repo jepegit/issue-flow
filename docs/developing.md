@@ -62,6 +62,7 @@ issue-flow/
     templates/            # Templates rendered by "init"
       commands/           # Cursor slash command templates
       rules/              # Cursor rule templates
+      skills/             # Cursor Agent Skill templates (SKILL.md per skill)
       docs/               # Documentation templates
   tests/                  # Test files
   docs/                   # Documentation (you are here)
