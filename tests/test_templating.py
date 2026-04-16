@@ -53,4 +53,4 @@ def test_resolve_output_path() -> None:
 
 
 def test_manifest_entry_count() -> None:
-    assert len(TEMPLATE_MANIFEST) == 8
+    assert len(TEMPLATE_MANIFEST) == 9

@@ -1,15 +1,17 @@
 [project]
 name = "issue-flow"
-version = "0.2.0"
+version = "0.2.1.post2"
 description = "Agents should behave. Let them follow the issue flow."
 readme = "README.md"
-license = { file = "LICENSE" }
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [
     { name = "jepegit", email = "jepe@ife.no" }
 ]
 requires-python = ">=3.13"
 keywords = ["cursor", "ai", "agents", "issue-tracking", "workflow"]
 classifiers = [
+    "License :: OSI Approved :: MIT License",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Topic :: Software Development :: Build Tools",
