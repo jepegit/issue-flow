@@ -128,4 +128,4 @@ uv run ruff check src/ tests/
 
 ## License
 
-See [LICENSE](LICENSE).
+This project is released under the MIT License. See the full text in the repository: [LICENSE](https://github.com/jepegit/issue-flow/blob/main/LICENSE).
