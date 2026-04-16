@@ -87,6 +87,10 @@ TEMPLATE_MANIFEST: list[tuple[str, str]] = [
         "skills/issueflow_issue_close/SKILL.md.j2",
         "{cursor_dir}/skills/issueflow-issue-close/SKILL.md",
     ),
+    (
+        "skills/issueflow_version_bump/SKILL.md.j2",
+        "{cursor_dir}/skills/issueflow-version-bump/SKILL.md",
+    ),
 ]
 
 

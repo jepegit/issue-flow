@@ -37,13 +37,14 @@ Here are the commands you'll use most often:
 |------|---------|
 | Run tests | `uv run pytest` |
 | Run tests (verbose) | `uv run pytest -v` |
-| Lint the code | `uv run ruff check src/ tests/` |
-| Auto-fix lint issues | `uv run ruff check --fix src/ tests/` |
-| Format the code | `uv run ruff format src/ tests/` |
+| Lint the code | `uv run ruff check src/ tests/ scripts/` |
+| Auto-fix lint issues | `uv run ruff check --fix src/ tests/ scripts/ scripts/` |
+| Format the code | `uv run ruff format src/ tests/ scripts/` |
 | Add a dependency | `uv add <package>` |
 | Add a dev dependency | `uv add --dev <package>` |
 | Run the CLI locally | `uv run issue-flow --help` |
 | Refresh scaffold in a test project (same as installed package templates) | `uv run issue-flow update <DIR>` |
+| Refresh **this** repo's `.cursor/` and generated workflow doc from templates | `uv run scripts/update_issueflow_setup.py` |
 
 Always use `uv run` instead of calling `python` directly. This makes sure you're using the right virtual environment and dependencies.
 
@@ -53,6 +54,7 @@ Always use `uv run` instead of calling `python` directly. This makes sure you're
 
 ```text
 issue-flow/
+  scripts/                # Maintainer helpers (e.g. refresh local Cursor scaffold)
   src/issue_flow/         # The actual package
     __init__.py           # Version string
     cli.py                # Command-line interface (typer)
@@ -103,13 +105,13 @@ uv run pytest -k "test_init_creates_directories"
 We use [ruff](https://docs.astral.sh/ruff/) for both linting and formatting. Before you commit, run:
 
 ```bash
-uv run ruff check src/ tests/
+uv run ruff check src/ tests/ scripts/
 ```
 
 If ruff reports issues it can fix automatically:
 
 ```bash
-uv run ruff check --fix src/ tests/
+uv run ruff check --fix src/ tests/ scripts/
 ```
 
 ---
@@ -138,7 +140,7 @@ Here's the full process, step by step.
 
 ```bash
 uv run pytest -v
-uv run ruff check src/ tests/
+uv run ruff check src/ tests/ scripts/
 ```
 
 Don't skip this. If tests fail, the publish workflow will also fail.
@@ -222,7 +224,8 @@ uv sync
 
 # Develop
 uv run pytest
-uv run ruff check src/ tests/
+uv run ruff check src/ tests/ scripts/
+uv run scripts/update_issueflow_setup.py
 uv run issue-flow init /tmp/test-project
 
 # Release
