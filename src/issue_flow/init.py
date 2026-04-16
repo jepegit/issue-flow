@@ -153,6 +153,41 @@ def run_update(project_root: Path) -> None:
     )
 
 
+def run_update(project_root: Path) -> None:
+    """Refresh packaged scaffold files (Cursor commands, rule, workflow doc).
+
+    Overwrites every path in ``TEMPLATE_MANIFEST`` with the templates from the
+    installed package. Does not read or delete other files under ``.issueflows/``
+    (issue markdown is never written by the manifest).
+
+    Ensures ``.issueflows/`` subdirectories from settings exist (e.g. new
+    folders in a newer package version).
+    """
+    settings = Settings()
+    context = settings.template_context(project_root)
+
+    console.print(
+        f"\n[bold]Updating issue-flow scaffold in [cyan]{project_root}[/cyan][/bold]\n"
+    )
+
+    _create_issueflow_dirs(project_root, settings)
+
+    written_files, _skipped = _write_manifest_files(project_root, context, force=True)
+
+    console.print()
+    if written_files:
+        console.print(
+            f"[bold green]Refreshed {len(written_files)} file(s).[/bold green]"
+        )
+    else:
+        console.print("[bold]Nothing to write.[/bold]")
+
+    console.print(
+        "\n[dim]Manifest outputs were overwritten from the installed package. "
+        "Issue files under [bold].issueflows/[/bold] were not modified by this command.[/dim]\n"
+    )
+
+
 def _create_issueflow_dirs(project_root: Path, settings: Settings) -> None:
     """Create the .issueflows/ directory tree."""
     base = project_root / settings.issueflows_dir
