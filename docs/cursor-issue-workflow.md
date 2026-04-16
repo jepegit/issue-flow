@@ -6,7 +6,36 @@ This repo uses three Cursor **slash commands** under `.cursor/commands/` that li
 |--------|------|------|
 | `/issue-init` | `issue-init.md` | Pull an issue from GitHub into the repo as a local markdown file and tidy older current issues. |
 | `/issue-start` | `issue-start.md` | Plan and implement the work described in `.issueflows/01-current-issues/`. |
-| `/issue-close` | `issue-close.md` | Finish: tests, issue-folder housekeeping, commit, push, PR. |
+| `/issue-close` | `issue-close.md` | Finish: tests, optional semver bump (`uv version --bump …`), issue-folder housekeeping, commit, push, PR. |
+
+---
+
+## Agent Skills (optional)
+
+`issue-flow init` / `issue-flow update` also install **Cursor Agent Skills** under `.cursor/skills/` — longer, on-demand playbooks that mirror the slash commands (plus a small helper for version bumps):
+
+| Skill folder | Invoke (examples) | Role |
+|--------------|-------------------|------|
+| `issueflow-issue-init` | `/issueflow-issue-init` or attach `@issueflow-issue-init` | Same flow as `/issue-init` (resolve reference, `gh`, archive, write `*_original.md`). |
+| `issueflow-issue-start` | `/issueflow-issue-start` | Plan + confirmation + scope + implement from `.issueflows/01-current-issues/`. |
+| `issueflow-issue-close` | `/issueflow-issue-close` | Tests, optional bump, status checkboxes, move issue docs, commit, push, PR. |
+| `issueflow-version-bump` | `@issueflow-version-bump` (often used from `/issue-close`) | Bump `[project]` version in `pyproject.toml` via `uv version --bump patch|minor|major`. |
+
+Each skill sets `disable-model-invocation: true` so it is included when you **explicitly** invoke it, not on every chat. See [Agent Skills](https://cursor.com/docs/context/skills) in the Cursor docs.
+
+---
+
+## Agent Skills (optional)
+
+`issue-flow init` / `issue-flow update` also install **Cursor Agent Skills** under `.cursor/skills/` — longer, on-demand playbooks that mirror the three commands:
+
+| Skill folder | Invoke (examples) | Role |
+|--------------|-------------------|------|
+| `issueflow-issue-init` | `/issueflow-issue-init` or attach `@issueflow-issue-init` | Same flow as `/issue-init` (resolve reference, `gh`, archive, write `*_original.md`). |
+| `issueflow-issue-start` | `/issueflow-issue-start` | Plan + confirmation + scope + implement from `.issueflows/01-current-issues/`. |
+| `issueflow-issue-close` | `/issueflow-issue-close` | Tests, status checkboxes, move issue docs, commit, push, PR. |
+
+Each skill sets `disable-model-invocation: true` so it is included when you **explicitly** invoke it, not on every chat. See [Agent Skills](https://cursor.com/docs/context/skills) in the Cursor docs.
 
 ---
 
@@ -48,16 +77,24 @@ This repo uses three Cursor **slash commands** under `.cursor/commands/` that li
 
 **When:** Implementation is done and you want to ship (commit, push, PR).
 
-**What you pass:** Optional notes (branch name, PR title, draft PR, or "skip issue doc update").
+**What you pass:** Optional notes (branch name, PR title, draft PR, or "skip issue doc update"). You can also ask for a **semver bump** in the same line, for example:
+
+- `/issue-close bump` or `/issue-close patch` — bump **patch** (e.g. `1.2.0` → `1.2.1`) using `uv version --bump patch`.
+- `/issue-close bump minor` — bump **minor**.
+- `/issue-close bump major` or `/issue-close major` — bump **major**.
+- Free text that clearly describes the bump level — the assistant infers patch vs minor vs major.
+
+The bump runs **after** tests and **before** issue-folder moves and **before** commit / push / PR so the PR includes the new version. If `pyproject.toml` has no bumpable version, the assistant skips the bump and continues.
 
 **Typical steps the assistant follows:**
 
 1. **Sanity check** — e.g. `uv run pytest`, review the diff.
-2. **Issue folders** — update status markdown; use `- [x] Done` only when fully resolved. Move completed issue files from `.issueflows/01-current-issues/` to `.issueflows/03-solved-issues/`, or partly done work to `.issueflows/02-partly-solved-issues/` (see project rules).
-3. **Commit** — focused staging and a clear message.
-4. **Push** — to your usual remote (e.g. `origin`).
-5. **Pull request** — open against the default branch; link the GitHub issue (`Closes #n` / `Refs #n`).
-6. **After review** — address comments, merge when ready.
+2. **Optional version bump** — if requested, follow `.cursor/skills/issueflow-version-bump/SKILL.md` and run `uv version --bump …` from the project root.
+3. **Issue folders** — update status markdown; use `- [x] Done` only when fully resolved. Move completed issue files from `.issueflows/01-current-issues/` to `.issueflows/03-solved-issues/`, or partly done work to `.issueflows/02-partly-solved-issues/` (see project rules).
+4. **Commit** — focused staging and a clear message (include `pyproject.toml` / `uv.lock` if the bump changed them).
+5. **Push** — to your usual remote (e.g. `origin`).
+6. **Pull request** — open against the default branch; link the GitHub issue (`Closes #n` / `Refs #n`).
+7. **After review** — address comments, merge when ready.
 
 **Result:** Short summary of commit, push, and PR link (or what is blocked).
 
@@ -75,9 +112,9 @@ GitHub issue
 Code + tests (+ status updates during work)
     │  /issue-close
     ▼
-Commit → push → PR → merge
+Optional `uv version --bump …` → Commit → push → PR → merge
     │
     └── issue docs in .issueflows/03-solved-issues/ or .issueflows/02-partly-solved-issues/ when appropriate
 ```
 
-The command definitions are the source of truth: `.cursor/commands/issue-init.md`, `issue-start.md`, and `issue-close.md`. This document is a readable overview only.
+The command definitions are the source of truth: `.cursor/commands/issue-init.md`, `issue-start.md`, and `issue-close.md`. The skill packages under `.cursor/skills/` repeat the same workflows for explicit invocation. This document is a readable overview only.

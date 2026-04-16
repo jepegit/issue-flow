@@ -75,6 +75,22 @@ TEMPLATE_MANIFEST: list[tuple[str, str]] = [
     ("commands/issue-close.md.j2", "{cursor_dir}/commands/issue-close.md"),
     ("rules/issueflow-rules.mdc.j2", "{cursor_dir}/rules/issueflow-rules.mdc"),
     ("docs/cursor-issue-workflow.md.j2", "{docs_dir}/cursor-issue-workflow.md"),
+    (
+        "skills/issueflow_issue_init/SKILL.md.j2",
+        "{cursor_dir}/skills/issueflow-issue-init/SKILL.md",
+    ),
+    (
+        "skills/issueflow_issue_start/SKILL.md.j2",
+        "{cursor_dir}/skills/issueflow-issue-start/SKILL.md",
+    ),
+    (
+        "skills/issueflow_issue_close/SKILL.md.j2",
+        "{cursor_dir}/skills/issueflow-issue-close/SKILL.md",
+    ),
+    (
+        "skills/issueflow_version_bump/SKILL.md.j2",
+        "{cursor_dir}/skills/issueflow-version-bump/SKILL.md",
+    ),
 ]
 
 
