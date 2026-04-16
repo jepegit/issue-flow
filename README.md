@@ -39,6 +39,8 @@ The three Cursor slash commands give agents a repeatable flow:
 
 The matching **Agent Skills** (under `.cursor/skills/`) carry the same workflows for on-demand use with `/issueflow-issue-init`, `/issueflow-issue-start`, `/issueflow-issue-close`, or `@issueflow-version-bump` when you need only the bump steps (see [Cursor Agent Skills](https://cursor.com/docs/context/skills)).
 
+The matching **Agent Skills** (under `.cursor/skills/`) carry the same workflows for on-demand use with `/issueflow-issue-init`, `/issueflow-issue-start`, or `/issueflow-issue-close` (see [Cursor Agent Skills](https://cursor.com/docs/context/skills)).
+
 ## Installation
 
 Requires Python 3.13+ and [uv](https://docs.astral.sh/uv/).

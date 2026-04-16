@@ -25,6 +25,20 @@ Each skill sets `disable-model-invocation: true` so it is included when you **ex
 
 ---
 
+## Agent Skills (optional)
+
+`issue-flow init` / `issue-flow update` also install **Cursor Agent Skills** under `.cursor/skills/` — longer, on-demand playbooks that mirror the three commands:
+
+| Skill folder | Invoke (examples) | Role |
+|--------------|-------------------|------|
+| `issueflow-issue-init` | `/issueflow-issue-init` or attach `@issueflow-issue-init` | Same flow as `/issue-init` (resolve reference, `gh`, archive, write `*_original.md`). |
+| `issueflow-issue-start` | `/issueflow-issue-start` | Plan + confirmation + scope + implement from `.issueflows/01-current-issues/`. |
+| `issueflow-issue-close` | `/issueflow-issue-close` | Tests, status checkboxes, move issue docs, commit, push, PR. |
+
+Each skill sets `disable-model-invocation: true` so it is included when you **explicitly** invoke it, not on every chat. See [Agent Skills](https://cursor.com/docs/context/skills) in the Cursor docs.
+
+---
+
 ## 1. `/issue-init` — capture the issue locally
 
 **When:** You have a GitHub issue you want to work on (or archive older "current" issues before starting a new one).
