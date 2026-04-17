@@ -7,6 +7,55 @@ from pathlib import Path
 from issue_flow.init import run_init
 
 
+def test_init_creates_dotenv_with_commented_keys(tmp_path: Path) -> None:
+    """init should create .env with commented ISSUEFLOW_* defaults when absent."""
+    run_init(tmp_path)
+
+    env_file = tmp_path / ".env"
+    assert env_file.is_file()
+    text = env_file.read_text(encoding="utf-8")
+    assert "# ISSUEFLOW_DIR=.issueflows" in text
+    assert "# ISSUEFLOW_CURSOR_DIR=.cursor" in text
+    assert "# ISSUEFLOW_DOCS_DIR=docs" in text
+
+
+def test_init_second_run_skips_dotenv_when_keys_documented(tmp_path: Path) -> None:
+    """Re-running init should not append duplicate ISSUEFLOW_* hints."""
+    run_init(tmp_path)
+    first = (tmp_path / ".env").read_text(encoding="utf-8")
+
+    run_init(tmp_path)
+    second = (tmp_path / ".env").read_text(encoding="utf-8")
+
+    assert first == second
+
+
+def test_init_appends_missing_dotenv_keys(tmp_path: Path) -> None:
+    """If .env exists without ISSUEFLOW_* lines, init should append commented hints."""
+    (tmp_path / ".env").write_text("OTHER=1\n", encoding="utf-8")
+
+    run_init(tmp_path)
+
+    text = (tmp_path / ".env").read_text(encoding="utf-8")
+    assert text.startswith("OTHER=1\n")
+    assert "issue-flow: optional environment" in text
+    assert "# ISSUEFLOW_DIR=.issueflows" in text
+    assert "# ISSUEFLOW_CURSOR_DIR=.cursor" in text
+    assert "# ISSUEFLOW_DOCS_DIR=docs" in text
+
+
+def test_init_force_does_not_wipe_custom_dotenv(tmp_path: Path) -> None:
+    """init --force must not replace an existing .env wholesale."""
+    run_init(tmp_path)
+    env_file = tmp_path / ".env"
+    custom = "MY_SECRET=keep-me\n# ISSUEFLOW_DIR=.issueflows\n# ISSUEFLOW_CURSOR_DIR=.cursor\n# ISSUEFLOW_DOCS_DIR=docs\n"
+    env_file.write_text(custom, encoding="utf-8")
+
+    run_init(tmp_path, force=True)
+
+    assert "MY_SECRET=keep-me" in env_file.read_text(encoding="utf-8")
+
+
 def test_init_creates_directories(tmp_path: Path) -> None:
     """Running init should create .issueflows/ with all four subdirectories."""
     run_init(tmp_path)
