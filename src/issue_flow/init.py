@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 from rich.console import Console
@@ -14,6 +15,64 @@ from issue_flow.templating import (
 )
 
 console = Console()
+
+# Optional project-root `.env` entries (see README). Values are defaults for comments only.
+_DOTENV_KEYS: tuple[tuple[str, str], ...] = (
+    ("ISSUEFLOW_DIR", ".issueflows"),
+    ("ISSUEFLOW_CURSOR_DIR", ".cursor"),
+    ("ISSUEFLOW_DOCS_DIR", "docs"),
+)
+_DOTENV_SECTION_HEADER = "# --- issue-flow: optional environment variables ---\n"
+
+
+def _dotenv_documents_key(content: str, key: str) -> bool:
+    """True if ``key`` appears as an assignment, optionally after ``#`` or ``export``."""
+    pattern = re.compile(
+        rf"(?m)^\s*#?\s*(?:export\s+)?{re.escape(key)}\s*=",
+    )
+    return bool(pattern.search(content))
+
+
+def _ensure_dotenv_file(project_root: Path) -> None:
+    """Create or extend ``.env`` with commented ``ISSUEFLOW_*`` hints.
+
+    Never removes or replaces an existing ``.env`` (including with ``init
+    --force``): only creates a starter file or appends missing keys as
+    comments.
+    """
+    env_path = project_root / ".env"
+    relative = Path(".env")
+
+    if not env_path.exists():
+        lines = [
+            "# issue-flow reads optional ISSUEFLOW_* variables from this file.\n",
+            "# Uncomment to override defaults.\n",
+            "\n",
+        ]
+        for key, default in _DOTENV_KEYS:
+            lines.append(f"# {key}={default}\n")
+        env_path.write_text("".join(lines), encoding="utf-8")
+        console.print(f"  [green]write[/green] {relative}")
+        return
+
+    existing = env_path.read_text(encoding="utf-8")
+    missing = [(k, d) for k, d in _DOTENV_KEYS if not _dotenv_documents_key(existing, k)]
+    if not missing:
+        console.print(
+            f"  [dim]skip[/dim]  {relative}  "
+            "(already lists ISSUEFLOW_* settings; not modified)"
+        )
+        return
+
+    block: list[str] = ["\n", _DOTENV_SECTION_HEADER]
+    for key, default in missing:
+        block.append(f"# {key}={default}\n")
+    with env_path.open("a", encoding="utf-8") as f:
+        f.write("".join(block))
+    console.print(
+        f"  [green]append[/green] {relative}  "
+        f"(added {len(missing)} commented ISSUEFLOW_* line(s))"
+    )
 
 
 def _write_manifest_files(
@@ -69,6 +128,10 @@ def _already_initialized(
 def run_init(project_root: Path, force: bool = False) -> None:
     """Scaffold .issueflows/ directories and .cursor/ config (commands, rules, skills).
 
+    Also ensures a project-root ``.env`` exists or appends commented
+    ``ISSUEFLOW_*`` lines for any keys not yet documented there. Existing
+    ``.env`` files are never replaced in full (even with ``force``).
+
     Re-running without ``force`` skips existing manifest outputs so local
     edits and issue markdown under ``.issueflows/`` are preserved. Manifest
     paths never include issue status or description files.
@@ -98,6 +161,9 @@ def run_init(project_root: Path, force: bool = False) -> None:
     written_files, skipped_files = _write_manifest_files(
         project_root, context, force=force
     )
+
+    console.print()
+    _ensure_dotenv_file(project_root)
 
     console.print()
     if written_files:
