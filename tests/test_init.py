@@ -15,7 +15,7 @@ def test_init_creates_dotenv_with_commented_keys(tmp_path: Path) -> None:
     assert env_file.is_file()
     text = env_file.read_text(encoding="utf-8")
     assert "# ISSUEFLOW_DIR=.issueflows" in text
-    assert "# ISSUEFLOW_CURSOR_DIR=.cursor" in text
+    assert "# ISSUEFLOW_AGENT_DIR=.cursor" in text
     assert "# ISSUEFLOW_DOCS_DIR=docs" in text
 
 
@@ -40,7 +40,7 @@ def test_init_appends_missing_dotenv_keys(tmp_path: Path) -> None:
     assert text.startswith("OTHER=1\n")
     assert "issue-flow: optional environment" in text
     assert "# ISSUEFLOW_DIR=.issueflows" in text
-    assert "# ISSUEFLOW_CURSOR_DIR=.cursor" in text
+    assert "# ISSUEFLOW_AGENT_DIR=.cursor" in text
     assert "# ISSUEFLOW_DOCS_DIR=docs" in text
 
 
@@ -48,7 +48,7 @@ def test_init_force_does_not_wipe_custom_dotenv(tmp_path: Path) -> None:
     """init --force must not replace an existing .env wholesale."""
     run_init(tmp_path)
     env_file = tmp_path / ".env"
-    custom = "MY_SECRET=keep-me\n# ISSUEFLOW_DIR=.issueflows\n# ISSUEFLOW_CURSOR_DIR=.cursor\n# ISSUEFLOW_DOCS_DIR=docs\n"
+    custom = "MY_SECRET=keep-me\n# ISSUEFLOW_DIR=.issueflows\n# ISSUEFLOW_AGENT_DIR=.cursor\n# ISSUEFLOW_DOCS_DIR=docs\n"
     env_file.write_text(custom, encoding="utf-8")
 
     run_init(tmp_path, force=True)

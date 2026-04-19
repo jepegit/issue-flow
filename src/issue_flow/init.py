@@ -19,7 +19,7 @@ console = Console()
 # Optional project-root `.env` entries (see README). Values are defaults for comments only.
 _DOTENV_KEYS: tuple[tuple[str, str], ...] = (
     ("ISSUEFLOW_DIR", ".issueflows"),
-    ("ISSUEFLOW_CURSOR_DIR", ".cursor"),
+    ("ISSUEFLOW_AGENT_DIR", ".cursor"),
     ("ISSUEFLOW_DOCS_DIR", "docs"),
 )
 _DOTENV_SECTION_HEADER = "# --- issue-flow: optional environment variables ---\n"

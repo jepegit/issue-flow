@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 # issue-flow — issue close (`/issue-close`)
 
-Follow this skill when the user wants to **finish and land** work: tests, optional version bump, issue-folder updates, git, and PR. Match `{{ cursor_dir }}/commands/issue-close.md`.
+Follow this skill when the user wants to **finish and land** work: tests, optional version bump, issue-folder updates, git, and PR. Match `{{ agent_dir }}/commands/issue-close.md`.
 
 ## When to use
 
@@ -23,15 +23,15 @@ If the user included text after `/issue-close` that requests a version bump:
 - **`bump major`** or **`major`** → `uv version --bump major`
 - Otherwise infer **patch** / **minor** / **major** from natural language; ask once if ambiguous.
 
-When a bump applies: read `{{ cursor_dir }}/skills/issueflow-version-bump/SKILL.md`, run the bump from the **project root** **after** the sanity check and **before** issue-folder updates and **before** commit / push / PR.
+When a bump applies: read `{{ agent_dir }}/skills/issueflow-version-bump/SKILL.md`, run the bump from the **project root** **after** the sanity check and **before** issue-folder updates and **before** commit / push / PR.
 
 ## Instructions
 
 1. **Sanity check** — Run the project test suite (e.g. `uv run pytest`) and any checks the repo relies on. Skim the diff; avoid bundling unrelated changes.
 
-2. **Optional version bump** — If the user asked for a bump (see above), follow `{{ cursor_dir }}/skills/issueflow-version-bump/SKILL.md` and run `uv version --bump <patch|minor|major>`. If there is no bumpable `pyproject.toml`, skip and continue.
+2. **Optional version bump** — If the user asked for a bump (see above), follow `{{ agent_dir }}/skills/issueflow-version-bump/SKILL.md` and run `uv version --bump <patch|minor|major>`. If there is no bumpable `pyproject.toml`, skip and continue.
 
-3. **Issue tracking** — Under `{{ issueflows_dir }}/{{ current_issues_folder }}/`, update the status file: remaining work, checklists, and **`- [x] Done`** only when the issue is fully resolved. If fully resolved, move that issue’s markdown files (`issue<n>_*`) to `{{ issueflows_dir }}/{{ solved_folder }}/`. If partially resolved, move to `{{ issueflows_dir }}/{{ partly_solved_folder }}/`. Follow any stricter rules in `{{ cursor_dir }}/rules/issueflow-rules.mdc` if present.
+3. **Issue tracking** — Under `{{ issueflows_dir }}/{{ current_issues_folder }}/`, update the status file: remaining work, checklists, and **`- [x] Done`** only when the issue is fully resolved. If fully resolved, move that issue’s markdown files (`issue<n>_*`) to `{{ issueflows_dir }}/{{ solved_folder }}/`. If partially resolved, move to `{{ issueflows_dir }}/{{ partly_solved_folder }}/`. Follow any stricter rules in `{{ agent_dir }}/rules/issueflow-rules.mdc` if present.
 
 4. **Commit** — Stage intentionally (include `pyproject.toml` and `uv.lock` if changed after a bump); write a commit message in full sentences describing what changed and why.
 

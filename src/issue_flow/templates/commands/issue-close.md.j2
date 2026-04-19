@@ -21,7 +21,7 @@ Other optional notes still apply: branch name, PR title, draft PR, skip issue do
    - Skim the diff so the commit matches what you intend to ship.
 
 2. **Optional version bump** (only if the user asked for it in the command input)
-   - Read `{{ cursor_dir }}/skills/issueflow-version-bump/SKILL.md` and follow it.
+   - Read `{{ agent_dir }}/skills/issueflow-version-bump/SKILL.md` and follow it.
    - From the project root, run `uv version --bump patch`, `uv version --bump minor`, or `uv version --bump major` according to the input rules above.
    - Do this **before** updating issue markdown and **before** commit / push / PR so the new version is in the tree that gets merged.
    - If the project has no bumpable `pyproject.toml` version, skip and say so; continue with the remaining steps.

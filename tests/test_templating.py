@@ -15,7 +15,7 @@ def test_all_templates_render_without_error() -> None:
     """Every template in the manifest should render with default context values."""
     context = {
         "issueflows_dir": ".issueflows",
-        "cursor_dir": ".cursor",
+        "agent_dir": ".cursor",
         "docs_dir": "docs",
         "tools_folder": "00-tools",
         "current_issues_folder": "01-current-issues",
@@ -33,7 +33,7 @@ def test_template_substitution() -> None:
     """Template variables should be replaced in the rendered output."""
     context = {
         "issueflows_dir": "CUSTOM_DIR",
-        "cursor_dir": ".cursor",
+        "agent_dir": ".cursor",
         "docs_dir": "docs",
         "tools_folder": "00-tools",
         "current_issues_folder": "01-current-issues",
@@ -47,8 +47,8 @@ def test_template_substitution() -> None:
 
 
 def test_resolve_output_path() -> None:
-    context = {"cursor_dir": ".cursor", "docs_dir": "docs"}
-    path = resolve_output_path("{cursor_dir}/commands/issue-init.md", context)
+    context = {"agent_dir": ".cursor", "docs_dir": "docs"}
+    path = resolve_output_path("{agent_dir}/commands/issue-init.md", context)
     assert path == Path(".cursor/commands/issue-init.md")
 
 

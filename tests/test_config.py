@@ -10,7 +10,7 @@ from issue_flow.config import Settings, _detect_project_name
 def test_default_settings() -> None:
     settings = Settings()
     assert settings.issueflows_dir == ".issueflows"
-    assert settings.cursor_dir == ".cursor"
+    assert settings.agent_dir == ".cursor"
     assert settings.docs_dir == "docs"
 
 
@@ -29,7 +29,7 @@ def test_template_context_keys(tmp_path: Path) -> None:
     context = settings.template_context(tmp_path)
     expected_keys = {
         "issueflows_dir",
-        "cursor_dir",
+        "agent_dir",
         "docs_dir",
         "tools_folder",
         "current_issues_folder",

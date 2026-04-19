@@ -25,12 +25,16 @@ class Settings:
     issueflows_dir: str = field(
         default_factory=lambda: os.getenv("ISSUEFLOW_DIR", ".issueflows")
     )
-    cursor_dir: str = field(
-        default_factory=lambda: os.getenv("ISSUEFLOW_CURSOR_DIR", ".cursor")
+    agent_dir: str = field(
+        default_factory=lambda: os.getenv("ISSUEFLOW_AGENT_DIR", ".cursor")
     )
     docs_dir: str = field(
         default_factory=lambda: os.getenv("ISSUEFLOW_DOCS_DIR", "docs")
     )
+
+    # Give a deprecation warning if the user is using the old ISSUEFLOW_CURSOR_DIR environment variable
+    if os.getenv("ISSUEFLOW_CURSOR_DIR"):
+        print("WARNING: The ISSUEFLOW_CURSOR_DIR environment variable is deprecated (replaced by ISSUEFLOW_AGENT_DIR).")
 
     # Subdirectory names inside .issueflows/
     tools_folder: str = "00-tools"
@@ -52,7 +56,7 @@ class Settings:
         project_name = _detect_project_name(project_root)
         return {
             "issueflows_dir": self.issueflows_dir,
-            "cursor_dir": self.cursor_dir,
+            "agent_dir": self.agent_dir,
             "docs_dir": self.docs_dir,
             "tools_folder": self.tools_folder,
             "current_issues_folder": self.current_issues_folder,

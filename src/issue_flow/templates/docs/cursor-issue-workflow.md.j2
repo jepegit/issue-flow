@@ -1,6 +1,6 @@
 # Cursor issue workflow (slash commands)
 
-This repo uses three Cursor **slash commands** under `{{ cursor_dir }}/commands/` that line up with how we track GitHub issues in `{{ issueflows_dir }}/{{ current_issues_folder }}/`. Use them in order when you pick up work from GitHub and want the assistant to follow the same steps.
+This repo uses three Cursor **slash commands** under `{{ agent_dir }}/commands/` that line up with how we track GitHub issues in `{{ issueflows_dir }}/{{ current_issues_folder }}/`. Use them in order when you pick up work from GitHub and want the assistant to follow the same steps.
 
 | Command | File | Role |
 |--------|------|------|
@@ -12,7 +12,7 @@ This repo uses three Cursor **slash commands** under `{{ cursor_dir }}/commands/
 
 ## Agent Skills (optional)
 
-`issue-flow init` / `issue-flow update` also install **Cursor Agent Skills** under `{{ cursor_dir }}/skills/` — longer, on-demand playbooks that mirror the slash commands (plus a small helper for version bumps):
+`issue-flow init` / `issue-flow update` also install **Cursor Agent Skills** under `{{ agent_dir }}/skills/` — longer, on-demand playbooks that mirror the slash commands (plus a small helper for version bumps):
 
 | Skill folder | Invoke (examples) | Role |
 |--------------|-------------------|------|
@@ -27,7 +27,7 @@ Each skill sets `disable-model-invocation: true` so it is included when you **ex
 
 ## Agent Skills (optional)
 
-`issue-flow init` / `issue-flow update` also install **Cursor Agent Skills** under `{{ cursor_dir }}/skills/` — longer, on-demand playbooks that mirror the three commands:
+`issue-flow init` / `issue-flow update` also install **Cursor Agent Skills** under `{{ agent_dir }}/skills/` — longer, on-demand playbooks that mirror the three commands:
 
 | Skill folder | Invoke (examples) | Role |
 |--------------|-------------------|------|
@@ -89,7 +89,7 @@ The bump runs **after** tests and **before** issue-folder moves and **before** c
 **Typical steps the assistant follows:**
 
 1. **Sanity check** — e.g. `uv run pytest`, review the diff.
-2. **Optional version bump** — if requested, follow `{{ cursor_dir }}/skills/issueflow-version-bump/SKILL.md` and run `uv version --bump …` from the project root.
+2. **Optional version bump** — if requested, follow `{{ agent_dir }}/skills/issueflow-version-bump/SKILL.md` and run `uv version --bump …` from the project root.
 3. **Issue folders** — update status markdown; use `- [x] Done` only when fully resolved. Move completed issue files from `{{ issueflows_dir }}/{{ current_issues_folder }}/` to `{{ issueflows_dir }}/{{ solved_folder }}/`, or partly done work to `{{ issueflows_dir }}/{{ partly_solved_folder }}/` (see project rules).
 4. **Commit** — focused staging and a clear message (include `pyproject.toml` / `uv.lock` if the bump changed them).
 5. **Push** — to your usual remote (e.g. `origin`).
@@ -117,4 +117,4 @@ Optional `uv version --bump …` → Commit → push → PR → merge
     └── issue docs in {{ issueflows_dir }}/{{ solved_folder }}/ or {{ issueflows_dir }}/{{ partly_solved_folder }}/ when appropriate
 ```
 
-The command definitions are the source of truth: `{{ cursor_dir }}/commands/issue-init.md`, `issue-start.md`, and `issue-close.md`. The skill packages under `{{ cursor_dir }}/skills/` repeat the same workflows for explicit invocation. This document is a readable overview only.
+The command definitions are the source of truth: `{{ agent_dir }}/commands/issue-init.md`, `issue-start.md`, and `issue-close.md`. The skill packages under `{{ agent_dir }}/skills/` repeat the same workflows for explicit invocation. This document is a readable overview only.
