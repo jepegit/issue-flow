@@ -1,15 +1,15 @@
 ---
 name: issueflow-issue-start
 description: >-
-  Run the /issue-start workflow: pick the current issue markdown, plan (with
-  confirmation when not in plan mode), guard scope, then implement with project
-  conventions (e.g. uv run).
+  Run the /issue-start workflow: pick the current issue, read issue<N>_plan.md
+  (offer to run /issue-plan if missing), then implement with project conventions
+  (e.g. uv run).
 disable-model-invocation: true
 ---
 
 # issue-flow — issue start (`/issue-start`)
 
-Follow this skill when the user wants to **begin implementation** from issue notes, matching `.cursor/commands/issue-start.md` and project rules.
+Follow this skill when the user wants to **begin implementation** from issue notes, matching `.cursor/commands/issue-start.md` and project rules. Planning itself lives in `/issue-plan`; this skill is now implementation-only.
 
 ## When to use
 
@@ -24,21 +24,27 @@ Follow this skill when the user wants to **begin implementation** from issue not
 
 3. **Sweep stale current issues** (auto-safe) — Group files in `.issueflows/01-current-issues/` by `issueNN_` prefix. For every group **other than the focus issue**, move the whole group to `.issueflows/03-solved-issues/` if any of its status files contains `- [x] Done` (case-insensitive on `done`), otherwise move it to `.issueflows/02-partly-solved-issues/`. Never move the focus issue's files. Report every move.
 
-4. **Plan first** — Produce a concrete plan (steps, files touched, tests). If you are **not** in plan mode, **stop and ask for explicit confirmation** before implementing, per the command definition.
+4. **Plan precondition** — Look for `issue<N>_plan.md` in `.issueflows/01-current-issues/`.
+   - **Plan present:** read it and treat it as the source of truth for scope and approach.
+   - **Plan missing:** do **not** hard-stop. Ask the user to choose one of:
+     - **Run `/issue-plan` now**, then continue into implementation after they confirm the plan.
+     - **Proceed without a plan** — add a short `- Skipped /issue-plan on <date>` note to `issue<N>_status.md` and continue.
+     - **Abort.**
 
-5. **Scope check** — If the plan is broad, propose splitting into phases and ask whether to narrow scope before coding.
+5. **Implement** — Execute the plan (or the explicitly-acknowledged plan-less path). Prefer minimal, focused diffs. Match existing code style and tooling.
 
-6. **Implement** — Execute the confirmed plan. Prefer minimal, focused diffs. Match existing code style and tooling.
-
-7. **Project conventions**
+6. **Project conventions**
    - Run Python via **`uv run`** (scripts, pytest, tools), not bare `python`, unless the user overrides.
    - Manage dependencies with **`uv add` / `uv remove` / `uv sync`** only.
-   - After meaningful progress, update or create a status markdown file under `.issueflows/01-current-issues/` (e.g. `issue<number>_status.md`) with an explicit **Done** checkbox: `- [ ] Done` until fully resolved, then `- [x] Done`.
+   - After meaningful progress, update or create `issue<N>_status.md` under `.issueflows/01-current-issues/` with an explicit `- [ ] Done` checkbox that stays unchecked until fully resolved. Record what has landed and what remains.
 
-8. **Reporting** — Summarize what changed, what remains, and where the issue docs live. Include any branch warnings from step 2 and any issue-group moves from step 3.
+7. **Hand off** — When the implementation is ready to ship, tell the user to run `/issue-close` (optionally with `bump`/`patch`/`minor`/`major`). Parking work mid-stream goes through `/issue-pause`.
+
+8. **Reporting** — Summarize what changed, what remains, and where the issue docs live. Include any branch warnings from step 2, any group moves from step 3, and whether the plan was followed or explicitly skipped.
 
 ## Constraints
 
-- Do not invent issue text; treat `*_original.md` as read-only source of requirements unless the user asks to edit it.
-- The stale sweep in step 3 is the **only** automatic move `/issue-start` performs, and it never touches the focus issue's own files. Do not move the focus issue's files between `01-` / `02-` / `03-` folders during `/issue-start`.
+- Do not invent issue text; treat `*_original.md` as a read-only source of requirements unless the user asks to edit it.
+- The stale sweep in step 3 is the **only** automatic folder move `/issue-start` performs, and it never touches the focus issue's own files.
 - Never delete or force-update git branches from `/issue-start`.
+- Do not write or modify `issue<N>_plan.md` from here — changes to the plan go through `/issue-plan`.
