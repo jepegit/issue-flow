@@ -30,12 +30,22 @@ The text after this slash command is the **issue reference**. It may also be **e
        - support both SSH and HTTPS remote URL formats
        - if parsing fails, ask the user for either full issue URL or `owner/repo`
 
-2. Fetch issue data using GitHub CLI (explicit repo if needed):
-   - title
-   - body
-   - url
-   - number
-   - and confirm resolved `owner/repo`
+2. Fetch issue data using GitHub CLI (explicit repo if needed). Include comments so they can be triaged into the original file:
+   - `gh issue view <N> --repo owner/repo --json title,body,url,number,comments`
+   - `comments` returns an array where each entry has at least `author.login`, `body`, and `createdAt`.
+   - Confirm resolved `owner/repo` to the user.
+
+2a. **Triage comments** (only if the `comments` array is non-empty).
+   - Follow the `issueflow-issue-comments` skill (`.cursor/skills/issueflow-issue-comments/SKILL.md`) for the rules; summary:
+     - Process comments in chronological order. **Later comments win conflicts** with earlier ones.
+     - Sort each useful point into one of three buckets:
+       - **Additional tasks** — new work that isn't already in the issue body.
+       - **Clarifications / constraints** — guidance on *how* to do the existing work (scope, non-goals, style preferences, must-keep behaviors).
+       - **Superseded / retracted** — earlier tasks or preferences that later comments walked back or contradicted.
+     - Collapse duplicates; drop chit-chat, "LGTM" / emoji-only / bot messages.
+     - Paraphrase; quote sparingly. The section is an **interpretive summary**, not a verbatim dump.
+   - If all comments are noise (bot-only, pure chit-chat), skip the section entirely rather than writing an empty one.
+   - If multiple authors openly disagree and no one "wins", record the disagreement under *Clarifications* rather than guessing a winner.
 
 2.5. **Branch status preflight** (report only; do not block and do not delete anything).
    - Run `git fetch --prune` so tracking info is fresh.
@@ -55,7 +65,7 @@ The text after this slash command is the **issue reference**. It may also be **e
 
 4. Create this file:
    - `.issueflows/01-current-issues/issue<number>_original.md`
-5. File content format:
+5. File content format. The `## Comments (curated summary)` section is **optional** — include it only when the triage step (2a) produced at least one bullet; omit it entirely otherwise:
    ```markdown
    # Issue #<number>: <title>
 
@@ -64,7 +74,17 @@ The text after this slash command is the **issue reference**. It may also be **e
    ## Original issue text
 
    <body exactly as in GitHub issue>
+
+   ## Comments (curated summary)
+
+   - **Additional tasks**: <bullets distilled from comments that add real work>
+   - **Clarifications / constraints**: <bullets the agent should honour>
+   - **Superseded / retracted**: <earlier points later contradicted or walked back>
+
+   _Note: this section is an interpretive summary of the comment thread, not a verbatim dump. Source comments: <count>, last comment by @<login> on <date>._
    ```
+   - Drop any of the three bullet groups that have no content (do not keep empty `- **...**:` lines).
+   - Keep the `_Note: ..._` footer whenever the section is present so readers can tell where the summary came from.
 6. If `gh` is not authenticated or issue fetch fails:
    - stop and report the exact error
    - suggest `gh auth login`
@@ -78,11 +98,12 @@ Report:
 - repository used (`owner/repo`)
 - if the issue number was inferred from the current branch after the user confirmed in step **1 A**, state the branch name and that `#NN` was inferred from it
 - file path created
+- how many comments were fetched and how many survived triage (e.g. "12 comments fetched, 4 surfaced as tasks/clarifications, 2 marked superseded"); say so explicitly when the curated section was omitted (no comments or all noise)
 - archive moves performed (source -> destination, grouped by issue number)
 - whether the operation succeeded
 
 ## Constraints
-- Preserve the issue body exactly as returned by GitHub.
+- Preserve the issue **body** exactly as returned by GitHub (the `## Original issue text` section is byte-for-byte). Only the `## Comments (curated summary)` section is interpretive.
 - Use UTF-8 markdown.
 - Allowed file modifications for this command:
   - create/update the target `issue<number>_original.md`
