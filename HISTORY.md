@@ -9,6 +9,7 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- **Dependency awareness at install time (#18).** A new `Prerequisites` section in the README documents the external CLI tools the scaffolded workflow shells out to (`git`, `gh` — with install hints per OS and a `gh auth login` reminder), and `issue-flow init` / `issue-flow update` now run a `shutil.which`-based dependency check up front. If anything is missing, the CLI prints the install hints and asks for confirmation before continuing. The prompt is auto-skipped on non-TTY stdin (CI) and can be bypassed explicitly with `--skip-dep-check`.
 - `issue-flow init` now creates or extends a project `.env` with `ISSUEFLOW_*` hints (#35).
 - Rename `ISSUEFLOW_CURSOR_DIR` to the more tool-agnostic `ISSUEFLOW_AGENT_DIR` (#36).
 - `/issue-close` flags unrelated uncommitted changes and reminds about the issue branch after the PR is opened (#37).
