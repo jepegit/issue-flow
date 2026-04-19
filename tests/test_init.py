@@ -177,6 +177,19 @@ def test_init_issue_close_documents_version_bump(tmp_path: Path) -> None:
     assert "issueflow-version-bump" in content
 
 
+def test_init_issue_close_documents_uncommitted_and_branch_reminder(
+    tmp_path: Path,
+) -> None:
+    """issue-close.md should flag unrelated uncommitted changes and warn about the issue branch after PR."""
+    run_init(tmp_path)
+    content = (tmp_path / ".cursor" / "commands" / "issue-close.md").read_text(
+        encoding="utf-8"
+    )
+    assert "git status" in content
+    assert "not relevant" in content
+    assert "issue branch" in content
+
+
 def test_init_issue_init_documents_branch_inference(tmp_path: Path) -> None:
     """issue-init.md should describe resolving an issue from the current branch when no args."""
     run_init(tmp_path)
