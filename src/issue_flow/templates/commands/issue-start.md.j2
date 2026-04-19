@@ -39,6 +39,7 @@ If additional input is added, use that as implementation hints (scope, constrain
      Wait for an explicit choice. On **(a)**, run the `/issue-plan` flow first (including its user-confirmation stop), then return here. On **(b)**, add a short `- Skipped /issue-plan on <date>` note to `issue<N>_status.md` and continue. On **(c)**, stop.
 
 2. **Implement** the plan. Prefer minimal, focused diffs. Match existing code style and tooling. Follow project rules under `{{ agent_dir }}/rules/issueflow-rules.mdc` (e.g. `uv run` for Python, `uv add` / `uv remove` / `uv sync` for dependencies).
+   - **Designs and guides.** Read any relevant files under `{{ issueflows_dir }}/{{ designs_folder }}/` before making non-trivial decisions. When the work produces a new design decision or establishes a project good-practice (one the plan flagged, or one that only became clear during implementation), add or update a short markdown file under `{{ issueflows_dir }}/{{ designs_folder }}/`: context, the decision, alternatives considered, and a link back to this issue. Keep it terse.
 
 3. **Update the status file.** After meaningful progress, update (or create) `issue<N>_status.md` under `{{ issueflows_dir }}/{{ current_issues_folder }}/` with a `- [ ] Done` checkbox that stays unchecked until fully resolved. Record what has landed and what remains so `/issue-pause` or `/issue-close` has accurate context.
 

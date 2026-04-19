@@ -21,6 +21,8 @@ Optional free-form text after the command. Examples:
 
 1. **Read the issue.** Load `issue<N>_original.md` and any existing `issue<N>_status.md`. Do not rewrite them from this command.
 
+1.5 **Consult existing designs / guides.** Skim `.issueflows/04-designs-and-guides/` for design docs, design decisions, or documented good practices that touch the area you're about to plan. When relevant docs exist, cite them in the plan so the approach stays consistent with prior decisions.
+
 2. **Explore, then propose.** Do enough read-only research (search, read files, check existing tests) to design the change. Keep it proportional to the issue — small fix = short plan.
 
 3. **Write `issue<N>_plan.md`** in `.issueflows/01-current-issues/` with these sections:
@@ -49,7 +51,7 @@ Optional free-form text after the command. Examples:
    - Anything that needs the user's call before coding.
    ```
 
-   Keep it terse but specific. Link to files with markdown links when helpful.
+   Keep it terse but specific. Link to files with markdown links when helpful. If the plan expects to **produce** a design doc / decision record under `.issueflows/04-designs-and-guides/`, call that out explicitly (e.g. in **Files to touch**) so `/issue-start` knows to create it.
 
 4. **Scope check.** If the plan is broad (many unrelated files, several independent deliverables, or mixes refactors with feature work), **propose splitting** into smaller issues or phased PRs and ask the user before continuing.
 

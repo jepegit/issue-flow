@@ -4,6 +4,8 @@
 
 Off-path commands (`/issue-pause`, `/issue-cleanup`, `/issue-yolo`) are **not** auto-dispatched. Invoke them directly when you need them.
 
+Long-lived design docs, design decisions, and project good-practices live under `{{ issueflows_dir }}/{{ designs_folder }}/`. The downstream commands (`/issue-plan`, `/issue-start`, `/issue-close`) read from and add to that folder as they run; `/iflow` itself does not touch it.
+
 ## Input
 
 Optional free-form text after the command. `/iflow` forwards the raw trailing text to whichever command it dispatches to. Examples:
