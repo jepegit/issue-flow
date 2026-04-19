@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- `/issue-init` now fetches GitHub issue comments and writes a curated "Comments (curated summary)" section into `issue<N>_original.md` (later comments win over earlier ones). New `issueflow-issue-comments` skill documents the triage rules (three buckets, noise filtering, edge cases). (#45)
+
 ## [0.2.3] - 2026-04-19
 
 - **Dependency awareness at install time (#18).** A new `Prerequisites` section in the README documents the external CLI tools the scaffolded workflow shells out to (`git`, `gh` — with install hints per OS and a `gh auth login` reminder), and `issue-flow init` / `issue-flow update` now run a `shutil.which`-based dependency check up front. If anything is missing, the CLI prints the install hints and asks for confirmation before continuing. The prompt is auto-skipped on non-TTY stdin (CI) and can be bypassed explicitly with `--skip-dep-check`.

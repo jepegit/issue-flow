@@ -55,8 +55,8 @@ def test_resolve_output_path() -> None:
 
 
 def test_manifest_entry_count() -> None:
-    # 8 commands + 1 rule + 1 doc + 10 skills = 20
-    assert len(TEMPLATE_MANIFEST) == 20
+    # 8 commands + 1 rule + 1 doc + 11 skills = 21
+    assert len(TEMPLATE_MANIFEST) == 21
 
 
 def test_manifest_has_expected_commands_and_skills() -> None:
@@ -76,6 +76,7 @@ def test_manifest_has_expected_commands_and_skills() -> None:
     for skill in (
         "issueflow_iflow",
         "issueflow_issue_init",
+        "issueflow_issue_comments",
         "issueflow_issue_plan",
         "issueflow_issue_start",
         "issueflow_issue_pause",
@@ -258,3 +259,55 @@ def test_issue_yolo_forwards_history_tokens() -> None:
     rendered = render_template("commands/issue-yolo.md.j2", _default_context())
     assert "nohistory" in rendered
     assert "log " in rendered  # `log "..."` bullet-summary override
+
+
+def test_issue_init_fetches_and_triages_comments() -> None:
+    """/issue-init must fetch comments and call the comments-triage skill."""
+    rendered = render_template("commands/issue-init.md.j2", _default_context())
+    # gh fetch now asks for the comments field too.
+    assert "title,body,url,number,comments" in rendered
+    # The curated section header appears in the file-content template.
+    assert "## Comments (curated summary)" in rendered
+    # The triage step exists and delegates to the new skill.
+    assert "Triage comments" in rendered
+    assert "issueflow-issue-comments" in rendered
+    # The three triage buckets are named.
+    assert "Additional tasks" in rendered
+    assert "Clarifications" in rendered
+    assert "Superseded" in rendered
+    # The body contract is still byte-for-byte.
+    assert "byte-for-byte" in rendered
+
+
+def test_issue_init_skill_delegates_to_comments_skill() -> None:
+    """The issue-init skill must fetch comments and point at the comments skill."""
+    rendered = render_template(
+        "skills/issueflow_issue_init/SKILL.md.j2", _default_context()
+    )
+    assert "title,body,url,number,comments" in rendered
+    assert "issueflow-issue-comments" in rendered
+    assert "## Comments (curated summary)" in rendered
+
+
+def test_issue_comments_skill_documents_triage_rules() -> None:
+    """The new issueflow-issue-comments skill must describe triage rules and buckets."""
+    rendered = render_template(
+        "skills/issueflow_issue_comments/SKILL.md.j2", _default_context()
+    )
+    # Frontmatter identity.
+    assert "name: issueflow-issue-comments" in rendered
+    assert "disable-model-invocation: true" in rendered
+    # Chronological precedence (later wins) is called out.
+    lowered = rendered.lower()
+    assert "chronological" in lowered
+    assert "later" in lowered
+    # All three buckets are named.
+    assert "Additional tasks" in rendered
+    assert "Clarifications" in rendered
+    assert "Superseded" in rendered
+    # The output contract header matches exactly what /issue-init expects.
+    assert "## Comments (curated summary)" in rendered
+    # Noise-filtering guidance exists.
+    assert "bot" in lowered
+    # Zero-comment edge case is handled.
+    assert "zero comments" in lowered or "skip the whole section" in lowered
