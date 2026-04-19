@@ -5,9 +5,14 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+import typer
 from rich.console import Console
 
 from issue_flow.config import Settings
+from issue_flow.dependencies import (
+    check_dependencies,
+    prompt_or_skip,
+)
 from issue_flow.templating import (
     TEMPLATE_MANIFEST,
     render_template,
@@ -126,7 +131,11 @@ def _already_initialized(
     )
 
 
-def run_init(project_root: Path, force: bool = False) -> None:
+def run_init(
+    project_root: Path,
+    force: bool = False,
+    skip_dep_check: bool = False,
+) -> None:
     """Scaffold .issueflows/ directories and .cursor/ config (commands, rules, skills).
 
     Also ensures a project-root ``.env`` exists or appends commented
@@ -137,9 +146,15 @@ def run_init(project_root: Path, force: bool = False) -> None:
     edits and issue markdown under ``.issueflows/`` are preserved. Manifest
     paths never include issue status or description files.
 
+    Before scaffolding, checks for required external CLI tools (``git``,
+    ``gh``). If any are missing, prints install guidance and asks for
+    confirmation before continuing (unless ``skip_dep_check`` is set or
+    stdin is non-interactive).
+
     Args:
         project_root: Absolute path to the user's project directory.
         force: If True, overwrite existing manifest files without asking.
+        skip_dep_check: If True, bypass the external-CLI dependency check.
     """
     settings = Settings()
     context = settings.template_context(project_root)
@@ -147,6 +162,9 @@ def run_init(project_root: Path, force: bool = False) -> None:
     console.print(
         f"\n[bold]Initializing issue-flow in [cyan]{project_root}[/cyan][/bold]\n"
     )
+
+    if not _dependency_gate(skip_dep_check):
+        raise typer.Exit(code=1)
 
     if not force and _already_initialized(project_root, settings, context):
         console.print(
@@ -185,7 +203,7 @@ def run_init(project_root: Path, force: bool = False) -> None:
     )
 
 
-def run_update(project_root: Path) -> None:
+def run_update(project_root: Path, skip_dep_check: bool = False) -> None:
     """Refresh packaged scaffold files (commands, rule, skills, workflow doc).
 
     Overwrites every path in ``TEMPLATE_MANIFEST`` with the templates from the
@@ -194,6 +212,13 @@ def run_update(project_root: Path) -> None:
 
     Ensures ``.issueflows/`` subdirectories from settings exist (e.g. new
     folders in a newer package version).
+
+    Runs the same external-CLI dependency check as :func:`run_init` so
+    upgrades also surface missing tools.
+
+    Args:
+        project_root: Absolute path to the user's project directory.
+        skip_dep_check: If True, bypass the external-CLI dependency check.
     """
     settings = Settings()
     context = settings.template_context(project_root)
@@ -201,6 +226,9 @@ def run_update(project_root: Path) -> None:
     console.print(
         f"\n[bold]Updating issue-flow scaffold in [cyan]{project_root}[/cyan][/bold]\n"
     )
+
+    if not _dependency_gate(skip_dep_check):
+        raise typer.Exit(code=1)
 
     _create_issueflow_dirs(project_root, settings)
 
@@ -218,6 +246,17 @@ def run_update(project_root: Path) -> None:
         "\n[dim]Manifest outputs were overwritten from the installed package. "
         "Issue files under [bold].issueflows/[/bold] were not modified by this command.[/dim]\n"
     )
+
+
+def _dependency_gate(skip_dep_check: bool) -> bool:
+    """Run the external-CLI dependency check and decide whether to proceed.
+
+    Returns True if ``run_init`` / ``run_update`` should continue, False if
+    the user declined the confirmation prompt after seeing a missing-deps
+    report.
+    """
+    missing = check_dependencies()
+    return prompt_or_skip(missing, console, skip=skip_dep_check)
 
 
 def _create_issueflow_dirs(project_root: Path, settings: Settings) -> None:

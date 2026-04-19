@@ -32,11 +32,21 @@ def init(
         "-f",
         help="Overwrite existing files without asking.",
     ),
+    skip_dep_check: bool = typer.Option(
+        False,
+        "--skip-dep-check",
+        help=(
+            "Skip the external-CLI dependency check (git, gh) and the "
+            "confirmation prompt that follows if anything is missing."
+        ),
+    ),
 ) -> None:
     """Scaffold issue-flow directories and Cursor config files in a project."""
     from issue_flow.init import run_init
 
-    run_init(project_root=project_dir, force=force)
+    run_init(
+        project_root=project_dir, force=force, skip_dep_check=skip_dep_check
+    )
 
 
 @app.command()
@@ -48,11 +58,19 @@ def update(
         file_okay=False,
         resolve_path=True,
     ),
+    skip_dep_check: bool = typer.Option(
+        False,
+        "--skip-dep-check",
+        help=(
+            "Skip the external-CLI dependency check (git, gh) and the "
+            "confirmation prompt that follows if anything is missing."
+        ),
+    ),
 ) -> None:
     """Refresh packaged Cursor commands, rules, and workflow doc from this package."""
     from issue_flow.init import run_update
 
-    run_update(project_root=project_dir)
+    run_update(project_root=project_dir, skip_dep_check=skip_dep_check)
 
 
 def main() -> None:

@@ -58,6 +58,41 @@ Plus a few off-path commands:
 
 The matching **Agent Skills** (under `.cursor/skills/`) carry the same workflows for on-demand use with `/issueflow-iflow`, `/issueflow-issue-init`, `/issueflow-issue-plan`, `/issueflow-issue-start`, `/issueflow-issue-pause`, `/issueflow-issue-close`, `/issueflow-issue-cleanup`, `/issueflow-issue-yolo`, `@issueflow-version-bump` when you need only the bump steps, or `@issueflow-history-update` when you need only the changelog update (see [Cursor Agent Skills](https://cursor.com/docs/context/skills)).
 
+## Prerequisites
+
+issue-flow itself is a small Python CLI, but the **scaffolded slash commands
+it writes into your project shell out to a few external tools**. If they are
+missing, the slash commands will fail at runtime — so `issue-flow init` now
+checks for them up front and prints install hints before it does anything.
+
+Required:
+
+- **[Git](https://git-scm.com/downloads)** — used by every slash command for
+  branch, fetch, status, commit, and push operations. Almost certainly already
+  installed if you're here, but the check covers it for completeness.
+- **[GitHub CLI (`gh`)](https://cli.github.com/)** — used by `/issue-init` to
+  fetch issues, by `/issue-close` to open PRs, and by `/issue-cleanup` to check
+  PR merge status. After installing, run `gh auth login` once to authenticate.
+
+Recommended:
+
+- **[uv](https://docs.astral.sh/uv/)** — how issue-flow itself is meant to be
+  installed, and how this repo manages its own Python environment.
+
+Quick install pointers for `gh`:
+
+| Platform | Command |
+|---|---|
+| macOS (Homebrew) | `brew install gh` |
+| Windows (winget) | `winget install --id GitHub.cli -e` |
+| Linux (Debian/Ubuntu) | `sudo apt install gh` (or see [cli.github.com](https://cli.github.com/) for the official repo) |
+
+If a dependency is missing, `issue-flow init` prints the installation hints
+and asks whether to continue anyway. You can bypass the prompt in automation
+with `issue-flow init --skip-dep-check` (the same flag is available on
+`issue-flow update`), and the prompt is also auto-skipped when stdin is not
+a TTY (e.g. CI pipelines).
+
 ## Installation
 
 Requires Python 3.13+ and [uv](https://docs.astral.sh/uv/).
@@ -84,8 +119,8 @@ That's it. Open the project in Cursor and start with `/iflow` (or step through `
 ## Usage
 
 ```
-issue-flow init [PROJECT_DIR] [--force]
-issue-flow update [PROJECT_DIR]
+issue-flow init [PROJECT_DIR] [--force] [--skip-dep-check]
+issue-flow update [PROJECT_DIR] [--skip-dep-check]
 ```
 
 ### `issue-flow init`
@@ -94,6 +129,7 @@ issue-flow update [PROJECT_DIR]
 |---|---|
 | `PROJECT_DIR` | Project root directory. Defaults to `.` (current directory). |
 | `--force`, `-f` | Overwrite generated Cursor commands, rules, and workflow doc instead of skipping them. |
+| `--skip-dep-check` | Skip the external-CLI dependency check (`git`, `gh`) and the confirmation prompt that follows if anything is missing. Useful in automation. |
 
 Running `init` again without `--force` is safe: generated scaffold files that already exist are skipped, and **issue markdown under `.issueflows/` is never touched** by `init` or `update`. When the CLI detects an existing scaffold, it reminds you about `update` and `--force`.
 
@@ -102,6 +138,7 @@ Running `init` again without `--force` is safe: generated scaffold files that al
 | Argument / Option | Description |
 |---|---|
 | `PROJECT_DIR` | Project root directory. Defaults to `.` (current directory). |
+| `--skip-dep-check` | Skip the external-CLI dependency check (`git`, `gh`) and the confirmation prompt that follows if anything is missing. |
 
 Use `update` after upgrading the **issue-flow** package to refresh the packaged slash commands, Cursor rule, and `docs/cursor-issue-workflow.md` from the version you have installed. This **overwrites** those generated files (unlike a plain second `init`). It still does not modify arbitrary files under `.issueflows/` (for example your `issue*_original.md` / `issue*_status.md` files), and it creates any **new** `.issueflows/` subdirectories required by the current package.
 

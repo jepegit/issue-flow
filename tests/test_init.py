@@ -4,6 +4,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+import typer
+
+from issue_flow import dependencies as deps_module
+from issue_flow import init as init_module
+from issue_flow.dependencies import REQUIRED_DEPENDENCIES
 from issue_flow.init import run_init
 
 
@@ -220,6 +226,77 @@ def test_init_issue_init_documents_branch_inference(tmp_path: Path) -> None:
     assert "git branch --show-current" in content
     assert "You have not provided an issue reference" in content
     assert "issue-style branch" in content
+
+
+def test_init_proceeds_silently_when_all_dependencies_present(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """With all deps present the check should not prompt or abort."""
+    monkeypatch.setattr(init_module, "check_dependencies", lambda: list(REQUIRED_DEPENDENCIES[:0]))
+
+    def fail_confirm(*_a: object, **_kw: object) -> bool:
+        raise AssertionError("typer.confirm should not be called when all deps present")
+
+    monkeypatch.setattr(typer, "confirm", fail_confirm)
+
+    run_init(tmp_path)
+
+    assert (tmp_path / ".cursor" / "commands" / "issue-init.md").is_file()
+
+
+def test_init_continues_when_skip_dep_check_is_set(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """``skip_dep_check=True`` must bypass the prompt even if deps are missing."""
+    monkeypatch.setattr(
+        init_module, "check_dependencies", lambda: list(REQUIRED_DEPENDENCIES)
+    )
+
+    def fail_confirm(*_a: object, **_kw: object) -> bool:
+        raise AssertionError("typer.confirm must not run when --skip-dep-check is set")
+
+    monkeypatch.setattr(typer, "confirm", fail_confirm)
+
+    run_init(tmp_path, skip_dep_check=True)
+
+    assert (tmp_path / ".cursor" / "commands" / "issue-init.md").is_file()
+
+
+def test_init_continues_in_non_tty_when_deps_missing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Non-interactive stdin (CI) must auto-skip the prompt."""
+    monkeypatch.setattr(
+        init_module, "check_dependencies", lambda: list(REQUIRED_DEPENDENCIES)
+    )
+    monkeypatch.setattr(deps_module.sys.stdin, "isatty", lambda: False)
+
+    def fail_confirm(*_a: object, **_kw: object) -> bool:
+        raise AssertionError("typer.confirm must not run on non-TTY stdin")
+
+    monkeypatch.setattr(typer, "confirm", fail_confirm)
+
+    run_init(tmp_path)
+
+    assert (tmp_path / ".cursor" / "commands" / "issue-init.md").is_file()
+
+
+def test_init_aborts_cleanly_when_user_declines_prompt(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A decline at the prompt must raise typer.Exit and leave no scaffold behind."""
+    monkeypatch.setattr(
+        init_module, "check_dependencies", lambda: list(REQUIRED_DEPENDENCIES)
+    )
+    monkeypatch.setattr(deps_module.sys.stdin, "isatty", lambda: True)
+    monkeypatch.setattr(typer, "confirm", lambda *_a, **_kw: False)
+
+    with pytest.raises(typer.Exit) as exc_info:
+        run_init(tmp_path)
+
+    assert exc_info.value.exit_code == 1
+    assert not (tmp_path / ".cursor").exists()
+    assert not (tmp_path / ".issueflows").exists()
 
 
 def test_init_detects_project_name(tmp_path: Path) -> None:
