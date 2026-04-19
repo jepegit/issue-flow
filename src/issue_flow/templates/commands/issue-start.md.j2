@@ -7,7 +7,7 @@ If additional input is added, use that for further detailed guidance
 
 ## Steps
 
-0. If the issue markdown file is not present, or it is ambiguous which one to select, ask.
+0. If the issue markdown file is not present, or it is ambiguous which one to select, ask. Could it be that the user has not run the /issue-init command?
 
 1. Plan. If not in plan mode, stop and ask for a confirmation.
 

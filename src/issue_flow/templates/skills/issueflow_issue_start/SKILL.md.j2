@@ -9,12 +9,12 @@ disable-model-invocation: true
 
 # issue-flow — issue start (`/issue-start`)
 
-Follow this skill when the user wants to **begin implementation** from issue notes, matching `{{ cursor_dir }}/commands/issue-start.md` and project rules.
+Follow this skill when the user wants to **begin implementation** from issue notes, matching `{{ agent_dir }}/commands/issue-start.md` and project rules.
 
 ## When to use
 
 - The user runs `/issue-start`, mentions **issue-start**, or asks to implement from `{{ issueflows_dir }}/{{ current_issues_folder }}/`.
-- Work should follow the issue-flow markdown workflow and stay aligned with `{{ cursor_dir }}/rules/issueflow-rules.mdc` when present.
+- Work should follow the issue-flow markdown workflow and stay aligned with `{{ agent_dir }}/rules/issueflow-rules.mdc` when present.
 
 ## Instructions
 

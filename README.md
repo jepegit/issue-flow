@@ -103,7 +103,7 @@ issue-flow reads a `.env` file from the project root (via python-dotenv). The fo
 | Variable | Default | Description |
 |---|---|---|
 | `ISSUEFLOW_DIR` | `.issueflows` | Name of the issue-tracking directory. |
-| `ISSUEFLOW_CURSOR_DIR` | `.cursor` | Name of the Cursor config directory. |
+| `ISSUEFLOW_AGENT_DIR` | `.cursor` | Name of the agent/IDE config directory (currently `.cursor`). |
 | `ISSUEFLOW_DOCS_DIR` | `docs` | Where to write the workflow documentation file. |
 
 ## Development

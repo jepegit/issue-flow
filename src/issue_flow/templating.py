@@ -70,30 +70,30 @@ def render_template(template_name: str, context: dict[str, str]) -> str:
 # Each entry: (template_file, output_path_template)
 # The output_path_template uses simple str.format with the context dict.
 TEMPLATE_MANIFEST: list[tuple[str, str]] = [
-    ("commands/issue-init.md.j2", "{cursor_dir}/commands/issue-init.md"),
-    ("commands/issue-start.md.j2", "{cursor_dir}/commands/issue-start.md"),
-    ("commands/issue-close.md.j2", "{cursor_dir}/commands/issue-close.md"),
-    ("rules/issueflow-rules.mdc.j2", "{cursor_dir}/rules/issueflow-rules.mdc"),
+    ("commands/issue-init.md.j2", "{agent_dir}/commands/issue-init.md"),
+    ("commands/issue-start.md.j2", "{agent_dir}/commands/issue-start.md"),
+    ("commands/issue-close.md.j2", "{agent_dir}/commands/issue-close.md"),
+    ("rules/issueflow-rules.mdc.j2", "{agent_dir}/rules/issueflow-rules.mdc"),
     ("docs/cursor-issue-workflow.md.j2", "{docs_dir}/cursor-issue-workflow.md"),
     (
         "skills/issueflow_issue_init/SKILL.md.j2",
-        "{cursor_dir}/skills/issueflow-issue-init/SKILL.md",
+        "{agent_dir}/skills/issueflow-issue-init/SKILL.md",
     ),
     (
         "skills/issueflow_issue_start/SKILL.md.j2",
-        "{cursor_dir}/skills/issueflow-issue-start/SKILL.md",
+        "{agent_dir}/skills/issueflow-issue-start/SKILL.md",
     ),
     (
         "skills/issueflow_issue_close/SKILL.md.j2",
-        "{cursor_dir}/skills/issueflow-issue-close/SKILL.md",
+        "{agent_dir}/skills/issueflow-issue-close/SKILL.md",
     ),
     (
         "skills/issueflow_version_bump/SKILL.md.j2",
-        "{cursor_dir}/skills/issueflow-version-bump/SKILL.md",
+        "{agent_dir}/skills/issueflow-version-bump/SKILL.md",
     ),
 ]
 
 
 def resolve_output_path(path_template: str, context: dict[str, str]) -> Path:
-    """Resolve a path template like '{cursor_dir}/commands/foo.md' into a Path."""
+    """Resolve a path template like '{agent_dir}/commands/foo.md' into a Path."""
     return Path(path_template.format(**context))
