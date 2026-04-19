@@ -120,6 +120,10 @@ uv run pytest
 uv run ruff check src/ tests/
 ```
 
+## Changelog
+
+See [HISTORY.md](HISTORY.md) for release notes.
+
 ## Future plans
 
 - **Multi-tool support** — generate config for other AI coding tools (Claude Code, Windsurf, etc.) in addition to Cursor.
