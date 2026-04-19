@@ -11,7 +11,7 @@ This repo uses eight Cursor **slash commands** under `.cursor/commands/` that li
 | `/issue-plan` | `issue-plan.md` | Write a structured `issue<N>_plan.md` and get explicit user confirmation before any code is touched. |
 | `/issue-start` | `issue-start.md` | Implement the confirmed plan (no planning step of its own any more). |
 | `/issue-pause` | `issue-pause.md` | Park work safely: update status, move the issue group to `02-partly-solved-issues/`, optional WIP commit and branch switch. |
-| `/issue-close` | `issue-close.md` | Finish: tests, optional semver bump (`uv version --bump …`), issue-folder housekeeping, commit, push, PR. |
+| `/issue-close` | `issue-close.md` | Finish: tests, optional semver bump (`uv version --bump …`), `HISTORY.md` update, issue-folder housekeeping, commit, push, PR. |
 | `/issue-cleanup` | `issue-cleanup.md` | Post-merge hygiene: switch to default, `git pull --ff-only`, `git fetch --prune`, delete merged local branches (single consolidated confirm). |
 | `/issue-yolo` | `issue-yolo.md` | All-in-one for small, low-risk issues: chains `init → plan → start → close` with up-front safeguards and a single confirmation. |
 
@@ -32,6 +32,7 @@ This repo uses eight Cursor **slash commands** under `.cursor/commands/` that li
 | `issueflow-issue-cleanup` | `/issueflow-issue-cleanup` | Post-merge cleanup (single consolidated confirm, never `-D`). |
 | `issueflow-issue-yolo` | `/issueflow-issue-yolo` | Chain `init → plan → start → close` with safeguards. |
 | `issueflow-version-bump` | `@issueflow-version-bump` (often used from `/issue-close`) | Bump `[project]` version in `pyproject.toml` via `uv version --bump patch|minor|major`. |
+| `issueflow-history-update` | `@issueflow-history-update` (used from `/issue-close`) | Append an entry to `## [Unreleased]` in `HISTORY.md`, or promote it to a new `## [x.y.z] - YYYY-MM-DD` release section when a version bump happened. |
 
 Each skill sets `disable-model-invocation: true` so it is included when you **explicitly** invoke it, not on every chat. See [Agent Skills](https://cursor.com/docs/context/skills) in the Cursor docs.
 
@@ -151,6 +152,8 @@ All the commands that touch git also run a short **branch-status preflight**: `g
 - `/issue-close bump minor` — bump **minor**.
 - `/issue-close bump major` or `/issue-close major` — bump **major**.
 - Free text that clearly describes the bump level — the assistant infers patch vs minor vs major.
+- `/issue-close nohistory` (or `skip history`) — skip the `HISTORY.md` update step for this run.
+- `/issue-close log "one-line summary"` (or `note "..."`) — override the `HISTORY.md` bullet summary instead of using the GitHub issue title.
 
 The bump runs **after** tests and **before** issue-folder moves and **before** commit / push / PR so the PR includes the new version. If `pyproject.toml` has no bumpable version, the assistant skips the bump and continues.
 
@@ -158,11 +161,12 @@ The bump runs **after** tests and **before** issue-folder moves and **before** c
 
 1. **Sanity check** — e.g. `uv run pytest`, review the diff.
 2. **Optional version bump** — if requested, follow `.cursor/skills/issueflow-version-bump/SKILL.md` and run `uv version --bump …` from the project root.
-3. **Issue folders** — update status markdown; use `- [x] Done` only when fully resolved. Move completed issue files from `.issueflows/01-current-issues/` to `.issueflows/03-solved-issues/`, or partly done work to `.issueflows/02-partly-solved-issues/`.
-4. **Commit** — focused staging and a clear message (include `pyproject.toml` / `uv.lock` if the bump changed them). Sync with the default branch using `git pull --ff-only`.
-5. **Push** — to your usual remote (e.g. `origin`).
-6. **Pull request** — open against the default branch; link the GitHub issue (`Closes #n` / `Refs #n`).
-7. **After review** — remind you the working copy is still on the issue branch; once the PR merges, run `/issue-cleanup` for the post-merge tidy-up.
+3. **Update `HISTORY.md`** — unless `nohistory` was passed, follow `.cursor/skills/issueflow-history-update/SKILL.md`. Append a bullet to `## [Unreleased]` (no bump) or promote `## [Unreleased]` to `## [<new_version>] - <YYYY-MM-DD>` and open a fresh empty `## [Unreleased]` above it (with bump). The assistant shows the diff and asks for a single confirm before writing. If `HISTORY.md` is missing at the project root, the step is skipped with a note — never auto-created.
+4. **Issue folders** — update status markdown; use `- [x] Done` only when fully resolved. Move completed issue files from `.issueflows/01-current-issues/` to `.issueflows/03-solved-issues/`, or partly done work to `.issueflows/02-partly-solved-issues/`.
+5. **Commit** — focused staging and a clear message (include `pyproject.toml` / `uv.lock` if the bump changed them, and `HISTORY.md` when step 3 updated it). Sync with the default branch using `git pull --ff-only`.
+6. **Push** — to your usual remote (e.g. `origin`).
+7. **Pull request** — open against the default branch; link the GitHub issue (`Closes #n` / `Refs #n`).
+8. **After review** — remind you the working copy is still on the issue branch; once the PR merges, run `/issue-cleanup` for the post-merge tidy-up.
 
 **Result:** Commit, push, PR link. No branches are deleted from `/issue-close` itself.
 

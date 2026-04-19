@@ -17,6 +17,7 @@ def test_init_creates_dotenv_with_commented_keys(tmp_path: Path) -> None:
     assert "# ISSUEFLOW_DIR=.issueflows" in text
     assert "# ISSUEFLOW_AGENT_DIR=.cursor" in text
     assert "# ISSUEFLOW_DOCS_DIR=docs" in text
+    assert "# ISSUEFLOW_HISTORY_FILE=HISTORY.md" in text
 
 
 def test_init_second_run_skips_dotenv_when_keys_documented(tmp_path: Path) -> None:
@@ -42,13 +43,20 @@ def test_init_appends_missing_dotenv_keys(tmp_path: Path) -> None:
     assert "# ISSUEFLOW_DIR=.issueflows" in text
     assert "# ISSUEFLOW_AGENT_DIR=.cursor" in text
     assert "# ISSUEFLOW_DOCS_DIR=docs" in text
+    assert "# ISSUEFLOW_HISTORY_FILE=HISTORY.md" in text
 
 
 def test_init_force_does_not_wipe_custom_dotenv(tmp_path: Path) -> None:
     """init --force must not replace an existing .env wholesale."""
     run_init(tmp_path)
     env_file = tmp_path / ".env"
-    custom = "MY_SECRET=keep-me\n# ISSUEFLOW_DIR=.issueflows\n# ISSUEFLOW_AGENT_DIR=.cursor\n# ISSUEFLOW_DOCS_DIR=docs\n"
+    custom = (
+        "MY_SECRET=keep-me\n"
+        "# ISSUEFLOW_DIR=.issueflows\n"
+        "# ISSUEFLOW_AGENT_DIR=.cursor\n"
+        "# ISSUEFLOW_DOCS_DIR=docs\n"
+        "# ISSUEFLOW_HISTORY_FILE=HISTORY.md\n"
+    )
     env_file.write_text(custom, encoding="utf-8")
 
     run_init(tmp_path, force=True)
@@ -103,6 +111,7 @@ def test_init_creates_cursor_skills(tmp_path: Path) -> None:
         "issueflow-issue-start",
         "issueflow-issue-close",
         "issueflow-version-bump",
+        "issueflow-history-update",
     ):
         skill_file = skills / name / "SKILL.md"
         assert skill_file.is_file(), f"expected {skill_file}"
@@ -175,6 +184,18 @@ def test_init_issue_close_documents_version_bump(tmp_path: Path) -> None:
     )
     assert "uv version --bump" in content
     assert "issueflow-version-bump" in content
+
+
+def test_init_issue_close_documents_history_update_step(tmp_path: Path) -> None:
+    """issue-close.md should describe the HISTORY.md update step and opt-out token."""
+    run_init(tmp_path)
+    content = (tmp_path / ".cursor" / "commands" / "issue-close.md").read_text(
+        encoding="utf-8"
+    )
+    assert "HISTORY.md" in content
+    assert "issueflow-history-update" in content
+    assert "[Unreleased]" in content
+    assert "nohistory" in content
 
 
 def test_init_issue_close_documents_uncommitted_and_branch_reminder(
