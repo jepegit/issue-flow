@@ -17,6 +17,7 @@ def test_all_templates_render_without_error() -> None:
         "issueflows_dir": ".issueflows",
         "agent_dir": ".cursor",
         "docs_dir": "docs",
+        "history_file": "HISTORY.md",
         "tools_folder": "00-tools",
         "current_issues_folder": "01-current-issues",
         "partly_solved_folder": "02-partly-solved-issues",
@@ -35,6 +36,7 @@ def test_template_substitution() -> None:
         "issueflows_dir": "CUSTOM_DIR",
         "agent_dir": ".cursor",
         "docs_dir": "docs",
+        "history_file": "HISTORY.md",
         "tools_folder": "00-tools",
         "current_issues_folder": "01-current-issues",
         "partly_solved_folder": "02-partly-solved-issues",
@@ -53,8 +55,8 @@ def test_resolve_output_path() -> None:
 
 
 def test_manifest_entry_count() -> None:
-    # 8 commands + 1 rule + 1 doc + 9 skills = 19
-    assert len(TEMPLATE_MANIFEST) == 19
+    # 8 commands + 1 rule + 1 doc + 10 skills = 20
+    assert len(TEMPLATE_MANIFEST) == 20
 
 
 def test_manifest_has_expected_commands_and_skills() -> None:
@@ -81,6 +83,7 @@ def test_manifest_has_expected_commands_and_skills() -> None:
         "issueflow_issue_cleanup",
         "issueflow_issue_yolo",
         "issueflow_version_bump",
+        "issueflow_history_update",
     ):
         assert f"skills/{skill}/SKILL.md.j2" in template_names
 
@@ -90,6 +93,7 @@ def _default_context() -> dict[str, str]:
         "issueflows_dir": ".issueflows",
         "agent_dir": ".cursor",
         "docs_dir": "docs",
+        "history_file": "HISTORY.md",
         "tools_folder": "00-tools",
         "current_issues_folder": "01-current-issues",
         "partly_solved_folder": "02-partly-solved-issues",
@@ -208,3 +212,49 @@ def test_issueflow_rules_has_branch_hygiene_section() -> None:
     assert "Branch hygiene" in rendered
     assert "git branch -d" in rendered
     assert "Folder hygiene" in rendered
+
+
+def test_issue_close_describes_history_update_step() -> None:
+    """/issue-close must describe the HISTORY.md update step and its input tokens."""
+    rendered = render_template("commands/issue-close.md.j2", _default_context())
+    assert "HISTORY.md" in rendered
+    assert "[Unreleased]" in rendered
+    assert "issueflow-history-update" in rendered
+    # Opt-out token is documented.
+    assert "nohistory" in rendered
+    # Override token for the bullet summary is documented.
+    assert 'log "..."' in rendered or "log " in rendered
+
+
+def test_history_update_skill_documents_both_modes() -> None:
+    """The history-update skill must describe append-and-promote, plus the missing-file fallback."""
+    rendered = render_template(
+        "skills/issueflow_history_update/SKILL.md.j2", _default_context()
+    )
+    assert "HISTORY.md" in rendered
+    assert "[Unreleased]" in rendered
+    # Append mode (no bump) and promote mode (with bump) are both described.
+    assert "append" in rendered.lower()
+    assert "promote" in rendered.lower()
+    # Gracefully skip when the file is missing; never auto-create.
+    assert "skipping changelog" in rendered.lower() or "skip" in rendered.lower()
+    assert "Never create" in rendered or "never create" in rendered.lower()
+
+
+def test_history_update_skill_respects_history_file_override() -> None:
+    """The history-update skill should reference {{ history_file }} so custom filenames work."""
+    context = _default_context()
+    context["history_file"] = "CHANGELOG.md"
+    rendered = render_template(
+        "skills/issueflow_history_update/SKILL.md.j2", context
+    )
+    assert "CHANGELOG.md" in rendered
+    # No leftover Jinja placeholder.
+    assert "{{ history_file }}" not in rendered
+
+
+def test_issue_yolo_forwards_history_tokens() -> None:
+    """/issue-yolo must forward the new history-related tokens to /issue-close."""
+    rendered = render_template("commands/issue-yolo.md.j2", _default_context())
+    assert "nohistory" in rendered
+    assert "log " in rendered  # `log "..."` bullet-summary override

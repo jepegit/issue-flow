@@ -12,6 +12,7 @@ def test_default_settings() -> None:
     assert settings.issueflows_dir == ".issueflows"
     assert settings.agent_dir == ".cursor"
     assert settings.docs_dir == "docs"
+    assert settings.history_file == "HISTORY.md"
 
 
 def test_issueflows_subdirs() -> None:
@@ -31,6 +32,7 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "issueflows_dir",
         "agent_dir",
         "docs_dir",
+        "history_file",
         "tools_folder",
         "current_issues_folder",
         "partly_solved_folder",
@@ -56,3 +58,10 @@ def test_settings_from_env(tmp_path: Path, monkeypatch: "pytest.MonkeyPatch") ->
     monkeypatch.setenv("ISSUEFLOW_DIR", "custom-dir")
     settings = Settings()
     assert settings.issueflows_dir == "custom-dir"
+
+
+def test_history_file_override_from_env(monkeypatch: "pytest.MonkeyPatch") -> None:  # noqa: F821
+    """ISSUEFLOW_HISTORY_FILE should override the default changelog filename."""
+    monkeypatch.setenv("ISSUEFLOW_HISTORY_FILE", "CHANGELOG.md")
+    settings = Settings()
+    assert settings.history_file == "CHANGELOG.md"

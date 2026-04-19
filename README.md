@@ -35,6 +35,7 @@ your-project/
       issueflow-issue-cleanup/SKILL.md
       issueflow-issue-yolo/SKILL.md
       issueflow-version-bump/SKILL.md
+      issueflow-history-update/SKILL.md
     rules/
       issueflow-rules.mdc    # Always-on Cursor rule for the workflow
   docs/
@@ -46,7 +47,7 @@ The Cursor slash commands give agents a repeatable flow. The linear path is:
 1. `/issue-init 42` — pulls GitHub issue #42 into `.issueflows/01-current-issues/` and archives older issues.
 2. `/issue-plan` — drafts `issue<N>_plan.md` (Goal / Constraints / Approach / Files to touch / Test strategy / Open questions) and stops for your confirmation.
 3. `/issue-start` — reads the confirmed plan and implements it. If no plan file exists, it offers to run `/issue-plan` first, proceed without a plan, or abort.
-4. `/issue-close` — runs tests, optionally bumps version with `uv version --bump`, updates status files, commits, pushes, and opens a PR.
+4. `/issue-close` — runs tests, optionally bumps version with `uv version --bump`, appends a `HISTORY.md` entry (or promotes `[Unreleased]` to a new release section on a bump), updates status files, commits, pushes, and opens a PR.
 5. `/issue-cleanup` — after the PR merges, switches to the default branch, fast-forwards, prunes, and deletes the merged local branch.
 
 Plus a few off-path commands:
@@ -55,7 +56,7 @@ Plus a few off-path commands:
 - `/issue-pause` — park the current issue in `02-partly-solved-issues/` with a **Remaining work** note; optional WIP commit + switch back to the default branch.
 - `/issue-yolo` — all-in-one chain (`init → plan → start → close`) for small, low-risk issues, with up-front safeguards (refuses on the default branch, refuses with dirty unrelated changes, requires passing tests, single consolidated confirm).
 
-The matching **Agent Skills** (under `.cursor/skills/`) carry the same workflows for on-demand use with `/issueflow-iflow`, `/issueflow-issue-init`, `/issueflow-issue-plan`, `/issueflow-issue-start`, `/issueflow-issue-pause`, `/issueflow-issue-close`, `/issueflow-issue-cleanup`, `/issueflow-issue-yolo`, or `@issueflow-version-bump` when you need only the bump steps (see [Cursor Agent Skills](https://cursor.com/docs/context/skills)).
+The matching **Agent Skills** (under `.cursor/skills/`) carry the same workflows for on-demand use with `/issueflow-iflow`, `/issueflow-issue-init`, `/issueflow-issue-plan`, `/issueflow-issue-start`, `/issueflow-issue-pause`, `/issueflow-issue-close`, `/issueflow-issue-cleanup`, `/issueflow-issue-yolo`, `@issueflow-version-bump` when you need only the bump steps, or `@issueflow-history-update` when you need only the changelog update (see [Cursor Agent Skills](https://cursor.com/docs/context/skills)).
 
 ## Installation
 
@@ -121,6 +122,7 @@ issue-flow reads a `.env` file from the project root (via python-dotenv). The fo
 | `ISSUEFLOW_DIR` | `.issueflows` | Name of the issue-tracking directory. |
 | `ISSUEFLOW_AGENT_DIR` | `.cursor` | Name of the agent/IDE config directory (currently `.cursor`). |
 | `ISSUEFLOW_DOCS_DIR` | `docs` | Where to write the workflow documentation file. |
+| `ISSUEFLOW_HISTORY_FILE` | `HISTORY.md` | Changelog file that `/issue-close` updates (set to e.g. `CHANGELOG.md` for different conventions). |
 
 ## Development
 

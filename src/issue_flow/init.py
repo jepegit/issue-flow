@@ -21,6 +21,7 @@ _DOTENV_KEYS: tuple[tuple[str, str], ...] = (
     ("ISSUEFLOW_DIR", ".issueflows"),
     ("ISSUEFLOW_AGENT_DIR", ".cursor"),
     ("ISSUEFLOW_DOCS_DIR", "docs"),
+    ("ISSUEFLOW_HISTORY_FILE", "HISTORY.md"),
 )
 _DOTENV_SECTION_HEADER = "# --- issue-flow: optional environment variables ---\n"
 

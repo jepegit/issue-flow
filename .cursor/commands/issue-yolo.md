@@ -9,6 +9,8 @@ For anything non-trivial, use the individual commands so you get confirmation ch
 Same as `/issue-init` (issue number, URL, or empty to infer from the branch). Optional extra tokens are forwarded to the downstream commands:
 
 - `bump` / `patch` / `minor` / `major` — forwarded to `/issue-close` for the version bump.
+- `nohistory` / `skip history` — forwarded to `/issue-close` to skip the `HISTORY.md` update step.
+- `log "..."` / `note "..."` — forwarded to `/issue-close` as the `HISTORY.md` bullet summary.
 - `draft` — open a draft PR in `/issue-close`.
 - Free-form notes — used as the plan/commit context.
 

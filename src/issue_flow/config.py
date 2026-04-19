@@ -31,6 +31,9 @@ class Settings:
     docs_dir: str = field(
         default_factory=lambda: os.getenv("ISSUEFLOW_DOCS_DIR", "docs")
     )
+    history_file: str = field(
+        default_factory=lambda: os.getenv("ISSUEFLOW_HISTORY_FILE", "HISTORY.md")
+    )
 
     # Give a deprecation warning if the user is using the old ISSUEFLOW_CURSOR_DIR environment variable
     if os.getenv("ISSUEFLOW_CURSOR_DIR"):
@@ -58,6 +61,7 @@ class Settings:
             "issueflows_dir": self.issueflows_dir,
             "agent_dir": self.agent_dir,
             "docs_dir": self.docs_dir,
+            "history_file": self.history_file,
             "tools_folder": self.tools_folder,
             "current_issues_folder": self.current_issues_folder,
             "partly_solved_folder": self.partly_solved_folder,
