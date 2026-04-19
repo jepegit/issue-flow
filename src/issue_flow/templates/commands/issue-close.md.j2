@@ -31,6 +31,7 @@ Other optional notes still apply: branch name, PR title, draft PR, skip issue do
    - If the issue is fully resolved, move its markdown files from `{{ issueflows_dir }}/{{ current_issues_folder }}` to `{{ issueflows_dir }}/{{ solved_folder }}`. If partially resolved, move to `{{ issueflows_dir }}/{{ partly_solved_folder }}`.
 
 4. **Commit and fix merge conflicts**
+   - Before staging, run `git status` to list all modified/untracked files. If any changes are **not relevant** to this issue, tell the user which ones and ask whether to include them in this commit or leave them for later. Do not silently drop or include unrelated changes.
    - Unless told to commit all, stage the right files (avoid unrelated changes). Include `pyproject.toml` (and `uv.lock` if it changed) when a version bump ran.
    - Write a commit message that states what changed and why in normal sentences.
    - Make sure you have pulled the last changes from the default branch (e.g. `main`) and check for and fix merge conflicts.
@@ -42,7 +43,11 @@ Other optional notes still apply: branch name, PR title, draft PR, skip issue do
    - Open a PR against the default branch (e.g. `main`).
    - Describe the change, how to test it, and link the GitHub issue (e.g. `Closes #123` or `Refs #123` in the PR body).
 
-7. **After review**
+7. **Branch reminder**
+   - After the PR is created, remind the user that the working copy is still on the issue branch, not the default branch (e.g. `main`).
+   - Suggest they run `git switch main` (or the repo's default) before starting any unrelated work, so new changes don't accidentally land on the issue branch.
+
+8. **After review**
    - Address feedback, push updates, and merge when approved and CI is green.
 
 ## Output

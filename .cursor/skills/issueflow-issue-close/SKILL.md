@@ -33,7 +33,7 @@ When a bump applies: read `.cursor/skills/issueflow-version-bump/SKILL.md`, run 
 
 3. **Issue tracking** — Under `.issueflows/01-current-issues/`, update the status file: remaining work, checklists, and **`- [x] Done`** only when the issue is fully resolved. If fully resolved, move that issue’s markdown files (`issue<n>_*`) to `.issueflows/03-solved-issues/`. If partially resolved, move to `.issueflows/02-partly-solved-issues/`. Follow any stricter rules in `.cursor/rules/issueflow-rules.mdc` if present.
 
-4. **Commit** — Stage intentionally (include `pyproject.toml` and `uv.lock` if changed after a bump); write a commit message in full sentences describing what changed and why.
+4. **Commit** — First check `git status`; if there are unrelated uncommitted changes, surface them and ask the user whether to include them — do not auto-include or drop silently. Then stage intentionally (include `pyproject.toml` and `uv.lock` if changed after a bump); write a commit message in full sentences describing what changed and why.
 
 5. **Branch hygiene** — Ensure the branch is up to date with the default branch where appropriate; resolve merge conflicts before pushing.
 
@@ -41,7 +41,9 @@ When a bump applies: read `.cursor/skills/issueflow-version-bump/SKILL.md`, run 
 
 7. **Pull request** — Open (or update) a PR against the default branch. Body should explain the change, how to test, and link the GitHub issue (`Closes #n` / `Refs #n`).
 
-8. **Output** — Summarize commit, push result, and PR URL, or the next blocker.
+8. **Branch reminder** — After opening the PR, tell the user the working copy is still on the issue branch (not the default branch like `main`). Suggest switching back with `git switch main` before starting unrelated work so new changes don't land on the issue branch.
+
+9. **Output** — Summarize commit, push result, and PR URL, or the next blocker.
 
 ## Constraints
 
