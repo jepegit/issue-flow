@@ -1,13 +1,16 @@
-# Start working with current issue
+# Start working with the current issue
 
-The issue should already be explained in a markdown file in `.issueflows/01-current-issues`.
+`/issue-start` **implements** the plan that `/issue-plan` already wrote. Planning itself now lives in `/issue-plan` — this command no longer produces the plan.
+
+The issue should already be explained in `.issueflows/01-current-issues/issue<N>_original.md` (from `/issue-init`) and a confirmed plan in `issue<N>_plan.md` (from `/issue-plan`).
 
 ## Input
-If additional input is added, use that for further detailed guidance
+
+If additional input is added, use that as implementation hints (scope, constraints, design preferences). It does **not** replace the plan file — update `issue<N>_plan.md` via `/issue-plan` first if the plan itself needs to change.
 
 ## Steps
 
-0. If the issue markdown file is not present, or it is ambiguous which one to select, ask. Could it be that the user has not run the /issue-init command?
+0. **Find the focus issue.** Look in `.issueflows/01-current-issues/` for `issue<N>_original.md`. If missing or multiple groups are ambiguous, ask. Could the user have skipped `/issue-init`?
 
 0.5 **Branch status preflight** (non-destructive — report, do not delete).
    - Detect the default branch: `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`. If `gh` is unavailable, use `git symbolic-ref --quiet --short refs/remotes/origin/HEAD | sed 's|^origin/||'`, else fall back to `main`.
@@ -26,8 +29,21 @@ If additional input is added, use that for further detailed guidance
    - Never move the focus issue's own files.
    - Report every move (source -> destination, grouped by issue number) in the opening summary.
 
-1. Plan. If not in plan mode, stop and ask for a confirmation.
+1. **Plan precondition.** Look for `issue<N>_plan.md` in `.issueflows/01-current-issues/`.
+   - **Plan file present:** read it. Treat it as the source of truth for scope and approach. Continue to step 2.
+   - **Plan file missing:** **do not hard-stop.** Ask the user:
+     > "No plan file found for issue #N. How should I proceed?
+     >  (a) Run `/issue-plan` now, then continue into implementation once you confirm the plan.
+     >  (b) Proceed without a plan — I'll implement directly and note the skipped plan in the status file.
+     >  (c) Abort."
+     Wait for an explicit choice. On **(a)**, run the `/issue-plan` flow first (including its user-confirmation stop), then return here. On **(b)**, add a short `- Skipped /issue-plan on <date>` note to `issue<N>_status.md` and continue. On **(c)**, stop.
 
-2. Check that the plan is not too broad. If too broad, ask if it should be split into several parts.
+2. **Implement** the plan. Prefer minimal, focused diffs. Match existing code style and tooling. Follow project rules under `.cursor/rules/issueflow-rules.mdc` (e.g. `uv run` for Python, `uv add` / `uv remove` / `uv sync` for dependencies).
 
-3. Implement the steps of the plan
+3. **Update the status file.** After meaningful progress, update (or create) `issue<N>_status.md` under `.issueflows/01-current-issues/` with a `- [ ] Done` checkbox that stays unchecked until fully resolved. Record what has landed and what remains so `/issue-pause` or `/issue-close` has accurate context.
+
+4. **Hand off.** When the implementation is ready to ship, tell the user to run `/issue-close` (optionally with `bump`/`patch`/`minor`/`major`). Parking work mid-stream goes through `/issue-pause`.
+
+## Output
+
+Summarize what was implemented, how it matches the plan, what remains, and any branch / sweep warnings surfaced during the preflight.

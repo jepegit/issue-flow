@@ -1,6 +1,6 @@
 # Close out the current issue
 
-Run this when implementation is done and you are ready to land the work.
+Run this when implementation is done and you are ready to land the work (commit, push, PR). Post-merge branch hygiene now lives in a separate command, `/issue-cleanup`, which you run **after** the PR is merged.
 
 ## Input
 
@@ -10,7 +10,7 @@ Optional text after the command (same line). Examples:
 - **`bump`** or **`patch`** — bump the **patch** semver (e.g. `1.2.0` → `1.2.1`).
 - **`bump minor`** or **`minor`** — bump **minor**.
 - **`bump major`** or **`major`** — bump **major**.
-- **Free text** — if it clearly asks to release or bump the version, infer `patch`, `minor`, or `major` from wording (e.g. “bugfix release” → patch); if unclear, ask once.
+- **Free text** — if it clearly asks to release or bump the version, infer `patch`, `minor`, or `major` from wording (e.g. "bugfix release" → patch); if unclear, ask once.
 
 Other optional notes still apply: branch name, PR title, draft PR, skip issue doc update, commit all changes, etc.
 
@@ -43,19 +43,11 @@ Other optional notes still apply: branch name, PR title, draft PR, skip issue do
    - Open a PR against the default branch (e.g. `main`).
    - Describe the change, how to test it, and link the GitHub issue (e.g. `Closes #123` or `Refs #123` in the PR body).
 
-7. **Post-merge branch cleanup**
-   - Detect the default branch (prefer `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`; fall back to `git symbolic-ref --quiet --short refs/remotes/origin/HEAD | sed 's|^origin/||'`, else `main`).
-   - Detect merge status of this PR with `gh pr view <branch> --json state,mergedAt,mergeCommit,headRefName`. If `gh` is unavailable, approximate with `git fetch --prune` followed by `git rev-list <branch>..origin/<default>` and `git cherry origin/<default> <branch>` (all commits marked `-` means squash-merged).
-   - **If the PR is merged:**
-     - Ask once whether to run the standard post-merge cleanup. On yes, run: `git switch <default> && git pull --ff-only && git fetch --prune`. These are non-destructive because the issue branch is already merged.
-     - List local branches whose tip is already reachable from `origin/<default>` (including squash-merged ones detected via `git cherry`). Present them as a single group and ask **once** (one consolidated yes/no listing every branch) before running `git branch -d <branch>` for each. Never use `-D` automatically; if `-d` refuses, report the branch and stop touching it.
-   - **If the PR is not yet merged:**
-     - Remind the user that the working copy is still on the issue branch, not the default branch. Suggest `git switch <default>` before starting any unrelated work so new changes don't accidentally land on the issue branch. Tell them to re-run `/issue-close` after the PR merges so the post-merge cleanup actually runs.
-
-8. **After review**
+7. **After review**
    - Address feedback, push updates, and merge when approved and CI is green.
-   - Re-run `/issue-close` after the merge to pick up the post-merge cleanup in step 7.
+   - Remind the user that the working copy is still on the issue branch, not the default. Suggest `git switch <default>` before starting unrelated work so new changes don't accidentally land on the issue branch.
+   - Once the PR is merged, run **`/issue-cleanup`** to switch back to the default branch, `git pull --ff-only`, `git fetch --prune`, and delete local branches whose commits are already in the default branch (single consolidated confirm). `/issue-close` no longer does post-merge cleanup itself.
 
 ## Output
 
-Summarize what was committed, pushed, and the PR URL (or next step if blocked).
+Summarize what was committed, pushed, and the PR URL (or next step if blocked). Remind the user to run `/issue-cleanup` after the PR merges.

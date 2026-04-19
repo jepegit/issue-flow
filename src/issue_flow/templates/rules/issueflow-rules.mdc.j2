@@ -72,14 +72,29 @@ uv run script.py
 
 ### Working on issues
 
-After each iteration, update the documents in `{{ issueflows_dir }}/{{ current_issues_folder }}` (should contain one file labelled `_original` that consists of the original issue description, and supplementary status files describing what has been done, current status, and remaining work).
+After each iteration, update the documents in `{{ issueflows_dir }}/{{ current_issues_folder }}` (should contain one file labelled `_original` with the original issue description, a `_plan` file with the confirmed approach, and supplementary status files describing what has been done, current status, and remaining work).
 Use an explicit status checkbox in the status file:
 - `- [x] Done` when fully resolved
 - `- [ ] Done` when not fully resolved
 
+### Command lifecycle
+
+If you just want the next right step, run **`/iflow`** — it detects state (by file presence under `{{ issueflows_dir }}/{{ current_issues_folder }}/` and the status-file `- [x] Done` marker) and dispatches to `/issue-init`, `/issue-plan`, `/issue-start`, or `/issue-close`. It never auto-dispatches to `/issue-pause`, `/issue-cleanup`, or `/issue-yolo` — those stay explicit.
+
+The full slash-command lifecycle is:
+
+1. **`/issue-init`** — capture the GitHub issue as `issue<N>_original.md`.
+2. **`/issue-plan`** — design the approach in `issue<N>_plan.md` and get explicit confirmation before any code changes.
+3. **`/issue-start`** — implement the confirmed plan. Asks to run `/issue-plan` first if the plan file is missing.
+4. **`/issue-pause`** *(optional)* — park work mid-stream: update status, move the issue group to `{{ partly_solved_folder }}`, optional WIP commit.
+5. **`/issue-close`** — tests, optional `uv version --bump`, status update, commit, push, PR. Does not delete branches.
+6. **`/issue-cleanup`** — post-merge: switch to default, `git pull --ff-only`, `git fetch --prune`, `git branch -d` on merged local branches under a single consolidated confirm. Never `-D`.
+
+`/issue-yolo` chains `init → plan → start → close` for small, low-risk issues with up-front safeguards (clean tree, passing tests, single consolidated confirm).
+
 ### When finishing an issue
 
-If the issue is fully resolved (no additional subtasks present), move the original and status markdown files to `{{ issueflows_dir }}/{{ solved_folder }}`. Else, move them to `{{ issueflows_dir }}/{{ partly_solved_folder }}`.
+If the issue is fully resolved (no additional subtasks present), move the original, plan, and status markdown files to `{{ issueflows_dir }}/{{ solved_folder }}`. Else, move them to `{{ issueflows_dir }}/{{ partly_solved_folder }}`.
 
 ### Scripts that can help us when working on issues
 
@@ -90,7 +105,7 @@ If you want, you can put small scripts etc. that you have made and think could b
 
 - Do issue work on an **issue branch** named like `<N>-<short-slug>`, not on the default branch.
 - Before starting or continuing work on an issue branch, run `git fetch --prune` and check where the branch sits relative to `origin/<default>` (ahead/behind). A branch that is "several commits ahead" after a merged PR usually means the PR was squash-merged and the local branch is stale.
-- **Assume squash-merges on GitHub.** After a PR merges: switch to the default branch, `git pull --ff-only`, `git fetch --prune`, and delete the local issue branch with `git branch -d <branch>` (never `-D` automatically). `/issue-close` does this with a single consolidated confirm.
+- **Assume squash-merges on GitHub.** After a PR merges: run **`/issue-cleanup`** — it switches to the default branch, runs `git pull --ff-only`, `git fetch --prune`, and deletes merged local branches with `git branch -d <branch>` under a single consolidated confirm (never `-D` automatically). `/issue-close` no longer does this step itself.
 - If an issue is already archived under `{{ issueflows_dir }}/{{ partly_solved_folder }}` or `{{ issueflows_dir }}/{{ solved_folder }}`, the matching local branch is stale; don't resume work on it silently — switch back to the default branch and, if the issue really needs re-opening, do it deliberately through `/issue-init` (which will ask for a second confirmation).
 
 

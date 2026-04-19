@@ -2,13 +2,16 @@
 name: issueflow-issue-close
 description: >-
   Run the /issue-close workflow: verify tests, optional uv semver bump, update
-  issue status and folder locations, commit, push, and open a PR with a clear summary.
+  issue status and folder locations, commit, push, and open a PR with a clear
+  summary. Post-merge branch cleanup now lives in /issue-cleanup.
 disable-model-invocation: true
 ---
 
 # issue-flow — issue close (`/issue-close`)
 
 Follow this skill when the user wants to **finish and land** work: tests, optional version bump, issue-folder updates, git, and PR. Match `{{ agent_dir }}/commands/issue-close.md`.
+
+Post-merge branch hygiene now lives in `/issue-cleanup` — this skill no longer deletes branches.
 
 ## When to use
 
@@ -31,7 +34,7 @@ When a bump applies: read `{{ agent_dir }}/skills/issueflow-version-bump/SKILL.m
 
 2. **Optional version bump** — If the user asked for a bump (see above), follow `{{ agent_dir }}/skills/issueflow-version-bump/SKILL.md` and run `uv version --bump <patch|minor|major>`. If there is no bumpable `pyproject.toml`, skip and continue.
 
-3. **Issue tracking** — Under `{{ issueflows_dir }}/{{ current_issues_folder }}/`, update the status file: remaining work, checklists, and **`- [x] Done`** only when the issue is fully resolved. If fully resolved, move that issue’s markdown files (`issue<n>_*`) to `{{ issueflows_dir }}/{{ solved_folder }}/`. If partially resolved, move to `{{ issueflows_dir }}/{{ partly_solved_folder }}/`. Follow any stricter rules in `{{ agent_dir }}/rules/issueflow-rules.mdc` if present.
+3. **Issue tracking** — Under `{{ issueflows_dir }}/{{ current_issues_folder }}/`, update the status file: remaining work, checklists, and **`- [x] Done`** only when the issue is fully resolved. If fully resolved, move that issue's markdown files (`issue<n>_*`) to `{{ issueflows_dir }}/{{ solved_folder }}/`. If partially resolved, move to `{{ issueflows_dir }}/{{ partly_solved_folder }}/`. Follow any stricter rules in `{{ agent_dir }}/rules/issueflow-rules.mdc` if present.
 
 4. **Commit** — First check `git status`; if there are unrelated uncommitted changes, surface them and ask the user whether to include them — do not auto-include or drop silently. Then stage intentionally (include `pyproject.toml` and `uv.lock` if changed after a bump); write a commit message in full sentences describing what changed and why.
 
@@ -41,13 +44,12 @@ When a bump applies: read `{{ agent_dir }}/skills/issueflow-version-bump/SKILL.m
 
 7. **Pull request** — Open (or update) a PR against the default branch. Body should explain the change, how to test, and link the GitHub issue (`Closes #n` / `Refs #n`).
 
-8. **Post-merge branch cleanup** — Detect the default branch (prefer `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`; fall back to `git symbolic-ref --quiet --short refs/remotes/origin/HEAD`, else `main`). Detect merge status with `gh pr view <branch> --json state,mergedAt,mergeCommit,headRefName`. If `gh` is unavailable, approximate with `git fetch --prune` + `git cherry origin/<default> <branch>` (all commits marked `-` means squash-merged).
-   - **If merged:** ask once whether to run the standard cleanup. On yes: `git switch <default> && git pull --ff-only && git fetch --prune`. Then list every local branch whose tip is already reachable from `origin/<default>` (including squash-merged ones) and ask **once** (one consolidated yes/no listing every branch) before running `git branch -d <branch>` for each. Never use `-D` automatically; if `-d` refuses, report the branch and leave it alone.
-   - **If not yet merged:** remind the user the working copy is still on the issue branch (not the default). Suggest `git switch <default>` before starting unrelated work, and tell them to re-run `/issue-close` after the PR merges so the post-merge cleanup runs.
+8. **After review** — Remind the user the working copy is still on the issue branch (not the default). Suggest `git switch <default>` before starting unrelated work. Tell them to run **`/issue-cleanup`** once the PR is merged so the standard post-merge cleanup runs (switch to default, `git pull --ff-only`, `git fetch --prune`, `git branch -d` on merged local branches under a single consolidated confirm).
 
-9. **Output** — Summarize commit, push result, PR URL, and (when applicable) which local branches were deleted during post-merge cleanup. If blocked, report the next step.
+9. **Output** — Summarize commit, push result, PR URL, and next step (`/issue-cleanup` after merge, or "blocked on …" if stuck).
 
 ## Constraints
 
-- Do not skip failing tests without the user’s explicit agreement.
+- Do not skip failing tests without the user's explicit agreement.
 - Prefer focused commits; do not rewrite unrelated history unless asked.
+- Never delete branches from `/issue-close`. Branch deletion belongs to `/issue-cleanup`.

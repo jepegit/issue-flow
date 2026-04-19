@@ -70,22 +70,47 @@ def render_template(template_name: str, context: dict[str, str]) -> str:
 # Each entry: (template_file, output_path_template)
 # The output_path_template uses simple str.format with the context dict.
 TEMPLATE_MANIFEST: list[tuple[str, str]] = [
+    ("commands/iflow.md.j2", "{agent_dir}/commands/iflow.md"),
     ("commands/issue-init.md.j2", "{agent_dir}/commands/issue-init.md"),
+    ("commands/issue-plan.md.j2", "{agent_dir}/commands/issue-plan.md"),
     ("commands/issue-start.md.j2", "{agent_dir}/commands/issue-start.md"),
+    ("commands/issue-pause.md.j2", "{agent_dir}/commands/issue-pause.md"),
     ("commands/issue-close.md.j2", "{agent_dir}/commands/issue-close.md"),
+    ("commands/issue-cleanup.md.j2", "{agent_dir}/commands/issue-cleanup.md"),
+    ("commands/issue-yolo.md.j2", "{agent_dir}/commands/issue-yolo.md"),
     ("rules/issueflow-rules.mdc.j2", "{agent_dir}/rules/issueflow-rules.mdc"),
     ("docs/cursor-issue-workflow.md.j2", "{docs_dir}/cursor-issue-workflow.md"),
     (
+        "skills/issueflow_iflow/SKILL.md.j2",
+        "{agent_dir}/skills/issueflow-iflow/SKILL.md",
+    ),
+    (
         "skills/issueflow_issue_init/SKILL.md.j2",
         "{agent_dir}/skills/issueflow-issue-init/SKILL.md",
+    ),
+    (
+        "skills/issueflow_issue_plan/SKILL.md.j2",
+        "{agent_dir}/skills/issueflow-issue-plan/SKILL.md",
     ),
     (
         "skills/issueflow_issue_start/SKILL.md.j2",
         "{agent_dir}/skills/issueflow-issue-start/SKILL.md",
     ),
     (
+        "skills/issueflow_issue_pause/SKILL.md.j2",
+        "{agent_dir}/skills/issueflow-issue-pause/SKILL.md",
+    ),
+    (
         "skills/issueflow_issue_close/SKILL.md.j2",
         "{agent_dir}/skills/issueflow-issue-close/SKILL.md",
+    ),
+    (
+        "skills/issueflow_issue_cleanup/SKILL.md.j2",
+        "{agent_dir}/skills/issueflow-issue-cleanup/SKILL.md",
+    ),
+    (
+        "skills/issueflow_issue_yolo/SKILL.md.j2",
+        "{agent_dir}/skills/issueflow-issue-yolo/SKILL.md",
     ),
     (
         "skills/issueflow_version_bump/SKILL.md.j2",
