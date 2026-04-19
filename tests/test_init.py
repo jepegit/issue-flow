@@ -71,7 +71,7 @@ def test_init_force_does_not_wipe_custom_dotenv(tmp_path: Path) -> None:
 
 
 def test_init_creates_directories(tmp_path: Path) -> None:
-    """Running init should create .issueflows/ with all four subdirectories."""
+    """Running init should create .issueflows/ with all five subdirectories."""
     run_init(tmp_path)
 
     issueflows = tmp_path / ".issueflows"
@@ -80,6 +80,7 @@ def test_init_creates_directories(tmp_path: Path) -> None:
     assert (issueflows / "01-current-issues").is_dir()
     assert (issueflows / "02-partly-solved-issues").is_dir()
     assert (issueflows / "03-solved-issues").is_dir()
+    assert (issueflows / "04-designs-and-guides").is_dir()
 
 
 def test_init_creates_gitkeep_files(tmp_path: Path) -> None:
@@ -92,6 +93,7 @@ def test_init_creates_gitkeep_files(tmp_path: Path) -> None:
         "01-current-issues",
         "02-partly-solved-issues",
         "03-solved-issues",
+        "04-designs-and-guides",
     ]:
         gitkeep = issueflows / subdir / ".gitkeep"
         assert gitkeep.is_file(), f"{subdir}/.gitkeep should exist"
@@ -215,6 +217,27 @@ def test_init_issue_close_documents_uncommitted_and_branch_reminder(
     assert "git status" in content
     assert "not relevant" in content
     assert "issue branch" in content
+
+
+def test_init_rule_documents_designs_folder(tmp_path: Path) -> None:
+    """The generated rule file should mention the designs-and-guides folder."""
+    run_init(tmp_path)
+    rule = (tmp_path / ".cursor" / "rules" / "issueflow-rules.mdc").read_text(
+        encoding="utf-8"
+    )
+    assert "04-designs-and-guides" in rule
+    assert "Designs and guides" in rule
+
+
+def test_init_commands_reference_designs_folder(tmp_path: Path) -> None:
+    """/issue-plan, /issue-start, and /issue-close should reference the designs folder."""
+    run_init(tmp_path)
+    commands_dir = tmp_path / ".cursor" / "commands"
+    for filename in ("issue-plan.md", "issue-start.md", "issue-close.md"):
+        content = (commands_dir / filename).read_text(encoding="utf-8")
+        assert "04-designs-and-guides" in content, (
+            f"{filename} should reference the designs-and-guides folder"
+        )
 
 
 def test_init_issue_init_documents_branch_inference(tmp_path: Path) -> None:

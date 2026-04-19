@@ -18,11 +18,12 @@ def test_default_settings() -> None:
 def test_issueflows_subdirs() -> None:
     settings = Settings()
     subdirs = settings.issueflows_subdirs
-    assert len(subdirs) == 4
+    assert len(subdirs) == 5
     assert "00-tools" in subdirs
     assert "01-current-issues" in subdirs
     assert "02-partly-solved-issues" in subdirs
     assert "03-solved-issues" in subdirs
+    assert "04-designs-and-guides" in subdirs
 
 
 def test_template_context_keys(tmp_path: Path) -> None:
@@ -37,6 +38,7 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "current_issues_folder",
         "partly_solved_folder",
         "solved_folder",
+        "designs_folder",
         "project_name",
     }
     assert set(context.keys()) == expected_keys

@@ -62,3 +62,31 @@ def test_update_recreates_removed_subdir(tmp_path: Path) -> None:
 
     assert removed.is_dir()
     assert (removed / ".gitkeep").is_file()
+
+
+def test_update_preserves_designs_folder_contents(tmp_path: Path) -> None:
+    """update must not touch user content inside 04-designs-and-guides/."""
+    run_init(tmp_path)
+
+    designs_dir = tmp_path / ".issueflows" / "04-designs-and-guides"
+    design_doc = designs_dir / "logging-decision.md"
+    body = "# Logging decision\n\nWe use structlog because X.\n"
+    design_doc.write_text(body, encoding="utf-8")
+
+    run_update(tmp_path)
+
+    assert design_doc.read_text(encoding="utf-8") == body
+
+
+def test_update_recreates_removed_designs_folder(tmp_path: Path) -> None:
+    """If 04-designs-and-guides/ was removed, update should recreate it."""
+    run_init(tmp_path)
+
+    removed = tmp_path / ".issueflows" / "04-designs-and-guides"
+    shutil.rmtree(removed)
+    assert not removed.exists()
+
+    run_update(tmp_path)
+
+    assert removed.is_dir()
+    assert (removed / ".gitkeep").is_file()

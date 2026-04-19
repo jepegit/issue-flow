@@ -44,6 +44,7 @@ class Settings:
     current_issues_folder: str = "01-current-issues"
     partly_solved_folder: str = "02-partly-solved-issues"
     solved_folder: str = "03-solved-issues"
+    designs_folder: str = "04-designs-and-guides"
 
     @property
     def issueflows_subdirs(self) -> list[str]:
@@ -52,6 +53,7 @@ class Settings:
             self.current_issues_folder,
             self.partly_solved_folder,
             self.solved_folder,
+            self.designs_folder,
         ]
 
     def template_context(self, project_root: Path) -> dict[str, str]:
@@ -66,6 +68,7 @@ class Settings:
             "current_issues_folder": self.current_issues_folder,
             "partly_solved_folder": self.partly_solved_folder,
             "solved_folder": self.solved_folder,
+            "designs_folder": self.designs_folder,
             "project_name": project_name,
         }
 

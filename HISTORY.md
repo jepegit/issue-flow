@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-04-19
+
 - **Dependency awareness at install time (#18).** A new `Prerequisites` section in the README documents the external CLI tools the scaffolded workflow shells out to (`git`, `gh` — with install hints per OS and a `gh auth login` reminder), and `issue-flow init` / `issue-flow update` now run a `shutil.which`-based dependency check up front. If anything is missing, the CLI prints the install hints and asks for confirmation before continuing. The prompt is auto-skipped on non-TTY stdin (CI) and can be bypassed explicitly with `--skip-dep-check`.
 - `issue-flow init` now creates or extends a project `.env` with `ISSUEFLOW_*` hints (#35).
 - Rename `ISSUEFLOW_CURSOR_DIR` to the more tool-agnostic `ISSUEFLOW_AGENT_DIR` (#36).
@@ -21,6 +23,7 @@ than the GitHub release notes they link to.
   - `/issue-yolo` chains `init → plan → start → close` for small, low-risk issues with up-front safeguards (refuses on default branch, refuses with dirty unrelated changes, requires `uv run pytest` to pass, single consolidated confirm). Never chains `/issue-cleanup`.
   - **Quick start `/iflow` smart dispatcher.** Inspects the focus issue (a branch-derived `N` from an `<N>-<slug>` branch is authoritative — it wins even when `issue<N>_*` files don't exist yet or unrelated groups sit in `.issueflows/01-current-issues/`; otherwise falls back to the single group in `01-`, else asks) and dispatches to `/issue-init`, `/issue-plan`, `/issue-start`, or `/issue-close` based on which files exist and whether the status file is marked `- [x] Done`. Warns up front when the focus issue is archived under `02-partly-solved-issues/` or `03-solved-issues/` so the user knows `/issue-init`'s archived-issue guard will ask for an explicit re-open confirmation. Forwards trailing args verbatim. Never auto-dispatches to `/issue-pause`, `/issue-cleanup`, or `/issue-yolo` — those stay explicit.
 - **`/issue-close` now updates `HISTORY.md` (#15).** New step between the version bump and issue-folder housekeeping, driven by a new `issueflow-history-update` Agent Skill. Appends a bullet to `## [Unreleased]` on a regular close, and on `/issue-close bump <level>` promotes `## [Unreleased]` to `## [<new_version>] - <YYYY-MM-DD>` with a fresh empty `## [Unreleased]` above it. Opt-out via `nohistory`; override the bullet summary with `log "..."`. New config knob `ISSUEFLOW_HISTORY_FILE` (default `HISTORY.md`) lets projects point at `CHANGELOG.md` or similar.
+- **New `04-designs-and-guides/` folder (#26).** `.issueflows/04-designs-and-guides/` gives projects a durable home for long-lived design docs, design decisions, and agreed good-practices. `issue-flow init` creates it; `issue-flow update` recreates it only if missing and never overwrites user files inside it. The issueflow rule file documents its purpose, and `/issue-plan`, `/issue-start`, `/issue-close`, `/iflow`, and `/issue-yolo` now read from and/or contribute to the folder during issue work.
 
 ## [0.2.2] - 2026-04-17
 

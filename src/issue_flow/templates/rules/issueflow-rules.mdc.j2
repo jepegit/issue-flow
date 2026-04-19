@@ -61,6 +61,7 @@ uv run script.py
             issueXX_status.md
         {{ partly_solved_folder }}/
         {{ solved_folder }}/
+        {{ designs_folder }}/
     pyproject.toml
     readme.md
     ...
@@ -99,6 +100,15 @@ If the issue is fully resolved (no additional subtasks present), move the origin
 ### Scripts that can help us when working on issues
 
 If you want, you can put small scripts etc. that you have made and think could be useful in the future in our llm tools folder: `{{ issueflows_dir }}/{{ tools_folder }}`. Also, feel free to use the tools in our llm tools folder if you find someone that could be useful.
+
+
+### Designs and guides
+
+Long-lived design docs, design decisions, and project "good practices" live under `{{ issueflows_dir }}/{{ designs_folder }}/`. Unlike the issue folders, content here is **not** tied to a single issue and is **not** archived when an issue closes — it is the project's durable memory.
+
+- **Before planning or implementing**, skim `{{ issueflows_dir }}/{{ designs_folder }}/` for existing docs relevant to the current issue and follow them (cite them in the plan when they influence the approach).
+- **When a non-trivial design decision is made** during `/issue-plan` or `/issue-start`, add or update a markdown file here. Keep entries terse: context, the decision, alternatives considered, and a link back to the issue.
+- **Never overwritten by `issue-flow update`.** The folder is recreated if missing, but existing files are left alone.
 
 
 ### Branch hygiene

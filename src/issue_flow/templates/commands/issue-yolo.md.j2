@@ -4,6 +4,8 @@ Chains `/issue-init` → `/issue-plan` → `/issue-start` → `/issue-close` in 
 
 For anything non-trivial, use the individual commands so you get confirmation checkpoints.
 
+The chained commands still consult and update `{{ issueflows_dir }}/{{ designs_folder }}/` (design docs, decisions, good practices) — but if a yolo run uncovers a decision worth recording, that alone is usually a signal the change is **not** small enough for `/issue-yolo`: consider aborting and running the commands individually.
+
 ## Input
 
 Same as `/issue-init` (issue number, URL, or empty to infer from the branch). Optional extra tokens are forwarded to the downstream commands:
