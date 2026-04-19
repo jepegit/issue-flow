@@ -21,6 +21,7 @@ The text after this slash command is the **issue reference**. It may also be **e
        - Ask: "You have not provided an issue reference. Should I use issue #NN from the current branch `<branchname>`?" (use the real branch name).
        - If the user **confirms**, treat `NN` as the issue number and continue with the bullets under **B** as if the user had typed only `NN`.
        - If the user **declines** or is **unclear**, ask for an issue number, full URL, or `owner/repo`, and do not proceed until you have a clear reference.
+       - **Archived-issue guard:** if files for issue `NN` are already present under `{{ issueflows_dir }}/{{ partly_solved_folder }}/` or `{{ issueflows_dir }}/{{ solved_folder }}/`, warn the user that the issue is archived and require a second, explicit confirmation before re-opening it in `{{ issueflows_dir }}/{{ current_issues_folder }}/`.
      - Else (branch does not match that pattern): **do not guess.** Ask the user for an issue number, full GitHub issue URL, or `owner/repo/#number`, and do not proceed until they provide it.
    - **B. You have a concrete issue reference** (from user input or from **A** after confirmation):
      - If the reference is a full URL, extract `owner`, `repo`, and `issue number`.
@@ -35,6 +36,11 @@ The text after this slash command is the **issue reference**. It may also be **e
    - url
    - number
    - and confirm resolved `owner/repo`
+
+2.5. **Branch status preflight** (report only; do not block and do not delete anything).
+   - Run `git fetch --prune` so tracking info is fresh.
+   - Report: current branch, clean/dirty working tree, and ahead/behind counts vs `origin/<default>` (detect default via `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`, else `git symbolic-ref --quiet --short refs/remotes/origin/HEAD`, else `main`).
+   - If the current branch matches `^(\d+)-.+` and files for that issue now live under `{{ issueflows_dir }}/{{ partly_solved_folder }}/` or `{{ issueflows_dir }}/{{ solved_folder }}/`, note that the branch looks stale. Do not delete or move anything at this step.
 
 3. Archive existing issue files already in `{{ issueflows_dir }}/{{ current_issues_folder }}` (except the current issue number).
    - Inspect issue groups by issue number (for example `issue121_*` belongs to issue 121).

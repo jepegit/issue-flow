@@ -34,7 +34,7 @@ Other optional notes still apply: branch name, PR title, draft PR, skip issue do
    - Before staging, run `git status` to list all modified/untracked files. If any changes are **not relevant** to this issue, tell the user which ones and ask whether to include them in this commit or leave them for later. Do not silently drop or include unrelated changes.
    - Unless told to commit all, stage the right files (avoid unrelated changes). Include `pyproject.toml` (and `uv.lock` if it changed) when a version bump ran.
    - Write a commit message that states what changed and why in normal sentences.
-   - Make sure you have pulled the last changes from the default branch (e.g. `main`) and check for and fix merge conflicts.
+   - Sync with the default branch before pushing: run `git fetch --prune` then `git pull --ff-only` from the default branch (e.g. `main`) merged into the issue branch (or rebase, per project preference). Use `--ff-only` so unrelated work never gets merged in silently; if it refuses, stop and ask how to reconcile. Check for and fix merge conflicts.
 
 5. **Push**
    - Push your branch to `origin` (or the remote you use).
@@ -43,12 +43,18 @@ Other optional notes still apply: branch name, PR title, draft PR, skip issue do
    - Open a PR against the default branch (e.g. `main`).
    - Describe the change, how to test it, and link the GitHub issue (e.g. `Closes #123` or `Refs #123` in the PR body).
 
-7. **Branch reminder**
-   - After the PR is created, remind the user that the working copy is still on the issue branch, not the default branch (e.g. `main`).
-   - Suggest they run `git switch main` (or the repo's default) before starting any unrelated work, so new changes don't accidentally land on the issue branch.
+7. **Post-merge branch cleanup**
+   - Detect the default branch (prefer `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`; fall back to `git symbolic-ref --quiet --short refs/remotes/origin/HEAD | sed 's|^origin/||'`, else `main`).
+   - Detect merge status of this PR with `gh pr view <branch> --json state,mergedAt,mergeCommit,headRefName`. If `gh` is unavailable, approximate with `git fetch --prune` followed by `git rev-list <branch>..origin/<default>` and `git cherry origin/<default> <branch>` (all commits marked `-` means squash-merged).
+   - **If the PR is merged:**
+     - Ask once whether to run the standard post-merge cleanup. On yes, run: `git switch <default> && git pull --ff-only && git fetch --prune`. These are non-destructive because the issue branch is already merged.
+     - List local branches whose tip is already reachable from `origin/<default>` (including squash-merged ones detected via `git cherry`). Present them as a single group and ask **once** (one consolidated yes/no listing every branch) before running `git branch -d <branch>` for each. Never use `-D` automatically; if `-d` refuses, report the branch and stop touching it.
+   - **If the PR is not yet merged:**
+     - Remind the user that the working copy is still on the issue branch, not the default branch. Suggest `git switch <default>` before starting any unrelated work so new changes don't accidentally land on the issue branch. Tell them to re-run `/issue-close` after the PR merges so the post-merge cleanup actually runs.
 
 8. **After review**
    - Address feedback, push updates, and merge when approved and CI is green.
+   - Re-run `/issue-close` after the merge to pick up the post-merge cleanup in step 7.
 
 ## Output
 
