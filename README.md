@@ -11,35 +11,51 @@ Running `issue-flow init` in your project root creates:
 ```text
 your-project/
   .issueflows/
-    00-tools/               # Helper scripts for agents
-    01-current-issues/      # Active issue markdown files
+    00-tools/                # Helper scripts for agents
+    01-current-issues/       # Active issue markdown files
     02-partly-solved-issues/ # Parked / in-progress issues
-    03-solved-issues/       # Completed issues archive
+    03-solved-issues/        # Completed issues archive
   .cursor/
     commands/
-      issue-init.md         # /issue-init — fetch a GitHub issue locally
-      issue-start.md        # /issue-start — plan and implement
-      issue-close.md        # /issue-close — test, commit, push, PR
-    skills/                 # Optional Agent Skills (explicit / @ invoke)
+      iflow.md               # /iflow — smart dispatcher (quick start)
+      issue-init.md          # /issue-init — fetch a GitHub issue locally
+      issue-plan.md          # /issue-plan — write issue<N>_plan.md and confirm
+      issue-start.md         # /issue-start — implement the plan
+      issue-pause.md         # /issue-pause — park work in 02-partly-solved-issues/
+      issue-close.md         # /issue-close — test, commit, push, PR
+      issue-cleanup.md       # /issue-cleanup — post-merge branch hygiene
+      issue-yolo.md          # /issue-yolo — all-in-one for small, low-risk issues
+    skills/                  # Optional Agent Skills (explicit / @ invoke)
+      issueflow-iflow/SKILL.md
       issueflow-issue-init/SKILL.md
+      issueflow-issue-plan/SKILL.md
       issueflow-issue-start/SKILL.md
+      issueflow-issue-pause/SKILL.md
       issueflow-issue-close/SKILL.md
+      issueflow-issue-cleanup/SKILL.md
+      issueflow-issue-yolo/SKILL.md
       issueflow-version-bump/SKILL.md
     rules/
-      issueflow-rules.mdc   # Always-on Cursor rule for the workflow
+      issueflow-rules.mdc    # Always-on Cursor rule for the workflow
   docs/
     cursor-issue-workflow.md # Human-readable overview of the workflow
 ```
 
-The three Cursor slash commands give agents a repeatable flow:
+The Cursor slash commands give agents a repeatable flow. The linear path is:
 
 1. `/issue-init 42` — pulls GitHub issue #42 into `.issueflows/01-current-issues/` and archives older issues.
-2. `/issue-start` — reads the issue file, plans, and implements.
-3. `/issue-close` — runs tests, optionally bumps version with `uv version --bump`, updates status files, commits, pushes, and opens a PR.
+2. `/issue-plan` — drafts `issue<N>_plan.md` (Goal / Constraints / Approach / Files to touch / Test strategy / Open questions) and stops for your confirmation.
+3. `/issue-start` — reads the confirmed plan and implements it. If no plan file exists, it offers to run `/issue-plan` first, proceed without a plan, or abort.
+4. `/issue-close` — runs tests, optionally bumps version with `uv version --bump`, updates status files, commits, pushes, and opens a PR.
+5. `/issue-cleanup` — after the PR merges, switches to the default branch, fast-forwards, prunes, and deletes the merged local branch.
 
-The matching **Agent Skills** (under `.cursor/skills/`) carry the same workflows for on-demand use with `/issueflow-issue-init`, `/issueflow-issue-start`, `/issueflow-issue-close`, or `@issueflow-version-bump` when you need only the bump steps (see [Cursor Agent Skills](https://cursor.com/docs/context/skills)).
+Plus a few off-path commands:
 
-The matching **Agent Skills** (under `.cursor/skills/`) carry the same workflows for on-demand use with `/issueflow-issue-init`, `/issueflow-issue-start`, or `/issueflow-issue-close` (see [Cursor Agent Skills](https://cursor.com/docs/context/skills)).
+- `/iflow` — **quick start**: inspects the current issue's state and dispatches to the right linear step automatically. A branch-derived number (`42-fix-login` → `N=42`) is authoritative, so `/iflow` works from a fresh branch too.
+- `/issue-pause` — park the current issue in `02-partly-solved-issues/` with a **Remaining work** note; optional WIP commit + switch back to the default branch.
+- `/issue-yolo` — all-in-one chain (`init → plan → start → close`) for small, low-risk issues, with up-front safeguards (refuses on the default branch, refuses with dirty unrelated changes, requires passing tests, single consolidated confirm).
+
+The matching **Agent Skills** (under `.cursor/skills/`) carry the same workflows for on-demand use with `/issueflow-iflow`, `/issueflow-issue-init`, `/issueflow-issue-plan`, `/issueflow-issue-start`, `/issueflow-issue-pause`, `/issueflow-issue-close`, `/issueflow-issue-cleanup`, `/issueflow-issue-yolo`, or `@issueflow-version-bump` when you need only the bump steps (see [Cursor Agent Skills](https://cursor.com/docs/context/skills)).
 
 ## Installation
 
@@ -62,7 +78,7 @@ cd your-project
 issue-flow init
 ```
 
-That's it. Open the project in Cursor and use `/issue-init`, `/issue-start`, `/issue-close`.
+That's it. Open the project in Cursor and start with `/iflow` (or step through `/issue-init`, `/issue-plan`, `/issue-start`, `/issue-close`, `/issue-cleanup` explicitly).
 
 ## Usage
 
