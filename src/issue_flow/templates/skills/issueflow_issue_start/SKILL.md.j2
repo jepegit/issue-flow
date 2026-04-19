@@ -20,20 +20,25 @@ Follow this skill when the user wants to **begin implementation** from issue not
 
 1. **Select the issue** — Read `{{ issueflows_dir }}/{{ current_issues_folder }}/`. If there is no `*_original.md` (or multiple ambiguous groups), **stop** and ask which issue to use.
 
-2. **Plan first** — Produce a concrete plan (steps, files touched, tests). If you are **not** in plan mode, **stop and ask for explicit confirmation** before implementing, per the command definition.
+2. **Branch status preflight** (non-destructive) — Detect the default branch (prefer `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`, else `git symbolic-ref --quiet --short refs/remotes/origin/HEAD`, else `main`). Run `git fetch --prune`. Report current branch, clean/dirty working tree, and ahead/behind counts vs `origin/<default>`. If on the default branch, propose creating an issue branch (`git switch -c <N>-<short-slug>`); ask before running. If the current branch matches `^(\d+)-.+` and files for that issue now live in `{{ issueflows_dir }}/{{ partly_solved_folder }}/` or `{{ issueflows_dir }}/{{ solved_folder }}/`, warn the branch looks stale and ask whether to switch back before continuing. If the branch is neither default nor an issue-style branch, warn and ask whether to continue. Never delete a branch from `/issue-start`.
 
-3. **Scope check** — If the plan is broad, propose splitting into phases and ask whether to narrow scope before coding.
+3. **Sweep stale current issues** (auto-safe) — Group files in `{{ issueflows_dir }}/{{ current_issues_folder }}/` by `issueNN_` prefix. For every group **other than the focus issue**, move the whole group to `{{ issueflows_dir }}/{{ solved_folder }}/` if any of its status files contains `- [x] Done` (case-insensitive on `done`), otherwise move it to `{{ issueflows_dir }}/{{ partly_solved_folder }}/`. Never move the focus issue's files. Report every move.
 
-4. **Implement** — Execute the confirmed plan. Prefer minimal, focused diffs. Match existing code style and tooling.
+4. **Plan first** — Produce a concrete plan (steps, files touched, tests). If you are **not** in plan mode, **stop and ask for explicit confirmation** before implementing, per the command definition.
 
-5. **Project conventions**
+5. **Scope check** — If the plan is broad, propose splitting into phases and ask whether to narrow scope before coding.
+
+6. **Implement** — Execute the confirmed plan. Prefer minimal, focused diffs. Match existing code style and tooling.
+
+7. **Project conventions**
    - Run Python via **`uv run`** (scripts, pytest, tools), not bare `python`, unless the user overrides.
    - Manage dependencies with **`uv add` / `uv remove` / `uv sync`** only.
    - After meaningful progress, update or create a status markdown file under `{{ issueflows_dir }}/{{ current_issues_folder }}/` (e.g. `issue<number>_status.md`) with an explicit **Done** checkbox: `- [ ] Done` until fully resolved, then `- [x] Done`.
 
-6. **Reporting** — Summarize what changed, what remains, and where the issue docs live.
+8. **Reporting** — Summarize what changed, what remains, and where the issue docs live. Include any branch warnings from step 2 and any issue-group moves from step 3.
 
 ## Constraints
 
 - Do not invent issue text; treat `*_original.md` as read-only source of requirements unless the user asks to edit it.
-- Do not move issue files between `01-` / `02-` / `03-` folders during `/issue-start` unless the user explicitly asked for that housekeeping.
+- The stale sweep in step 3 is the **only** automatic move `/issue-start` performs, and it never touches the focus issue's own files. Do not move the focus issue's files between `01-` / `02-` / `03-` folders during `/issue-start`.
+- Never delete or force-update git branches from `/issue-start`.

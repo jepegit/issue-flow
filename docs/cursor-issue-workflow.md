@@ -25,17 +25,14 @@ Each skill sets `disable-model-invocation: true` so it is included when you **ex
 
 ---
 
-## Agent Skills (optional)
+## Branch and folder hygiene
 
-`issue-flow init` / `issue-flow update` also install **Cursor Agent Skills** under `.cursor/skills/` — longer, on-demand playbooks that mirror the three commands:
+Two recurring pain points the commands actively help with:
 
-| Skill folder | Invoke (examples) | Role |
-|--------------|-------------------|------|
-| `issueflow-issue-init` | `/issueflow-issue-init` or attach `@issueflow-issue-init` | Same flow as `/issue-init` (resolve reference, `gh`, archive, write `*_original.md`). |
-| `issueflow-issue-start` | `/issueflow-issue-start` | Plan + confirmation + scope + implement from `.issueflows/01-current-issues/`. |
-| `issueflow-issue-close` | `/issueflow-issue-close` | Tests, status checkboxes, move issue docs, commit, push, PR. |
+- **Stale local branches that look "several commits ahead of main" after a squash-merged PR.** `/issue-close` detects merge status via `gh pr view`, and once the PR is merged it offers (with one consolidated confirm) to switch back to the default branch, `git pull --ff-only`, `git fetch --prune`, and run `git branch -d` on every local branch whose commits are already in the default branch (including squash-merged ones). Destructive flags like `-D` are never used automatically.
+- **Left-overs in `.issueflows/01-current-issues/`.** Both `/issue-init` (when a new issue is captured) and `/issue-start` (before implementation begins) sweep that folder: every `issue<n>_*` group **other than the focus issue** is moved automatically to `.issueflows/03-solved-issues/` if a status file contains `- [x] Done`, otherwise to `.issueflows/02-partly-solved-issues/`.
 
-Each skill sets `disable-model-invocation: true` so it is included when you **explicitly** invoke it, not on every chat. See [Agent Skills](https://cursor.com/docs/context/skills) in the Cursor docs.
+All three commands also run a short **branch-status preflight**: `git fetch --prune`, current branch, ahead/behind vs the default branch, and a warning when the current branch's leading digits refer to an issue already archived in `02-`/`03-`.
 
 ---
 
@@ -65,9 +62,11 @@ Each skill sets `disable-model-invocation: true` so it is included when you **ex
 **What the assistant does:**
 
 1. Confirms **which** issue file applies if several exist or things are ambiguous.
-2. **Plans** the work. If you are not in plan mode, it should stop and ask you to confirm before large changes.
-3. Checks the plan is **not too broad**; may suggest splitting into smaller chunks.
-4. **Implements** the plan (code, tests, and updates to issue status docs as appropriate for the task).
+2. **Branch status preflight** — `git fetch --prune`, report current branch and ahead/behind vs the default branch, warn if the current branch looks stale (leading digits point at an issue already in `02-`/`03-`) or if you are still on the default branch.
+3. **Sweeps stale current issues** — moves every `issue<n>_*` group **other than the focus issue** to `.issueflows/03-solved-issues/` (if a status file contains `- [x] Done`) or `.issueflows/02-partly-solved-issues/`.
+4. **Plans** the work. If you are not in plan mode, it should stop and ask you to confirm before large changes.
+5. Checks the plan is **not too broad**; may suggest splitting into smaller chunks.
+6. **Implements** the plan (code, tests, and updates to issue status docs as appropriate for the task).
 
 **Result:** Implementation aligned with the markdown in `.issueflows/01-current-issues/` and project rules (tests with `uv run`, dependency management with `uv`, etc.).
 
@@ -91,12 +90,13 @@ The bump runs **after** tests and **before** issue-folder moves and **before** c
 1. **Sanity check** — e.g. `uv run pytest`, review the diff.
 2. **Optional version bump** — if requested, follow `.cursor/skills/issueflow-version-bump/SKILL.md` and run `uv version --bump …` from the project root.
 3. **Issue folders** — update status markdown; use `- [x] Done` only when fully resolved. Move completed issue files from `.issueflows/01-current-issues/` to `.issueflows/03-solved-issues/`, or partly done work to `.issueflows/02-partly-solved-issues/` (see project rules).
-4. **Commit** — focused staging and a clear message (include `pyproject.toml` / `uv.lock` if the bump changed them).
+4. **Commit** — focused staging and a clear message (include `pyproject.toml` / `uv.lock` if the bump changed them). Sync with the default branch using `git pull --ff-only` so unrelated history never sneaks in silently.
 5. **Push** — to your usual remote (e.g. `origin`).
 6. **Pull request** — open against the default branch; link the GitHub issue (`Closes #n` / `Refs #n`).
-7. **After review** — address comments, merge when ready.
+7. **Post-merge branch cleanup** — once the PR is merged, re-run `/issue-close` (or simply ask the assistant to do the cleanup). It will detect the merge, offer to `git switch <default> && git pull --ff-only && git fetch --prune`, and ask once before running `git branch -d` on every local branch already reachable from the default (including squash-merged ones). Nothing destructive happens without your yes.
+8. **After review** — address comments, merge when ready; then come back for step 7.
 
-**Result:** Short summary of commit, push, and PR link (or what is blocked).
+**Result:** Short summary of commit, push, PR link, and (after merge) which local branches were deleted — or what is blocked.
 
 ---
 
