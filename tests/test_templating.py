@@ -55,8 +55,8 @@ def test_resolve_output_path() -> None:
 
 
 def test_manifest_entry_count() -> None:
-    # 8 commands + 1 rule + 1 doc + 11 skills = 21
-    assert len(TEMPLATE_MANIFEST) == 21
+    # 9 commands + 1 rule + 1 doc + 12 skills = 23
+    assert len(TEMPLATE_MANIFEST) == 23
 
 
 def test_manifest_has_expected_commands_and_skills() -> None:
@@ -71,6 +71,7 @@ def test_manifest_has_expected_commands_and_skills() -> None:
         "issue-close",
         "issue-cleanup",
         "issue-yolo",
+        "build",
     ):
         assert f"commands/{command}.md.j2" in template_names
     for skill in (
@@ -85,6 +86,7 @@ def test_manifest_has_expected_commands_and_skills() -> None:
         "issueflow_issue_yolo",
         "issueflow_version_bump",
         "issueflow_history_update",
+        "issueflow_build",
     ):
         assert f"skills/{skill}/SKILL.md.j2" in template_names
 

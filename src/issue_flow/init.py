@@ -13,6 +13,7 @@ from issue_flow.dependencies import (
     check_dependencies,
     prompt_or_skip,
 )
+from issue_flow.graphify import register_with_cursor as graphify_register_with_cursor
 from issue_flow.templating import (
     TEMPLATE_MANIFEST,
     render_template,
@@ -185,6 +186,9 @@ def run_init(
     _ensure_dotenv_file(project_root)
 
     console.print()
+    _graphify_postinstall(project_root)
+
+    console.print()
     if written_files:
         console.print(f"[bold green]Created {len(written_files)} file(s).[/bold green]")
     if skipped_files:
@@ -235,6 +239,9 @@ def run_update(project_root: Path, skip_dep_check: bool = False) -> None:
     written_files, _skipped = _write_manifest_files(project_root, context, force=True)
 
     console.print()
+    _graphify_postinstall(project_root)
+
+    console.print()
     if written_files:
         console.print(
             f"[bold green]Refreshed {len(written_files)} file(s).[/bold green]"
@@ -246,6 +253,20 @@ def run_update(project_root: Path, skip_dep_check: bool = False) -> None:
         "\n[dim]Manifest outputs were overwritten from the installed package. "
         "Issue files under [bold].issueflows/[/bold] were not modified by this command.[/dim]\n"
     )
+
+
+def _graphify_postinstall(project_root: Path) -> None:
+    """Best-effort graphify integration step for ``run_init`` / ``run_update``.
+
+    Auto-detects the ``graphify`` CLI (the user opts in by installing
+    ``graphifyy``; there is no flag). When present, runs
+    ``graphify cursor install`` so the graphify Cursor skill is
+    registered alongside issue-flow's own scaffold. When absent,
+    :func:`register_with_cursor` itself prints install hints. Never
+    raises and never aborts the parent ``init`` / ``update``.
+    """
+    console.print("[bold]Graphify integration[/bold]")
+    graphify_register_with_cursor(project_root, console)
 
 
 def _dependency_gate(skip_dep_check: bool) -> bool:

@@ -1,0 +1,63 @@
+# Rebuild the project's knowledge graph (`/build`)
+
+`/build` rebuilds the [graphify](https://graphify.net) knowledge graph for this project so the assistant can navigate by graph instead of grepping through files. Outputs land in `graphify-out/` (`graph.html`, `GRAPH_REPORT.md`, `graph.json`).
+
+This is an **off-path** command — the lifecycle dispatcher (`/iflow`) never auto-runs it. Invoke it explicitly when the project's structure has changed enough that the existing graph is stale (new modules, large refactors, new docs/papers added).
+
+## Input
+
+Optional free-form text after the command. Forwarded verbatim to `graphify`. Common combinations:
+
+- **No extra text** — full rebuild of the project root.
+- **`./subdir`** — rebuild for a sub-directory (e.g. `/build ./src`).
+- **`--update`** — re-extract only files that changed since the last build (much faster).
+- **`--no-viz`** — skip the HTML; produce report + JSON only.
+- **`--mode deep`** — more aggressive relationship extraction.
+- **`--cluster-only`** — rerun clustering on the existing graph without re-extraction.
+- **`--watch`** — auto-sync as files change (long-running).
+
+See the [graphify CLI reference](https://graphify.net/graphify-cli-commands.html) for the full flag set.
+
+## Steps
+
+1. **Preferred path: `issue-flow build`**. From the project root, run:
+
+   ```bash
+   issue-flow build
+   ```
+
+   Pass any of the flags above after the project dir, e.g. `issue-flow build . --update --no-viz`. Extra args are forwarded verbatim to `graphify`.
+
+2. **Fallback: call `graphify` directly** if `issue-flow` is not on PATH:
+
+   ```bash
+   graphify .
+   ```
+
+   On PowerShell, drop the leading slash: write `graphify .` (a leading `/` is parsed as a path separator).
+
+3. **Verify outputs.** After a successful run there should be a `graphify-out/` folder with at least `graph.html`, `GRAPH_REPORT.md`, and `graph.json`. Skim `GRAPH_REPORT.md` once to confirm the run picked up new modules or docs.
+
+4. **If `graphify` is not installed** (`issue-flow build` exits with a "not on PATH" error), suggest the user install it:
+
+   ```bash
+   uv tool install graphifyy   # recommended
+   pipx install graphifyy
+   pip install graphifyy
+   ```
+
+   `graphifyy` (double-y) is the official PyPI package; the CLI is still `graphify`. After installing, re-run `issue-flow init` (or `issue-flow update`) so `graphify cursor install` registers the graphify Cursor skill.
+
+## Constraints
+
+- Do **not** run `/build` automatically from `/issue-start`, `/issue-close`, or `/iflow`. The user opts in.
+- Do **not** commit `graphify-out/cost.json` or `graphify-out/manifest.json`; both are local-only. The graph itself (`graph.json`, `graph.html`, `GRAPH_REPORT.md`) is fine to commit so teammates start with a map.
+- Long-running flags (`--watch`) keep the process running; ask the user before launching them in an agent context.
+
+## Output to user
+
+Report:
+- whether the build ran (or was skipped because graphify is missing)
+- the exit code from `graphify`
+- the size / mtime of `graphify-out/graph.json` (rough freshness check)
+- a short summary of new highlights from `GRAPH_REPORT.md` if the user asked for one

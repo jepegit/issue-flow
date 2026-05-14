@@ -70,6 +70,42 @@ REQUIRED_DEPENDENCIES: tuple[Dependency, ...] = (
 )
 
 
+# Recommended (not required) external CLIs. Missing entries here only
+# trigger a printed hint during ``init``/``update``; they never block
+# the scaffold or prompt for confirmation. Used by
+# :mod:`issue_flow.graphify` so the data lives next to the required
+# tools.
+RECOMMENDED_DEPENDENCIES: tuple[Dependency, ...] = (
+    Dependency(
+        name="Graphify",
+        command="graphify",
+        purpose=(
+            "Powers the optional /build slash command and the "
+            "graphify-out/GRAPH_REPORT.md knowledge graph that "
+            "/issue-start can consult."
+        ),
+        docs_url="https://graphify.net",
+        install_hints=(
+            ("Recommended (uv)", "uv tool install graphifyy"),
+            ("pipx", "pipx install graphifyy"),
+            ("pip", "pip install graphifyy"),
+            ("issue-flow extra", "uv tool install 'issue-flow[graphify]'"),
+        ),
+    ),
+)
+
+
+def check_recommended(
+    dependencies: tuple[Dependency, ...] = RECOMMENDED_DEPENDENCIES,
+) -> list[Dependency]:
+    """Return the subset of ``dependencies`` not on ``PATH``.
+
+    Mirrors :func:`check_dependencies` but for the recommended (never
+    blocking) list. ``shutil.which`` only — no subprocess.
+    """
+    return [dep for dep in dependencies if shutil.which(dep.command) is None]
+
+
 def check_dependencies(
     dependencies: tuple[Dependency, ...] = REQUIRED_DEPENDENCIES,
 ) -> list[Dependency]:
