@@ -196,17 +196,17 @@ The bump runs **after** tests and **before** issue-folder moves and **before** c
 
 **When:** The project has the optional [graphify](https://graphify.net) integration enabled (the `graphify` CLI is on `PATH` and a `graphify-out/` folder is present), and the graph has gone stale relative to the source tree.
 
-**What you pass:** Optional graphify args, forwarded verbatim. Common picks:
+**What you pass:** Optional graphify subcommand and args, forwarded verbatim. Common picks:
 
-- *(nothing)* — full rebuild of the project root.
-- `./subdir` — restrict the build to a sub-directory.
-- `--update` — re-extract only files changed since the last build.
-- `--no-viz` — skip the HTML; produce report + JSON only.
-- `--mode deep` — more aggressive relationship extraction.
+- *(nothing)* — full rebuild of the project root (`graphify extract <project>`).
+- `update` — fast incremental re-extract of changed code files only, no LLM.
+- `watch` — long-running watcher that auto-rebuilds on save.
+- `cluster-only` — rerun clustering on the existing `graph.json` without re-extraction (e.g. `cluster-only --no-viz`).
+- `./subdir` — restrict the scan to a sub-directory (default subcommand: `extract`).
 
 **What the assistant does:**
 
-1. Runs `issue-flow build` (which shells out to the `graphify` CLI). If `issue-flow` is unavailable, falls back to `graphify .` directly.
+1. Runs `issue-flow build` (which shells out to the `graphify` CLI). If `issue-flow` is unavailable, falls back to `graphify extract .` directly (`graphify .` alone is **not** valid — graphify requires a subcommand).
 2. If `graphify` is not installed, prints install hints (`uv tool install graphifyy`) and stops — never silently retries.
 3. Verifies that `graphify-out/graph.html`, `GRAPH_REPORT.md`, and `graph.json` exist after a successful run.
 

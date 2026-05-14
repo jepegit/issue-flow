@@ -36,6 +36,59 @@ from issue_flow.dependencies import RECOMMENDED_DEPENDENCIES
 GRAPHIFY_COMMAND = "graphify"
 GRAPHIFY_PYPI = "graphifyy"
 
+# Graphify is a multi-subcommand CLI. The subcommands below all take a
+# project path as their first positional argument and are the ones that
+# fit the "build / refresh the graph" surface ``issue-flow build``
+# exposes. Anything else (``query``, ``explain``, ``cursor install``,
+# …) is out of scope for ``build``; users invoke ``graphify`` directly
+# for those.
+_GRAPHIFY_BUILD_SUBCOMMANDS: frozenset[str] = frozenset(
+    {"extract", "update", "watch", "cluster-only", "check-update"}
+)
+# Default subcommand when the user runs ``issue-flow build`` without
+# specifying one. ``extract`` is the full AST + semantic LLM build
+# (matches the natural meaning of "build the graph").
+_DEFAULT_BUILD_SUBCOMMAND: str = "extract"
+
+
+def _build_graphify_argv(
+    project_root: Path, extra_args: Sequence[str]
+) -> list[str]:
+    """Translate ``issue-flow build`` arguments into a ``graphify`` argv.
+
+    ``graphify`` is subcommand-based — there is no top-level "scan this
+    folder" mode — so every invocation needs an explicit subcommand.
+    Behavior:
+
+    * No extra args → ``graphify extract <project_root>``.
+    * First arg is a recognized build subcommand (``extract``,
+      ``update``, ``watch``, ``cluster-only``, ``check-update``) → use
+      it. If a positional path follows, trust it; otherwise inject
+      ``project_root`` so graphify scans the right tree even when the
+      agent's cwd differs from the project root.
+    * First arg is anything else → assume the default subcommand
+      (``extract``) and treat the args as positional/flag tail. A
+      first arg that does not start with ``-`` is taken as the path
+      the user wants graphify to scan (e.g. ``issue-flow build ./docs``
+      → ``graphify extract ./docs``).
+    """
+    args = list(extra_args)
+
+    if args and args[0] in _GRAPHIFY_BUILD_SUBCOMMANDS:
+        subcommand = args[0]
+        rest = args[1:]
+    else:
+        subcommand = _DEFAULT_BUILD_SUBCOMMAND
+        rest = args
+
+    has_explicit_path = bool(rest) and not rest[0].startswith("-")
+    if has_explicit_path:
+        positional_tail = rest
+    else:
+        positional_tail = [str(project_root), *rest]
+
+    return [GRAPHIFY_COMMAND, subcommand, *positional_tail]
+
 
 def _graphify_dependency():
     """Return the ``Dependency`` entry for graphify from the recommended list."""
@@ -203,13 +256,14 @@ def run_build(
     extra_args: Sequence[str],
     console: Console,
 ) -> int:
-    """Run ``graphify <project_root> [extra_args...]`` and return its exit code.
+    """Run ``graphify <subcommand> <path> [extra_args...]`` and return its exit code.
 
-    When the user supplies an explicit path in ``extra_args`` (e.g.
-    ``issue-flow build ./docs``), it is forwarded as-is and we do not
-    inject the project root. Otherwise the project root is passed
-    explicitly so graphify knows what to scan even if the agent's CWD
-    differs from the project root.
+    See :func:`_build_graphify_argv` for the argv-construction rules.
+    The short version: ``issue-flow build`` with no args invokes
+    ``graphify extract <project_root>`` (the natural "build the graph"
+    action). Users can pick a different build subcommand by passing it
+    as the first argument (e.g. ``issue-flow build update``,
+    ``issue-flow build cluster-only --no-viz``).
 
     Returns ``2`` and prints install hints when graphify is missing.
     Re-raises ``KeyboardInterrupt`` so users can ^C a long build.
@@ -222,16 +276,7 @@ def run_build(
         _print_install_hints(console)
         return 2
 
-    cmd: list[str] = [GRAPHIFY_COMMAND]
-    args_list = list(extra_args)
-    # Only inject the project root when the user did not supply a leading
-    # positional argument. We use a deliberately narrow rule (first token
-    # is a flag, or there are no tokens) so we do not misclassify a flag
-    # value like ``deep`` after ``--mode`` as a path.
-    has_explicit_path = bool(args_list) and not args_list[0].startswith("-")
-    if not has_explicit_path:
-        cmd.append(str(project_root))
-    cmd.extend(args_list)
+    cmd = _build_graphify_argv(project_root, extra_args)
 
     console.print(
         "[dim]running:[/dim] [bold]"

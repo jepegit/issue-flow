@@ -44,6 +44,9 @@ def test_register_with_cursor_skips_when_graphify_missing(
 ) -> None:
     """When graphify is not on PATH, register_with_cursor returns False, prints hints, and never calls subprocess."""
     monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: None)
+    # Isolate from any real graphify install on the dev machine; we want
+    # the "not installed at all" hint branch here, not the orphan branch.
+    monkeypatch.setattr(graphify_module, "_candidate_install_locations", lambda: [])
 
     def fail_run(*_a: Any, **_kw: Any) -> Any:
         raise AssertionError("subprocess.run must not be called when graphify is missing")
@@ -131,6 +134,7 @@ def test_run_build_returns_2_and_prints_hints_when_missing(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: None)
+    monkeypatch.setattr(graphify_module, "_candidate_install_locations", lambda: [])
 
     def fail_run(*_a: Any, **_kw: Any) -> Any:
         raise AssertionError("subprocess.run must not be called when graphify is missing")
@@ -146,10 +150,15 @@ def test_run_build_returns_2_and_prints_hints_when_missing(
     assert "graphifyy" in text
 
 
-def test_run_build_forwards_args_verbatim(
+def test_run_build_no_args_uses_default_extract_subcommand(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Extra args must pass straight through to graphify."""
+    """`issue-flow build` with no args must invoke `graphify extract <root>`.
+
+    graphify is subcommand-based — `graphify <path>` alone fails with
+    `unknown command`. The default action for a "build" is `extract`
+    (full AST + semantic LLM build).
+    """
     monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
 
     captured: dict[str, Any] = {}
@@ -165,23 +174,17 @@ def test_run_build_forwards_args_verbatim(
     monkeypatch.setattr(graphify_module.subprocess, "run", fake_run)
     console, _buffer = _fake_console()
 
-    exit_code = run_build(tmp_path, ["--update", "--no-viz", "--mode", "deep"], console)
+    exit_code = run_build(tmp_path, [], console)
 
     assert exit_code == 0
-    assert captured["cmd"][0] == GRAPHIFY_COMMAND
-    # No explicit path argument from the user → run_build inserts the project dir
-    assert str(tmp_path) in captured["cmd"]
-    assert "--update" in captured["cmd"]
-    assert "--no-viz" in captured["cmd"]
-    assert "--mode" in captured["cmd"]
-    assert "deep" in captured["cmd"]
+    assert captured["cmd"] == [GRAPHIFY_COMMAND, "extract", str(tmp_path)]
     assert captured["cwd"] == tmp_path
 
 
-def test_run_build_does_not_inject_path_when_user_supplied_one(
+def test_run_build_respects_explicit_subcommand_and_forwards_flags(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """If the user passes ./subdir, do not also pass the project root."""
+    """A leading build subcommand picks the action; trailing flags forward verbatim."""
     monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
 
     captured: dict[str, Any] = {}
@@ -196,11 +199,123 @@ def test_run_build_does_not_inject_path_when_user_supplied_one(
     monkeypatch.setattr(graphify_module.subprocess, "run", fake_run)
     console, _buffer = _fake_console()
 
-    run_build(tmp_path, ["./docs", "--update"], console)
+    exit_code = run_build(
+        tmp_path, ["cluster-only", "--no-viz"], console
+    )
 
-    # Only one positional arg: the user's "./docs" — not the project root.
-    positional = [a for a in captured["cmd"][1:] if not a.startswith("-")]
-    assert positional == ["./docs"]
+    assert exit_code == 0
+    # Project root must still be injected after the subcommand because
+    # the user did not pass an explicit path.
+    assert captured["cmd"] == [
+        GRAPHIFY_COMMAND,
+        "cluster-only",
+        str(tmp_path),
+        "--no-viz",
+    ]
+
+
+def test_run_build_update_subcommand_injects_project_root(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`issue-flow build update` → `graphify update <project_root>`."""
+    monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
+
+    captured: dict[str, Any] = {}
+
+    class _Result:
+        returncode = 0
+
+    def fake_run(cmd: list[str], **kwargs: Any) -> _Result:
+        captured["cmd"] = cmd
+        return _Result()
+
+    monkeypatch.setattr(graphify_module.subprocess, "run", fake_run)
+    console, _buffer = _fake_console()
+
+    run_build(tmp_path, ["update"], console)
+
+    assert captured["cmd"] == [GRAPHIFY_COMMAND, "update", str(tmp_path)]
+
+
+def test_run_build_subcommand_with_explicit_path_is_trusted(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """If the user supplies both subcommand and path, do not double-add."""
+    monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
+
+    captured: dict[str, Any] = {}
+
+    class _Result:
+        returncode = 0
+
+    def fake_run(cmd: list[str], **kwargs: Any) -> _Result:
+        captured["cmd"] = cmd
+        return _Result()
+
+    monkeypatch.setattr(graphify_module.subprocess, "run", fake_run)
+    console, _buffer = _fake_console()
+
+    run_build(tmp_path, ["extract", "./docs", "--no-cluster"], console)
+
+    assert captured["cmd"] == [
+        GRAPHIFY_COMMAND,
+        "extract",
+        "./docs",
+        "--no-cluster",
+    ]
+
+
+def test_run_build_does_not_inject_path_when_user_supplied_one(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`issue-flow build ./docs` → `graphify extract ./docs` (no double path)."""
+    monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
+
+    captured: dict[str, Any] = {}
+
+    class _Result:
+        returncode = 0
+
+    def fake_run(cmd: list[str], **kwargs: Any) -> _Result:
+        captured["cmd"] = cmd
+        return _Result()
+
+    monkeypatch.setattr(graphify_module.subprocess, "run", fake_run)
+    console, _buffer = _fake_console()
+
+    run_build(tmp_path, ["./docs"], console)
+
+    # Subcommand defaulted to extract; the only positional after it is
+    # the user's "./docs" — not the project root.
+    assert captured["cmd"] == [GRAPHIFY_COMMAND, "extract", "./docs"]
+
+
+def test_run_build_leading_flag_falls_back_to_default_subcommand(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A leading flag (no subcommand, no path) → `extract <project_root> <flag>`."""
+    monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
+
+    captured: dict[str, Any] = {}
+
+    class _Result:
+        returncode = 0
+
+    def fake_run(cmd: list[str], **kwargs: Any) -> _Result:
+        captured["cmd"] = cmd
+        return _Result()
+
+    monkeypatch.setattr(graphify_module.subprocess, "run", fake_run)
+    console, _buffer = _fake_console()
+
+    run_build(tmp_path, ["--no-cluster"], console)
+
+    assert captured["cmd"] == [
+        GRAPHIFY_COMMAND,
+        "extract",
+        str(tmp_path),
+        "--no-cluster",
+    ]
 
 
 def test_run_build_propagates_nonzero_exit_code(

@@ -111,8 +111,11 @@ What `issue-flow` does when `graphify` is on PATH:
   If graphify is not installed, both commands just print install hints and
   continue — they never block.
 - A new slash command `/build` (and matching `/issueflow-build` skill) wraps
-  `issue-flow build`, which forwards every argument to the `graphify` CLI
-  verbatim (`--update`, `--no-viz`, `--mode deep`, `--watch`, …).
+  `issue-flow build`. With no extra args it runs `graphify extract <project>`
+  (full build); pass a graphify build subcommand to pick a different action
+  (`issue-flow build update`, `issue-flow build watch`,
+  `issue-flow build cluster-only --no-viz`, …). Trailing flags forward to
+  the chosen subcommand verbatim.
 - The scaffolded rules and `/issue-start` mention `graphify-out/GRAPH_REPORT.md`
   as a recommended pre-read when the file exists. `/build` is **off-path** —
   `/iflow` never auto-dispatches to it.
@@ -173,7 +176,7 @@ That's it. Open the project in Cursor and start with `/iflow` (or step through `
 ```
 issue-flow init [PROJECT_DIR] [--force] [--skip-dep-check]
 issue-flow update [PROJECT_DIR] [--skip-dep-check]
-issue-flow build [PROJECT_DIR] [-- ...graphify args]
+issue-flow build [-C PROJECT_DIR] [...graphify subcommand + args]
 ```
 
 ### `issue-flow init`
@@ -199,8 +202,8 @@ Use `update` after upgrading the **issue-flow** package to refresh the packaged 
 
 | Argument / Option | Description |
 |---|---|
-| `PROJECT_DIR` | Project root directory to scan with graphify. Defaults to `.`. |
-| `...graphify args` | Any extra arguments are forwarded **verbatim** to the `graphify` CLI (`--update`, `--no-viz`, `--mode deep`, `--watch`, …). |
+| `-C`, `--project-dir` | Project root directory to scan with graphify. Defaults to `.` (current directory). Modeled on `git -C` so positional args can flow into graphify untouched. |
+| `...graphify subcommand + args` | Optional graphify subcommand + flags. With no extras runs `graphify extract <PROJECT_DIR>` (full AST + semantic LLM build). The first extra arg, if it is a recognized build subcommand (`extract`, `update`, `watch`, `cluster-only`, `check-update`), picks the action; trailing tokens forward verbatim. Examples: `issue-flow build update`, `issue-flow build cluster-only --no-viz`, `issue-flow build ./subdir`. |
 
 `build` requires `graphifyy` to be installed (`uv tool install graphifyy`). When the `graphify` CLI is missing, the command prints install hints and exits with code `2`. Outputs land in `graphify-out/` (`graph.html`, `GRAPH_REPORT.md`, `graph.json`).
 
