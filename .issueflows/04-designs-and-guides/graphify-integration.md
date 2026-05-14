@@ -10,14 +10,33 @@ Graphify turns a project (code + docs + papers + images + videos) into a queryab
 
 ## Decisions
 
-### 1. Optional Python extra, not a hard dependency
+### 1. External CLI, no Python dependency
 
-`pyproject.toml` declares `[project.optional-dependencies] graphify = ["graphifyy>=0.7"]`. issue-flow itself never imports graphify; it shells out to the `graphify` CLI when present. The extra is purely a convenience: users who want both pinned together can do `uv tool install 'issue-flow[graphify]'`.
+issue-flow does **not** depend on `graphifyy` — not as a hard dependency and
+not as an optional extra. The integration is purely a runtime PATH lookup
+plus subprocess passthrough to the `graphify` CLI. Users install graphify as
+its own standalone tool (`uv tool install graphifyy`), the same way they
+install issue-flow.
 
 **Alternatives considered**
 
-- *Hard dependency* — pull `graphifyy` for every install. Rejected: graphify has a large transitive footprint (tree-sitter, optional video/PDF/MCP extras). Issue-flow has 4 small dependencies today; we want to keep that.
-- *External CLI like git/gh* — list graphify in `REQUIRED_DEPENDENCIES`. Rejected: the workflow stays useful without graphify, so missing it must never block `init`/`update`. We added `RECOMMENDED_DEPENDENCIES` instead, used only for printed hints.
+- *Hard dependency* — pull `graphifyy` for every install. Rejected: graphify
+  has a large transitive footprint (tree-sitter, optional video/PDF/MCP
+  extras). issue-flow has 4 small dependencies today; we want to keep that.
+- *Optional Python extra* (`uv tool install 'issue-flow[graphify]'`,
+  `pyproject.toml` declaring `[project.optional-dependencies] graphify =
+  ["graphifyy>=0.7"]`). Initially shipped, then **rolled back** before
+  release. Reason: `uv tool install <pkg>` only exposes `<pkg>`'s own
+  entry-point scripts on PATH; extras get installed into the same venv but
+  their CLIs stay hidden. So `uv tool install 'issue-flow[graphify]'` would
+  pull graphifyy in but leave `/build` and `graphify cursor install`
+  broken — the extra promised something it could not deliver to the primary
+  install audience. Plain `pip install issue-flow[graphify]` would work,
+  but that is not the recommended install path.
+- *`issue-flow install-graphify` helper* that runs `uv tool install
+  graphifyy` for the user. Rejected: too magic, picks the wrong installer
+  for some users, and the manual two-step install is one extra command for
+  what's now a fully external dependency. Same posture as `git` / `gh`.
 
 ### 2. Auto-detect at runtime, no `--with graphify` flag
 

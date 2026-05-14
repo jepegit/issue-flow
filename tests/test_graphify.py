@@ -12,6 +12,7 @@ from rich.console import Console
 from issue_flow import graphify as graphify_module
 from issue_flow.graphify import (
     GRAPHIFY_COMMAND,
+    find_orphan_install,
     is_available,
     register_with_cursor,
     run_build,
@@ -231,3 +232,74 @@ def test_run_build_returns_1_on_oserror(
 
     assert exit_code == 1
     assert "exec format error" in buffer.getvalue()
+
+
+def test_find_orphan_install_returns_none_when_on_path(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """If graphify is already on PATH, the orphan question is moot."""
+    monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
+    assert find_orphan_install() is None
+
+
+def test_find_orphan_install_returns_none_when_no_candidates(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """No graphify on PATH and no candidate install path → no orphan."""
+    monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: None)
+    monkeypatch.setattr(graphify_module, "_candidate_install_locations", lambda: [])
+    assert find_orphan_install() is None
+
+
+def test_find_orphan_install_returns_path_when_unreachable(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A graphify binary in a candidate dir that is not on PATH counts as an orphan."""
+    monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: None)
+    fake_bin = tmp_path / "graphify"
+    fake_bin.write_text("#!/usr/bin/env python3\n")
+    monkeypatch.setattr(
+        graphify_module, "_candidate_install_locations", lambda: [fake_bin]
+    )
+
+    result = find_orphan_install()
+
+    assert result == fake_bin
+
+
+def test_install_hints_include_orphan_message(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """When an orphan binary exists, hints must point at it and recommend update-shell."""
+    monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: None)
+    fake_bin = tmp_path / "fake_local_bin" / "graphify"
+    fake_bin.parent.mkdir()
+    fake_bin.write_text("shim")
+    monkeypatch.setattr(
+        graphify_module, "_candidate_install_locations", lambda: [fake_bin]
+    )
+    console, buffer = _fake_console()
+
+    graphify_module._print_install_hints(console)
+
+    text = buffer.getvalue()
+    assert str(fake_bin) in text
+    assert "PATH" in text
+    assert "uv tool update-shell" in text
+
+
+def test_install_hints_include_path_advice_when_no_orphan(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """When graphify is plainly missing, hints still mention the update-shell escape hatch."""
+    monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: None)
+    monkeypatch.setattr(graphify_module, "_candidate_install_locations", lambda: [])
+    console, buffer = _fake_console()
+
+    graphify_module._print_install_hints(console)
+
+    text = buffer.getvalue()
+    assert "graphifyy" in text
+    assert "update-shell" in text
+    # And the standard install snippets are still printed.
+    assert "uv tool install" in text

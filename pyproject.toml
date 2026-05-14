@@ -24,9 +24,6 @@ dependencies = [
     "typer>=0.24.1",
 ]
 
-[project.optional-dependencies]
-graphify = ["graphifyy>=0.7"]
-
 [project.urls]
 Homepage = "https://github.com/jepegit/issue-flow"
 Repository = "https://github.com/jepegit/issue-flow"

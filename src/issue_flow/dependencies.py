@@ -82,14 +82,14 @@ RECOMMENDED_DEPENDENCIES: tuple[Dependency, ...] = (
         purpose=(
             "Powers the optional /build slash command and the "
             "graphify-out/GRAPH_REPORT.md knowledge graph that "
-            "/issue-start can consult."
+            "/issue-start can consult. Install it standalone (the same "
+            "way you installed issue-flow) so its CLI ends up on PATH."
         ),
         docs_url="https://graphify.net",
         install_hints=(
             ("Recommended (uv)", "uv tool install graphifyy"),
             ("pipx", "pipx install graphifyy"),
             ("pip", "pip install graphifyy"),
-            ("issue-flow extra", "uv tool install 'issue-flow[graphify]'"),
         ),
     ),
 )

@@ -2,11 +2,13 @@
 
 Graphify (PyPI: ``graphifyy``, CLI: ``graphify``) turns a project folder
 into a queryable knowledge graph that AI coding assistants can read
-instead of grepping through files. issue-flow does not bundle graphify
-as a hard dependency; it is offered as an optional Python extra
-(``issue-flow[graphify]``) and the wiring here is **best-effort**: if
-``graphify`` is on ``PATH``, ``init``/``update`` register it with
-Cursor; otherwise we just print a hint.
+instead of grepping through files. issue-flow does **not** bundle
+graphify and does not declare it as a Python dependency — neither hard
+nor optional-extra. Users install ``graphifyy`` as its own standalone
+tool (``uv tool install graphifyy``), the same way they install
+issue-flow. The wiring here is **best-effort**: if ``graphify`` is on
+``PATH``, ``init``/``update`` register it with Cursor; otherwise we
+just print a hint and continue.
 
 This module owns three small responsibilities:
 
@@ -20,8 +22,10 @@ This module owns three small responsibilities:
 
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 from typing import Sequence
 
@@ -49,14 +53,97 @@ def is_available() -> bool:
     return shutil.which(GRAPHIFY_COMMAND) is not None
 
 
+def _candidate_install_locations() -> list[Path]:
+    """Well-known install locations to probe when ``graphify`` is missing from PATH.
+
+    Covers the common case where the user did install ``graphifyy`` but
+    the install directory was never added to ``PATH`` (e.g. fresh
+    ``uv tool install`` followed by no ``uv tool update-shell`` and no
+    shell restart).
+
+    The list is best-effort and intentionally short. We do not try to
+    enumerate every Python user-base layout — ``uv tool`` and modern
+    ``pipx`` both default to ``~/.local/bin``, which catches the vast
+    majority of installs across Linux, macOS, and Windows.
+    """
+    home = Path.home()
+    exe = ".exe" if sys.platform == "win32" else ""
+    binary = f"{GRAPHIFY_COMMAND}{exe}"
+
+    candidates: list[Path] = [
+        home / ".local" / "bin" / binary,
+    ]
+
+    if sys.platform == "win32":
+        # pipx default on Windows historically used %USERPROFILE%\AppData\Roaming\Python\Scripts.
+        appdata = os.environ.get("APPDATA")
+        if appdata:
+            candidates.append(Path(appdata) / "Python" / "Scripts" / binary)
+        # pip --user fallback.
+        candidates.append(home / "AppData" / "Roaming" / "Python" / "Scripts" / binary)
+
+    return candidates
+
+
+def find_orphan_install() -> Path | None:
+    """Return the path of an installed-but-not-on-PATH ``graphify`` binary, if any.
+
+    ``None`` if no candidate location contains a ``graphify`` executable
+    or if ``graphify`` is already on PATH (in which case this question
+    is moot).
+    """
+    if is_available():
+        return None
+    for path in _candidate_install_locations():
+        try:
+            if path.is_file():
+                return path
+        except OSError:
+            # Permission errors or weird filesystem states — keep looking.
+            continue
+    return None
+
+
 def _print_install_hints(console: Console) -> None:
+    """Print the install / not-on-PATH hint block.
+
+    Two flavors:
+
+    * **Not installed** — print the normal install snippets.
+    * **Installed but not on PATH** — point at the orphan binary and
+      tell the user to run ``uv tool update-shell`` (or restart their
+      shell / Cursor) so the new directory becomes visible.
+    """
     dep = _graphify_dependency()
+
+    orphan = find_orphan_install()
+    if orphan is not None:
+        console.print(
+            f"  [yellow]Found[/yellow] [cyan]{orphan}[/cyan] but its directory is not on [bold]PATH[/bold]."
+        )
+        console.print(
+            f"  [dim]Fix:[/dim] add [cyan]{orphan.parent}[/cyan] to PATH, "
+            "then restart your shell (and Cursor)."
+        )
+        console.print(
+            "  [dim]With uv:[/dim] [green]uv tool update-shell[/green] "
+            "(refreshes the shell rc files; restart afterwards)."
+        )
+        console.print(f"  [dim]Docs:[/dim] [blue]{dep.docs_url}[/blue]")
+        return
+
     console.print(
         f"  [dim]Install graphify to enable:[/dim] "
         f"[bold]{dep.command}[/bold] not found on PATH."
     )
     for label, snippet in dep.install_hints:
         console.print(f"    - {label}: [green]{snippet}[/green]")
+    console.print(
+        "  [dim]Already installed?[/dim] If you just ran "
+        "[green]uv tool install graphifyy[/green], make sure uv's bin "
+        "directory is on PATH ([green]uv tool update-shell[/green]) and "
+        "restart your shell (and Cursor) so the new tool is picked up."
+    )
     console.print(f"  [dim]Docs:[/dim] [blue]{dep.docs_url}[/blue]")
 
 
