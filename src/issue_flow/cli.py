@@ -5,11 +5,14 @@ from __future__ import annotations
 from pathlib import Path
 
 import typer
+from rich.console import Console
 
 app = typer.Typer(
     name="issue-flow",
     add_completion=False,
 )
+
+_console = Console()
 
 
 @app.callback()
@@ -71,6 +74,39 @@ def update(
     from issue_flow.init import run_update
 
     run_update(project_root=project_dir, skip_dep_check=skip_dep_check)
+
+
+@app.command(
+    context_settings={
+        "allow_extra_args": True,
+        "ignore_unknown_options": True,
+    },
+)
+def build(
+    ctx: typer.Context,
+    project_dir: Path = typer.Argument(
+        default=Path("."),
+        help=(
+            "Project root directory to scan with graphify. "
+            "Defaults to the current directory."
+        ),
+        exists=True,
+        file_okay=False,
+        resolve_path=True,
+    ),
+) -> None:
+    """Rebuild the graphify knowledge graph for the project.
+
+    Forwards every extra argument to the ``graphify`` CLI verbatim, so
+    flags like ``--update``, ``--no-viz``, ``--mode deep``, or
+    ``--watch`` pass straight through. Requires ``graphify`` to be on
+    ``PATH`` (install with ``uv tool install graphifyy``).
+    """
+    from issue_flow.graphify import run_build
+
+    exit_code = run_build(project_dir, ctx.args, _console)
+    if exit_code != 0:
+        raise typer.Exit(code=exit_code)
 
 
 def main() -> None:

@@ -1,12 +1,12 @@
 # Cursor issue workflow (slash commands)
 
-This repo uses eight Cursor **slash commands** under `{{ agent_dir }}/commands/` that line up with how we track GitHub issues in `{{ issueflows_dir }}/{{ current_issues_folder }}/`.
+This repo uses nine Cursor **slash commands** under `{{ agent_dir }}/commands/` that line up with how we track GitHub issues in `{{ issueflows_dir }}/{{ current_issues_folder }}/`.
 
 **Quick start: just run `/iflow`.** It inspects the state of the focus issue and dispatches to the right linear-flow command (`/issue-init`, `/issue-plan`, `/issue-start`, or `/issue-close`) — so you don't have to remember which step is next.
 
 | Command | File | Role |
 |--------|------|------|
-| `/iflow` | `iflow.md` | **Smart dispatcher.** Detect current state and run `/issue-init`, `/issue-plan`, `/issue-start`, or `/issue-close` automatically. Never auto-dispatches to pause / cleanup / yolo. |
+| `/iflow` | `iflow.md` | **Smart dispatcher.** Detect current state and run `/issue-init`, `/issue-plan`, `/issue-start`, or `/issue-close` automatically. Never auto-dispatches to pause / cleanup / yolo / build. |
 | `/issue-init` | `issue-init.md` | Pull an issue from GitHub into the repo as a local markdown file and tidy older current issues. |
 | `/issue-plan` | `issue-plan.md` | Write a structured `issue<N>_plan.md` and get explicit user confirmation before any code is touched. |
 | `/issue-start` | `issue-start.md` | Implement the confirmed plan (no planning step of its own any more). |
@@ -14,6 +14,7 @@ This repo uses eight Cursor **slash commands** under `{{ agent_dir }}/commands/`
 | `/issue-close` | `issue-close.md` | Finish: tests, optional semver bump (`uv version --bump …`), `{{ history_file }}` update, issue-folder housekeeping, commit, push, PR. |
 | `/issue-cleanup` | `issue-cleanup.md` | Post-merge hygiene: switch to default, `git pull --ff-only`, `git fetch --prune`, delete merged local branches (single consolidated confirm). |
 | `/issue-yolo` | `issue-yolo.md` | All-in-one for small, low-risk issues: chains `init → plan → start → close` with up-front safeguards and a single confirmation. |
+| `/build` | `build.md` | **Off-path.** Rebuild the [graphify](https://graphify.net) knowledge graph (`graphify-out/graph.html`, `GRAPH_REPORT.md`, `graph.json`). Wraps `issue-flow build` / `graphify`. Optional: only meaningful when `graphifyy` is installed. |
 
 ---
 
@@ -33,6 +34,7 @@ This repo uses eight Cursor **slash commands** under `{{ agent_dir }}/commands/`
 | `issueflow-issue-yolo` | `/issueflow-issue-yolo` | Chain `init → plan → start → close` with safeguards. |
 | `issueflow-version-bump` | `@issueflow-version-bump` (often used from `/issue-close`) | Bump `[project]` version in `pyproject.toml` via `uv version --bump patch|minor|major`. |
 | `issueflow-history-update` | `@issueflow-history-update` (used from `/issue-close`) | Append an entry to `## [Unreleased]` in `{{ history_file }}`, or promote it to a new `## [x.y.z] - YYYY-MM-DD` release section when a version bump happened. |
+| `issueflow-build` | `/issueflow-build` | Same flow as `/build`: rebuild the graphify knowledge graph for the project. Off-path; never auto-dispatched. |
 
 Each skill sets `disable-model-invocation: true` so it is included when you **explicitly** invoke it, not on every chat. See [Agent Skills](https://cursor.com/docs/context/skills) in the Cursor docs.
 
@@ -190,7 +192,29 @@ The bump runs **after** tests and **before** issue-folder moves and **before** c
 
 ---
 
-## 7. `/issue-yolo` — all-in-one for small issues
+## 7. `/build` — rebuild the knowledge graph (optional)
+
+**When:** The project has the optional [graphify](https://graphify.net) integration enabled (the `graphify` CLI is on `PATH` and a `graphify-out/` folder is present), and the graph has gone stale relative to the source tree.
+
+**What you pass:** Optional graphify args, forwarded verbatim. Common picks:
+
+- *(nothing)* — full rebuild of the project root.
+- `./subdir` — restrict the build to a sub-directory.
+- `--update` — re-extract only files changed since the last build.
+- `--no-viz` — skip the HTML; produce report + JSON only.
+- `--mode deep` — more aggressive relationship extraction.
+
+**What the assistant does:**
+
+1. Runs `issue-flow build` (which shells out to the `graphify` CLI). If `issue-flow` is unavailable, falls back to `graphify .` directly.
+2. If `graphify` is not installed, prints install hints (`uv tool install graphifyy`) and stops — never silently retries.
+3. Verifies that `graphify-out/graph.html`, `GRAPH_REPORT.md`, and `graph.json` exist after a successful run.
+
+**Result:** A refreshed `graphify-out/` so `/issue-start` can navigate by graph instead of grepping. `/build` is **off-path** — `/iflow`, `/issue-start`, and `/issue-close` may *suggest* a rebuild but never invoke `/build` automatically.
+
+---
+
+## 8. `/issue-yolo` — all-in-one for small issues
 
 **When:** The change is genuinely small and low-risk (typo, one-line fix, doc tweak) and you want to skip the usual checkpoints. For anything bigger, use the individual commands.
 

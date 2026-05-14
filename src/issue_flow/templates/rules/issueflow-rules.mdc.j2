@@ -123,3 +123,13 @@ Long-lived design docs, design decisions, and project "good practices" live unde
 
 - Only the **focus issue** (the one currently being worked on) should live in `{{ issueflows_dir }}/{{ current_issues_folder }}`.
 - `/issue-init` and `/issue-start` both sweep that folder automatically: every `issue<n>_*` group **other than the focus issue** is moved to `{{ issueflows_dir }}/{{ solved_folder }}` if a status file contains `- [x] Done`, otherwise to `{{ issueflows_dir }}/{{ partly_solved_folder }}`. Keep status files accurate so the sweep routes them correctly.
+
+
+### Knowledge graph (optional, via [graphify](https://graphify.net))
+
+If a `graphify-out/` folder exists in the project root, the project has the optional [graphify](https://graphify.net) integration enabled and a knowledge graph is available alongside the source.
+
+- **Before grepping**, skim `graphify-out/GRAPH_REPORT.md`. It surfaces god-nodes (most-connected concepts), surprising cross-module connections, and suggested questions the graph can answer — often a faster way to locate the files an issue actually touches than full-text search.
+- **`/build`** (slash command) or **`issue-flow build`** (CLI) rebuild the graph; both forward extra args (`--update`, `--no-viz`, `--mode deep`, etc.) verbatim to the `graphify` CLI.
+- `/build` is **off-path**: never auto-dispatched by `/iflow`, `/issue-start`, or `/issue-close`. It is the user's call. `/issue-start` may *suggest* skimming `GRAPH_REPORT.md`; `/issue-close` may *suggest* a rebuild after large structural changes — neither runs `graphify` automatically.
+- If `graphify-out/` is not present, ignore graph-related guidance entirely. The integration is opt-in (install with `uv tool install graphifyy`, then `issue-flow update` to register the graphify Cursor skill).
