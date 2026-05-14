@@ -84,8 +84,10 @@ def update(
 )
 def build(
     ctx: typer.Context,
-    project_dir: Path = typer.Argument(
-        default=Path("."),
+    project_dir: Path = typer.Option(
+        Path("."),
+        "--project-dir",
+        "-C",
         help=(
             "Project root directory to scan with graphify. "
             "Defaults to the current directory."
@@ -97,10 +99,14 @@ def build(
 ) -> None:
     """Rebuild the graphify knowledge graph for the project.
 
-    Forwards every extra argument to the ``graphify`` CLI verbatim, so
-    flags like ``--update``, ``--no-viz``, ``--mode deep``, or
-    ``--watch`` pass straight through. Requires ``graphify`` to be on
-    ``PATH`` (install with ``uv tool install graphifyy``).
+    With no extra arguments runs ``graphify extract <project_dir>`` (the
+    full AST + semantic LLM build). Override the subcommand by passing
+    it as the first argument: ``issue-flow build update`` (fast,
+    code-only re-extract), ``issue-flow build watch`` (live rebuild),
+    ``issue-flow build cluster-only --no-viz`` (re-cluster), etc.
+    Trailing flags pass through verbatim. Use ``-C <dir>`` to scan a
+    project other than the current directory. Requires ``graphify`` to
+    be on ``PATH`` (install with ``uv tool install graphifyy``).
     """
     from issue_flow.graphify import run_build
 

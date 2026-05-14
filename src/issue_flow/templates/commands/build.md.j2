@@ -6,17 +6,16 @@ This is an **off-path** command — the lifecycle dispatcher (`/iflow`) never au
 
 ## Input
 
-Optional free-form text after the command. Forwarded verbatim to `graphify`. Common combinations:
+Optional free-form text after the command. The first word, if it is a recognized graphify build subcommand, picks the action; otherwise the default is `extract`. Trailing tokens forward verbatim. Common combinations:
 
-- **No extra text** — full rebuild of the project root.
-- **`./subdir`** — rebuild for a sub-directory (e.g. `/build ./src`).
-- **`--update`** — re-extract only files that changed since the last build (much faster).
-- **`--no-viz`** — skip the HTML; produce report + JSON only.
-- **`--mode deep`** — more aggressive relationship extraction.
-- **`--cluster-only`** — rerun clustering on the existing graph without re-extraction.
-- **`--watch`** — auto-sync as files change (long-running).
+- **No extra text** — full rebuild (`graphify extract <project>`); requires an LLM API key for graphify's semantic pass.
+- **`update`** — fast incremental re-extract of changed code files only, no LLM (`graphify update <project>`).
+- **`watch`** — long-running file watcher that auto-rebuilds on save (`graphify watch <project>`).
+- **`cluster-only`** — rerun clustering on the existing `graph.json` without re-extraction (`graphify cluster-only <project>`).
+- **`./subdir`** — scan a sub-directory instead of the project root (`graphify extract ./subdir`).
+- **Trailing flags** (e.g. `--no-cluster`, `--force`, `--no-viz`) — passed straight through to the chosen subcommand. See `graphify --help` for the per-subcommand flag set.
 
-See the [graphify CLI reference](https://graphify.net/graphify-cli-commands.html) for the full flag set.
+See the [graphify CLI reference](https://graphify.net/graphify-cli-commands.html) for the full subcommand and flag list.
 
 ## Steps
 
@@ -26,15 +25,15 @@ See the [graphify CLI reference](https://graphify.net/graphify-cli-commands.html
    issue-flow build
    ```
 
-   Pass any of the flags above after the project dir, e.g. `issue-flow build . --update --no-viz`. Extra args are forwarded verbatim to `graphify`.
+   To pick a non-default subcommand or pass flags, append them after the project dir, e.g. `issue-flow build update` or `issue-flow build cluster-only --no-viz`. Extra args are forwarded verbatim.
 
 2. **Fallback: call `graphify` directly** if `issue-flow` is not on PATH:
 
    ```bash
-   graphify .
+   graphify extract .
    ```
 
-   On PowerShell, drop the leading slash: write `graphify .` (a leading `/` is parsed as a path separator).
+   `graphify` is subcommand-based — `graphify .` on its own is **not** valid and will fail with `unknown command '.'`. Always pick a subcommand (`extract`, `update`, `watch`, `cluster-only`, …).
 
 3. **Verify outputs.** After a successful run there should be a `graphify-out/` folder with at least `graph.html`, `GRAPH_REPORT.md`, and `graph.json`. Skim `GRAPH_REPORT.md` once to confirm the run picked up new modules or docs.
 
@@ -52,7 +51,7 @@ See the [graphify CLI reference](https://graphify.net/graphify-cli-commands.html
 
 - Do **not** run `/build` automatically from `/issue-start`, `/issue-close`, or `/iflow`. The user opts in.
 - Do **not** commit `graphify-out/cost.json` or `graphify-out/manifest.json`; both are local-only. The graph itself (`graph.json`, `graph.html`, `GRAPH_REPORT.md`) is fine to commit so teammates start with a map.
-- Long-running flags (`--watch`) keep the process running; ask the user before launching them in an agent context.
+- Long-running modes (`watch`) keep the process running; ask the user before launching them in an agent context.
 
 ## Output to user
 

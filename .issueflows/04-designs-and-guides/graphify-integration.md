@@ -81,3 +81,15 @@ What we deliberately **do not** ship:
 
 - If we add `issue-flow status` (already on the README's Future plans), it could surface graph freshness (`graphify-out/manifest.json` mtime vs source tree) without re-implementing graphify's freshness check.
 - If multi-tool support lands (Claude Code, Windsurf, etc.), `register_with_cursor` should grow a sibling `register_with_<tool>` that calls `graphify <tool> install`.
+
+## Correction (2026-05-14): graphify is subcommand-based
+
+The original implementation assumed `graphify <path> [flags…]` was the canonical "build" invocation, modeled on tools like `ruff` or `pyright`. **It is not.** The `graphify` CLI is dispatch-based — every action is a subcommand (`extract <path>`, `update <path>`, `watch <path>`, `cluster-only <path>`, …) and there is no top-level "scan this folder" mode. Running `graphify C:\some\dir` fails with `unknown command 'C:\some\dir'`. The published `/build` doc, the rules entry, the cursor-issue-workflow doc, and the README all advertised non-existent flags (`--update`, `--no-viz`, `--mode deep`, `--watch`, `--cluster-only`) that are actually subcommands or per-subcommand flags.
+
+**Fixes landed in this iteration:**
+
+- `_build_graphify_argv` translates `issue-flow build [args…]` into `graphify <subcommand> <project_root> [args…]`. Default subcommand is `extract` (full AST + semantic LLM build, matches the natural meaning of "build the graph"). A leading recognized build subcommand (`extract`, `update`, `watch`, `cluster-only`, `check-update`) overrides the default.
+- `project_dir` on the Typer `build` command became `-C` / `--project-dir` (modeled on `git -C`) so positional args flow into `_build_graphify_argv` untouched. Without this change, `issue-flow build update` failed because Typer eagerly bound `update` to the `project_dir` positional and the path-existence check rejected it.
+- All scaffolded docs (`commands/build.md.j2`, `skills/issueflow_build/SKILL.md.j2`, `rules/issueflow-rules.mdc.j2`, `docs/cursor-issue-workflow.md.j2`, `commands/issue-close.md.j2`) and the README now describe real graphify subcommands and the `-C` option. The `graphify .` fallback (which never worked) is replaced everywhere with `graphify extract .`.
+
+**Why this slipped through originally:** `run_build` was tested with `subprocess.run` mocked to a no-op, so the test suite never observed graphify's actual argv parser. The new tests exercise the argv-construction function directly with realistic subcommand combinations. Future graphify integrations should always include at least one test that uses real graphify subcommand names (or a contract test that mirrors `graphify --help`).

@@ -28,15 +28,15 @@ Do **not** use this skill from `/issue-start`, `/issue-close`, or `/iflow`. `/bu
    issue-flow build
    ```
 
-   Any extra args from the user (`--update`, `--no-viz`, `--mode deep`, `./subdir`, etc.) pass straight through to `graphify`. Do not invent new wrapper flags.
+   With no extra args this runs `graphify extract <project>` (full AST + semantic LLM build). To pick a different graphify subcommand, pass it as the first arg: `issue-flow build update` (fast, code-only re-extract), `issue-flow build watch` (live rebuild), `issue-flow build cluster-only --no-viz`, etc. A leading `./subdir` overrides the scan path. Trailing flags pass through verbatim. Do not invent new wrapper flags.
 
 2. **Fallback to `graphify` directly** when `issue-flow` is unavailable:
 
    ```bash
-   graphify .
+   graphify extract .
    ```
 
-   On Windows PowerShell drop any leading `/` (use `graphify .`, not `/graphify .`).
+   `graphify` is subcommand-based — `graphify .` on its own is **not** valid (graphify reports `unknown command '.'`). Always pick a subcommand: `extract` for a full build, `update` for a fast incremental, `watch` for a long-running watcher, etc.
 
 3. **Handle missing graphify gracefully.** If the run reports `graphify` is not on PATH, do **not** retry blindly. Tell the user to install it once:
 
@@ -57,5 +57,5 @@ Do **not** use this skill from `/issue-start`, `/issue-close`, or `/iflow`. `/bu
 
 - Never auto-dispatch `/build` from another slash command. The user opts in explicitly.
 - Never commit `graphify-out/cost.json` or `graphify-out/manifest.json`; they are local-only.
-- Long-running modes (`--watch`) keep the process alive; ask the user before launching them in an agent context.
+- Long-running modes (`watch`) keep the process alive; ask the user before launching them in an agent context.
 - Forward extra arguments verbatim. Do **not** translate or rewrite graphify's flag set inside issue-flow.
