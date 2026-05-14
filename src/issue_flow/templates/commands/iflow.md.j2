@@ -2,7 +2,7 @@
 
 `/iflow` inspects the state of the focus issue and **dispatches** to the next logical command in the linear lifecycle — `/issue-init`, `/issue-plan`, `/issue-start`, or `/issue-close`. It never does work those commands don't already do; it just picks the right one for you.
 
-Off-path commands (`/issue-pause`, `/issue-cleanup`, `/issue-yolo`) are **not** auto-dispatched. Invoke them directly when you need them.
+Off-path commands (`/issue-pause`, `/issue-cleanup`, `/issue-yolo`, `/build`) are **not** auto-dispatched. Invoke them directly when you need them.
 
 Long-lived design docs, design decisions, and project good-practices live under `{{ issueflows_dir }}/{{ designs_folder }}/`. The downstream commands (`/issue-plan`, `/issue-start`, `/issue-close`) read from and add to that folder as they run; `/iflow` itself does not touch it.
 
@@ -53,11 +53,12 @@ Optional free-form text after the command. `/iflow` forwards the raw trailing te
      - state **D** + PR likely merged → "after the PR merges, run `/issue-cleanup`"
      - mid-stream context switch needed → "to park this work, run `/issue-pause`"
      - tiny fix you want in one shot → "consider `/issue-yolo` next time"
+     - `graphify-out/GRAPH_REPORT.md` looks stale (large refactor, new modules) → "consider `/build` to refresh the graph"
 
 ## Constraints
 
 - `/iflow` never skips a downstream command's own prompts. If the downstream step asks a question, surface it normally.
-- `/iflow` never auto-dispatches to `/issue-pause`, `/issue-cleanup`, or `/issue-yolo`. Those are explicit choices only.
+- `/iflow` never auto-dispatches to `/issue-pause`, `/issue-cleanup`, `/issue-yolo`, or `/build`. Those are explicit choices only.
 - If the focus issue cannot be resolved (multiple active issues, branch ambiguous), stop and ask. Do not pick one silently.
 - Do not modify files beyond what the downstream command would normally modify. `/iflow` itself writes nothing.
 

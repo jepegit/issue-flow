@@ -10,6 +10,7 @@ than the GitHub release notes they link to.
 ## [Unreleased]
 
 - `/issue-init` now fetches GitHub issue comments and writes a curated "Comments (curated summary)" section into `issue<N>_original.md` (later comments win over earlier ones). New `issueflow-issue-comments` skill documents the triage rules (three buckets, noise filtering, edge cases). (#45)
+- **Optional graphify integration (#49).** New `issue-flow build` CLI and `/build` slash command (plus matching `/issueflow-build` skill) wrap the [graphify](https://graphify.net) CLI. `issue-flow init` / `update` auto-run `graphify cursor install` when `graphify` is on PATH and otherwise print install hints — including PATH-orphan detection that surfaces "found at `<path>` but not on PATH" when the user installed `graphifyy` but uv's bin directory has not been added to PATH yet. The scaffolded rules and `/issue-start` / `/issue-close` point agents at `graphify-out/GRAPH_REPORT.md` when present so they can navigate by graph instead of grepping. Graphify is treated like `git` / `gh` — install standalone with `uv tool install graphifyy`, no Python extra (an `[graphify]` extra or `uv tool install issue-flow --with graphifyy` would leave the `graphify` CLI off PATH).
 
 ## [0.2.3] - 2026-04-19
 

@@ -322,6 +322,79 @@ def test_init_aborts_cleanly_when_user_declines_prompt(
     assert not (tmp_path / ".issueflows").exists()
 
 
+def test_init_calls_graphify_register_when_available(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """When graphify is on PATH, run_init must call register_with_cursor."""
+    from issue_flow import graphify as graphify_module
+
+    monkeypatch.setattr(graphify_module.shutil, "which", lambda cmd: "/usr/bin/graphify" if cmd == "graphify" else None)
+
+    calls: list[Path] = []
+
+    class _Result:
+        returncode = 0
+        stderr = ""
+
+    def fake_run(cmd: list[str], **kwargs: object) -> _Result:
+        calls.append(kwargs.get("cwd"))  # type: ignore[arg-type]
+        return _Result()
+
+    monkeypatch.setattr(graphify_module.subprocess, "run", fake_run)
+
+    run_init(tmp_path)
+
+    assert calls == [tmp_path]
+
+
+def test_init_skips_graphify_when_unavailable(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """When graphify is missing, run_init must not call subprocess and must still succeed."""
+    from issue_flow import graphify as graphify_module
+
+    monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: None)
+
+    def fail_run(*_a: object, **_kw: object) -> object:
+        raise AssertionError("subprocess.run must not be called when graphify is missing")
+
+    monkeypatch.setattr(graphify_module.subprocess, "run", fail_run)
+
+    run_init(tmp_path)
+
+    assert (tmp_path / ".cursor" / "commands" / "build.md").is_file()
+
+
+def test_init_creates_build_command_and_skill(tmp_path: Path) -> None:
+    """The new /build slash command and matching skill must be scaffolded."""
+    run_init(tmp_path)
+
+    build_cmd = tmp_path / ".cursor" / "commands" / "build.md"
+    build_skill = tmp_path / ".cursor" / "skills" / "issueflow-build" / "SKILL.md"
+    assert build_cmd.is_file()
+    assert build_skill.is_file()
+
+    cmd_content = build_cmd.read_text(encoding="utf-8")
+    assert "graphify" in cmd_content.lower()
+    assert "issue-flow build" in cmd_content
+    assert "graphify-out" in cmd_content
+
+    skill_content = build_skill.read_text(encoding="utf-8")
+    assert "name: issueflow-build" in skill_content
+    assert "disable-model-invocation: true" in skill_content
+
+
+def test_init_rule_documents_knowledge_graph_section(tmp_path: Path) -> None:
+    """The generated rule file should mention the optional graphify knowledge graph."""
+    run_init(tmp_path)
+    rule = (tmp_path / ".cursor" / "rules" / "issueflow-rules.mdc").read_text(
+        encoding="utf-8"
+    )
+    assert "Knowledge graph" in rule
+    assert "graphify-out/GRAPH_REPORT.md" in rule
+    assert "/build" in rule
+
+
 def test_init_detects_project_name(tmp_path: Path) -> None:
     """If a pyproject.toml exists, its name should appear in the rule file."""
     pyproject = tmp_path / "pyproject.toml"

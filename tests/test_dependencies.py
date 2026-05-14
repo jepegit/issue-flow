@@ -9,9 +9,11 @@ from rich.console import Console
 
 from issue_flow import dependencies as deps_module
 from issue_flow.dependencies import (
+    RECOMMENDED_DEPENDENCIES,
     REQUIRED_DEPENDENCIES,
     Dependency,
     check_dependencies,
+    check_recommended,
     format_missing_report,
     prompt_or_skip,
 )
@@ -152,3 +154,26 @@ def test_prompt_or_skip_accepts_tty_confirmation(
     monkeypatch.setattr(typer, "confirm", lambda *_a, **_kw: True)
 
     assert prompt_or_skip([dep], console, skip=False, stdin_is_tty=True) is True
+
+
+def test_recommended_dependencies_includes_graphify() -> None:
+    """The recommended (non-blocking) list must list graphify alongside install hints."""
+    commands = {dep.command for dep in RECOMMENDED_DEPENDENCIES}
+    assert "graphify" in commands
+
+    graphify_dep = next(d for d in RECOMMENDED_DEPENDENCIES if d.command == "graphify")
+    install_snippets = {snippet for _label, snippet in graphify_dep.install_hints}
+    assert any("graphifyy" in snippet for snippet in install_snippets)
+
+
+def test_check_recommended_returns_missing(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(deps_module.shutil, "which", lambda _cmd: None)
+    missing = check_recommended()
+    assert "graphify" in {d.command for d in missing}
+
+
+def test_check_recommended_returns_empty_when_present(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(deps_module.shutil, "which", lambda _cmd: "/usr/bin/fake")
+    assert check_recommended() == []
