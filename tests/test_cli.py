@@ -53,7 +53,10 @@ def test_build_invokes_graphify_when_available(
     assert result.exit_code == 0, result.output
     assert captured["cmd"][0] == "graphify"
     # Default subcommand must be injected since graphify requires one.
-    assert captured["cmd"][1] == "extract"
+    # We default to ``update`` (AST-only, no LLM API key required) so
+    # ``issue-flow build`` works on a fresh machine with no backend
+    # configured.
+    assert captured["cmd"][1] == "update"
 
 
 def test_build_forwards_extra_args(

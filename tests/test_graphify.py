@@ -150,14 +150,16 @@ def test_run_build_returns_2_and_prints_hints_when_missing(
     assert "graphifyy" in text
 
 
-def test_run_build_no_args_uses_default_extract_subcommand(
+def test_run_build_no_args_uses_default_update_subcommand(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """`issue-flow build` with no args must invoke `graphify extract <root>`.
+    """`issue-flow build` with no args must invoke `graphify update <root>`.
 
     graphify is subcommand-based — `graphify <path>` alone fails with
-    `unknown command`. The default action for a "build" is `extract`
-    (full AST + semantic LLM build).
+    `unknown command`. The default action for a "build" is `update`
+    (AST-only, no LLM API key required) so first-time builds work
+    without configuration. Users opt into the semantic LLM pass via
+    ``issue-flow build extract``.
     """
     monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
 
@@ -177,7 +179,7 @@ def test_run_build_no_args_uses_default_extract_subcommand(
     exit_code = run_build(tmp_path, [], console)
 
     assert exit_code == 0
-    assert captured["cmd"] == [GRAPHIFY_COMMAND, "extract", str(tmp_path)]
+    assert captured["cmd"] == [GRAPHIFY_COMMAND, "update", str(tmp_path)]
     assert captured["cwd"] == tmp_path
 
 
@@ -268,7 +270,7 @@ def test_run_build_subcommand_with_explicit_path_is_trusted(
 def test_run_build_does_not_inject_path_when_user_supplied_one(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """`issue-flow build ./docs` → `graphify extract ./docs` (no double path)."""
+    """`issue-flow build ./docs` → `graphify update ./docs` (no double path)."""
     monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
 
     captured: dict[str, Any] = {}
@@ -285,15 +287,15 @@ def test_run_build_does_not_inject_path_when_user_supplied_one(
 
     run_build(tmp_path, ["./docs"], console)
 
-    # Subcommand defaulted to extract; the only positional after it is
+    # Subcommand defaulted to update; the only positional after it is
     # the user's "./docs" — not the project root.
-    assert captured["cmd"] == [GRAPHIFY_COMMAND, "extract", "./docs"]
+    assert captured["cmd"] == [GRAPHIFY_COMMAND, "update", "./docs"]
 
 
 def test_run_build_leading_flag_falls_back_to_default_subcommand(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """A leading flag (no subcommand, no path) → `extract <project_root> <flag>`."""
+    """A leading flag (no subcommand, no path) → `update <project_root> <flag>`."""
     monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
 
     captured: dict[str, Any] = {}
@@ -308,13 +310,13 @@ def test_run_build_leading_flag_falls_back_to_default_subcommand(
     monkeypatch.setattr(graphify_module.subprocess, "run", fake_run)
     console, _buffer = _fake_console()
 
-    run_build(tmp_path, ["--no-cluster"], console)
+    run_build(tmp_path, ["--force"], console)
 
     assert captured["cmd"] == [
         GRAPHIFY_COMMAND,
-        "extract",
+        "update",
         str(tmp_path),
-        "--no-cluster",
+        "--force",
     ]
 
 

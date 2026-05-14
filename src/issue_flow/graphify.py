@@ -46,9 +46,13 @@ _GRAPHIFY_BUILD_SUBCOMMANDS: frozenset[str] = frozenset(
     {"extract", "update", "watch", "cluster-only", "check-update"}
 )
 # Default subcommand when the user runs ``issue-flow build`` without
-# specifying one. ``extract`` is the full AST + semantic LLM build
-# (matches the natural meaning of "build the graph").
-_DEFAULT_BUILD_SUBCOMMAND: str = "extract"
+# specifying one. ``update`` is the AST-only build: it produces the
+# full ``graphify-out/`` (``graph.json``, ``graph.html``,
+# ``GRAPH_REPORT.md``) and crucially does **not** need an LLM API key,
+# so the no-arg case "just works" for first-time users. Power users
+# pick ``extract`` explicitly when they want the slower semantic LLM
+# pass that surfaces richer cross-file relationships.
+_DEFAULT_BUILD_SUBCOMMAND: str = "update"
 
 
 def _build_graphify_argv(
@@ -60,17 +64,19 @@ def _build_graphify_argv(
     folder" mode — so every invocation needs an explicit subcommand.
     Behavior:
 
-    * No extra args → ``graphify extract <project_root>``.
+    * No extra args → ``graphify update <project_root>``. ``update``
+      is AST-only and needs no LLM API key, so the no-arg case "just
+      works" for users who have not configured a backend yet.
     * First arg is a recognized build subcommand (``extract``,
       ``update``, ``watch``, ``cluster-only``, ``check-update``) → use
       it. If a positional path follows, trust it; otherwise inject
       ``project_root`` so graphify scans the right tree even when the
       agent's cwd differs from the project root.
     * First arg is anything else → assume the default subcommand
-      (``extract``) and treat the args as positional/flag tail. A
+      (``update``) and treat the args as positional/flag tail. A
       first arg that does not start with ``-`` is taken as the path
       the user wants graphify to scan (e.g. ``issue-flow build ./docs``
-      → ``graphify extract ./docs``).
+      → ``graphify update ./docs``).
     """
     args = list(extra_args)
 
@@ -260,10 +266,13 @@ def run_build(
 
     See :func:`_build_graphify_argv` for the argv-construction rules.
     The short version: ``issue-flow build`` with no args invokes
-    ``graphify extract <project_root>`` (the natural "build the graph"
-    action). Users can pick a different build subcommand by passing it
-    as the first argument (e.g. ``issue-flow build update``,
-    ``issue-flow build cluster-only --no-viz``).
+    ``graphify update <project_root>`` (AST-only, no LLM API key
+    required, produces the full ``graphify-out/`` directory). Users
+    who want the deeper semantic LLM pass run
+    ``issue-flow build extract`` and configure a backend
+    (``GEMINI_API_KEY`` / ``ANTHROPIC_API_KEY`` / ``OPENAI_API_KEY`` /
+    ``MOONSHOT_API_KEY`` env var, or ``--backend ollama`` for a local
+    LLM).
 
     Returns ``2`` and prints install hints when graphify is missing.
     Re-raises ``KeyboardInterrupt`` so users can ^C a long build.
