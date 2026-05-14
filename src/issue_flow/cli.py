@@ -99,14 +99,19 @@ def build(
 ) -> None:
     """Rebuild the graphify knowledge graph for the project.
 
-    With no extra arguments runs ``graphify extract <project_dir>`` (the
-    full AST + semantic LLM build). Override the subcommand by passing
-    it as the first argument: ``issue-flow build update`` (fast,
-    code-only re-extract), ``issue-flow build watch`` (live rebuild),
-    ``issue-flow build cluster-only --no-viz`` (re-cluster), etc.
-    Trailing flags pass through verbatim. Use ``-C <dir>`` to scan a
-    project other than the current directory. Requires ``graphify`` to
-    be on ``PATH`` (install with ``uv tool install graphifyy``).
+    With no extra arguments runs ``graphify update <project_dir>``
+    (AST-only build, no LLM API key required) so first-time builds
+    just work. Pick a different action by passing the subcommand as
+    the first argument: ``issue-flow build extract`` adds the slower
+    semantic LLM pass for richer cross-file relationships (needs an
+    API key — ``GEMINI_API_KEY``, ``ANTHROPIC_API_KEY``,
+    ``OPENAI_API_KEY``, or ``--backend ollama`` for a local LLM);
+    ``issue-flow build watch`` runs a live rebuild;
+    ``issue-flow build cluster-only --no-viz`` re-clusters an existing
+    graph. Trailing flags pass through verbatim. Use ``-C <dir>`` to
+    scan a project other than the current directory. Requires
+    ``graphify`` to be on ``PATH`` (install with
+    ``uv tool install graphifyy``).
     """
     from issue_flow.graphify import run_build
 

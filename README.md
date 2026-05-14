@@ -111,11 +111,14 @@ What `issue-flow` does when `graphify` is on PATH:
   If graphify is not installed, both commands just print install hints and
   continue — they never block.
 - A new slash command `/build` (and matching `/issueflow-build` skill) wraps
-  `issue-flow build`. With no extra args it runs `graphify extract <project>`
-  (full build); pass a graphify build subcommand to pick a different action
-  (`issue-flow build update`, `issue-flow build watch`,
-  `issue-flow build cluster-only --no-viz`, …). Trailing flags forward to
-  the chosen subcommand verbatim.
+  `issue-flow build`. With no extra args it runs `graphify update <project>`
+  — AST-only, **no LLM API key required**, so the no-arg case "just works".
+  For richer semantic relationships add `extract` (`issue-flow build extract`)
+  and configure a backend (`GEMINI_API_KEY`, `ANTHROPIC_API_KEY`,
+  `OPENAI_API_KEY`, `MOONSHOT_API_KEY`, or `--backend ollama` for a local
+  LLM). Cursor's own LLM is not available to subprocesses, so graphify
+  needs its own backend. Other subcommands (`watch`, `cluster-only`, …)
+  pass through too; trailing flags forward verbatim.
 - The scaffolded rules and `/issue-start` mention `graphify-out/GRAPH_REPORT.md`
   as a recommended pre-read when the file exists. `/build` is **off-path** —
   `/iflow` never auto-dispatches to it.
@@ -203,7 +206,7 @@ Use `update` after upgrading the **issue-flow** package to refresh the packaged 
 | Argument / Option | Description |
 |---|---|
 | `-C`, `--project-dir` | Project root directory to scan with graphify. Defaults to `.` (current directory). Modeled on `git -C` so positional args can flow into graphify untouched. |
-| `...graphify subcommand + args` | Optional graphify subcommand + flags. With no extras runs `graphify extract <PROJECT_DIR>` (full AST + semantic LLM build). The first extra arg, if it is a recognized build subcommand (`extract`, `update`, `watch`, `cluster-only`, `check-update`), picks the action; trailing tokens forward verbatim. Examples: `issue-flow build update`, `issue-flow build cluster-only --no-viz`, `issue-flow build ./subdir`. |
+| `...graphify subcommand + args` | Optional graphify subcommand + flags. With no extras runs `graphify update <PROJECT_DIR>` — AST-only, **no LLM API key required**. The first extra arg, if it is a recognized build subcommand (`update`, `extract`, `watch`, `cluster-only`, `check-update`), picks the action; trailing tokens forward verbatim. Examples: `issue-flow build extract` (semantic LLM pass; needs `GEMINI_API_KEY` / `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `MOONSHOT_API_KEY` or `--backend ollama`), `issue-flow build cluster-only --no-viz`, `issue-flow build ./subdir`. |
 
 `build` requires `graphifyy` to be installed (`uv tool install graphifyy`). When the `graphify` CLI is missing, the command prints install hints and exits with code `2`. Outputs land in `graphify-out/` (`graph.html`, `GRAPH_REPORT.md`, `graph.json`).
 
