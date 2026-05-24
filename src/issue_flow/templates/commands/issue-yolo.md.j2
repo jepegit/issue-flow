@@ -48,7 +48,7 @@ Once the preflight has passed and the user confirmed:
 
 1. **`/issue-init`** — capture the issue (or skip if the `*_original.md` already exists for the focus issue).
 
-2. **`/issue-plan`** — auto-confirmed. Write a **short** `issue<N>_plan.md` (Goal + Approach + Files to touch + Test strategy). Do not stop for user confirmation; the consolidated confirm above already covered it. If the scope check reveals the change is not actually small (touches many unrelated files, mixes refactors, etc.), **abort** the yolo chain and tell the user to run the commands individually.
+2. **`/issue-plan`** — auto-confirmed. Write a **short** `issue<N>_plan.md` (Goal + Approach + Files to touch + Test strategy). Do not stop for user confirmation; the consolidated confirm above already covered it. For trivial yolo scope, prior-art discovery may be abbreviated to a quick grep (skip graph skim); the full checklist still applies to normal `/issue-plan`. If the scope check reveals the change is not actually small (touches many unrelated files, mixes refactors, etc.), **abort** the yolo chain and tell the user to run the commands individually.
 
 3. **`/issue-start`** — implement the plan. No additional plan-mode prompt.
 

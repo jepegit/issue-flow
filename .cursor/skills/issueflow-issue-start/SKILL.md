@@ -25,7 +25,7 @@ Follow this skill when the user wants to **begin implementation** from issue not
 3. **Sweep stale current issues** (auto-safe) — Group files in `.issueflows/01-current-issues/` by `issueNN_` prefix. For every group **other than the focus issue**, move the whole group to `.issueflows/03-solved-issues/` if any of its status files contains `- [x] Done` (case-insensitive on `done`), otherwise move it to `.issueflows/02-partly-solved-issues/`. Never move the focus issue's files. Report every move.
 
 4. **Plan precondition** — Look for `issue<N>_plan.md` in `.issueflows/01-current-issues/`.
-   - **Plan present:** read it and treat it as the source of truth for scope and approach.
+   - **Plan present:** read it and treat it as the source of truth for scope and approach. Before writing new modules, read **`### Prior art`** under **`## Constraints`** if present (skip if absent or it says "None found").
    - **Plan missing:** do **not** hard-stop. Ask the user to choose one of:
      - **Run `/issue-plan` now**, then continue into implementation after they confirm the plan.
      - **Proceed without a plan** — add a short `- Skipped /issue-plan on <date>` note to `issue<N>_status.md` and continue.

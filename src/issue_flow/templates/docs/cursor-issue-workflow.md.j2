@@ -101,10 +101,11 @@ All the commands that touch git also run a short **branch-status preflight**: `g
 
 1. Finds the focus issue in `{{ issueflows_dir }}/{{ current_issues_folder }}/`.
 2. Runs the branch-status preflight (non-destructive).
-3. Reads the original issue and any prior status.
-4. Writes **`issue<N>_plan.md`** with sections: **Goal**, **Constraints**, **Approach**, **Files to touch**, **Test strategy**, **Open questions**.
-5. Runs a scope check — if the change is broad, proposes splitting into smaller issues or phases.
-6. **Stops and asks for explicit confirmation**: accept, revise, or abort. `/issue-plan` never implements code itself.
+3. Reads the original issue and any prior status; consults `{{ issueflows_dir }}/{{ designs_folder }}/` when relevant.
+4. **Prior-art discovery** — if `graphify-out/GRAPH_REPORT.md` exists, skim God Nodes / Communities / Suggested Questions for the affected area; grep for adjacent helpers; record findings under **`### Prior art`** in **`## Constraints`** (or `- None found (grep + graph checked).`). Strong overlaps become **Open questions**.
+5. Explores read-only, then writes **`issue<N>_plan.md`** with sections: **Goal**, **Constraints** (including **Prior art**), **Approach**, **Files to touch**, **Test strategy**, **Open questions**.
+6. Runs a scope check — if the change is broad, proposes splitting into smaller issues or phases.
+7. **Stops and asks for explicit confirmation**: accept, revise, or abort. `/issue-plan` never implements code itself.
 
 **Result:** A confirmed `issue<N>_plan.md` ready for `/issue-start` to execute.
 

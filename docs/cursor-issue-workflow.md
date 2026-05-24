@@ -1,12 +1,12 @@
 # Cursor issue workflow (slash commands)
 
-This repo uses eight Cursor **slash commands** under `.cursor/commands/` that line up with how we track GitHub issues in `.issueflows/01-current-issues/`.
+This repo uses nine Cursor **slash commands** under `.cursor/commands/` that line up with how we track GitHub issues in `.issueflows/01-current-issues/`.
 
 **Quick start: just run `/iflow`.** It inspects the state of the focus issue and dispatches to the right linear-flow command (`/issue-init`, `/issue-plan`, `/issue-start`, or `/issue-close`) — so you don't have to remember which step is next.
 
 | Command | File | Role |
 |--------|------|------|
-| `/iflow` | `iflow.md` | **Smart dispatcher.** Detect current state and run `/issue-init`, `/issue-plan`, `/issue-start`, or `/issue-close` automatically. Never auto-dispatches to pause / cleanup / yolo. |
+| `/iflow` | `iflow.md` | **Smart dispatcher.** Detect current state and run `/issue-init`, `/issue-plan`, `/issue-start`, or `/issue-close` automatically. Never auto-dispatches to pause / cleanup / yolo / build. |
 | `/issue-init` | `issue-init.md` | Pull an issue from GitHub into the repo as a local markdown file and tidy older current issues. |
 | `/issue-plan` | `issue-plan.md` | Write a structured `issue<N>_plan.md` and get explicit user confirmation before any code is touched. |
 | `/issue-start` | `issue-start.md` | Implement the confirmed plan (no planning step of its own any more). |
@@ -14,6 +14,7 @@ This repo uses eight Cursor **slash commands** under `.cursor/commands/` that li
 | `/issue-close` | `issue-close.md` | Finish: tests, optional semver bump (`uv version --bump …`), `HISTORY.md` update, issue-folder housekeeping, commit, push, PR. |
 | `/issue-cleanup` | `issue-cleanup.md` | Post-merge hygiene: switch to default, `git pull --ff-only`, `git fetch --prune`, delete merged local branches (single consolidated confirm). |
 | `/issue-yolo` | `issue-yolo.md` | All-in-one for small, low-risk issues: chains `init → plan → start → close` with up-front safeguards and a single confirmation. |
+| `/build` | `build.md` | **Off-path.** Rebuild the [graphify](https://graphify.net) knowledge graph (`graphify-out/graph.html`, `GRAPH_REPORT.md`, `graph.json`). Wraps `issue-flow build` / `graphify`. Optional: only meaningful when `graphifyy` is installed. |
 
 ---
 
@@ -33,6 +34,7 @@ This repo uses eight Cursor **slash commands** under `.cursor/commands/` that li
 | `issueflow-issue-yolo` | `/issueflow-issue-yolo` | Chain `init → plan → start → close` with safeguards. |
 | `issueflow-version-bump` | `@issueflow-version-bump` (often used from `/issue-close`) | Bump `[project]` version in `pyproject.toml` via `uv version --bump patch|minor|major`. |
 | `issueflow-history-update` | `@issueflow-history-update` (used from `/issue-close`) | Append an entry to `## [Unreleased]` in `HISTORY.md`, or promote it to a new `## [x.y.z] - YYYY-MM-DD` release section when a version bump happened. |
+| `issueflow-build` | `/issueflow-build` | Same flow as `/build`: rebuild the graphify knowledge graph for the project. Off-path; never auto-dispatched. |
 
 Each skill sets `disable-model-invocation: true` so it is included when you **explicitly** invoke it, not on every chat. See [Agent Skills](https://cursor.com/docs/context/skills) in the Cursor docs.
 
@@ -99,10 +101,11 @@ All the commands that touch git also run a short **branch-status preflight**: `g
 
 1. Finds the focus issue in `.issueflows/01-current-issues/`.
 2. Runs the branch-status preflight (non-destructive).
-3. Reads the original issue and any prior status.
-4. Writes **`issue<N>_plan.md`** with sections: **Goal**, **Constraints**, **Approach**, **Files to touch**, **Test strategy**, **Open questions**.
-5. Runs a scope check — if the change is broad, proposes splitting into smaller issues or phases.
-6. **Stops and asks for explicit confirmation**: accept, revise, or abort. `/issue-plan` never implements code itself.
+3. Reads the original issue and any prior status; consults `.issueflows/04-designs-and-guides/` when relevant.
+4. **Prior-art discovery** — if `graphify-out/GRAPH_REPORT.md` exists, skim God Nodes / Communities / Suggested Questions for the affected area; grep for adjacent helpers; record findings under **`### Prior art`** in **`## Constraints`** (or `- None found (grep + graph checked).`). Strong overlaps become **Open questions**.
+5. Explores read-only, then writes **`issue<N>_plan.md`** with sections: **Goal**, **Constraints** (including **Prior art**), **Approach**, **Files to touch**, **Test strategy**, **Open questions**.
+6. Runs a scope check — if the change is broad, proposes splitting into smaller issues or phases.
+7. **Stops and asks for explicit confirmation**: accept, revise, or abort. `/issue-plan` never implements code itself.
 
 **Result:** A confirmed `issue<N>_plan.md` ready for `/issue-start` to execute.
 
@@ -190,7 +193,30 @@ The bump runs **after** tests and **before** issue-folder moves and **before** c
 
 ---
 
-## 7. `/issue-yolo` — all-in-one for small issues
+## 7. `/build` — rebuild the knowledge graph (optional)
+
+**When:** The project has the optional [graphify](https://graphify.net) integration enabled (the `graphify` CLI is on `PATH` and a `graphify-out/` folder is present), and the graph has gone stale relative to the source tree.
+
+**What you pass:** Optional graphify subcommand and args, forwarded verbatim. Common picks:
+
+- *(nothing)* — AST-only build of the project root (`graphify update <project>`). **No LLM API key required**; produces the full `graphify-out/`. The default.
+- `extract` — adds the slower semantic LLM pass for richer cross-file relationships. Needs an API key (`GEMINI_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `MOONSHOT_API_KEY`) or `--backend ollama` for a local LLM via [Ollama](https://ollama.com). Cursor's own LLM is **not** available to subprocesses.
+- `watch` — long-running watcher that auto-rebuilds on save.
+- `cluster-only` — rerun clustering on the existing `graph.json` without re-extraction (e.g. `cluster-only --no-viz`).
+- `./subdir` — restrict the scan to a sub-directory (default subcommand: `update`).
+
+**What the assistant does:**
+
+1. Runs `issue-flow build` (which shells out to the `graphify` CLI). If `issue-flow` is unavailable, falls back to `graphify update .` directly (`graphify .` alone is **not** valid — graphify requires a subcommand).
+2. If `graphify` is not installed, prints install hints (`uv tool install graphifyy`) and stops — never silently retries.
+3. If `graphify extract` fails with "no LLM API key found", suggests setting one of the supported env vars, or using `--backend ollama`, or dropping back to the default `update` subcommand.
+4. Verifies that `graphify-out/graph.html`, `GRAPH_REPORT.md`, and `graph.json` exist after a successful run.
+
+**Result:** A refreshed `graphify-out/` so `/issue-start` can navigate by graph instead of grepping. `/build` is **off-path** — `/iflow`, `/issue-start`, and `/issue-close` may *suggest* a rebuild but never invoke `/build` automatically.
+
+---
+
+## 8. `/issue-yolo` — all-in-one for small issues
 
 **When:** The change is genuinely small and low-risk (typo, one-line fix, doc tweak) and you want to skip the usual checkpoints. For anything bigger, use the individual commands.
 
