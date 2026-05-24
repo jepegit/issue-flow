@@ -30,7 +30,7 @@ If additional input is added, use that as implementation hints (scope, constrain
    - Report every move (source -> destination, grouped by issue number) in the opening summary.
 
 1. **Plan precondition.** Look for `issue<N>_plan.md` in `{{ issueflows_dir }}/{{ current_issues_folder }}/`.
-   - **Plan file present:** read it. Treat it as the source of truth for scope and approach. Continue to step 2.
+   - **Plan file present:** read it. Treat it as the source of truth for scope and approach. Before writing new modules, read **`### Prior art`** under **`## Constraints`** if present (skip if absent or it says "None found"). Continue to step 2.
    - **Plan file missing:** **do not hard-stop.** Ask the user:
      > "No plan file found for issue #N. How should I proceed?
      >  (a) Run `/issue-plan` now, then continue into implementation once you confirm the plan.

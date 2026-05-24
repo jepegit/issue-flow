@@ -23,6 +23,16 @@ Optional free-form text after the command. Examples:
 
 1.5 **Consult existing designs / guides.** Skim `.issueflows/04-designs-and-guides/` for design docs, design decisions, or documented good practices that touch the area you're about to plan. When relevant docs exist, cite them in the plan so the approach stays consistent with prior decisions.
 
+1.75 **Prior-art discovery.** Before drafting the plan:
+   1. **Graph (optional).** If `graphify-out/GRAPH_REPORT.md` exists, skim it for **God Nodes**, **Communities**, and **Suggested Questions** whose names touch the affected area. Note the community numbers. If the file is absent, skip this sub-step (grep-only is fine).
+   2. **Grep.** Search the codebase for sibling helpers / functions that already do something adjacent to the new work (e.g. existing `filter_*`, `remove_*`, `yank_*`, `add_*` helpers in the same domain, or names surfaced by the issue / graph).
+   3. **Record in plan.** Capture findings in a **`### Prior art`** sub-section under **`## Constraints`** in `issue<N>_plan.md`. For each item, record:
+      - what it is (function name + module),
+      - what convention it follows (param shape, column names, units),
+      - and how the new work will be *consistent* with it (mirror, coexist, or migrate later).
+      If nothing relevant turns up, write one bullet: `- None found (grep + graph checked).`
+   4. **Strong overlap.** If the new work overlaps strongly with prior art, raise this explicitly under **`## Open questions`** ("merge with X?" vs "coexist with X?") rather than silently picking one.
+
 2. **Explore, then propose.** Do enough read-only research (search, read files, check existing tests) to design the change. Keep it proportional to the issue — small fix = short plan.
 
 3. **Write `issue<N>_plan.md`** in `.issueflows/01-current-issues/` with these sections:
@@ -35,6 +45,10 @@ Optional free-form text after the command. Examples:
 
    ## Constraints
    - Project rules, coding standards, back-compat, scope limits.
+
+   ### Prior art
+   - `helper_name` (`module.path`) — convention: …; new work: mirror | coexist | migrate later
+   - None found (grep + graph checked).   <!-- when applicable -->
 
    ## Approach
    Concrete design: data flow, affected modules, ordering of steps.

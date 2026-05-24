@@ -101,6 +101,7 @@ def _default_context() -> dict[str, str]:
         "current_issues_folder": "01-current-issues",
         "partly_solved_folder": "02-partly-solved-issues",
         "solved_folder": "03-solved-issues",
+        "designs_folder": "04-designs-and-guides",
         "project_name": "test-project",
     }
 
@@ -146,6 +147,30 @@ def test_issue_plan_writes_plan_file_and_stops_for_confirmation() -> None:
     assert "Goal" in rendered
     assert "Approach" in rendered
     assert "Confirm" in rendered or "confirmation" in rendered.lower()
+    assert "1.75" in rendered
+    assert "Prior-art discovery" in rendered
+    assert "GRAPH_REPORT.md" in rendered
+    assert "### Prior art" in rendered
+
+
+def test_issue_plan_includes_prior_art_discovery() -> None:
+    """/issue-plan must document graceful graphify + grep prior-art checklist."""
+    rendered = render_template("commands/issue-plan.md.j2", _default_context())
+    assert "Prior-art discovery" in rendered
+    assert "God Nodes" in rendered
+    assert "None found (grep + graph checked)" in rendered
+    assert "Open questions" in rendered
+    skill = render_template("skills/issueflow_issue_plan/SKILL.md.j2", _default_context())
+    assert "Prior-art discovery" in skill or "Prior art" in skill
+    assert "### Prior art" in skill
+
+
+def test_issue_start_reads_prior_art_from_plan() -> None:
+    """/issue-start should remind the agent to read ### Prior art from the plan."""
+    rendered = render_template("commands/issue-start.md.j2", _default_context())
+    assert "### Prior art" in rendered
+    skill = render_template("skills/issueflow_issue_start/SKILL.md.j2", _default_context())
+    assert "### Prior art" in skill
 
 
 def test_issue_pause_moves_to_partly_solved() -> None:
