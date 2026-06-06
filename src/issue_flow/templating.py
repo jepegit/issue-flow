@@ -78,7 +78,7 @@ TEMPLATE_MANIFEST: list[tuple[str, str]] = [
     ("commands/issue-close.md.j2", "{agent_dir}/commands/issue-close.md"),
     ("commands/issue-cleanup.md.j2", "{agent_dir}/commands/issue-cleanup.md"),
     ("commands/issue-yolo.md.j2", "{agent_dir}/commands/issue-yolo.md"),
-    ("commands/build.md.j2", "{agent_dir}/commands/build.md"),
+    ("commands/graphify.md.j2", "{agent_dir}/commands/graphify.md"),
     ("rules/issueflow-rules.mdc.j2", "{agent_dir}/rules/issueflow-rules.mdc"),
     ("docs/cursor-issue-workflow.md.j2", "{docs_dir}/cursor-issue-workflow.md"),
     (
@@ -126,8 +126,8 @@ TEMPLATE_MANIFEST: list[tuple[str, str]] = [
         "{agent_dir}/skills/issueflow-history-update/SKILL.md",
     ),
     (
-        "skills/issueflow_build/SKILL.md.j2",
-        "{agent_dir}/skills/issueflow-build/SKILL.md",
+        "skills/issueflow_graphify/SKILL.md.j2",
+        "{agent_dir}/skills/issueflow-graphify/SKILL.md",
     ),
 ]
 

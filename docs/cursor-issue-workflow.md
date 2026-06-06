@@ -14,7 +14,7 @@ This repo uses nine Cursor **slash commands** under `.cursor/commands/` that lin
 | `/issue-close` | `issue-close.md` | Finish: tests, optional semver bump (`uv version --bump …`), `HISTORY.md` update, issue-folder housekeeping, commit, push, PR. |
 | `/issue-cleanup` | `issue-cleanup.md` | Post-merge hygiene: switch to default, `git pull --ff-only`, `git fetch --prune`, delete merged local branches (single consolidated confirm). |
 | `/issue-yolo` | `issue-yolo.md` | All-in-one for small, low-risk issues: chains `init → plan → start → close` with up-front safeguards and a single confirmation. |
-| `/build` | `build.md` | **Off-path.** Rebuild the [graphify](https://graphify.net) knowledge graph (`graphify-out/graph.html`, `GRAPH_REPORT.md`, `graph.json`). Wraps `issue-flow build` / `graphify`. Optional: only meaningful when `graphifyy` is installed. |
+| `/graphify` | `graphify.md` | **Off-path.** Rebuild the [graphify](https://graphify.net) knowledge graph (`graphify-out/graph.html`, `GRAPH_REPORT.md`, `graph.json`). Wraps `issue-flow graphify` / `graphify`. Optional: only meaningful when `graphifyy` is installed. |
 
 ---
 
@@ -34,7 +34,7 @@ This repo uses nine Cursor **slash commands** under `.cursor/commands/` that lin
 | `issueflow-issue-yolo` | `/issueflow-issue-yolo` | Chain `init → plan → start → close` with safeguards. |
 | `issueflow-version-bump` | `@issueflow-version-bump` (often used from `/issue-close`) | Bump `[project]` version in `pyproject.toml` via `uv version --bump patch|minor|major`. |
 | `issueflow-history-update` | `@issueflow-history-update` (used from `/issue-close`) | Append an entry to `## [Unreleased]` in `HISTORY.md`, or promote it to a new `## [x.y.z] - YYYY-MM-DD` release section when a version bump happened. |
-| `issueflow-build` | `/issueflow-build` | Same flow as `/build`: rebuild the graphify knowledge graph for the project. Off-path; never auto-dispatched. |
+| `issueflow-graphify` | `/issueflow-graphify` | Same flow as `/graphify`: rebuild the graphify knowledge graph for the project. Off-path; never auto-dispatched. |
 
 Each skill sets `disable-model-invocation: true` so it is included when you **explicitly** invoke it, not on every chat. See [Agent Skills](https://cursor.com/docs/context/skills) in the Cursor docs.
 
@@ -193,7 +193,7 @@ The bump runs **after** tests and **before** issue-folder moves and **before** c
 
 ---
 
-## 7. `/build` — rebuild the knowledge graph (optional)
+## 7. `/graphify` — rebuild the knowledge graph (optional)
 
 **When:** The project has the optional [graphify](https://graphify.net) integration enabled (the `graphify` CLI is on `PATH` and a `graphify-out/` folder is present), and the graph has gone stale relative to the source tree.
 
@@ -207,12 +207,12 @@ The bump runs **after** tests and **before** issue-folder moves and **before** c
 
 **What the assistant does:**
 
-1. Runs `issue-flow build` (which shells out to the `graphify` CLI). If `issue-flow` is unavailable, falls back to `graphify update .` directly (`graphify .` alone is **not** valid — graphify requires a subcommand).
+1. Runs `issue-flow graphify` (which shells out to the `graphify` CLI). If `issue-flow` is unavailable, falls back to `graphify update .` directly (`graphify .` alone is **not** valid — graphify requires a subcommand).
 2. If `graphify` is not installed, prints install hints (`uv tool install graphifyy`) and stops — never silently retries.
 3. If `graphify extract` fails with "no LLM API key found", suggests setting one of the supported env vars, or using `--backend ollama`, or dropping back to the default `update` subcommand.
 4. Verifies that `graphify-out/graph.html`, `GRAPH_REPORT.md`, and `graph.json` exist after a successful run.
 
-**Result:** A refreshed `graphify-out/` so `/issue-start` can navigate by graph instead of grepping. `/build` is **off-path** — `/iflow`, `/issue-start`, and `/issue-close` may *suggest* a rebuild but never invoke `/build` automatically.
+**Result:** A refreshed `graphify-out/` so `/issue-start` can navigate by graph instead of grepping. `/graphify` is **off-path** — `/iflow`, `/issue-start`, and `/issue-close` may *suggest* a rebuild but never invoke `/graphify` automatically.
 
 ---
 

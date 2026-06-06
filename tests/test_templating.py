@@ -71,7 +71,7 @@ def test_manifest_has_expected_commands_and_skills() -> None:
         "issue-close",
         "issue-cleanup",
         "issue-yolo",
-        "build",
+        "graphify",
     ):
         assert f"commands/{command}.md.j2" in template_names
     for skill in (
@@ -86,7 +86,7 @@ def test_manifest_has_expected_commands_and_skills() -> None:
         "issueflow_issue_yolo",
         "issueflow_version_bump",
         "issueflow_history_update",
-        "issueflow_build",
+        "issueflow_graphify",
     ):
         assert f"skills/{skill}/SKILL.md.j2" in template_names
 

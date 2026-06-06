@@ -16,23 +16,23 @@ def runner() -> CliRunner:
     return CliRunner()
 
 
-def test_cli_lists_build_command(runner: CliRunner) -> None:
-    """`issue-flow --help` must mention the new `build` command."""
+def test_cli_lists_graphify_command(runner: CliRunner) -> None:
+    """`issue-flow --help` must mention the `graphify` command."""
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
-    assert "build" in result.stdout
+    assert "graphify" in result.stdout
 
 
-def test_build_help_describes_passthrough(runner: CliRunner) -> None:
-    result = runner.invoke(app, ["build", "--help"])
+def test_graphify_help_describes_passthrough(runner: CliRunner) -> None:
+    result = runner.invoke(app, ["graphify", "--help"])
     assert result.exit_code == 0
     assert "graphify" in result.stdout.lower()
 
 
-def test_build_invokes_graphify_when_available(
+def test_graphify_invokes_graphify_when_available(
     runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """`issue-flow build` should call subprocess.run with the graphify CLI."""
+    """`issue-flow graphify` should call subprocess.run with the graphify CLI."""
     from issue_flow import graphify as graphify_module
 
     monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
@@ -48,18 +48,18 @@ def test_build_invokes_graphify_when_available(
 
     monkeypatch.setattr(graphify_module.subprocess, "run", fake_run)
 
-    result = runner.invoke(app, ["build", "-C", str(tmp_path)])
+    result = runner.invoke(app, ["graphify", "-C", str(tmp_path)])
 
     assert result.exit_code == 0, result.output
     assert captured["cmd"][0] == "graphify"
     # Default subcommand must be injected since graphify requires one.
     # We default to ``update`` (AST-only, no LLM API key required) so
-    # ``issue-flow build`` works on a fresh machine with no backend
+    # ``issue-flow graphify`` works on a fresh machine with no backend
     # configured.
     assert captured["cmd"][1] == "update"
 
 
-def test_build_forwards_extra_args(
+def test_graphify_forwards_extra_args(
     runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """A leading subcommand and trailing flags must reach `graphify` verbatim."""
@@ -82,7 +82,7 @@ def test_build_forwards_extra_args(
     # one of its real flags. Both must reach graphify verbatim, and the
     # project root must be injected after the subcommand.
     result = runner.invoke(
-        app, ["build", "-C", str(tmp_path), "cluster-only", "--no-viz"]
+        app, ["graphify", "-C", str(tmp_path), "cluster-only", "--no-viz"]
     )
 
     assert result.exit_code == 0, result.output
@@ -94,10 +94,10 @@ def test_build_forwards_extra_args(
     ]
 
 
-def test_build_exits_nonzero_when_graphify_missing(
+def test_graphify_exits_nonzero_when_graphify_missing(
     runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """When graphify is not installed, `issue-flow build` exits with the error code from run_build."""
+    """When graphify is not installed, `issue-flow graphify` exits with the error code from run_build."""
     from issue_flow import graphify as graphify_module
 
     monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: None)
@@ -108,13 +108,13 @@ def test_build_exits_nonzero_when_graphify_missing(
 
     monkeypatch.setattr(graphify_module.subprocess, "run", fail_run)
 
-    result = runner.invoke(app, ["build", "-C", str(tmp_path)])
+    result = runner.invoke(app, ["graphify", "-C", str(tmp_path)])
 
     assert result.exit_code == 2
     assert "graphifyy" in result.output
 
 
-def test_build_propagates_graphify_exit_code(
+def test_graphify_propagates_graphify_exit_code(
     runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     from issue_flow import graphify as graphify_module
@@ -126,6 +126,6 @@ def test_build_propagates_graphify_exit_code(
 
     monkeypatch.setattr(graphify_module.subprocess, "run", lambda *a, **kw: _Result())
 
-    result = runner.invoke(app, ["build", "-C", str(tmp_path)])
+    result = runner.invoke(app, ["graphify", "-C", str(tmp_path)])
 
     assert result.exit_code == 7

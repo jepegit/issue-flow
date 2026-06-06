@@ -82,7 +82,7 @@ def update(
         "ignore_unknown_options": True,
     },
 )
-def build(
+def graphify(
     ctx: typer.Context,
     project_dir: Path = typer.Option(
         Path("."),
@@ -102,12 +102,12 @@ def build(
     With no extra arguments runs ``graphify update <project_dir>``
     (AST-only build, no LLM API key required) so first-time builds
     just work. Pick a different action by passing the subcommand as
-    the first argument: ``issue-flow build extract`` adds the slower
+    the first argument: ``issue-flow graphify extract`` adds the slower
     semantic LLM pass for richer cross-file relationships (needs an
     API key — ``GEMINI_API_KEY``, ``ANTHROPIC_API_KEY``,
     ``OPENAI_API_KEY``, or ``--backend ollama`` for a local LLM);
-    ``issue-flow build watch`` runs a live rebuild;
-    ``issue-flow build cluster-only --no-viz`` re-clusters an existing
+    ``issue-flow graphify watch`` runs a live rebuild;
+    ``issue-flow graphify cluster-only --no-viz`` re-clusters an existing
     graph. Trailing flags pass through verbatim. Use ``-C <dir>`` to
     scan a project other than the current directory. Requires
     ``graphify`` to be on ``PATH`` (install with

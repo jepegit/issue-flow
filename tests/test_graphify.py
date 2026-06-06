@@ -153,13 +153,13 @@ def test_run_build_returns_2_and_prints_hints_when_missing(
 def test_run_build_no_args_uses_default_update_subcommand(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """`issue-flow build` with no args must invoke `graphify update <root>`.
+    """`issue-flow graphify` with no args must invoke `graphify update <root>`.
 
     graphify is subcommand-based — `graphify <path>` alone fails with
     `unknown command`. The default action for a "build" is `update`
     (AST-only, no LLM API key required) so first-time builds work
     without configuration. Users opt into the semantic LLM pass via
-    ``issue-flow build extract``.
+    ``issue-flow graphify extract``.
     """
     monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
 
@@ -219,7 +219,7 @@ def test_run_build_respects_explicit_subcommand_and_forwards_flags(
 def test_run_build_update_subcommand_injects_project_root(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """`issue-flow build update` → `graphify update <project_root>`."""
+    """`issue-flow graphify update` → `graphify update <project_root>`."""
     monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
 
     captured: dict[str, Any] = {}
@@ -270,7 +270,7 @@ def test_run_build_subcommand_with_explicit_path_is_trusted(
 def test_run_build_does_not_inject_path_when_user_supplied_one(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """`issue-flow build ./docs` → `graphify update ./docs` (no double path)."""
+    """`issue-flow graphify ./docs` → `graphify update ./docs` (no double path)."""
     monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
 
     captured: dict[str, Any] = {}

@@ -362,25 +362,27 @@ def test_init_skips_graphify_when_unavailable(
 
     run_init(tmp_path)
 
-    assert (tmp_path / ".cursor" / "commands" / "build.md").is_file()
+    assert (tmp_path / ".cursor" / "commands" / "graphify.md").is_file()
 
 
-def test_init_creates_build_command_and_skill(tmp_path: Path) -> None:
-    """The new /build slash command and matching skill must be scaffolded."""
+def test_init_creates_graphify_command_and_skill(tmp_path: Path) -> None:
+    """The /graphify slash command and matching skill must be scaffolded."""
     run_init(tmp_path)
 
-    build_cmd = tmp_path / ".cursor" / "commands" / "build.md"
-    build_skill = tmp_path / ".cursor" / "skills" / "issueflow-build" / "SKILL.md"
-    assert build_cmd.is_file()
-    assert build_skill.is_file()
+    graphify_cmd = tmp_path / ".cursor" / "commands" / "graphify.md"
+    graphify_skill = (
+        tmp_path / ".cursor" / "skills" / "issueflow-graphify" / "SKILL.md"
+    )
+    assert graphify_cmd.is_file()
+    assert graphify_skill.is_file()
 
-    cmd_content = build_cmd.read_text(encoding="utf-8")
+    cmd_content = graphify_cmd.read_text(encoding="utf-8")
     assert "graphify" in cmd_content.lower()
-    assert "issue-flow build" in cmd_content
+    assert "issue-flow graphify" in cmd_content
     assert "graphify-out" in cmd_content
 
-    skill_content = build_skill.read_text(encoding="utf-8")
-    assert "name: issueflow-build" in skill_content
+    skill_content = graphify_skill.read_text(encoding="utf-8")
+    assert "name: issueflow-graphify" in skill_content
     assert "disable-model-invocation: true" in skill_content
 
 
@@ -392,7 +394,7 @@ def test_init_rule_documents_knowledge_graph_section(tmp_path: Path) -> None:
     )
     assert "Knowledge graph" in rule
     assert "graphify-out/GRAPH_REPORT.md" in rule
-    assert "/build" in rule
+    assert "/graphify" in rule
 
 
 def test_init_detects_project_name(tmp_path: Path) -> None:

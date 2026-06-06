@@ -1,6 +1,6 @@
-# Rebuild the project's knowledge graph (`/build`)
+# Rebuild the project's knowledge graph (`/graphify`)
 
-`/build` rebuilds the [graphify](https://graphify.net) knowledge graph for this project so the assistant can navigate by graph instead of grepping through files. Outputs land in `graphify-out/` (`graph.html`, `GRAPH_REPORT.md`, `graph.json`).
+`/graphify` rebuilds the [graphify](https://graphify.net) knowledge graph for this project so the assistant can navigate by graph instead of grepping through files. Outputs land in `graphify-out/` (`graph.html`, `GRAPH_REPORT.md`, `graph.json`).
 
 This is an **off-path** command — the lifecycle dispatcher (`/iflow`) never auto-runs it. Invoke it explicitly when the project's structure has changed enough that the existing graph is stale (new modules, large refactors, new docs/papers added).
 
@@ -19,13 +19,13 @@ See the [graphify CLI reference](https://graphify.net/graphify-cli-commands.html
 
 ## Steps
 
-1. **Preferred path: `issue-flow build`**. From the project root, run:
+1. **Preferred path: `issue-flow graphify`**. From the project root, run:
 
    ```bash
-   issue-flow build
+   issue-flow graphify
    ```
 
-   This runs `graphify update .` — no API key needed. To pick a different subcommand or pass flags, append them, e.g. `issue-flow build extract` (full LLM pass), `issue-flow build cluster-only --no-viz`, or `issue-flow build extract --backend ollama` (local LLM). To scan a project other than the current directory, use `issue-flow build -C <project_dir>`. Extra args are forwarded verbatim.
+   This runs `graphify update .` — no API key needed. To pick a different subcommand or pass flags, append them, e.g. `issue-flow graphify extract` (full LLM pass), `issue-flow graphify cluster-only --no-viz`, or `issue-flow graphify extract --backend ollama` (local LLM). To scan a project other than the current directory, use `issue-flow graphify -C <project_dir>`. Extra args are forwarded verbatim.
 
 2. **Fallback: call `graphify` directly** if `issue-flow` is not on PATH:
 
@@ -37,7 +37,7 @@ See the [graphify CLI reference](https://graphify.net/graphify-cli-commands.html
 
 3. **Verify outputs.** After a successful run there should be a `graphify-out/` folder with at least `graph.html`, `GRAPH_REPORT.md`, and `graph.json`. Skim `GRAPH_REPORT.md` once to confirm the run picked up new modules or docs.
 
-4. **If `graphify` is not installed** (`issue-flow build` exits with a "not on PATH" error), suggest the user install it:
+4. **If `graphify` is not installed** (`issue-flow graphify` exits with a "not on PATH" error), suggest the user install it:
 
    ```bash
    uv tool install graphifyy   # recommended
@@ -50,14 +50,14 @@ See the [graphify CLI reference](https://graphify.net/graphify-cli-commands.html
 5. **If `graphify extract` complains about a missing LLM API key**, the user picked the semantic-pass subcommand without configuring a backend. Suggest one of:
 
    - Set an API key for one of the supported backends (`GEMINI_API_KEY` / `GOOGLE_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `MOONSHOT_API_KEY`) and re-run.
-   - Use a local LLM: `issue-flow build extract --backend ollama` (requires [Ollama](https://ollama.com) installed and a model pulled, e.g. `ollama pull qwen2.5-coder`).
-   - Drop the `extract` arg and use the default `issue-flow build` (AST-only `update`, no LLM).
+   - Use a local LLM: `issue-flow graphify extract --backend ollama` (requires [Ollama](https://ollama.com) installed and a model pulled, e.g. `ollama pull qwen2.5-coder`).
+   - Drop the `extract` arg and use the default `issue-flow graphify` (AST-only `update`, no LLM).
 
    Cursor's own LLM is **not** available to subprocesses, so graphify cannot reuse it.
 
 ## Constraints
 
-- Do **not** run `/build` automatically from `/issue-start`, `/issue-close`, or `/iflow`. The user opts in.
+- Do **not** run `/graphify` automatically from `/issue-start`, `/issue-close`, or `/iflow`. The user opts in.
 - Do **not** commit `graphify-out/cost.json` or `graphify-out/manifest.json`; both are local-only. The graph itself (`graph.json`, `graph.html`, `GRAPH_REPORT.md`) is fine to commit so teammates start with a map.
 - Long-running modes (`watch`) keep the process running; ask the user before launching them in an agent context.
 

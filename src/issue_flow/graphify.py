@@ -15,9 +15,9 @@ This module owns three small responsibilities:
 * :func:`is_available` — cheap PATH lookup, no subprocess.
 * :func:`register_with_cursor` — runs ``graphify cursor install`` from
   ``init``/``update``. Never raises; failures are logged and ignored.
-* :func:`run_build` — backs the ``issue-flow build`` CLI command and the
-  ``/build`` slash command. Forwards every extra arg verbatim so the
-  upstream graphify flag set is the source of truth.
+* :func:`run_build` — backs the ``issue-flow graphify`` CLI command and
+  the ``/graphify`` slash command. Forwards every extra arg verbatim so
+  the upstream graphify flag set is the source of truth.
 """
 
 from __future__ import annotations
@@ -38,14 +38,14 @@ GRAPHIFY_PYPI = "graphifyy"
 
 # Graphify is a multi-subcommand CLI. The subcommands below all take a
 # project path as their first positional argument and are the ones that
-# fit the "build / refresh the graph" surface ``issue-flow build``
+# fit the "build / refresh the graph" surface ``issue-flow graphify``
 # exposes. Anything else (``query``, ``explain``, ``cursor install``,
-# …) is out of scope for ``build``; users invoke ``graphify`` directly
+# …) is out of scope for ``graphify``; users invoke ``graphify`` directly
 # for those.
 _GRAPHIFY_BUILD_SUBCOMMANDS: frozenset[str] = frozenset(
     {"extract", "update", "watch", "cluster-only", "check-update"}
 )
-# Default subcommand when the user runs ``issue-flow build`` without
+# Default subcommand when the user runs ``issue-flow graphify`` without
 # specifying one. ``update`` is the AST-only build: it produces the
 # full ``graphify-out/`` (``graph.json``, ``graph.html``,
 # ``GRAPH_REPORT.md``) and crucially does **not** need an LLM API key,
@@ -58,7 +58,7 @@ _DEFAULT_BUILD_SUBCOMMAND: str = "update"
 def _build_graphify_argv(
     project_root: Path, extra_args: Sequence[str]
 ) -> list[str]:
-    """Translate ``issue-flow build`` arguments into a ``graphify`` argv.
+    """Translate ``issue-flow graphify`` arguments into a ``graphify`` argv.
 
     ``graphify`` is subcommand-based — there is no top-level "scan this
     folder" mode — so every invocation needs an explicit subcommand.
@@ -75,7 +75,7 @@ def _build_graphify_argv(
     * First arg is anything else → assume the default subcommand
       (``update``) and treat the args as positional/flag tail. A
       first arg that does not start with ``-`` is taken as the path
-      the user wants graphify to scan (e.g. ``issue-flow build ./docs``
+      the user wants graphify to scan (e.g. ``issue-flow graphify ./docs``
       → ``graphify update ./docs``).
     """
     args = list(extra_args)
@@ -265,11 +265,11 @@ def run_build(
     """Run ``graphify <subcommand> <path> [extra_args...]`` and return its exit code.
 
     See :func:`_build_graphify_argv` for the argv-construction rules.
-    The short version: ``issue-flow build`` with no args invokes
+    The short version: ``issue-flow graphify`` with no args invokes
     ``graphify update <project_root>`` (AST-only, no LLM API key
     required, produces the full ``graphify-out/`` directory). Users
     who want the deeper semantic LLM pass run
-    ``issue-flow build extract`` and configure a backend
+    ``issue-flow graphify extract`` and configure a backend
     (``GEMINI_API_KEY`` / ``ANTHROPIC_API_KEY`` / ``OPENAI_API_KEY`` /
     ``MOONSHOT_API_KEY`` env var, or ``--backend ollama`` for a local
     LLM).
