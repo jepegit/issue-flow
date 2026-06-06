@@ -80,7 +80,9 @@ Use an explicit status checkbox in the status file:
 
 ### Command lifecycle
 
-If you just want the next right step, run **`/iflow`** — it detects state (by file presence under `{{ issueflows_dir }}/{{ current_issues_folder }}/` and the status-file `- [x] Done` marker) and dispatches to `/issue-init`, `/issue-plan`, `/issue-start`, or `/issue-close`. It never auto-dispatches to `/issue-pause`, `/issue-cleanup`, or `/issue-yolo` — those stay explicit.
+If you have not chosen an issue yet, run **`/issue-pick`** — the front door that helps you select the next issue (parked work first, else ranked open GitHub issues), creates the branch, and runs `/issue-init` for you. It is off-path (never auto-dispatched).
+
+If you just want the next right step, run **`/iflow`** — it detects state (by file presence under `{{ issueflows_dir }}/{{ current_issues_folder }}/` and the status-file `- [x] Done` marker) and dispatches to `/issue-init`, `/issue-plan`, `/issue-start`, or `/issue-close`. It never auto-dispatches to `/issue-pick`, `/issue-pause`, `/issue-cleanup`, or `/issue-yolo` — those stay explicit.
 
 The full slash-command lifecycle is:
 

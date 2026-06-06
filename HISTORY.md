@@ -9,6 +9,9 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-06-06
+
+- **New `/issue-pick` front-door command (#63).** A pre-`/issue-init` command (plus matching `issueflow-issue-pick` skill) that helps choose the next issue: parked work in `02-partly-solved-issues/` first, otherwise open GitHub issues ranked by milestone, labels, and topical similarity to recently solved work; `fix` creates a new "general fixes" issue each time. It then requires a clean tree, creates the `<N>-slug` branch off the default, runs `/issue-init`, and asks before handing off to `/issue-plan`. Off-path — `/iflow` never auto-dispatches to it. Automated sub-issue breakdown of over-large issues is intentionally deferred to a follow-up (Phase B).
 - **Rename `build` → `graphify` (#56).** The graph-rebuild surface is now `/graphify` (slash command), `issueflow-graphify` (skill), and `issue-flow graphify` (CLI subcommand) — the old `build` names are gone. Pure rename, no behavior change; internal helpers keep their "build the graph" names.
 - `/issue-init` now renames the chat/agent tab to reflect the issue topic, on the form "Issue <number> <short description>" (e.g. "Issue 74 cell info"). (#55)
 - **`/issue-plan` prior-art discovery (#57).** New step 1.75 checklist: optional graphify skim of `GRAPH_REPORT.md`, grep for adjacent helpers, record findings under `### Prior art` in plan Constraints (or note none found); strong overlaps become Open questions. `/issue-start` reads that sub-section before new modules; `/issue-yolo` may abbreviate to grep-only for trivial runs. Matching updates to the `issueflow-issue-plan` skill, workflow doc, and templating tests.

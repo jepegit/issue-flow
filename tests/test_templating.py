@@ -55,8 +55,8 @@ def test_resolve_output_path() -> None:
 
 
 def test_manifest_entry_count() -> None:
-    # 9 commands + 1 rule + 1 doc + 12 skills = 23
-    assert len(TEMPLATE_MANIFEST) == 23
+    # 10 commands + 1 rule + 1 doc + 13 skills = 25
+    assert len(TEMPLATE_MANIFEST) == 25
 
 
 def test_manifest_has_expected_commands_and_skills() -> None:
@@ -64,6 +64,7 @@ def test_manifest_has_expected_commands_and_skills() -> None:
     template_names = {name for name, _ in TEMPLATE_MANIFEST}
     for command in (
         "iflow",
+        "issue-pick",
         "issue-init",
         "issue-plan",
         "issue-start",
@@ -76,6 +77,7 @@ def test_manifest_has_expected_commands_and_skills() -> None:
         assert f"commands/{command}.md.j2" in template_names
     for skill in (
         "issueflow_iflow",
+        "issueflow_issue_pick",
         "issueflow_issue_init",
         "issueflow_issue_comments",
         "issueflow_issue_plan",
@@ -225,6 +227,53 @@ def test_iflow_treats_branch_derived_n_as_authoritative() -> None:
     assert "02-partly-solved-issues" in rendered
     assert "03-solved-issues" in rendered
     assert "archived-issue guard" in rendered.lower()
+
+
+def test_issue_pick_documents_three_phases_and_fix_shortcut() -> None:
+    """/issue-pick must describe its three phases, ranking inputs, and the `fix` shortcut."""
+    rendered = render_template("commands/issue-pick.md.j2", _default_context())
+    # Three phases.
+    assert "Phase 1" in rendered
+    assert "Phase 2" in rendered
+    assert "Phase 3" in rendered
+    # Parked work is the primary candidate source, GitHub the fallback.
+    assert "02-partly-solved-issues" in rendered
+    assert "gh issue list" in rendered
+    # Relevance ranking combines milestone + labels + topical similarity.
+    assert "Milestone" in rendered or "milestone" in rendered
+    assert "Labels" in rendered or "label" in rendered
+    # `fix` shortcut creates a new issue every time.
+    assert "fix" in rendered
+    assert "gh issue create" in rendered
+    # Delegates capture to /issue-init and hands off to /issue-plan.
+    assert "/issue-init" in rendered
+    assert "/issue-plan" in rendered
+    # Off-path: not auto-dispatched by /iflow.
+    assert "off-path" in rendered.lower()
+    # Phase B (auto sub-issue creation) is explicitly out of scope.
+    assert "Phase B" in rendered
+
+
+def test_issue_pick_skill_mirrors_command() -> None:
+    """The issue-pick skill must carry the same front-door flow and frontmatter."""
+    rendered = render_template(
+        "skills/issueflow_issue_pick/SKILL.md.j2", _default_context()
+    )
+    assert "name: issueflow-issue-pick" in rendered
+    assert "disable-model-invocation: true" in rendered
+    assert "Phase 1" in rendered
+    assert "Phase 2" in rendered
+    assert "Phase 3" in rendered
+    assert "/issue-init" in rendered
+    assert "/issue-plan" in rendered
+
+
+def test_iflow_does_not_auto_dispatch_issue_pick() -> None:
+    """/iflow must list /issue-pick among the explicit-only, never-auto-dispatched commands."""
+    cmd = render_template("commands/iflow.md.j2", _default_context())
+    skill = render_template("skills/issueflow_iflow/SKILL.md.j2", _default_context())
+    assert "/issue-pick" in cmd
+    assert "/issue-pick" in skill
 
 
 def test_issue_init_mentions_branch_preflight_and_archive_guard() -> None:

@@ -386,6 +386,27 @@ def test_init_creates_graphify_command_and_skill(tmp_path: Path) -> None:
     assert "disable-model-invocation: true" in skill_content
 
 
+def test_init_creates_issue_pick_command_and_skill(tmp_path: Path) -> None:
+    """The /issue-pick front-door command and matching skill must be scaffolded."""
+    run_init(tmp_path)
+
+    pick_cmd = tmp_path / ".cursor" / "commands" / "issue-pick.md"
+    pick_skill = (
+        tmp_path / ".cursor" / "skills" / "issueflow-issue-pick" / "SKILL.md"
+    )
+    assert pick_cmd.is_file()
+    assert pick_skill.is_file()
+
+    cmd_content = pick_cmd.read_text(encoding="utf-8")
+    assert "/issue-pick" in cmd_content
+    assert "/issue-init" in cmd_content
+    assert ".issueflows/" in cmd_content
+
+    skill_content = pick_skill.read_text(encoding="utf-8")
+    assert "name: issueflow-issue-pick" in skill_content
+    assert "disable-model-invocation: true" in skill_content
+
+
 def test_init_rule_documents_knowledge_graph_section(tmp_path: Path) -> None:
     """The generated rule file should mention the optional graphify knowledge graph."""
     run_init(tmp_path)
