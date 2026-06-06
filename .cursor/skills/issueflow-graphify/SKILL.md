@@ -1,34 +1,34 @@
 ---
-name: issueflow-build
+name: issueflow-graphify
 description: >-
-  Run the /build slash command: rebuild the graphify knowledge graph for the
+  Run the /graphify slash command: rebuild the graphify knowledge graph for the
   project (graphify-out/graph.html, GRAPH_REPORT.md, graph.json) by shelling out
-  to `issue-flow build` (or `graphify` directly). Off-path: never auto-dispatched
+  to `issue-flow graphify` (or `graphify` directly). Off-path: never auto-dispatched
   by /iflow. Forwards trailing args verbatim to graphify.
 disable-model-invocation: true
 ---
 
-# issue-flow — graph rebuild (`/build`)
+# issue-flow — graph rebuild (`/graphify`)
 
-Follow this skill when the user wants to refresh the project's [graphify](https://graphify.net) knowledge graph. Matches `{{ agent_dir }}/commands/build.md`.
+Follow this skill when the user wants to refresh the project's [graphify](https://graphify.net) knowledge graph. Matches `.cursor/commands/graphify.md`.
 
 ## When to use
 
-- The user runs `/build`, mentions "rebuild the graph", "refresh graphify", "regenerate `GRAPH_REPORT.md`", or similar.
+- The user runs `/graphify`, mentions "rebuild the graph", "refresh graphify", "regenerate `GRAPH_REPORT.md`", or similar.
 - The project has a `graphify-out/` folder that is stale (large refactor, new modules, new docs/papers added) and the user asks to update it.
 - The user installed `graphifyy` for the first time and wants to produce the initial graph.
 
-Do **not** use this skill from `/issue-start`, `/issue-close`, or `/iflow`. `/build` is opt-in only.
+Do **not** use this skill from `/issue-start`, `/issue-close`, or `/iflow`. `/graphify` is opt-in only.
 
 ## Instructions
 
-1. **Prefer `issue-flow build`** from the project root:
+1. **Prefer `issue-flow graphify`** from the project root:
 
    ```bash
-   issue-flow build
+   issue-flow graphify
    ```
 
-   With no extra args this runs `graphify update <project>` — AST-only, **no LLM API key required**, produces the full `graphify-out/`. To pick a different graphify subcommand, pass it as the first arg: `issue-flow build extract` (adds the slower semantic LLM pass for richer relationships — needs an API key), `issue-flow build watch` (live), `issue-flow build cluster-only --no-viz`, etc. Use `-C <dir>` to scan a project other than the current directory. Trailing flags pass through verbatim. Do not invent new wrapper flags.
+   With no extra args this runs `graphify update <project>` — AST-only, **no LLM API key required**, produces the full `graphify-out/`. To pick a different graphify subcommand, pass it as the first arg: `issue-flow graphify extract` (adds the slower semantic LLM pass for richer relationships — needs an API key), `issue-flow graphify watch` (live), `issue-flow graphify cluster-only --no-viz`, etc. Use `-C <dir>` to scan a project other than the current directory. Trailing flags pass through verbatim. Do not invent new wrapper flags.
 
 2. **Fallback to `graphify` directly** when `issue-flow` is unavailable:
 
@@ -41,8 +41,8 @@ Do **not** use this skill from `/issue-start`, `/issue-close`, or `/iflow`. `/bu
 3. **If graphify exits with "no LLM API key found"**, the user picked `extract` (or another semantic subcommand) without configuring a backend. Cursor's own LLM is not available to subprocesses, so graphify cannot reuse it. Suggest one of:
 
    - Set an API key for `GEMINI_API_KEY` / `GOOGLE_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, or `MOONSHOT_API_KEY`.
-   - Run `issue-flow build extract --backend ollama` to use a local LLM via [Ollama](https://ollama.com) (requires Ollama installed with a model pulled).
-   - Drop the `extract` arg and use the default `issue-flow build` (AST-only, no LLM).
+   - Run `issue-flow graphify extract --backend ollama` to use a local LLM via [Ollama](https://ollama.com) (requires Ollama installed with a model pulled).
+   - Drop the `extract` arg and use the default `issue-flow graphify` (AST-only, no LLM).
 
 4. **Handle missing graphify gracefully.** If the run reports `graphify` is not on PATH, do **not** retry blindly. Tell the user to install it once:
 
@@ -61,7 +61,7 @@ Do **not** use this skill from `/issue-start`, `/issue-close`, or `/iflow`. `/bu
 
 ## Constraints
 
-- Never auto-dispatch `/build` from another slash command. The user opts in explicitly.
+- Never auto-dispatch `/graphify` from another slash command. The user opts in explicitly.
 - Never commit `graphify-out/cost.json` or `graphify-out/manifest.json`; they are local-only.
 - Long-running modes (`watch`) keep the process alive; ask the user before launching them in an agent context.
 - Forward extra arguments verbatim. Do **not** translate or rewrite graphify's flag set inside issue-flow.

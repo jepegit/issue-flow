@@ -25,7 +25,7 @@ your-project/
       issue-close.md         # /issue-close — test, commit, push, PR
       issue-cleanup.md       # /issue-cleanup — post-merge branch hygiene
       issue-yolo.md          # /issue-yolo — all-in-one for small, low-risk issues
-      build.md               # /build — rebuild the graphify knowledge graph (optional)
+      graphify.md            # /graphify — rebuild the graphify knowledge graph (optional)
     skills/                  # Optional Agent Skills (explicit / @ invoke)
       issueflow-iflow/SKILL.md
       issueflow-issue-init/SKILL.md
@@ -37,7 +37,7 @@ your-project/
       issueflow-issue-yolo/SKILL.md
       issueflow-version-bump/SKILL.md
       issueflow-history-update/SKILL.md
-      issueflow-build/SKILL.md
+      issueflow-graphify/SKILL.md
     rules/
       issueflow-rules.mdc    # Always-on Cursor rule for the workflow
   docs/
@@ -110,17 +110,17 @@ What `issue-flow` does when `graphify` is on PATH:
   the graphify Cursor skill is registered alongside the issue-flow scaffold.
   If graphify is not installed, both commands just print install hints and
   continue — they never block.
-- A new slash command `/build` (and matching `/issueflow-build` skill) wraps
-  `issue-flow build`. With no extra args it runs `graphify update <project>`
+- A new slash command `/graphify` (and matching `/issueflow-graphify` skill) wraps
+  `issue-flow graphify`. With no extra args it runs `graphify update <project>`
   — AST-only, **no LLM API key required**, so the no-arg case "just works".
-  For richer semantic relationships add `extract` (`issue-flow build extract`)
+  For richer semantic relationships add `extract` (`issue-flow graphify extract`)
   and configure a backend (`GEMINI_API_KEY`, `ANTHROPIC_API_KEY`,
   `OPENAI_API_KEY`, `MOONSHOT_API_KEY`, or `--backend ollama` for a local
   LLM). Cursor's own LLM is not available to subprocesses, so graphify
   needs its own backend. Other subcommands (`watch`, `cluster-only`, …)
   pass through too; trailing flags forward verbatim.
 - The scaffolded rules and `/issue-start` mention `graphify-out/GRAPH_REPORT.md`
-  as a recommended pre-read when the file exists. `/build` is **off-path** —
+  as a recommended pre-read when the file exists. `/graphify` is **off-path** —
   `/iflow` never auto-dispatches to it.
 
 To enable, install graphify as its own standalone tool:
@@ -136,7 +136,7 @@ pip install graphifyy
 > **Why not an `issue-flow[graphify]` extra (or `uv tool install issue-flow --with graphifyy`)?**
 > `uv tool install` only puts the **host package's** entry-point scripts on
 > PATH. An extra (or `--with graphifyy`) pulls graphifyy into issue-flow's
-> venv but leaves the `graphify` CLI invisible to the shell, so `/build`
+> venv but leaves the `graphify` CLI invisible to the shell, so `/graphify`
 > and `graphify cursor install` would still fail. Installing graphify as
 > its own tool puts a real `graphify` shim on PATH and matches how we
 > treat `git` / `gh`.
@@ -179,7 +179,7 @@ That's it. Open the project in Cursor and start with `/iflow` (or step through `
 ```
 issue-flow init [PROJECT_DIR] [--force] [--skip-dep-check]
 issue-flow update [PROJECT_DIR] [--skip-dep-check]
-issue-flow build [-C PROJECT_DIR] [...graphify subcommand + args]
+issue-flow graphify [-C PROJECT_DIR] [...graphify subcommand + args]
 ```
 
 ### `issue-flow init`
@@ -201,14 +201,14 @@ Running `init` again without `--force` is safe: generated scaffold files that al
 
 Use `update` after upgrading the **issue-flow** package to refresh the packaged slash commands, Cursor rule, and `docs/cursor-issue-workflow.md` from the version you have installed. This **overwrites** those generated files (unlike a plain second `init`). It still does not modify arbitrary files under `.issueflows/` (for example your `issue*_original.md` / `issue*_status.md` files), and it creates any **new** `.issueflows/` subdirectories required by the current package.
 
-### `issue-flow build`
+### `issue-flow graphify`
 
 | Argument / Option | Description |
 |---|---|
 | `-C`, `--project-dir` | Project root directory to scan with graphify. Defaults to `.` (current directory). Modeled on `git -C` so positional args can flow into graphify untouched. |
-| `...graphify subcommand + args` | Optional graphify subcommand + flags. With no extras runs `graphify update <PROJECT_DIR>` — AST-only, **no LLM API key required**. The first extra arg, if it is a recognized build subcommand (`update`, `extract`, `watch`, `cluster-only`, `check-update`), picks the action; trailing tokens forward verbatim. Examples: `issue-flow build extract` (semantic LLM pass; needs `GEMINI_API_KEY` / `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `MOONSHOT_API_KEY` or `--backend ollama`), `issue-flow build cluster-only --no-viz`, `issue-flow build ./subdir`. |
+| `...graphify subcommand + args` | Optional graphify subcommand + flags. With no extras runs `graphify update <PROJECT_DIR>` — AST-only, **no LLM API key required**. The first extra arg, if it is a recognized build subcommand (`update`, `extract`, `watch`, `cluster-only`, `check-update`), picks the action; trailing tokens forward verbatim. Examples: `issue-flow graphify extract` (semantic LLM pass; needs `GEMINI_API_KEY` / `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `MOONSHOT_API_KEY` or `--backend ollama`), `issue-flow graphify cluster-only --no-viz`, `issue-flow graphify ./subdir`. |
 
-`build` requires `graphifyy` to be installed (`uv tool install graphifyy`). When the `graphify` CLI is missing, the command prints install hints and exits with code `2`. Outputs land in `graphify-out/` (`graph.html`, `GRAPH_REPORT.md`, `graph.json`).
+`graphify` requires `graphifyy` to be installed (`uv tool install graphifyy`). When the `graphify` CLI is missing, the command prints install hints and exits with code `2`. Outputs land in `graphify-out/` (`graph.html`, `GRAPH_REPORT.md`, `graph.json`).
 
 ### When to use which
 
@@ -217,7 +217,7 @@ Use `update` after upgrading the **issue-flow** package to refresh the packaged 
 | First-time setup, or add missing files only | `issue-flow init` |
 | Pull newer templates after `uv tool upgrade issue-flow` (or similar) | `issue-flow update` |
 | Replace generated scaffolds without upgrading logic | `issue-flow init --force` |
-| Rebuild the graphify knowledge graph | `issue-flow build` |
+| Rebuild the graphify knowledge graph | `issue-flow graphify` |
 
 ## Configuration
 

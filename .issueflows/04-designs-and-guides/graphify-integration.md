@@ -101,3 +101,15 @@ The fix: default to `update` (AST-only). It produces the full `graphify-out/` di
 **Trade-off:** the default graph misses semantic relationships an LLM would surface (cross-file calls inferred from intent, doc/paper integration, image extraction). That is the right trade for a default that "just works" — graphify's own help text recommends the same upgrade path ("Tip: set GEMINI_API_KEY … to use Gemini for semantic extraction").
 
 **Why this slipped through originally:** `run_build` was tested with `subprocess.run` mocked to a no-op, so the test suite never observed graphify's actual argv parser **and** never exercised the LLM-key precondition. The new tests exercise the argv-construction function directly with realistic subcommand combinations, and the doc / template prose now flags the API-key requirement on `extract`. Future graphify integrations should always include at least one test that uses real graphify subcommand names, and at least one end-to-end smoke against a tiny test repo to catch precondition surprises like the API-key gate.
+
+## Rename (2026-06-06): `build` → `graphify` (#56)
+
+The graph-rebuild surface was renamed from `build` to `graphify` so its name says what it does (the original `build` collided conceptually with "build the package / project"):
+
+- Slash command `/build` → `/graphify` (`commands/build.md(.j2)` → `commands/graphify.md(.j2)`).
+- Skill `issueflow-build` → `issueflow-graphify` (template dir `issueflow_build` → `issueflow_graphify`).
+- CLI subcommand `issue-flow build` → `issue-flow graphify` (Typer command function `build` → `graphify`).
+
+The issue body was internally inconsistent ("renamed to build-graphify" vs. slash command "/graphify"); the user confirmed `/graphify` and a matching CLI rename.
+
+**Deliberately left alone:** the internal Python names `run_build`, `_build_graphify_argv`, `_GRAPHIFY_BUILD_SUBCOMMANDS`, and `_DEFAULT_BUILD_SUBCOMMAND`. These describe graphify's *build-the-graph* operation (graphify's own subcommand family — `update`/`extract`/`watch`/`cluster-only`), are not user-facing, and renaming them would add churn and test risk with no user benefit. Only docstrings/comments that named the user-facing `/build` or `issue-flow build` were updated. The manifest entry count is unchanged (still 23) — this was a rename, not an addition.

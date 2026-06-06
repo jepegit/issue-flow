@@ -80,7 +80,7 @@ RECOMMENDED_DEPENDENCIES: tuple[Dependency, ...] = (
         name="Graphify",
         command="graphify",
         purpose=(
-            "Powers the optional /build slash command and the "
+            "Powers the optional /graphify slash command and the "
             "graphify-out/GRAPH_REPORT.md knowledge graph that "
             "/issue-start can consult. Install it standalone (the same "
             "way you installed issue-flow) so its CLI ends up on PATH."
