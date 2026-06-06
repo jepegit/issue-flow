@@ -351,8 +351,29 @@ def test_issue_init_fetches_and_triages_comments() -> None:
     assert "Additional tasks" in rendered
     assert "Clarifications" in rendered
     assert "Superseded" in rendered
-    # The body contract is still byte-for-byte.
-    assert "byte-for-byte" in rendered
+    # The body contract: preserve the fetched body text faithfully, but the
+    # "Agent efficiency" guidance (issue #9) says not to obsess over byte-exactness.
+    assert "Agent efficiency" in rendered
+    assert "Preserve the issue **body** text exactly as returned by GitHub" in rendered
+
+
+def test_issue_init_documents_agent_efficiency() -> None:
+    """Regression guard for issue #9: the Agent efficiency guidance must live in the template.
+
+    It was originally added only to the generated `.cursor/commands/issue-init.md` and got
+    wiped by a later regeneration; it now belongs in the source template so it survives.
+    """
+    rendered = render_template("commands/issue-init.md.j2", _default_context())
+    assert "## Agent efficiency" in rendered
+    assert "trailing newlines" in rendered
+    assert "CRLF" in rendered
+    # The reconciled body contract no longer demands literal byte-for-byte equality.
+    assert "byte-for-byte" not in rendered
+    # The mirror skill should not re-introduce the stricter "byte-for-byte" wording.
+    skill = render_template(
+        "skills/issueflow_issue_init/SKILL.md.j2", _default_context()
+    )
+    assert "byte-for-byte" not in skill
 
 
 def test_issue_init_skill_delegates_to_comments_skill() -> None:

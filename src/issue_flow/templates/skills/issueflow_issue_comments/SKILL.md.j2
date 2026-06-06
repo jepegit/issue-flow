@@ -17,7 +17,7 @@ It is the playbook that `/issue-init` (and the `issueflow-issue-init` skill) del
 ## When to use
 
 - `/issue-init` just fetched an issue with a non-empty `comments` array and needs to write the `## Comments (curated summary)` section.
-- You are re-running triage on an already-captured issue because new comments have arrived (the issue body must stay byte-for-byte; only the curated section is rewritten).
+- You are re-running triage on an already-captured issue because new comments have arrived (the issue body text must stay unchanged; only the curated section is rewritten).
 - Any workflow that needs to understand "what does the comment thread actually ask us to do?" without pasting the raw thread into a file.
 
 ## Inputs

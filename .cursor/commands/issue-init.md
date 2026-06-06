@@ -9,6 +9,11 @@ The user may provide one of:
 
 The text after this slash command is the **issue reference**. It may also be **empty or only whitespace** (user ran `/issue-init` with no arguments).
 
+## Agent efficiency
+- Run the flow once; do not re-fetch or re-run tools only to diff the written file against the API (for example, no extra `gh` calls or scripts to compare bytes).
+- Do **not** spend effort on trailing newlines, byte-identical file endings, or CRLF vs LF. A normal markdown file with a final newline is fine.
+- "Preserve the issue body exactly as returned by GitHub" means the **body text** from the fetch: paste it into the template in **step 5** and move on. No second-pass verification or newline normalization.
+
 ## Steps
 
 0. Check that the required folders exist (`.issueflows/00-tools`, `.issueflows/01-current-issues`, `.issueflows/02-partly-solved-issues`, `.issueflows/03-solved-issues`). If not, create them after asking for permission.
@@ -34,6 +39,7 @@ The text after this slash command is the **issue reference**. It may also be **e
    - `gh issue view <N> --repo owner/repo --json title,body,url,number,comments`
    - `comments` returns an array where each entry has at least `author.login`, `body`, and `createdAt`.
    - Confirm resolved `owner/repo` to the user.
+   - Change the chat/agent tab title to reflect the issue topic on the form "Issue <issue number> <short description of issue>", for example "Issue 74 cell info".
 
 2a. **Triage comments** (only if the `comments` array is non-empty).
    - Follow the `issueflow-issue-comments` skill (`.cursor/skills/issueflow-issue-comments/SKILL.md`) for the rules; summary:
@@ -103,7 +109,7 @@ Report:
 - whether the operation succeeded
 
 ## Constraints
-- Preserve the issue **body** exactly as returned by GitHub (the `## Original issue text` section is byte-for-byte). Only the `## Comments (curated summary)` section is interpretive.
+- Preserve the issue **body** text exactly as returned by GitHub (the `## Original issue text` section reflects the fetched body; see **Agent efficiency** — do not optimize for trailing newlines or line-ending style). Only the `## Comments (curated summary)` section is interpretive.
 - Use UTF-8 markdown.
 - Allowed file modifications for this command:
   - create/update the target `issue<number>_original.md`

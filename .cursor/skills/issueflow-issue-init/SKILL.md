@@ -28,7 +28,7 @@ Follow this skill when the user wants to **capture a GitHub issue locally** usin
    - **Empty / whitespace** — Run `git branch --show-current`. If empty or `main`/`master` (case-insensitive), **stop** and ask for a number, URL, or `owner/repo/#n`. If the branch matches `^\d+-.+`, ask once whether to use that leading issue number; do not proceed without a clear yes/no.
    - **Archived-issue guard** — Before writing, check `.issueflows/02-partly-solved-issues/` and `.issueflows/03-solved-issues/` for existing `issue<n>_*` files. If the issue is already archived, warn and require a second explicit confirmation before re-opening it in `.issueflows/01-current-issues/`.
 
-3. **Fetch** — `gh issue view <n> --repo owner/repo --json title,body,url,number,comments`. The `comments` field returns an array of `{author.login, body, createdAt, ...}` that step 3a consumes. On failure, report the error and suggest `gh auth login`.
+3. **Fetch** — `gh issue view <n> --repo owner/repo --json title,body,url,number,comments`. The `comments` field returns an array of `{author.login, body, createdAt, ...}` that step 3a consumes. On failure, report the error and suggest `gh auth login`. After confirming `owner/repo`, change the chat/agent tab title to reflect the issue topic on the form "Issue <issue number> <short description of issue>" (e.g. "Issue 74 cell info").
 
 3a. **Triage comments** (skip if `comments` is empty). Follow the [`issueflow-issue-comments`](../issueflow-issue-comments/SKILL.md) skill. Summary of rules:
    - Process comments chronologically; **later comments win conflicts** with earlier ones.
@@ -62,7 +62,7 @@ Follow this skill when the user wants to **capture a GitHub issue locally** usin
    _Note: this section is an interpretive summary of the comment thread, not a verbatim dump. Source comments: <count>, last comment by @<login> on <date>._
    ```
 
-   Preserve the body **byte-for-byte** (including trailing newlines). The `## Comments (curated summary)` section is **optional** — include it only when step 3a produced at least one bullet, and drop any of the three bullet groups that have no content.
+   Preserve the body **text** faithfully as returned by GitHub — don't paraphrase or edit it, but don't waste effort on trailing newlines or CRLF vs LF either (no second-pass byte-diffing). The `## Comments (curated summary)` section is **optional** — include it only when step 3a produced at least one bullet, and drop any of the three bullet groups that have no content.
 
 6. **Conflicts** — If `issue<number>_original.md` already exists, do not overwrite silently; ask the user.
 
