@@ -8,6 +8,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 import os
 
+from issue_flow.editors import DEFAULT_EDITOR, EditorProfile, get_profile
+
 
 # Load .env from the current working directory (the user's project root).
 # This runs at import time so that all downstream code sees the env vars.
@@ -25,8 +27,13 @@ class Settings:
     issueflows_dir: str = field(
         default_factory=lambda: os.getenv("ISSUEFLOW_DIR", ".issueflows")
     )
-    agent_dir: str = field(
-        default_factory=lambda: os.getenv("ISSUEFLOW_AGENT_DIR", ".cursor")
+    editor: str = field(
+        default_factory=lambda: os.getenv("ISSUEFLOW_EDITOR", DEFAULT_EDITOR)
+    )
+    # Explicit ``ISSUEFLOW_AGENT_DIR`` override. When unset (``None``) the agent
+    # directory is derived from the selected editor profile instead.
+    agent_dir_override: str | None = field(
+        default_factory=lambda: os.getenv("ISSUEFLOW_AGENT_DIR")
     )
     docs_dir: str = field(
         default_factory=lambda: os.getenv("ISSUEFLOW_DOCS_DIR", "docs")
@@ -56,12 +63,28 @@ class Settings:
             self.designs_folder,
         ]
 
-    def template_context(self, project_root: Path) -> dict[str, str]:
-        """Build the Jinja2 template context dictionary."""
+    def agent_dir_for(self, profile: EditorProfile) -> str:
+        """Agent directory for ``profile``: explicit override wins, else profile default."""
+        return self.agent_dir_override or profile.agent_dir
+
+    @property
+    def agent_dir(self) -> str:
+        """Agent directory for the default/selected editor (back-compat helper)."""
+        return self.agent_dir_for(get_profile(self.editor))
+
+    def template_context(
+        self, project_root: Path, profile: EditorProfile | None = None
+    ) -> dict[str, str]:
+        """Build the Jinja2 template context dictionary for ``profile``.
+
+        When ``profile`` is omitted, the context targets the editor configured
+        via ``ISSUEFLOW_EDITOR`` (default ``cursor``).
+        """
+        profile = profile or get_profile(self.editor)
         project_name = _detect_project_name(project_root)
         return {
             "issueflows_dir": self.issueflows_dir,
-            "agent_dir": self.agent_dir,
+            "agent_dir": self.agent_dir_for(profile),
             "docs_dir": self.docs_dir,
             "history_file": self.history_file,
             "tools_folder": self.tools_folder,
@@ -70,6 +93,10 @@ class Settings:
             "solved_folder": self.solved_folder,
             "designs_folder": self.designs_folder,
             "project_name": project_name,
+            "editor": profile.id,
+            "editor_name": profile.name,
+            "commands_dir": profile.commands_dir or "commands",
+            "graphify_installer": profile.graphify_installer or "",
         }
 
 

@@ -14,7 +14,7 @@ from issue_flow.graphify import (
     GRAPHIFY_COMMAND,
     find_orphan_install,
     is_available,
-    register_with_cursor,
+    register_with_editor,
     run_build,
 )
 
@@ -39,10 +39,10 @@ def test_is_available_returns_false_when_graphify_missing(
     assert is_available() is False
 
 
-def test_register_with_cursor_skips_when_graphify_missing(
+def test_register_with_editor_skips_when_graphify_missing(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """When graphify is not on PATH, register_with_cursor returns False, prints hints, and never calls subprocess."""
+    """When graphify is not on PATH, register_with_editor returns False, prints hints, and never calls subprocess."""
     monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: None)
     # Isolate from any real graphify install on the dev machine; we want
     # the "not installed at all" hint branch here, not the orphan branch.
@@ -54,7 +54,7 @@ def test_register_with_cursor_skips_when_graphify_missing(
     monkeypatch.setattr(graphify_module.subprocess, "run", fail_run)
     console, buffer = _fake_console()
 
-    result = register_with_cursor(tmp_path, console)
+    result = register_with_editor(tmp_path, console)
 
     assert result is False
     text = buffer.getvalue()
@@ -62,7 +62,7 @@ def test_register_with_cursor_skips_when_graphify_missing(
     assert "graphifyy" in text  # install hint mentions the PyPI package
 
 
-def test_register_with_cursor_runs_install_when_available(
+def test_register_with_editor_runs_install_when_available(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr(
@@ -83,7 +83,7 @@ def test_register_with_cursor_runs_install_when_available(
     monkeypatch.setattr(graphify_module.subprocess, "run", fake_run)
     console, buffer = _fake_console()
 
-    result = register_with_cursor(tmp_path, console)
+    result = register_with_editor(tmp_path, console)
 
     assert result is True
     assert captured["cmd"] == [GRAPHIFY_COMMAND, "cursor", "install"]
@@ -91,7 +91,7 @@ def test_register_with_cursor_runs_install_when_available(
     assert "registered" in buffer.getvalue().lower()
 
 
-def test_register_with_cursor_does_not_raise_on_nonzero_exit(
+def test_register_with_editor_does_not_raise_on_nonzero_exit(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """A non-zero exit from `graphify cursor install` must not break init/update."""
@@ -104,7 +104,7 @@ def test_register_with_cursor_does_not_raise_on_nonzero_exit(
     monkeypatch.setattr(graphify_module.subprocess, "run", lambda *a, **kw: _Result())
     console, buffer = _fake_console()
 
-    result = register_with_cursor(tmp_path, console)
+    result = register_with_editor(tmp_path, console)
 
     assert result is False
     text = buffer.getvalue()
@@ -112,7 +112,7 @@ def test_register_with_cursor_does_not_raise_on_nonzero_exit(
     assert "continuing" in text
 
 
-def test_register_with_cursor_swallows_oserror(
+def test_register_with_editor_swallows_oserror(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """If subprocess raises OSError (e.g. binary unexpectedly missing), we recover."""
@@ -124,7 +124,7 @@ def test_register_with_cursor_swallows_oserror(
     monkeypatch.setattr(graphify_module.subprocess, "run", boom)
     console, buffer = _fake_console()
 
-    result = register_with_cursor(tmp_path, console)
+    result = register_with_editor(tmp_path, console)
 
     assert result is False
     assert "permission denied" in buffer.getvalue()

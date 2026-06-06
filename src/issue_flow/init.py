@@ -13,9 +13,10 @@ from issue_flow.dependencies import (
     check_dependencies,
     prompt_or_skip,
 )
-from issue_flow.graphify import register_with_cursor as graphify_register_with_cursor
+from issue_flow.editors import EditorProfile, resolve_editors
+from issue_flow.graphify import register_with_editor as graphify_register_with_editor
 from issue_flow.templating import (
-    TEMPLATE_MANIFEST,
+    build_manifest,
     render_template,
     resolve_output_path,
 )
@@ -25,11 +26,23 @@ console = Console()
 # Optional project-root `.env` entries (see README). Values are defaults for comments only.
 _DOTENV_KEYS: tuple[tuple[str, str], ...] = (
     ("ISSUEFLOW_DIR", ".issueflows"),
+    ("ISSUEFLOW_EDITOR", "cursor"),
     ("ISSUEFLOW_AGENT_DIR", ".cursor"),
     ("ISSUEFLOW_DOCS_DIR", "docs"),
     ("ISSUEFLOW_HISTORY_FILE", "HISTORY.md"),
 )
 _DOTENV_SECTION_HEADER = "# --- issue-flow: optional environment variables ---\n"
+
+# Marker-delimited managed block for AGENTS.md. AGENTS.md is frequently a
+# hand-maintained user file, so issue-flow only ever owns the content between
+# these markers and never clobbers the rest.
+_AGENTS_FILE = "AGENTS.md"
+_AGENTS_BEGIN = "<!-- BEGIN issue-flow (managed: do not edit this block) -->"
+_AGENTS_END = "<!-- END issue-flow (managed) -->"
+_AGENTS_BLOCK_RE = re.compile(
+    re.escape(_AGENTS_BEGIN) + ".*?" + re.escape(_AGENTS_END),
+    re.DOTALL,
+)
 
 
 def _dotenv_documents_key(content: str, key: str) -> bool:
@@ -84,11 +97,12 @@ def _ensure_dotenv_file(project_root: Path) -> None:
 
 def _write_manifest_files(
     project_root: Path,
+    manifest: list[tuple[str, str]],
     context: dict[str, str],
     *,
     force: bool,
 ) -> tuple[list[Path], list[Path]]:
-    """Render templates from TEMPLATE_MANIFEST and write under project_root.
+    """Render templates from ``manifest`` and write under project_root.
 
     When ``force`` is False, existing files are skipped (not overwritten).
     Issue markdown under ``.issueflows/`` is never part of the manifest.
@@ -99,7 +113,7 @@ def _write_manifest_files(
     written_files: list[Path] = []
     skipped_files: list[Path] = []
 
-    for template_name, path_template in TEMPLATE_MANIFEST:
+    for template_name, path_template in manifest:
         relative_path = resolve_output_path(path_template, context)
         absolute_path = project_root / relative_path
 
@@ -119,25 +133,86 @@ def _write_manifest_files(
     return written_files, skipped_files
 
 
+def _ensure_agents_md(project_root: Path, context: dict[str, str]) -> None:
+    """Upsert the issue-flow managed block into the project-root ``AGENTS.md``.
+
+    ``AGENTS.md`` is the convergent rules target across editors and is often a
+    hand-maintained user file. This writer therefore only owns the content
+    between the issue-flow markers:
+
+    * file missing -> create it with just the managed block;
+    * markers present -> replace the block in place, leaving surrounding
+      content untouched;
+    * file exists without markers -> append the block after existing content.
+
+    Idempotent: if the resulting file would be unchanged, nothing is written.
+    """
+    rendered = render_template("rules/AGENTS.md.j2", context)
+    block = f"{_AGENTS_BEGIN}\n{rendered}{_AGENTS_END}\n"
+
+    path = project_root / _AGENTS_FILE
+    relative = Path(_AGENTS_FILE)
+
+    if not path.exists():
+        path.write_text(block, encoding="utf-8")
+        console.print(f"  [green]write[/green] {relative}  (issue-flow managed block)")
+        return
+
+    existing = path.read_text(encoding="utf-8")
+
+    if _AGENTS_BLOCK_RE.search(existing):
+        replacement = f"{_AGENTS_BEGIN}\n{rendered}{_AGENTS_END}"
+        updated = _AGENTS_BLOCK_RE.sub(lambda _m: replacement, existing)
+        if updated == existing:
+            console.print(
+                f"  [dim]skip[/dim]  {relative}  (issue-flow block already up to date)"
+            )
+            return
+        path.write_text(updated, encoding="utf-8")
+        console.print(
+            f"  [green]update[/green] {relative}  (refreshed issue-flow managed block)"
+        )
+        return
+
+    updated = existing.rstrip("\n") + "\n\n" + block
+    path.write_text(updated, encoding="utf-8")
+    console.print(
+        f"  [green]append[/green] {relative}  (added issue-flow managed block)"
+    )
+
+
 def _already_initialized(
-    project_root: Path, settings: Settings, context: dict[str, str]
+    project_root: Path,
+    settings: Settings,
+    profiles: list[EditorProfile],
 ) -> bool:
-    """True if the tree looks like issue-flow was set up here before."""
+    """True if the tree looks like issue-flow was set up here for any profile."""
     base = project_root / settings.issueflows_dir
     if not base.is_dir():
         return False
-    return any(
-        (project_root / resolve_output_path(path_template, context)).is_file()
-        for _, path_template in TEMPLATE_MANIFEST
-    )
+    for profile in profiles:
+        context = settings.template_context(project_root, profile)
+        manifest = build_manifest(profile)
+        if any(
+            (project_root / resolve_output_path(path_template, context)).is_file()
+            for _, path_template in manifest
+        ):
+            return True
+    return False
 
 
 def run_init(
     project_root: Path,
     force: bool = False,
     skip_dep_check: bool = False,
+    editors: list[str] | None = None,
 ) -> None:
-    """Scaffold .issueflows/ directories and .cursor/ config (commands, rules, skills).
+    """Scaffold .issueflows/ directories and editor config (commands, rules, skills).
+
+    Scaffolds once per selected editor profile (``editors``; defaults to
+    ``["cursor"]``). Each profile writes its own ``agent_dir`` tree (skills
+    always, slash commands when supported, optional ``.mdc`` / ``CLAUDE.md``)
+    plus the shared, editor-neutral ``AGENTS.md`` managed block and workflow doc.
 
     Also ensures a project-root ``.env`` exists or appends commented
     ``ISSUEFLOW_*`` lines for any keys not yet documented there. Existing
@@ -156,18 +231,27 @@ def run_init(
         project_root: Absolute path to the user's project directory.
         force: If True, overwrite existing manifest files without asking.
         skip_dep_check: If True, bypass the external-CLI dependency check.
+        editors: Editor ids to scaffold for (``"all"`` expands to every
+            supported editor). Defaults to the configured/default editor.
     """
     settings = Settings()
-    context = settings.template_context(project_root)
+    try:
+        profiles = resolve_editors(editors)
+    except ValueError as exc:
+        console.print(f"[red]error[/red]  {exc}")
+        raise typer.Exit(code=2) from None
 
     console.print(
-        f"\n[bold]Initializing issue-flow in [cyan]{project_root}[/cyan][/bold]\n"
+        f"\n[bold]Initializing issue-flow in [cyan]{project_root}[/cyan][/bold]"
+    )
+    console.print(
+        f"[dim]Editors: {', '.join(p.id for p in profiles)}[/dim]\n"
     )
 
     if not _dependency_gate(skip_dep_check):
         raise typer.Exit(code=1)
 
-    if not force and _already_initialized(project_root, settings, context):
+    if not force and _already_initialized(project_root, settings, profiles):
         console.print(
             "[dim]This project already has issue-flow scaffold files. "
             "Existing files are skipped so your issue notes stay intact. "
@@ -178,15 +262,23 @@ def run_init(
 
     _create_issueflow_dirs(project_root, settings)
 
-    written_files, skipped_files = _write_manifest_files(
-        project_root, context, force=force
-    )
+    written_files: list[Path] = []
+    skipped_files: list[Path] = []
+    for profile in profiles:
+        console.print(f"\n[bold]{profile.name}[/bold] ([cyan]{profile.agent_dir}[/cyan])")
+        context = settings.template_context(project_root, profile)
+        written, skipped = _write_manifest_files(
+            project_root, build_manifest(profile), context, force=force
+        )
+        _ensure_agents_md(project_root, context)
+        written_files.extend(written)
+        skipped_files.extend(skipped)
 
     console.print()
     _ensure_dotenv_file(project_root)
 
     console.print()
-    _graphify_postinstall(project_root)
+    _graphify_postinstall(project_root, profiles)
 
     console.print()
     if written_files:
@@ -198,20 +290,26 @@ def run_init(
     if not written_files and not skipped_files:
         console.print("[bold]Nothing to do.[/bold]")
 
+    primary = profiles[0]
     console.print(
         "\n[dim]Run [bold]/issue-init <number>[/bold] or [bold]/issue-init[/bold] "
-        "(on a branch like [bold]42-slug[/bold], after confirmation) in Cursor "
+        "(on a branch like [bold]42-slug[/bold], after confirmation) in your editor "
         "to start tracking a GitHub issue. "
-        "Optional Agent Skills live under [bold].cursor/skills/[/bold] "
+        f"Optional Agent Skills live under [bold]{primary.agent_dir}/skills/[/bold] "
         "([bold]/issueflow-issue-init[/bold], etc.).[/dim]\n"
     )
 
 
-def run_update(project_root: Path, skip_dep_check: bool = False) -> None:
+def run_update(
+    project_root: Path,
+    skip_dep_check: bool = False,
+    editors: list[str] | None = None,
+) -> None:
     """Refresh packaged scaffold files (commands, rule, skills, workflow doc).
 
-    Overwrites every path in ``TEMPLATE_MANIFEST`` with the templates from the
-    installed package. Does not read or delete other files under ``.issueflows/``
+    Overwrites every manifest path for each selected editor profile with the
+    templates from the installed package, and refreshes the ``AGENTS.md``
+    managed block. Does not read or delete other files under ``.issueflows/``
     (issue markdown is never written by the manifest).
 
     Ensures ``.issueflows/`` subdirectories from settings exist (e.g. new
@@ -223,12 +321,21 @@ def run_update(project_root: Path, skip_dep_check: bool = False) -> None:
     Args:
         project_root: Absolute path to the user's project directory.
         skip_dep_check: If True, bypass the external-CLI dependency check.
+        editors: Editor ids to refresh (``"all"`` expands to every supported
+            editor). Defaults to the configured/default editor.
     """
     settings = Settings()
-    context = settings.template_context(project_root)
+    try:
+        profiles = resolve_editors(editors)
+    except ValueError as exc:
+        console.print(f"[red]error[/red]  {exc}")
+        raise typer.Exit(code=2) from None
 
     console.print(
-        f"\n[bold]Updating issue-flow scaffold in [cyan]{project_root}[/cyan][/bold]\n"
+        f"\n[bold]Updating issue-flow scaffold in [cyan]{project_root}[/cyan][/bold]"
+    )
+    console.print(
+        f"[dim]Editors: {', '.join(p.id for p in profiles)}[/dim]\n"
     )
 
     if not _dependency_gate(skip_dep_check):
@@ -236,10 +343,18 @@ def run_update(project_root: Path, skip_dep_check: bool = False) -> None:
 
     _create_issueflow_dirs(project_root, settings)
 
-    written_files, _skipped = _write_manifest_files(project_root, context, force=True)
+    written_files: list[Path] = []
+    for profile in profiles:
+        console.print(f"\n[bold]{profile.name}[/bold] ([cyan]{profile.agent_dir}[/cyan])")
+        context = settings.template_context(project_root, profile)
+        written, _skipped = _write_manifest_files(
+            project_root, build_manifest(profile), context, force=True
+        )
+        _ensure_agents_md(project_root, context)
+        written_files.extend(written)
 
     console.print()
-    _graphify_postinstall(project_root)
+    _graphify_postinstall(project_root, profiles)
 
     console.print()
     if written_files:
@@ -255,18 +370,32 @@ def run_update(project_root: Path, skip_dep_check: bool = False) -> None:
     )
 
 
-def _graphify_postinstall(project_root: Path) -> None:
+def _graphify_postinstall(
+    project_root: Path, profiles: list[EditorProfile]
+) -> None:
     """Best-effort graphify integration step for ``run_init`` / ``run_update``.
 
     Auto-detects the ``graphify`` CLI (the user opts in by installing
-    ``graphifyy``; there is no flag). When present, runs
-    ``graphify cursor install`` so the graphify Cursor skill is
-    registered alongside issue-flow's own scaffold. When absent,
-    :func:`register_with_cursor` itself prints install hints. Never
-    raises and never aborts the parent ``init`` / ``update``.
+    ``graphifyy``; there is no flag). Runs ``graphify <installer> install``
+    once for each selected editor profile that graphify can register with
+    (currently only Cursor). Editors without a graphify installer are skipped.
+    When graphify is absent, :func:`register_with_editor` itself prints
+    install hints. Never raises and never aborts the parent ``init`` /
+    ``update``.
     """
+    installable = [p for p in profiles if p.graphify_installer]
+    if not installable:
+        return
+
     console.print("[bold]Graphify integration[/bold]")
-    graphify_register_with_cursor(project_root, console)
+    seen: set[str] = set()
+    for profile in installable:
+        installer = profile.graphify_installer
+        assert installer is not None  # narrowed by the filter above
+        if installer in seen:
+            continue
+        seen.add(installer)
+        graphify_register_with_editor(project_root, console, installer)
 
 
 def _dependency_gate(skip_dep_check: bool) -> bool:

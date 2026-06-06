@@ -1,6 +1,6 @@
-# Cursor issue workflow (slash commands)
+# {{ editor_name }} issue workflow (slash commands)
 
-This repo uses ten Cursor **slash commands** under `{{ agent_dir }}/commands/` that line up with how we track GitHub issues in `{{ issueflows_dir }}/{{ current_issues_folder }}/`.
+This repo uses ten {{ editor_name }} **slash commands** under `{{ agent_dir }}/{{ commands_dir }}/` that line up with how we track GitHub issues in `{{ issueflows_dir }}/{{ current_issues_folder }}/`.
 
 **Quick start: just run `/iflow`.** It inspects the state of the focus issue and dispatches to the right linear-flow command (`/issue-init`, `/issue-plan`, `/issue-start`, or `/issue-close`) — so you don't have to remember which step is next. Haven't chosen an issue yet? Start with **`/issue-pick`**.
 
@@ -17,11 +17,13 @@ This repo uses ten Cursor **slash commands** under `{{ agent_dir }}/commands/` t
 | `/issue-yolo` | `issue-yolo.md` | All-in-one for small, low-risk issues: chains `init → plan → start → close` with up-front safeguards and a single confirmation. |
 | `/graphify` | `graphify.md` | **Off-path.** Rebuild the [graphify](https://graphify.net) knowledge graph (`graphify-out/graph.html`, `GRAPH_REPORT.md`, `graph.json`). Wraps `issue-flow graphify` / `graphify`. Optional: only meaningful when `graphifyy` is installed. |
 
+> On tools without project slash commands (e.g. Codex CLI), invoke the mirrored Agent Skills under `{{ agent_dir }}/skills/` instead — for example `issueflow-issue-init` in place of `/issue-init`.
+
 ---
 
 ## Agent Skills (optional)
 
-`issue-flow init` / `issue-flow update` also install **Cursor Agent Skills** under `{{ agent_dir }}/skills/` — longer, on-demand playbooks that mirror the slash commands (plus a small helper for version bumps):
+`issue-flow init` / `issue-flow update` also install **{{ editor_name }} Agent Skills** under `{{ agent_dir }}/skills/` — longer, on-demand playbooks that mirror the slash commands (plus a small helper for version bumps):
 
 | Skill folder | Invoke (examples) | Role |
 |--------------|-------------------|------|
@@ -38,7 +40,7 @@ This repo uses ten Cursor **slash commands** under `{{ agent_dir }}/commands/` t
 | `issueflow-history-update` | `@issueflow-history-update` (used from `/issue-close`) | Append an entry to `## [Unreleased]` in `{{ history_file }}`, or promote it to a new `## [x.y.z] - YYYY-MM-DD` release section when a version bump happened. |
 | `issueflow-graphify` | `/issueflow-graphify` | Same flow as `/graphify`: rebuild the graphify knowledge graph for the project. Off-path; never auto-dispatched. |
 
-Each skill sets `disable-model-invocation: true` so it is included when you **explicitly** invoke it, not on every chat. See [Agent Skills](https://cursor.com/docs/context/skills) in the Cursor docs.
+Each skill sets `disable-model-invocation: true` so it is included when you **explicitly** invoke it, not on every chat.{% if editor == "cursor" %} See [Agent Skills](https://cursor.com/docs/context/skills) in the Cursor docs.{% endif %}
 
 ---
 
@@ -222,7 +224,7 @@ The bump runs **after** tests and **before** issue-folder moves and **before** c
 **What you pass:** Optional graphify subcommand and args, forwarded verbatim. Common picks:
 
 - *(nothing)* — AST-only build of the project root (`graphify update <project>`). **No LLM API key required**; produces the full `graphify-out/`. The default.
-- `extract` — adds the slower semantic LLM pass for richer cross-file relationships. Needs an API key (`GEMINI_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `MOONSHOT_API_KEY`) or `--backend ollama` for a local LLM via [Ollama](https://ollama.com). Cursor's own LLM is **not** available to subprocesses.
+- `extract` — adds the slower semantic LLM pass for richer cross-file relationships. Needs an API key (`GEMINI_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `MOONSHOT_API_KEY`) or `--backend ollama` for a local LLM via [Ollama](https://ollama.com). {{ editor_name }}'s own LLM is **not** available to subprocesses.
 - `watch` — long-running watcher that auto-rebuilds on save.
 - `cluster-only` — rerun clustering on the existing `graph.json` without re-extraction (e.g. `cluster-only --no-viz`).
 - `./subdir` — restrict the scan to a sub-directory (default subcommand: `update`).
@@ -288,4 +290,4 @@ Detours:
   /issue-yolo   — chain init → plan → start → close for tiny fixes (safeguarded)
 ```
 
-The command definitions under `{{ agent_dir }}/commands/` are the source of truth. The skill packages under `{{ agent_dir }}/skills/` repeat the same workflows for explicit invocation. This document is a readable overview only.
+The command definitions under `{{ agent_dir }}/{{ commands_dir }}/` are the source of truth. The skill packages under `{{ agent_dir }}/skills/` repeat the same workflows for explicit invocation. This document is a readable overview only.

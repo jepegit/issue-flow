@@ -45,7 +45,7 @@ See the [graphify CLI reference](https://graphify.net/graphify-cli-commands.html
    pip install graphifyy
    ```
 
-   `graphifyy` (double-y) is the official PyPI package; the CLI is still `graphify`. After installing, re-run `issue-flow init` (or `issue-flow update`) so `graphify cursor install` registers the graphify Cursor skill.
+   `graphifyy` (double-y) is the official PyPI package; the CLI is still `graphify`. After installing, re-run `issue-flow init` (or `issue-flow update`){% if graphify_installer %} so `graphify {{ graphify_installer }} install` registers the graphify {{ editor_name }} skill{% endif %}.
 
 5. **If `graphify extract` complains about a missing LLM API key**, the user picked the semantic-pass subcommand without configuring a backend. Suggest one of:
 
@@ -53,7 +53,7 @@ See the [graphify CLI reference](https://graphify.net/graphify-cli-commands.html
    - Use a local LLM: `issue-flow graphify extract --backend ollama` (requires [Ollama](https://ollama.com) installed and a model pulled, e.g. `ollama pull qwen2.5-coder`).
    - Drop the `extract` arg and use the default `issue-flow graphify` (AST-only `update`, no LLM).
 
-   Cursor's own LLM is **not** available to subprocesses, so graphify cannot reuse it.
+   {{ editor_name }}'s own LLM is **not** available to subprocesses, so graphify cannot reuse it.
 
 ## Constraints
 

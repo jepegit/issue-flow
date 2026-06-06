@@ -2,7 +2,7 @@
 
 Agents should behave. Let them follow the issue flow.
 
-**issue-flow** scaffolds a lightweight issue-tracking workflow into your project so that Cursor AI agents can pick up GitHub issues, plan work, and land PRs in a consistent way.
+**issue-flow** scaffolds a lightweight issue-tracking workflow into your project so that AI coding agents can pick up GitHub issues, plan work, and land PRs in a consistent way. It supports **Cursor, Claude Code, opencode, and Codex** via `--editor` (see [Editor support](#editor-support)); the examples below use the default, Cursor.
 
 ## What it does
 
@@ -42,9 +42,12 @@ your-project/
       issueflow-graphify/SKILL.md
     rules/
       issueflow-rules.mdc    # Always-on Cursor rule for the workflow
+  AGENTS.md                  # Workflow rules (managed block; shared by all editors)
   docs/
-    cursor-issue-workflow.md # Human-readable overview of the workflow
+    issue-workflow.md        # Human-readable overview of the workflow
 ```
+
+The exact `agent_dir` and the per-editor rules file depend on which editor(s) you scaffold for — see [Editor support](#editor-support). `AGENTS.md` (written as a non-destructive managed block) and `docs/issue-workflow.md` are shared by every editor.
 
 The Cursor slash commands give agents a repeatable flow. The linear path is:
 
@@ -190,8 +193,9 @@ issue-flow graphify [-C PROJECT_DIR] [...graphify subcommand + args]
 | Argument / Option | Description |
 |---|---|
 | `PROJECT_DIR` | Project root directory. Defaults to `.` (current directory). |
-| `--force`, `-f` | Overwrite generated Cursor commands, rules, and workflow doc instead of skipping them. |
+| `--force`, `-f` | Overwrite generated commands, rules, and workflow doc instead of skipping them. |
 | `--skip-dep-check` | Skip the external-CLI dependency check (`git`, `gh`) and the confirmation prompt that follows if anything is missing. Useful in automation. |
+| `--editor`, `-e` | AI coding tool(s) to scaffold for: `cursor` (default), `claude`, `opencode`, `codex`, or `all`. Repeatable (`-e cursor -e claude`). See [Editor support](#editor-support). |
 
 Running `init` again without `--force` is safe: generated scaffold files that already exist are skipped, and **issue markdown under `.issueflows/` is never touched** by `init` or `update`. When the CLI detects an existing scaffold, it reminds you about `update` and `--force`.
 
@@ -201,8 +205,9 @@ Running `init` again without `--force` is safe: generated scaffold files that al
 |---|---|
 | `PROJECT_DIR` | Project root directory. Defaults to `.` (current directory). |
 | `--skip-dep-check` | Skip the external-CLI dependency check (`git`, `gh`) and the confirmation prompt that follows if anything is missing. |
+| `--editor`, `-e` | AI coding tool(s) to refresh for: `cursor` (default), `claude`, `opencode`, `codex`, or `all`. Repeatable. See [Editor support](#editor-support). |
 
-Use `update` after upgrading the **issue-flow** package to refresh the packaged slash commands, Cursor rule, and `docs/cursor-issue-workflow.md` from the version you have installed. This **overwrites** those generated files (unlike a plain second `init`). It still does not modify arbitrary files under `.issueflows/` (for example your `issue*_original.md` / `issue*_status.md` files), and it creates any **new** `.issueflows/` subdirectories required by the current package.
+Use `update` after upgrading the **issue-flow** package to refresh the packaged slash commands, rules file(s), and `docs/issue-workflow.md` from the version you have installed. This **overwrites** those generated files (unlike a plain second `init`). It still does not modify arbitrary files under `.issueflows/` (for example your `issue*_original.md` / `issue*_status.md` files), and it creates any **new** `.issueflows/` subdirectories required by the current package.
 
 ### `issue-flow graphify`
 
@@ -222,6 +227,38 @@ Use `update` after upgrading the **issue-flow** package to refresh the packaged 
 | Replace generated scaffolds without upgrading logic | `issue-flow init --force` |
 | Rebuild the graphify knowledge graph | `issue-flow graphify` |
 
+## Editor support
+
+issue-flow can scaffold its workflow for several AI coding tools. Pass one or
+more `--editor` values (repeatable, or `all`) to `init` / `update`; the default
+is `cursor`, so existing setups are unchanged.
+
+```bash
+issue-flow init                          # Cursor (default)
+issue-flow init --editor claude          # Claude Code
+issue-flow init -e cursor -e claude      # both
+issue-flow init --editor all             # every supported editor
+```
+
+**Agent Skills** (`<agent_dir>/skills/<name>/SKILL.md`) are the portable core —
+every editor gets the full set. **`AGENTS.md`** is the convergent rules file and
+is written for every editor as a non-destructive *managed block* (issue-flow
+only ever owns the content between its markers, so a hand-maintained `AGENTS.md`
+is preserved). Slash commands and an editor-specific rules file are layered on
+top where the tool supports them.
+
+| Editor | `agent_dir` | Slash commands | Skills | Extra rules file | `AGENTS.md` | graphify auto-register |
+|---|---|---|---|---|---|---|
+| Cursor | `.cursor/` | `commands/` | yes | `.cursor/rules/issueflow-rules.mdc` | yes | yes |
+| Claude Code | `.claude/` | `commands/` | yes | `CLAUDE.md` | yes | no |
+| opencode | `.opencode/` | `command/` | yes | — | yes | no |
+| Codex | `.codex/` | — (use skills) | yes | — | yes | no |
+
+Codex CLI removed project-scoped slash commands, so on Codex you invoke the
+mirrored skills (e.g. `issueflow-issue-init`) instead of `/issue-init`. The
+graphify integration currently registers only with Cursor; other editors still
+get the `/graphify` command/skill but no automatic `graphify cursor install`.
+
 ## Configuration
 
 issue-flow reads a `.env` file from the project root (via python-dotenv). The following environment variables are supported:
@@ -229,7 +266,8 @@ issue-flow reads a `.env` file from the project root (via python-dotenv). The fo
 | Variable | Default | Description |
 |---|---|---|
 | `ISSUEFLOW_DIR` | `.issueflows` | Name of the issue-tracking directory. |
-| `ISSUEFLOW_AGENT_DIR` | `.cursor` | Name of the agent/IDE config directory (currently `.cursor`). |
+| `ISSUEFLOW_EDITOR` | `cursor` | Default editor profile when `--editor` is not passed (`cursor`, `claude`, `opencode`, `codex`). |
+| `ISSUEFLOW_AGENT_DIR` | *(per editor)* | Override the agent/IDE config directory. When unset it is derived from the editor profile (e.g. `.cursor`, `.claude`, `.opencode`, `.codex`). |
 | `ISSUEFLOW_DOCS_DIR` | `docs` | Where to write the workflow documentation file. |
 | `ISSUEFLOW_HISTORY_FILE` | `HISTORY.md` | Changelog file that `/issue-close` updates (set to e.g. `CHANGELOG.md` for different conventions). |
 
@@ -253,7 +291,7 @@ See [HISTORY.md](HISTORY.md) for release notes.
 
 ## Future plans
 
-- **Multi-tool support** — generate config for other AI coding tools (Claude Code, Windsurf, etc.) in addition to Cursor.
+- **More editors** — extend `--editor` coverage to further AI coding tools (e.g. Windsurf) on top of the current Cursor / Claude Code / opencode / Codex support.
 - **`issue-flow status`** — show a dashboard of current, partly-solved, and solved issues.
 - **Custom templates** — let users supply their own Jinja2 templates to tailor slash commands and rules to their team's conventions.
 - **Git hook integration** — optionally move issue files on commit based on status markers.
