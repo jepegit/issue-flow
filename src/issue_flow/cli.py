@@ -7,12 +7,19 @@ from pathlib import Path
 import typer
 from rich.console import Console
 
+from issue_flow.editors import EDITORS
+
 app = typer.Typer(
     name="issue-flow",
     add_completion=False,
 )
 
 _console = Console()
+
+_EDITOR_HELP = (
+    "AI coding tool(s) to scaffold for. Repeatable; accepts "
+    f"{', '.join(sorted(EDITORS))}, or 'all'. Defaults to 'cursor'."
+)
 
 
 @app.callback()
@@ -43,12 +50,21 @@ def init(
             "confirmation prompt that follows if anything is missing."
         ),
     ),
+    editor: list[str] = typer.Option(
+        ["cursor"],
+        "--editor",
+        "-e",
+        help=_EDITOR_HELP,
+    ),
 ) -> None:
-    """Scaffold issue-flow directories and Cursor config files in a project."""
+    """Scaffold issue-flow directories and editor config files in a project."""
     from issue_flow.init import run_init
 
     run_init(
-        project_root=project_dir, force=force, skip_dep_check=skip_dep_check
+        project_root=project_dir,
+        force=force,
+        skip_dep_check=skip_dep_check,
+        editors=editor,
     )
 
 
@@ -69,11 +85,19 @@ def update(
             "confirmation prompt that follows if anything is missing."
         ),
     ),
+    editor: list[str] = typer.Option(
+        ["cursor"],
+        "--editor",
+        "-e",
+        help=_EDITOR_HELP,
+    ),
 ) -> None:
-    """Refresh packaged Cursor commands, rules, and workflow doc from this package."""
+    """Refresh packaged editor commands, rules, and workflow doc from this package."""
     from issue_flow.init import run_update
 
-    run_update(project_root=project_dir, skip_dep_check=skip_dep_check)
+    run_update(
+        project_root=project_dir, skip_dep_check=skip_dep_check, editors=editor
+    )
 
 
 @app.command(

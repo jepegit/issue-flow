@@ -7,6 +7,8 @@ from pathlib import Path
 
 from jinja2 import Environment, BaseLoader, TemplateNotFound
 
+from issue_flow.editors import EDITORS, EditorProfile
+
 
 # ---------------------------------------------------------------------------
 # Custom loader that reads from the package's templates/ directory using
@@ -62,79 +64,89 @@ def render_template(template_name: str, context: dict[str, str]) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Mapping of template name -> output path (relative to the project root).
-# The output path may itself contain Jinja-style placeholders, so we render
-# the path first.
+# Template surfaces shared by every editor profile.
+#
+# Output paths may contain ``str.format`` placeholders (``{agent_dir}``,
+# ``{commands_dir}``, ``{docs_dir}``) resolved from the render context, so the
+# same surface description works for any editor.
 # ---------------------------------------------------------------------------
 
-# Each entry: (template_file, output_path_template)
-# The output_path_template uses simple str.format with the context dict.
-TEMPLATE_MANIFEST: list[tuple[str, str]] = [
-    ("commands/iflow.md.j2", "{agent_dir}/commands/iflow.md"),
-    ("commands/issue-pick.md.j2", "{agent_dir}/commands/issue-pick.md"),
-    ("commands/issue-init.md.j2", "{agent_dir}/commands/issue-init.md"),
-    ("commands/issue-plan.md.j2", "{agent_dir}/commands/issue-plan.md"),
-    ("commands/issue-start.md.j2", "{agent_dir}/commands/issue-start.md"),
-    ("commands/issue-pause.md.j2", "{agent_dir}/commands/issue-pause.md"),
-    ("commands/issue-close.md.j2", "{agent_dir}/commands/issue-close.md"),
-    ("commands/issue-cleanup.md.j2", "{agent_dir}/commands/issue-cleanup.md"),
-    ("commands/issue-yolo.md.j2", "{agent_dir}/commands/issue-yolo.md"),
-    ("commands/graphify.md.j2", "{agent_dir}/commands/graphify.md"),
-    ("rules/issueflow-rules.mdc.j2", "{agent_dir}/rules/issueflow-rules.mdc"),
-    ("docs/cursor-issue-workflow.md.j2", "{docs_dir}/cursor-issue-workflow.md"),
-    (
-        "skills/issueflow_iflow/SKILL.md.j2",
-        "{agent_dir}/skills/issueflow-iflow/SKILL.md",
-    ),
-    (
-        "skills/issueflow_issue_pick/SKILL.md.j2",
-        "{agent_dir}/skills/issueflow-issue-pick/SKILL.md",
-    ),
-    (
-        "skills/issueflow_issue_init/SKILL.md.j2",
-        "{agent_dir}/skills/issueflow-issue-init/SKILL.md",
-    ),
-    (
-        "skills/issueflow_issue_comments/SKILL.md.j2",
-        "{agent_dir}/skills/issueflow-issue-comments/SKILL.md",
-    ),
-    (
-        "skills/issueflow_issue_plan/SKILL.md.j2",
-        "{agent_dir}/skills/issueflow-issue-plan/SKILL.md",
-    ),
-    (
-        "skills/issueflow_issue_start/SKILL.md.j2",
-        "{agent_dir}/skills/issueflow-issue-start/SKILL.md",
-    ),
-    (
-        "skills/issueflow_issue_pause/SKILL.md.j2",
-        "{agent_dir}/skills/issueflow-issue-pause/SKILL.md",
-    ),
-    (
-        "skills/issueflow_issue_close/SKILL.md.j2",
-        "{agent_dir}/skills/issueflow-issue-close/SKILL.md",
-    ),
-    (
-        "skills/issueflow_issue_cleanup/SKILL.md.j2",
-        "{agent_dir}/skills/issueflow-issue-cleanup/SKILL.md",
-    ),
-    (
-        "skills/issueflow_issue_yolo/SKILL.md.j2",
-        "{agent_dir}/skills/issueflow-issue-yolo/SKILL.md",
-    ),
-    (
-        "skills/issueflow_version_bump/SKILL.md.j2",
-        "{agent_dir}/skills/issueflow-version-bump/SKILL.md",
-    ),
-    (
-        "skills/issueflow_history_update/SKILL.md.j2",
-        "{agent_dir}/skills/issueflow-history-update/SKILL.md",
-    ),
-    (
-        "skills/issueflow_graphify/SKILL.md.j2",
-        "{agent_dir}/skills/issueflow-graphify/SKILL.md",
-    ),
+# Slash-command template stems (emitted only for editors with a commands_dir).
+COMMAND_NAMES: list[str] = [
+    "iflow",
+    "issue-pick",
+    "issue-init",
+    "issue-plan",
+    "issue-start",
+    "issue-pause",
+    "issue-close",
+    "issue-cleanup",
+    "issue-yolo",
+    "graphify",
 ]
+
+# Skill template sub-directories (underscored). Output folder name is the same
+# with underscores swapped for hyphens (``issueflow_iflow`` -> ``issueflow-iflow``).
+# Skills are the portable core and are emitted for every editor.
+SKILL_DIRS: list[str] = [
+    "issueflow_iflow",
+    "issueflow_issue_pick",
+    "issueflow_issue_init",
+    "issueflow_issue_comments",
+    "issueflow_issue_plan",
+    "issueflow_issue_start",
+    "issueflow_issue_pause",
+    "issueflow_issue_close",
+    "issueflow_issue_cleanup",
+    "issueflow_issue_yolo",
+    "issueflow_version_bump",
+    "issueflow_history_update",
+    "issueflow_graphify",
+]
+
+# Editor-neutral human-readable workflow doc, emitted for every editor.
+DOCS_ENTRY: tuple[str, str] = (
+    "docs/issue-workflow.md.j2",
+    "{docs_dir}/issue-workflow.md",
+)
+
+
+def build_manifest(profile: EditorProfile) -> list[tuple[str, str]]:
+    """Return the ``(template, output_path_template)`` entries for ``profile``.
+
+    Skills and the workflow doc are always emitted. Slash commands are emitted
+    only when the profile defines a ``commands_dir`` (Codex has none). The
+    per-editor rules extra (``.mdc`` / ``CLAUDE.md``) is added when present. The
+    always-on ``AGENTS.md`` rules file is written separately by the init layer
+    (as a managed block) and is intentionally not part of this manifest.
+    """
+    entries: list[tuple[str, str]] = []
+
+    if profile.commands_dir:
+        for name in COMMAND_NAMES:
+            entries.append(
+                (f"commands/{name}.md.j2", "{agent_dir}/{commands_dir}/" + f"{name}.md")
+            )
+
+    for skill_dir in SKILL_DIRS:
+        output_name = skill_dir.replace("_", "-")
+        entries.append(
+            (
+                f"skills/{skill_dir}/SKILL.md.j2",
+                "{agent_dir}/skills/" + f"{output_name}/SKILL.md",
+            )
+        )
+
+    if profile.rules_extra:
+        entries.append(profile.rules_extra)
+
+    entries.append(DOCS_ENTRY)
+    return entries
+
+
+# Backwards-compatible default manifest (Cursor). Kept so existing imports and
+# tests that reference ``TEMPLATE_MANIFEST`` continue to work.
+TEMPLATE_MANIFEST: list[tuple[str, str]] = build_manifest(EDITORS["cursor"])
 
 
 def resolve_output_path(path_template: str, context: dict[str, str]) -> Path:

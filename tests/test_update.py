@@ -78,6 +78,47 @@ def test_update_preserves_designs_folder_contents(tmp_path: Path) -> None:
     assert design_doc.read_text(encoding="utf-8") == body
 
 
+_AGENTS_BEGIN = "<!-- BEGIN issue-flow (managed: do not edit this block) -->"
+_AGENTS_END = "<!-- END issue-flow (managed) -->"
+
+
+def test_update_refreshes_agents_md_block_preserving_user_content(
+    tmp_path: Path,
+) -> None:
+    """update refreshes the managed block in place but keeps user content."""
+    run_init(tmp_path)
+
+    agents = tmp_path / "AGENTS.md"
+
+    # Simulate user content around the block + a tampered managed block body.
+    preamble = "# My project\n\nKeep me.\n\n"
+    tampered_block = f"{_AGENTS_BEGIN}\nOUTDATED\n{_AGENTS_END}\n"
+    agents.write_text(preamble + tampered_block, encoding="utf-8")
+
+    run_update(tmp_path)
+
+    refreshed = agents.read_text(encoding="utf-8")
+    assert refreshed.startswith("# My project")
+    assert "Keep me." in refreshed
+    assert "OUTDATED" not in refreshed
+    assert "Issue-flow best practices" in refreshed
+    assert refreshed.count(_AGENTS_BEGIN) == 1
+
+
+def test_update_claude_editor_refreshes_claude_md(tmp_path: Path) -> None:
+    """update --editor claude overwrites CLAUDE.md from the package."""
+    run_init(tmp_path, editors=["claude"])
+
+    claude_md = tmp_path / "CLAUDE.md"
+    claude_md.write_text("custom", encoding="utf-8")
+
+    run_update(tmp_path, editors=["claude"])
+
+    content = claude_md.read_text(encoding="utf-8")
+    assert content != "custom"
+    assert "Issue-flow best practices" in content
+
+
 def test_update_recreates_removed_designs_folder(tmp_path: Path) -> None:
     """If 04-designs-and-guides/ was removed, update should recreate it."""
     run_init(tmp_path)

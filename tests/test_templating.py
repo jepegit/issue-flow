@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from issue_flow.editors import EDITORS, get_profile
 from issue_flow.templating import (
     TEMPLATE_MANIFEST,
+    build_manifest,
     render_template,
     resolve_output_path,
 )
@@ -57,6 +59,85 @@ def test_resolve_output_path() -> None:
 def test_manifest_entry_count() -> None:
     # 10 commands + 1 rule + 1 doc + 13 skills = 25
     assert len(TEMPLATE_MANIFEST) == 25
+
+
+def _resolved_paths(profile_id: str) -> set[str]:
+    """All resolved output paths for a profile, as forward-slash strings."""
+    profile = get_profile(profile_id)
+    context = {
+        "agent_dir": profile.agent_dir,
+        "commands_dir": profile.commands_dir or "commands",
+        "docs_dir": "docs",
+    }
+    return {
+        resolve_output_path(path_template, context).as_posix()
+        for _, path_template in build_manifest(profile)
+    }
+
+
+def test_build_manifest_cursor_matches_default() -> None:
+    """The default TEMPLATE_MANIFEST is the cursor profile manifest."""
+    assert build_manifest(EDITORS["cursor"]) == TEMPLATE_MANIFEST
+    assert len(build_manifest(EDITORS["cursor"])) == 25
+
+
+def test_build_manifest_codex_has_skills_and_docs_but_no_commands() -> None:
+    """Codex: skills (13) + docs (1), no slash commands and no rules extra."""
+    manifest = build_manifest(get_profile("codex"))
+    template_names = [name for name, _ in manifest]
+    assert not any(name.startswith("commands/") for name in template_names)
+    assert sum(name.startswith("skills/") for name in template_names) == 13
+    assert "docs/issue-workflow.md.j2" in template_names
+    # No .mdc / CLAUDE.md rules extra for Codex.
+    assert not any(name.startswith("rules/") for name in template_names)
+    assert len(manifest) == 14
+
+
+def test_build_manifest_opencode_uses_singular_command_dir() -> None:
+    paths = _resolved_paths("opencode")
+    assert ".opencode/command/issue-init.md" in paths
+    assert ".opencode/skills/issueflow-issue-init/SKILL.md" in paths
+    # opencode has no editor-specific rules file (AGENTS.md is handled by init).
+    assert not any(p.endswith(".mdc") for p in paths)
+    assert "CLAUDE.md" not in paths
+
+
+def test_build_manifest_claude_emits_claude_md_and_commands() -> None:
+    manifest = build_manifest(get_profile("claude"))
+    assert ("rules/CLAUDE.md.j2", "CLAUDE.md") in manifest
+    paths = _resolved_paths("claude")
+    assert ".claude/commands/issue-init.md" in paths
+    assert "CLAUDE.md" in paths
+
+
+def test_build_manifest_no_cursor_leakage_in_non_cursor_outputs() -> None:
+    """Non-cursor editors must not write under .cursor/ or mention "Cursor"."""
+    for editor_id in ("claude", "opencode", "codex"):
+        profile = get_profile(editor_id)
+        context = {
+            "issueflows_dir": ".issueflows",
+            "agent_dir": profile.agent_dir,
+            "docs_dir": "docs",
+            "history_file": "HISTORY.md",
+            "tools_folder": "00-tools",
+            "current_issues_folder": "01-current-issues",
+            "partly_solved_folder": "02-partly-solved-issues",
+            "solved_folder": "03-solved-issues",
+            "designs_folder": "04-designs-and-guides",
+            "project_name": "test-project",
+            "editor": profile.id,
+            "editor_name": profile.name,
+            "commands_dir": profile.commands_dir or "commands",
+            "graphify_installer": profile.graphify_installer or "",
+        }
+        manifest = build_manifest(profile) + [("rules/AGENTS.md.j2", "AGENTS.md")]
+        for template_name, path_template in manifest:
+            resolved = resolve_output_path(path_template, context).as_posix()
+            assert ".cursor" not in resolved, f"{editor_id}: {resolved}"
+            rendered = render_template(template_name, context)
+            assert "Cursor" not in rendered, (
+                f"{editor_id} output {template_name} leaks literal 'Cursor'"
+            )
 
 
 def test_manifest_has_expected_commands_and_skills() -> None:

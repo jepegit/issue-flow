@@ -23,6 +23,32 @@ def test_cli_lists_graphify_command(runner: CliRunner) -> None:
     assert "graphify" in result.stdout
 
 
+def test_init_help_documents_editor_option(runner: CliRunner) -> None:
+    """`issue-flow init --help` must advertise the --editor option."""
+    result = runner.invoke(app, ["init", "--help"])
+    assert result.exit_code == 0
+    assert "--editor" in result.stdout
+
+
+def test_init_editor_codex_scaffolds_skills_only(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    """`issue-flow init --editor codex` writes the codex tree without commands."""
+    result = runner.invoke(app, ["init", str(tmp_path), "--editor", "codex"])
+
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / ".codex" / "skills" / "issueflow-iflow" / "SKILL.md").is_file()
+    assert not (tmp_path / ".codex" / "commands").exists()
+    assert (tmp_path / "AGENTS.md").is_file()
+
+
+def test_init_unknown_editor_exits_with_code_2(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    result = runner.invoke(app, ["init", str(tmp_path), "--editor", "nano"])
+    assert result.exit_code == 2
+
+
 def test_graphify_help_describes_passthrough(runner: CliRunner) -> None:
     result = runner.invoke(app, ["graphify", "--help"])
     assert result.exit_code == 0

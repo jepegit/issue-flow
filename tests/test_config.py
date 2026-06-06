@@ -40,6 +40,10 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "solved_folder",
         "designs_folder",
         "project_name",
+        "editor",
+        "editor_name",
+        "commands_dir",
+        "graphify_installer",
     }
     assert set(context.keys()) == expected_keys
 

@@ -13,8 +13,9 @@ just print a hint and continue.
 This module owns three small responsibilities:
 
 * :func:`is_available` — cheap PATH lookup, no subprocess.
-* :func:`register_with_cursor` — runs ``graphify cursor install`` from
-  ``init``/``update``. Never raises; failures are logged and ignored.
+* :func:`register_with_editor` — runs ``graphify <installer> install`` from
+  ``init``/``update`` (only ``cursor`` exists today). Never raises; failures
+  are logged and ignored.
 * :func:`run_build` — backs the ``issue-flow graphify`` CLI command and
   the ``/graphify`` slash command. Forwards every extra arg verbatim so
   the upstream graphify flag set is the source of truth.
@@ -206,12 +207,16 @@ def _print_install_hints(console: Console) -> None:
     console.print(f"  [dim]Docs:[/dim] [blue]{dep.docs_url}[/blue]")
 
 
-def register_with_cursor(project_root: Path, console: Console) -> bool:
-    """Best-effort ``graphify cursor install`` in ``project_root``.
+def register_with_editor(
+    project_root: Path, console: Console, installer: str = "cursor"
+) -> bool:
+    """Best-effort ``graphify <installer> install`` in ``project_root``.
 
-    Returns ``True`` when the install command was attempted and exited
-    cleanly, ``False`` otherwise. Never raises — graphify is optional,
-    so a failure here must not break ``issue-flow init`` / ``update``.
+    ``installer`` is the graphify integration sub-command for the target
+    editor (only ``"cursor"`` exists today). Returns ``True`` when the install
+    command was attempted and exited cleanly, ``False`` otherwise. Never
+    raises — graphify is optional, so a failure here must not break
+    ``issue-flow init`` / ``update``.
     """
     if not is_available():
         console.print(
@@ -222,11 +227,11 @@ def register_with_cursor(project_root: Path, console: Console) -> bool:
         return False
 
     console.print(
-        f"  [green]run[/green]   {GRAPHIFY_COMMAND} cursor install"
+        f"  [green]run[/green]   {GRAPHIFY_COMMAND} {installer} install"
     )
     try:
         result = subprocess.run(
-            [GRAPHIFY_COMMAND, "cursor", "install"],
+            [GRAPHIFY_COMMAND, installer, "install"],
             cwd=project_root,
             check=False,
             capture_output=True,
@@ -235,14 +240,14 @@ def register_with_cursor(project_root: Path, console: Console) -> bool:
     except OSError as exc:
         console.print(
             f"  [yellow]warn[/yellow]  could not run "
-            f"[cyan]{GRAPHIFY_COMMAND} cursor install[/cyan]: {exc}"
+            f"[cyan]{GRAPHIFY_COMMAND} {installer} install[/cyan]: {exc}"
         )
         return False
 
     if result.returncode != 0:
         console.print(
             f"  [yellow]warn[/yellow]  "
-            f"[cyan]{GRAPHIFY_COMMAND} cursor install[/cyan] exited with "
+            f"[cyan]{GRAPHIFY_COMMAND} {installer} install[/cyan] exited with "
             f"code {result.returncode}; continuing."
         )
         if result.stderr:
@@ -252,7 +257,7 @@ def register_with_cursor(project_root: Path, console: Console) -> bool:
         return False
 
     console.print(
-        "  [green]ok[/green]    graphify Cursor skill registered"
+        f"  [green]ok[/green]    graphify {installer} skill registered"
     )
     return True
 

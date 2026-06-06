@@ -140,7 +140,7 @@ def test_init_creates_cursor_rule(tmp_path: Path) -> None:
 
 def test_init_creates_docs(tmp_path: Path) -> None:
     run_init(tmp_path)
-    doc = tmp_path / "docs" / "cursor-issue-workflow.md"
+    doc = tmp_path / "docs" / "issue-workflow.md"
     assert doc.is_file()
     content = doc.read_text(encoding="utf-8")
     assert "/issue-init" in content
@@ -416,6 +416,105 @@ def test_init_rule_documents_knowledge_graph_section(tmp_path: Path) -> None:
     assert "Knowledge graph" in rule
     assert "graphify-out/GRAPH_REPORT.md" in rule
     assert "/graphify" in rule
+
+
+_AGENTS_BEGIN = "<!-- BEGIN issue-flow (managed: do not edit this block) -->"
+_AGENTS_END = "<!-- END issue-flow (managed) -->"
+
+
+def test_init_creates_agents_md_with_managed_block(tmp_path: Path) -> None:
+    """init writes AGENTS.md containing the issue-flow managed block."""
+    run_init(tmp_path)
+
+    agents = tmp_path / "AGENTS.md"
+    assert agents.is_file()
+    content = agents.read_text(encoding="utf-8")
+    assert _AGENTS_BEGIN in content
+    assert _AGENTS_END in content
+    assert "Issue-flow best practices" in content
+    # AGENTS.md is editor-neutral: no literal "Cursor".
+    assert "Cursor" not in content
+
+
+def test_init_preserves_existing_agents_md_user_content(tmp_path: Path) -> None:
+    """A hand-maintained AGENTS.md keeps its content; the block is appended."""
+    agents = tmp_path / "AGENTS.md"
+    user_text = "# My project\n\nHand-written guidance that must survive.\n"
+    agents.write_text(user_text, encoding="utf-8")
+
+    run_init(tmp_path)
+
+    content = agents.read_text(encoding="utf-8")
+    assert content.startswith("# My project")
+    assert "Hand-written guidance that must survive." in content
+    assert _AGENTS_BEGIN in content
+    assert "Issue-flow best practices" in content
+
+
+def test_init_agents_md_block_is_idempotent(tmp_path: Path) -> None:
+    """Re-running init must not duplicate the managed block."""
+    run_init(tmp_path)
+    first = (tmp_path / "AGENTS.md").read_text(encoding="utf-8")
+
+    run_init(tmp_path)
+    second = (tmp_path / "AGENTS.md").read_text(encoding="utf-8")
+
+    assert first == second
+    assert second.count(_AGENTS_BEGIN) == 1
+
+
+def test_init_claude_editor_writes_claude_tree_and_claude_md(tmp_path: Path) -> None:
+    """--editor claude scaffolds under .claude/ with a CLAUDE.md rules file."""
+    run_init(tmp_path, editors=["claude"])
+
+    assert (tmp_path / ".claude" / "commands" / "issue-init.md").is_file()
+    assert (tmp_path / ".claude" / "skills" / "issueflow-issue-init" / "SKILL.md").is_file()
+    assert (tmp_path / "CLAUDE.md").is_file()
+    assert (tmp_path / "AGENTS.md").is_file()
+    # No Cursor scaffolding leaks in.
+    assert not (tmp_path / ".cursor").exists()
+
+
+def test_init_codex_editor_has_skills_but_no_commands(tmp_path: Path) -> None:
+    """--editor codex scaffolds skills + AGENTS.md but no slash commands."""
+    run_init(tmp_path, editors=["codex"])
+
+    assert (tmp_path / ".codex" / "skills" / "issueflow-issue-init" / "SKILL.md").is_file()
+    assert not (tmp_path / ".codex" / "commands").exists()
+    assert not (tmp_path / ".codex" / "command").exists()
+    assert (tmp_path / "AGENTS.md").is_file()
+    # Codex has no .mdc / CLAUDE.md extra.
+    assert not (tmp_path / "CLAUDE.md").exists()
+
+
+def test_init_opencode_editor_uses_singular_command_dir(tmp_path: Path) -> None:
+    run_init(tmp_path, editors=["opencode"])
+
+    assert (tmp_path / ".opencode" / "command" / "issue-init.md").is_file()
+    assert not (tmp_path / ".opencode" / "commands").exists()
+    assert (tmp_path / ".opencode" / "skills" / "issueflow-iflow" / "SKILL.md").is_file()
+
+
+def test_init_all_editors_scaffolds_every_agent_dir(tmp_path: Path) -> None:
+    run_init(tmp_path, editors=["all"])
+
+    assert (tmp_path / ".cursor" / "commands" / "issue-init.md").is_file()
+    assert (tmp_path / ".claude" / "commands" / "issue-init.md").is_file()
+    assert (tmp_path / ".opencode" / "command" / "issue-init.md").is_file()
+    assert (tmp_path / ".codex" / "skills" / "issueflow-issue-init" / "SKILL.md").is_file()
+    # Shared, neutral outputs exist exactly once.
+    assert (tmp_path / "AGENTS.md").is_file()
+    agents = (tmp_path / "AGENTS.md").read_text(encoding="utf-8")
+    assert agents.count(_AGENTS_BEGIN) == 1
+
+
+def test_init_unknown_editor_exits_cleanly(tmp_path: Path) -> None:
+    """An unknown --editor value aborts with a non-zero exit and no scaffold."""
+    with pytest.raises(typer.Exit) as exc_info:
+        run_init(tmp_path, editors=["sublime"])
+
+    assert exc_info.value.exit_code == 2
+    assert not (tmp_path / ".issueflows").exists()
 
 
 def test_init_detects_project_name(tmp_path: Path) -> None:
