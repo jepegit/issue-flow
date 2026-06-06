@@ -1,12 +1,13 @@
 # Cursor issue workflow (slash commands)
 
-This repo uses nine Cursor **slash commands** under `.cursor/commands/` that line up with how we track GitHub issues in `.issueflows/01-current-issues/`.
+This repo uses ten Cursor **slash commands** under `.cursor/commands/` that line up with how we track GitHub issues in `.issueflows/01-current-issues/`.
 
-**Quick start: just run `/iflow`.** It inspects the state of the focus issue and dispatches to the right linear-flow command (`/issue-init`, `/issue-plan`, `/issue-start`, or `/issue-close`) — so you don't have to remember which step is next.
+**Quick start: just run `/iflow`.** It inspects the state of the focus issue and dispatches to the right linear-flow command (`/issue-init`, `/issue-plan`, `/issue-start`, or `/issue-close`) — so you don't have to remember which step is next. Haven't chosen an issue yet? Start with **`/issue-pick`**.
 
 | Command | File | Role |
 |--------|------|------|
-| `/iflow` | `iflow.md` | **Smart dispatcher.** Detect current state and run `/issue-init`, `/issue-plan`, `/issue-start`, or `/issue-close` automatically. Never auto-dispatches to pause / cleanup / yolo / build. |
+| `/issue-pick` | `issue-pick.md` | **Front door.** Help choose the next issue (parked work first, else ranked open GitHub issues), create the branch, and run `/issue-init`. Off-path; never auto-dispatched. |
+| `/iflow` | `iflow.md` | **Smart dispatcher.** Detect current state and run `/issue-init`, `/issue-plan`, `/issue-start`, or `/issue-close` automatically. Never auto-dispatches to pick / pause / cleanup / yolo / graphify. |
 | `/issue-init` | `issue-init.md` | Pull an issue from GitHub into the repo as a local markdown file and tidy older current issues. |
 | `/issue-plan` | `issue-plan.md` | Write a structured `issue<N>_plan.md` and get explicit user confirmation before any code is touched. |
 | `/issue-start` | `issue-start.md` | Implement the confirmed plan (no planning step of its own any more). |
@@ -24,6 +25,7 @@ This repo uses nine Cursor **slash commands** under `.cursor/commands/` that lin
 
 | Skill folder | Invoke (examples) | Role |
 |--------------|-------------------|------|
+| `issueflow-issue-pick` | `/issueflow-issue-pick` | Front door — same flow as `/issue-pick` (choose issue, branch, init, hand off). |
 | `issueflow-iflow` | `/issueflow-iflow` or attach `@issueflow-iflow` | Smart dispatcher — same state machine as `/iflow`. |
 | `issueflow-issue-init` | `/issueflow-issue-init` or attach `@issueflow-issue-init` | Same flow as `/issue-init`. |
 | `issueflow-issue-plan` | `/issueflow-issue-plan` | Same flow as `/issue-plan` (write & confirm plan). |
@@ -48,6 +50,26 @@ Two recurring pain points the commands actively help with:
 - **Left-overs in `.issueflows/01-current-issues/`.** Both `/issue-init` (when a new issue is captured) and `/issue-start` (before implementation begins) sweep that folder: every `issue<n>_*` group **other than the focus issue** is moved automatically to `.issueflows/03-solved-issues/` if a status file contains `- [x] Done`, otherwise to `.issueflows/02-partly-solved-issues/`.
 
 All the commands that touch git also run a short **branch-status preflight**: `git fetch --prune`, current branch, ahead/behind vs the default branch, and a warning when the current branch's leading digits refer to an issue already archived in `02-`/`03-`.
+
+---
+
+## 0a. `/issue-pick` — choose the next issue (front door)
+
+**When:** You are on the default branch with nothing in progress and want help deciding what to work on next.
+
+**What you pass:** Nothing (survey + ask), `fix` (create a new general-fixes issue every time), or a hint (`milestone v0.4`, a topic) to bias ranking.
+
+**What the assistant does (three phases):**
+
+1. **Choose.** Prefers parked work in `.issueflows/02-partly-solved-issues/`; otherwise lists open GitHub issues (`gh issue list`) ranked by **milestone**, **labels**, and **topical similarity** to recently solved issues, then asks you to confirm a pick from a short shortlist. `fix` skips the survey and creates a new `chore: general fixes` issue.
+2. **Branch.** Requires a clean tree, branches off the default with the GitHub numeric convention `git switch -c <N>-<short-slug>`, then runs the `/issue-init` flow automatically for `<N>`.
+3. **Hand off.** Asks whether to continue with `/issue-plan` (never auto-runs it).
+
+**Out of scope (Phase B follow-up):** automated breakdown of an over-large issue into sub-issues created on GitHub and parked under `02-partly-solved-issues/`. `/issue-pick` only *mentions* the option for now.
+
+**Off-path:** `/iflow` never auto-dispatches to `/issue-pick`; it creates GitHub issues and branches, so you opt in explicitly.
+
+**Result:** A chosen issue captured on a fresh `<N>-<slug>` branch, ready for `/issue-plan`.
 
 ---
 
@@ -238,6 +260,9 @@ The bump runs **after** tests and **before** issue-folder moves and **before** c
 Tip: at any point in the linear flow below, you can just run `/iflow` and it will dispatch to the right step based on current state.
 
 ```text
+(no issue chosen yet)
+    │  /issue-pick   → choose issue, create branch, run /issue-init
+    ▼
 GitHub issue
     │  /issue-init   (or /iflow)
     ▼
@@ -258,6 +283,7 @@ Commit → push → PR
 Default branch, stale local branches deleted (with single confirm)
 
 Detours:
+  /issue-pick   — front door: choose the next issue, branch, init (before the linear flow)
   /issue-pause  — park mid-stream; moves issueN_* to 02-partly-solved-issues/
   /issue-yolo   — chain init → plan → start → close for tiny fixes (safeguarded)
 ```

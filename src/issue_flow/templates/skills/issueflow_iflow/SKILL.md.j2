@@ -18,7 +18,7 @@ Follow this skill when the user wants to run **the right next step** in the issu
 - The user runs `/iflow`, mentions **iflow**, or asks "what's the next step?" during an issue-flow lifecycle.
 - You want a single entry point that routes to `/issue-init`, `/issue-plan`, `/issue-start`, or `/issue-close` based on current state.
 
-Do **not** use this skill for `/issue-pause`, `/issue-cleanup`, or `/issue-yolo`. Those are explicit-only commands.
+Do **not** use this skill for `/issue-pick`, `/issue-pause`, `/issue-cleanup`, or `/issue-yolo`. Those are explicit-only commands. (`/issue-pick` is the front door *before* `/issue-init`, for when no issue has been chosen yet.)
 
 ## Instructions
 
@@ -49,7 +49,7 @@ Do **not** use this skill for `/issue-pause`, `/issue-cleanup`, or `/issue-yolo`
 
 ## Constraints
 
-- Never auto-dispatch to `/issue-pause`, `/issue-cleanup`, or `/issue-yolo`.
+- Never auto-dispatch to `/issue-pick`, `/issue-pause`, `/issue-cleanup`, or `/issue-yolo`.
 - If the focus issue cannot be resolved (multiple groups, branch ambiguous), stop and ask.
 - Do not modify files beyond what the downstream command would normally modify. `/iflow` itself writes nothing — all file changes come from the dispatched command.
 - Dispatch to at most one command per `/iflow` invocation.

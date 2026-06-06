@@ -71,6 +71,7 @@ def render_template(template_name: str, context: dict[str, str]) -> str:
 # The output_path_template uses simple str.format with the context dict.
 TEMPLATE_MANIFEST: list[tuple[str, str]] = [
     ("commands/iflow.md.j2", "{agent_dir}/commands/iflow.md"),
+    ("commands/issue-pick.md.j2", "{agent_dir}/commands/issue-pick.md"),
     ("commands/issue-init.md.j2", "{agent_dir}/commands/issue-init.md"),
     ("commands/issue-plan.md.j2", "{agent_dir}/commands/issue-plan.md"),
     ("commands/issue-start.md.j2", "{agent_dir}/commands/issue-start.md"),
@@ -84,6 +85,10 @@ TEMPLATE_MANIFEST: list[tuple[str, str]] = [
     (
         "skills/issueflow_iflow/SKILL.md.j2",
         "{agent_dir}/skills/issueflow-iflow/SKILL.md",
+    ),
+    (
+        "skills/issueflow_issue_pick/SKILL.md.j2",
+        "{agent_dir}/skills/issueflow-issue-pick/SKILL.md",
     ),
     (
         "skills/issueflow_issue_init/SKILL.md.j2",
