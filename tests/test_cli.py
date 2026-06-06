@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any
 
@@ -9,6 +10,18 @@ import pytest
 from typer.testing import CliRunner
 
 from issue_flow.cli import app
+
+_ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
+
+
+def _plain(text: str) -> str:
+    """Strip ANSI color/style codes so help text can be matched reliably.
+
+    Rich colorizes ``--help`` output when it thinks it is talking to a
+    terminal (as on CI), which splits literals like ``--editor`` across escape
+    sequences. Stripping the codes makes the assertions environment-agnostic.
+    """
+    return _ANSI_RE.sub("", text)
 
 
 @pytest.fixture
@@ -27,7 +40,7 @@ def test_init_help_documents_editor_option(runner: CliRunner) -> None:
     """`issue-flow init --help` must advertise the --editor option."""
     result = runner.invoke(app, ["init", "--help"])
     assert result.exit_code == 0
-    assert "--editor" in result.stdout
+    assert "--editor" in _plain(result.stdout)
 
 
 def test_init_editor_codex_scaffolds_skills_only(
