@@ -34,7 +34,6 @@ The text after this slash command is the **issue reference**. It may also be **e
    - `gh issue view <N> --repo owner/repo --json title,body,url,number,comments`
    - `comments` returns an array where each entry has at least `author.login`, `body`, and `createdAt`.
    - Confirm resolved `owner/repo` to the user.
-   - Change the chat/agent tab title to reflect the issue topic on the form "Issue <issue number> <short description of issue>", for example "Issue 74 cell info".
 
 2a. **Triage comments** (only if the `comments` array is non-empty).
    - Follow the `issueflow-issue-comments` skill (`.cursor/skills/issueflow-issue-comments/SKILL.md`) for the rules; summary:
