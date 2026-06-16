@@ -38,7 +38,7 @@ Follow this skill when the user wants to **design the approach** for an issue be
    - **Constraints** — project rules, back-compat, scope limits; include **`### Prior art`** (from step 4).
    - **Approach** — concrete design, data flow, ordering.
    - **Files to touch** — path + what changes for each.
-   - **Test strategy** — `uv run pytest` (or equivalents) and any new tests.
+   - **Test strategy** — the project's documented test command (e.g. `uv run pytest`, or `pytest` inside the activated conda env) and any new tests.
    - **Open questions** — anything that needs the user's call before coding.
 
    Keep it terse but specific. Use markdown links to files when useful.

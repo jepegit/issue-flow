@@ -10,26 +10,50 @@ alwaysApply: true
 
 ## Running python
 
-This is a python project. It uses a python environment (.venv) managed by uv.
+**Respect the project's existing toolchain first.** If this project already
+documents how to run Python and manage dependencies — in its `README`,
+`AGENTS.md`, `CLAUDE.md`, `.cursor/rules`, `environment.yml`, `pyproject.toml`,
+`Makefile`, CI config, etc. — **follow that**, even where it conflicts with the
+defaults below. These rules describe issue-flow's *default* assumptions, not a
+mandate to override a project that has already chosen differently.
 
-❌ BAD:
+The one tool-neutral principle: **don't call bare `python ...`** — invoke Python
+through the project's environment (its runner, or an activated virtualenv/conda
+env) so scripts and tests see the right interpreter and dependencies.
+
+### If the project uses conda
+
+When the project documents a conda environment, run **all** Python commands —
+scripts **and `pytest`** — inside the **activated conda environment**. Do **not**
+substitute `uv run`.
+
 ```bash
+# Either activate the environment first…
+conda activate <env-name>
 python run_script.py
+pytest
+
+# …or run one-off commands inside it:
+conda run -n <env-name> pytest
 ```
 
-✅ GOOD:
+### If the project uses uv (issue-flow's default)
+
+For projects scaffolded fresh (and this is the default when nothing else is
+documented), use `uv`:
+
 ```bash
+# ❌ BAD: bare interpreter
+python run_script.py
+
+# ✅ GOOD: through uv
 uv run run_script.py
 ```
 
-### Package Management with `uv`
+**Package management with `uv`**
 
-**✅ Use `uv` exclusively**
-
-- All Python dependencies **must be installed, synchronized, and locked** using `uv`.
-- Never use `pip`, `pip-tools`, or `poetry` directly for dependency management.
-
-**🔁 Managing Dependencies**
+- Install, synchronize, and lock dependencies with `uv`; don't reach for `pip`,
+  `pip-tools`, or `poetry` in a uv-managed project.
 
 ```bash
 # Add or upgrade dependencies
@@ -38,16 +62,17 @@ uv add <package>
 # Remove dependencies
 uv remove <package>
 
-# Reinstall all dependencies from lock file
+# Reinstall all dependencies from the lock file
 uv sync
-```
 
-**🔁 Scripts**
-
-```bash
-# Run script with proper dependencies
+# Run a script with the right environment
 uv run script.py
 ```
+
+### Other toolchains (plain venv / pip / poetry)
+
+If the project uses something else, use whatever it documents (e.g. activate its
+`.venv` and use `pip`, or run `poetry run`). Match the project; don't force `uv`.
 
 
 ## Issue tracking structure
@@ -95,6 +120,8 @@ The full slash-command lifecycle is:
 
 `/issue-yolo` chains `init → plan → start → close` for small, low-risk issues with up-front safeguards (clean tree, passing tests, single consolidated confirm).
 
+> On tools without project slash commands (e.g. Codex CLI), invoke the mirrored Agent Skills instead (for example `issueflow-issue-init` in place of `/issue-init`).
+
 ### When finishing an issue
 
 If the issue is fully resolved (no additional subtasks present), move the original, plan, and status markdown files to `.issueflows/03-solved-issues`. Else, move them to `.issueflows/02-partly-solved-issues`.
@@ -132,6 +159,7 @@ Long-lived design docs, design decisions, and project "good practices" live unde
 If a `graphify-out/` folder exists in the project root, the project has the optional [graphify](https://graphify.net) integration enabled and a knowledge graph is available alongside the source.
 
 - **Before grepping**, skim `graphify-out/GRAPH_REPORT.md`. It surfaces god-nodes (most-connected concepts), surprising cross-module connections, and suggested questions the graph can answer — often a faster way to locate the files an issue actually touches than full-text search.
-- **`/graphify`** (slash command) or **`issue-flow graphify`** (CLI) rebuild the graph. With no extra args this runs `graphify update <project>` — AST-only, **no LLM API key needed**. For richer semantic relationships (cross-file links surfaced by an LLM pass), run `issue-flow graphify extract` after setting `GEMINI_API_KEY` / `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `MOONSHOT_API_KEY` (or pass `--backend ollama` for a local LLM). Other subcommands: `watch` (live), `cluster-only --no-viz` (re-cluster). Trailing flags pass through verbatim. Cursor's own LLM cannot be reused by subprocesses; graphify needs its own backend.
+- **`/graphify`** (slash command) or **`issue-flow graphify`** (CLI) rebuild the graph. With no extra args this runs `graphify update <project>` — AST-only, **no LLM API key needed**. For richer semantic relationships (cross-file links surfaced by an LLM pass), run `issue-flow graphify extract` after setting `GEMINI_API_KEY` / `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `MOONSHOT_API_KEY` (or pass `--backend ollama` for a local LLM). Other subcommands: `watch` (live), `cluster-only --no-viz` (re-cluster). Trailing flags pass through verbatim. Your agent's own LLM cannot be reused by subprocesses; graphify needs its own backend.
 - `/graphify` is **off-path**: never auto-dispatched by `/iflow`, `/issue-start`, or `/issue-close`. It is the user's call. `/issue-start` may *suggest* skimming `GRAPH_REPORT.md`; `/issue-close` may *suggest* a rebuild after large structural changes — neither runs `graphify` automatically.
-- If `graphify-out/` is not present, ignore graph-related guidance entirely. The integration is opt-in (install with `uv tool install graphifyy`, then `issue-flow update` to register the graphify Cursor skill).
+- If `graphify-out/` is not present, ignore graph-related guidance entirely. The integration is opt-in (install with `uv tool install graphifyy`, then `issue-flow update` to register the graphify skill).
+

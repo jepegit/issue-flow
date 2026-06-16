@@ -111,26 +111,50 @@ Keep status files accurate. Use an explicit checkbox in the status file:
 
 ## Running python
 
-This is a python project. It uses a python environment (.venv) managed by uv.
+**Respect the project's existing toolchain first.** If this project already
+documents how to run Python and manage dependencies — in its `README`,
+`AGENTS.md`, `CLAUDE.md`, `.cursor/rules`, `environment.yml`, `pyproject.toml`,
+`Makefile`, CI config, etc. — **follow that**, even where it conflicts with the
+defaults below. These rules describe issue-flow's *default* assumptions, not a
+mandate to override a project that has already chosen differently.
 
-❌ BAD:
+The one tool-neutral principle: **don't call bare `python ...`** — invoke Python
+through the project's environment (its runner, or an activated virtualenv/conda
+env) so scripts and tests see the right interpreter and dependencies.
+
+### If the project uses conda
+
+When the project documents a conda environment, run **all** Python commands —
+scripts **and `pytest`** — inside the **activated conda environment**. Do **not**
+substitute `uv run`.
+
 ```bash
+# Either activate the environment first…
+conda activate <env-name>
 python run_script.py
+pytest
+
+# …or run one-off commands inside it:
+conda run -n <env-name> pytest
 ```
 
-✅ GOOD:
+### If the project uses uv (issue-flow's default)
+
+For projects scaffolded fresh (and this is the default when nothing else is
+documented), use `uv`:
+
 ```bash
+# ❌ BAD: bare interpreter
+python run_script.py
+
+# ✅ GOOD: through uv
 uv run run_script.py
 ```
 
-### Package Management with `uv`
+**Package management with `uv`**
 
-**✅ Use `uv` exclusively**
-
-- All Python dependencies **must be installed, synchronized, and locked** using `uv`.
-- Never use `pip`, `pip-tools`, or `poetry` directly for dependency management.
-
-**🔁 Managing Dependencies**
+- Install, synchronize, and lock dependencies with `uv`; don't reach for `pip`,
+  `pip-tools`, or `poetry` in a uv-managed project.
 
 ```bash
 # Add or upgrade dependencies
@@ -139,16 +163,17 @@ uv add <package>
 # Remove dependencies
 uv remove <package>
 
-# Reinstall all dependencies from lock file
+# Reinstall all dependencies from the lock file
 uv sync
-```
 
-**🔁 Scripts**
-
-```bash
-# Run script with proper dependencies
+# Run a script with the right environment
 uv run script.py
 ```
+
+### Other toolchains (plain venv / pip / poetry)
+
+If the project uses something else, use whatever it documents (e.g. activate its
+`.venv` and use `pip`, or run `poetry run`). Match the project; don't force `uv`.
 
 
 ## Issue tracking structure
