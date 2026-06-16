@@ -351,6 +351,77 @@ def test_run_build_returns_1_on_oserror(
     assert "exec format error" in buffer.getvalue()
 
 
+def test_run_build_loads_project_dotenv_before_spawning(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """run_build must load `<project_root>/.env` so keys reach the subprocess.
+
+    Regression for issue #70: `issue-flow graphify extract` reported "no LLM
+    API key found" even with GEMINI_API_KEY in the project .env, because this
+    code path never loaded .env into the environment the subprocess inherits.
+    """
+    monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
+    (tmp_path / ".env").write_text("GEMINI_API_KEY=test-key\n", encoding="utf-8")
+
+    calls: list[dict[str, Any]] = []
+
+    def fake_load_dotenv(*args: Any, **kwargs: Any) -> bool:
+        calls.append({"args": args, "kwargs": kwargs})
+        return True
+
+    order: list[str] = []
+
+    class _Result:
+        returncode = 0
+
+    def fake_run(cmd: list[str], **kwargs: Any) -> _Result:
+        order.append("run")
+        return _Result()
+
+    def tracking_load_dotenv(*args: Any, **kwargs: Any) -> bool:
+        order.append("load_dotenv")
+        return fake_load_dotenv(*args, **kwargs)
+
+    monkeypatch.setattr(graphify_module, "load_dotenv", tracking_load_dotenv)
+    monkeypatch.setattr(graphify_module.subprocess, "run", fake_run)
+    console, _buffer = _fake_console()
+
+    exit_code = run_build(tmp_path, ["extract"], console)
+
+    assert exit_code == 0
+    # .env was loaded, from the project root, without overriding real env vars,
+    # and before the subprocess was spawned.
+    assert len(calls) == 1
+    assert calls[0]["args"][0] == tmp_path / ".env"
+    assert calls[0]["kwargs"].get("override") is False
+    assert order == ["load_dotenv", "run"]
+
+
+def test_run_build_skips_dotenv_when_absent(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """No .env at the project root → load_dotenv is not called (nothing to load)."""
+    monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
+
+    called = False
+
+    def fake_load_dotenv(*_a: Any, **_kw: Any) -> bool:
+        nonlocal called
+        called = True
+        return False
+
+    class _Result:
+        returncode = 0
+
+    monkeypatch.setattr(graphify_module, "load_dotenv", fake_load_dotenv)
+    monkeypatch.setattr(graphify_module.subprocess, "run", lambda *a, **kw: _Result())
+    console, _buffer = _fake_console()
+
+    run_build(tmp_path, [], console)
+
+    assert called is False
+
+
 def test_find_orphan_install_returns_none_when_on_path(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

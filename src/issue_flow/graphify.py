@@ -30,6 +30,7 @@ import sys
 from pathlib import Path
 from typing import Sequence
 
+from dotenv import load_dotenv
 from rich.console import Console
 
 from issue_flow.dependencies import RECOMMENDED_DEPENDENCIES
@@ -95,6 +96,24 @@ def _build_graphify_argv(
         positional_tail = [str(project_root), *rest]
 
     return [GRAPHIFY_COMMAND, subcommand, *positional_tail]
+
+
+def _load_project_env(project_root: Path) -> None:
+    """Load ``project_root/.env`` into the environment for the graphify subprocess.
+
+    ``graphify extract`` needs an LLM API key (``GEMINI_API_KEY``,
+    ``ANTHROPIC_API_KEY``, ``OPENAI_API_KEY``, ``MOONSHOT_API_KEY``, …). Users
+    commonly keep those in a project ``.env``. The ``issue-flow graphify`` code
+    path does not import :mod:`issue_flow.config` (which loads ``.env`` at
+    import time), and ``graphify`` itself does not read ``.env`` from the
+    project directory — so without this the key never reaches the spawned
+    subprocess. Loading relative to ``project_root`` (not the current working
+    directory) keeps it correct when ``-C <dir>`` points elsewhere;
+    ``override=False`` means real environment variables still win.
+    """
+    env_path = project_root / ".env"
+    if env_path.is_file():
+        load_dotenv(env_path, override=False)
 
 
 def _graphify_dependency():
@@ -289,6 +308,10 @@ def run_build(
         )
         _print_install_hints(console)
         return 2
+
+    # Make keys from the project's .env (e.g. GEMINI_API_KEY for `extract`)
+    # visible to the graphify subprocess, which inherits this process's env.
+    _load_project_env(project_root)
 
     cmd = _build_graphify_argv(project_root, extra_args)
 

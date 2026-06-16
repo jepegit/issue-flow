@@ -79,24 +79,26 @@ checks for them up front and prints install hints before it does anything.
 Required:
 
 - **[Git](https://git-scm.com/downloads)** — used by every slash command for
-  branch, fetch, status, commit, and push operations. Almost certainly already
-  installed if you're here, but the check covers it for completeness.
+branch, fetch, status, commit, and push operations. Almost certainly already
+installed if you're here, but the check covers it for completeness.
 - **[GitHub CLI (`gh`)](https://cli.github.com/)** — used by `/issue-init` to
-  fetch issues, by `/issue-close` to open PRs, and by `/issue-cleanup` to check
-  PR merge status. After installing, run `gh auth login` once to authenticate.
+fetch issues, by `/issue-close` to open PRs, and by `/issue-cleanup` to check
+PR merge status. After installing, run `gh auth login` once to authenticate.
 
 Recommended:
 
 - **[uv](https://docs.astral.sh/uv/)** — how issue-flow itself is meant to be
-  installed, and how this repo manages its own Python environment.
+installed, and how this repo manages its own Python environment.
 
 Quick install pointers for `gh`:
 
-| Platform | Command |
-|---|---|
-| macOS (Homebrew) | `brew install gh` |
-| Windows (winget) | `winget install --id GitHub.cli -e` |
+
+| Platform              | Command                                                                                        |
+| --------------------- | ---------------------------------------------------------------------------------------------- |
+| macOS (Homebrew)      | `brew install gh`                                                                              |
+| Windows (winget)      | `winget install --id GitHub.cli -e`                                                            |
 | Linux (Debian/Ubuntu) | `sudo apt install gh` (or see [cli.github.com](https://cli.github.com/) for the official repo) |
+
 
 If a dependency is missing, `issue-flow init` prints the installation hints
 and asks whether to continue anyway. You can bypass the prompt in automation
@@ -110,27 +112,30 @@ issue-flow has a lightweight integration with [graphify](https://graphify.net)
 (PyPI: `graphifyy`, CLI: `graphify`) — a tool that turns the project into a
 queryable knowledge graph that AI assistants can read instead of grepping
 through files. The integration is **opt-in by installing `graphifyy` as its
-own tool** (the same way you installed issue-flow): there is no flag, no
-`.env` switch, no extras to remember. Detection is purely PATH-based.
+own tool** (the same way you installed issue-flow): there is no enable flag and
+no extras to remember — detection is purely PATH-based. (You *can* keep an LLM
+API key in `.env` for the optional `extract` pass; see below.)
 
 What `issue-flow` does when `graphify` is on PATH:
 
 - `issue-flow init` and `issue-flow update` run `graphify cursor install` so
-  the graphify Cursor skill is registered alongside the issue-flow scaffold.
-  If graphify is not installed, both commands just print install hints and
-  continue — they never block.
+the graphify Cursor skill is registered alongside the issue-flow scaffold.
+If graphify is not installed, both commands just print install hints and
+continue — they never block.
 - A new slash command `/graphify` (and matching `/issueflow-graphify` skill) wraps
-  `issue-flow graphify`. With no extra args it runs `graphify update <project>`
-  — AST-only, **no LLM API key required**, so the no-arg case "just works".
-  For richer semantic relationships add `extract` (`issue-flow graphify extract`)
-  and configure a backend (`GEMINI_API_KEY`, `ANTHROPIC_API_KEY`,
-  `OPENAI_API_KEY`, `MOONSHOT_API_KEY`, or `--backend ollama` for a local
-  LLM). Cursor's own LLM is not available to subprocesses, so graphify
-  needs its own backend. Other subcommands (`watch`, `cluster-only`, …)
-  pass through too; trailing flags forward verbatim.
+`issue-flow graphify`. With no extra args it runs `graphify update <project>`
+— AST-only, **no LLM API key required**, so the no-arg case "just works".
+For richer semantic relationships add `extract` (`issue-flow graphify extract`)
+and configure a backend (`GEMINI_API_KEY`, `ANTHROPIC_API_KEY`,
+`OPENAI_API_KEY`, `MOONSHOT_API_KEY`, or `--backend ollama` for a local
+LLM). You can set that key in the project `.env` — `issue-flow graphify`
+loads `.env` from the project root before invoking graphify — or export it in
+your shell environment. Cursor's own LLM is not available to subprocesses, so
+graphify needs its own backend. Other subcommands (`watch`, `cluster-only`, …)
+pass through too; trailing flags forward verbatim.
 - The scaffolded rules and `/issue-start` mention `graphify-out/GRAPH_REPORT.md`
-  as a recommended pre-read when the file exists. `/graphify` is **off-path** —
-  `/iflow` never auto-dispatches to it.
+as a recommended pre-read when the file exists. `/graphify` is **off-path** —
+`/iflow` never auto-dispatches to it.
 
 To enable, install graphify as its own standalone tool:
 
@@ -193,42 +198,50 @@ issue-flow graphify [-C PROJECT_DIR] [...graphify subcommand + args]
 
 ### `issue-flow init`
 
-| Argument / Option | Description |
-|---|---|
-| `PROJECT_DIR` | Project root directory. Defaults to `.` (current directory). |
-| `--force`, `-f` | Overwrite generated commands, rules, and workflow doc instead of skipping them. |
-| `--skip-dep-check` | Skip the external-CLI dependency check (`git`, `gh`) and the confirmation prompt that follows if anything is missing. Useful in automation. |
-| `--editor`, `-e` | AI coding tool(s) to scaffold for: `cursor` (default), `claude`, `opencode`, `codex`, or `all`. Repeatable (`-e cursor -e claude`). See [Editor support](#editor-support). |
+
+| Argument / Option  | Description                                                                                                                                                                |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PROJECT_DIR`      | Project root directory. Defaults to `.` (current directory).                                                                                                               |
+| `--force`, `-f`    | Overwrite generated commands, rules, and workflow doc instead of skipping them.                                                                                            |
+| `--skip-dep-check` | Skip the external-CLI dependency check (`git`, `gh`) and the confirmation prompt that follows if anything is missing. Useful in automation.                                |
+| `--editor`, `-e`   | AI coding tool(s) to scaffold for: `cursor` (default), `claude`, `opencode`, `codex`, or `all`. Repeatable (`-e cursor -e claude`). See [Editor support](#editor-support). |
+
 
 Running `init` again without `--force` is safe: generated scaffold files that already exist are skipped, and **issue markdown under `.issueflows/` is never touched** by `init` or `update`. When the CLI detects an existing scaffold, it reminds you about `update` and `--force`.
 
 ### `issue-flow update`
 
-| Argument / Option | Description |
-|---|---|
-| `PROJECT_DIR` | Project root directory. Defaults to `.` (current directory). |
-| `--skip-dep-check` | Skip the external-CLI dependency check (`git`, `gh`) and the confirmation prompt that follows if anything is missing. |
-| `--editor`, `-e` | AI coding tool(s) to refresh for: `cursor` (default), `claude`, `opencode`, `codex`, or `all`. Repeatable. See [Editor support](#editor-support). |
+
+| Argument / Option  | Description                                                                                                                                       |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PROJECT_DIR`      | Project root directory. Defaults to `.` (current directory).                                                                                      |
+| `--skip-dep-check` | Skip the external-CLI dependency check (`git`, `gh`) and the confirmation prompt that follows if anything is missing.                             |
+| `--editor`, `-e`   | AI coding tool(s) to refresh for: `cursor` (default), `claude`, `opencode`, `codex`, or `all`. Repeatable. See [Editor support](#editor-support). |
+
 
 Use `update` after upgrading the **issue-flow** package to refresh the packaged slash commands, rules file(s), and `docs/issue-workflow.md` from the version you have installed. This **overwrites** those generated files (unlike a plain second `init`). It still does not modify arbitrary files under `.issueflows/` (for example your `issue*_original.md` / `issue*_status.md` files), and it creates any **new** `.issueflows/` subdirectories required by the current package.
 
 ### `issue-flow graphify`
 
-| Argument / Option | Description |
-|---|---|
-| `-C`, `--project-dir` | Project root directory to scan with graphify. Defaults to `.` (current directory). Modeled on `git -C` so positional args can flow into graphify untouched. |
+
+| Argument / Option               | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `-C`, `--project-dir`           | Project root directory to scan with graphify. Defaults to `.` (current directory). Modeled on `git -C` so positional args can flow into graphify untouched.                                                                                                                                                                                                                                                                                                                                                                                                              |
 | `...graphify subcommand + args` | Optional graphify subcommand + flags. With no extras runs `graphify update <PROJECT_DIR>` — AST-only, **no LLM API key required**. The first extra arg, if it is a recognized build subcommand (`update`, `extract`, `watch`, `cluster-only`, `check-update`), picks the action; trailing tokens forward verbatim. Examples: `issue-flow graphify extract` (semantic LLM pass; needs `GEMINI_API_KEY` / `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `MOONSHOT_API_KEY` or `--backend ollama`), `issue-flow graphify cluster-only --no-viz`, `issue-flow graphify ./subdir`. |
+
 
 `graphify` requires `graphifyy` to be installed (`uv tool install graphifyy`). When the `graphify` CLI is missing, the command prints install hints and exits with code `2`. Outputs land in `graphify-out/` (`graph.html`, `GRAPH_REPORT.md`, `graph.json`).
 
 ### When to use which
 
-| Goal | Command |
-|---|---|
-| First-time setup, or add missing files only | `issue-flow init` |
-| Pull newer templates after `uv tool upgrade issue-flow` (or similar) | `issue-flow update` |
-| Replace generated scaffolds without upgrading logic | `issue-flow init --force` |
-| Rebuild the graphify knowledge graph | `issue-flow graphify` |
+
+| Goal                                                                 | Command                   |
+| -------------------------------------------------------------------- | ------------------------- |
+| First-time setup, or add missing files only                          | `issue-flow init`         |
+| Pull newer templates after `uv tool upgrade issue-flow` (or similar) | `issue-flow update`       |
+| Replace generated scaffolds without upgrading logic                  | `issue-flow init --force` |
+| Rebuild the graphify knowledge graph                                 | `issue-flow graphify`     |
+
 
 ## Editor support
 
@@ -244,18 +257,20 @@ issue-flow init --editor all             # every supported editor
 ```
 
 **Agent Skills** (`<agent_dir>/skills/<name>/SKILL.md`) are the portable core —
-every editor gets the full set. **`AGENTS.md`** is the convergent rules file and
+every editor gets the full set. `**AGENTS.md`** is the convergent rules file and
 is written for every editor as a non-destructive *managed block* (issue-flow
 only ever owns the content between its markers, so a hand-maintained `AGENTS.md`
 is preserved). Slash commands and an editor-specific rules file are layered on
 top where the tool supports them.
 
-| Editor | `agent_dir` | Slash commands | Skills | Extra rules file | `AGENTS.md` | graphify auto-register |
-|---|---|---|---|---|---|---|
-| Cursor | `.cursor/` | `commands/` | yes | `.cursor/rules/issueflow-rules.mdc` | yes | yes |
-| Claude Code | `.claude/` | `commands/` | yes | `CLAUDE.md` | yes | no |
-| opencode | `.opencode/` | `command/` | yes | — | yes | no |
-| Codex | `.codex/` | — (use skills) | yes | — | yes | no |
+
+| Editor      | `agent_dir`  | Slash commands | Skills | Extra rules file                    | `AGENTS.md` | graphify auto-register |
+| ----------- | ------------ | -------------- | ------ | ----------------------------------- | ----------- | ---------------------- |
+| Cursor      | `.cursor/`   | `commands/`    | yes    | `.cursor/rules/issueflow-rules.mdc` | yes         | yes                    |
+| Claude Code | `.claude/`   | `commands/`    | yes    | `CLAUDE.md`                         | yes         | no                     |
+| opencode    | `.opencode/` | `command/`     | yes    | —                                   | yes         | no                     |
+| Codex       | `.codex/`    | — (use skills) | yes    | —                                   | yes         | no                     |
+
 
 Codex CLI removed project-scoped slash commands, so on Codex you invoke the
 mirrored skills (e.g. `issueflow-issue-init`) instead of `/issue-init`. The
@@ -264,15 +279,23 @@ get the `/graphify` command/skill but no automatic `graphify cursor install`.
 
 ## Configuration
 
-issue-flow reads a `.env` file from the project root (via python-dotenv). The following environment variables are supported:
+issue-flow reads a `.env` file from the project root (.via python-dotenv). The following environment variables are supported:
 
-| Variable | Default | Description |
-|---|---|---|
-| `ISSUEFLOW_DIR` | `.issueflows` | Name of the issue-tracking directory. |
-| `ISSUEFLOW_EDITOR` | `cursor` | Default editor profile when `--editor` is not passed (`cursor`, `claude`, `opencode`, `codex`). |
-| `ISSUEFLOW_AGENT_DIR` | *(per editor)* | Override the agent/IDE config directory. When unset it is derived from the editor profile (e.g. `.cursor`, `.claude`, `.opencode`, `.codex`). |
-| `ISSUEFLOW_DOCS_DIR` | `docs` | Where to write the workflow documentation file. |
-| `ISSUEFLOW_HISTORY_FILE` | `HISTORY.md` | Changelog file that `/issue-close` updates (set to e.g. `CHANGELOG.md` for different conventions). |
+
+| Variable                 | Default        | Description                                                                                                                                   |
+| ------------------------ | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ISSUEFLOW_DIR`          | `.issueflows`  | Name of the issue-tracking directory.                                                                                                         |
+| `ISSUEFLOW_EDITOR`       | `cursor`       | Default editor profile when `--editor` is not passed (`cursor`, `claude`, `opencode`, `codex`).                                               |
+| `ISSUEFLOW_AGENT_DIR`    | *(per editor)* | Override the agent/IDE config directory. When unset it is derived from the editor profile (e.g. `.cursor`, `.claude`, `.opencode`, `.codex`). |
+| `ISSUEFLOW_DOCS_DIR`     | `docs`         | Where to write the workflow documentation file.                                                                                               |
+| `ISSUEFLOW_HISTORY_FILE` | `HISTORY.md`   | Changelog file that `/issue-close` updates (set to e.g. `CHANGELOG.md` for different conventions).                                            |
+
+Beyond the `ISSUEFLOW_*` settings above, `issue-flow graphify` also reads an LLM
+API key from `.env` when present (`GEMINI_API_KEY`, `ANTHROPIC_API_KEY`,
+`OPENAI_API_KEY`, or `MOONSHOT_API_KEY`) and passes it through to the
+`graphify extract` semantic pass. The no-arg `graphify update` build is
+AST-only and needs no key.
+
 
 ## Development
 
@@ -295,7 +318,7 @@ See [HISTORY.md](HISTORY.md) for release notes.
 ## Future plans
 
 - **More editors** — extend `--editor` coverage to further AI coding tools (e.g. Windsurf) on top of the current Cursor / Claude Code / opencode / Codex support.
-- **`issue-flow status`** — show a dashboard of current, partly-solved, and solved issues.
+- `**issue-flow status`** — show a dashboard of current, partly-solved, and solved issues.
 - **Custom templates** — let users supply their own Jinja2 templates to tailor slash commands and rules to their team's conventions.
 - **Git hook integration** — optionally move issue files on commit based on status markers.
 - **GitHub Actions workflow** — ship a reusable action that syncs issue state between `.issueflows/` and GitHub issue labels/milestones.
