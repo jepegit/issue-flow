@@ -1,0 +1,158 @@
+{
+  "C:\\scripting\\issue-flow\\scripts\\update_issueflow_setup.py": {
+    "mtime": 1776325619.781332,
+    "hash": "98a1bf4b326adceec0f1becb21bf47ac"
+  },
+  "C:\\scripting\\issue-flow\\src\\issue_flow\\cli.py": {
+    "mtime": 1781605322.5028257,
+    "hash": "19e2bff68ab17296b4857550758ddf99"
+  },
+  "C:\\scripting\\issue-flow\\src\\issue_flow\\config.py": {
+    "mtime": 1780775153.4523373,
+    "hash": "04ec2db0751ae6026715118e033bf90d"
+  },
+  "C:\\scripting\\issue-flow\\src\\issue_flow\\dependencies.py": {
+    "mtime": 1780767478.3776102,
+    "hash": "cb9c140cc2d9a3e6fa929c970bce99fb"
+  },
+  "C:\\scripting\\issue-flow\\src\\issue_flow\\editors.py": {
+    "mtime": 1780775153.4535584,
+    "hash": "dbc03b5d8df9f9a47ca785a072a3bf6e"
+  },
+  "C:\\scripting\\issue-flow\\src\\issue_flow\\graphify.py": {
+    "mtime": 1780775153.4535584,
+    "hash": "b105d25b01dad362e806b8bdc9866a36"
+  },
+  "C:\\scripting\\issue-flow\\src\\issue_flow\\init.py": {
+    "mtime": 1780775153.4535584,
+    "hash": "587018fd0022742b4a9f79bb7e0f7328"
+  },
+  "C:\\scripting\\issue-flow\\src\\issue_flow\\templating.py": {
+    "mtime": 1780775153.4791605,
+    "hash": "b75b0ee5c9297d702e2560bcc5c82fcd"
+  },
+  "C:\\scripting\\issue-flow\\src\\issue_flow\\__init__.py": {
+    "mtime": 1781605322.5012565,
+    "hash": "26a3d697330af0d2cce5ae1ce42eefd7"
+  },
+  "C:\\scripting\\issue-flow\\src\\issue_flow\\templates\\__init__.py": {
+    "mtime": 1775242534.568753,
+    "hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\scripting\\issue-flow\\src\\issue_flow\\templates\\commands\\__init__.py": {
+    "mtime": 1775242534.9687245,
+    "hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\scripting\\issue-flow\\src\\issue_flow\\templates\\docs\\__init__.py": {
+    "mtime": 1775242535.7338495,
+    "hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\scripting\\issue-flow\\src\\issue_flow\\templates\\rules\\__init__.py": {
+    "mtime": 1775242535.511438,
+    "hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\scripting\\issue-flow\\tests\\conftest.py": {
+    "mtime": 1776624131.4964983,
+    "hash": "163c4916357069e7b557452d3ef0198d"
+  },
+  "C:\\scripting\\issue-flow\\tests\\test_cli.py": {
+    "mtime": 1781605093.950288,
+    "hash": "d49abe97e0f962d185fe6e9313f253cf"
+  },
+  "C:\\scripting\\issue-flow\\tests\\test_config.py": {
+    "mtime": 1780775153.4859588,
+    "hash": "8b33a328130d33f3340dd026209d3f60"
+  },
+  "C:\\scripting\\issue-flow\\tests\\test_dependencies.py": {
+    "mtime": 1778785559.1232734,
+    "hash": "93b6d68fe5cf6bfaedf4b4ce65ecd054"
+  },
+  "C:\\scripting\\issue-flow\\tests\\test_editors.py": {
+    "mtime": 1780775153.4870777,
+    "hash": "6635b921ae759bf20f2c7817c9cae7a1"
+  },
+  "C:\\scripting\\issue-flow\\tests\\test_graphify.py": {
+    "mtime": 1780775153.4890754,
+    "hash": "d713e486b45662ca060670ca0ea73d36"
+  },
+  "C:\\scripting\\issue-flow\\tests\\test_init.py": {
+    "mtime": 1780775153.4920764,
+    "hash": "bc509dd6d9a7c8b6835033b28a7940e2"
+  },
+  "C:\\scripting\\issue-flow\\tests\\test_templating.py": {
+    "mtime": 1781606034.9451382,
+    "hash": "09710c82737de952efc84754e1e920b6"
+  },
+  "C:\\scripting\\issue-flow\\tests\\test_update.py": {
+    "mtime": 1780775153.4970765,
+    "hash": "16c56bb18baf62dd693ffb152da32e90"
+  },
+  "C:\\scripting\\issue-flow\\tests\\__init__.py": {
+    "mtime": 1775242662.6771905,
+    "hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\scripting\\issue-flow\\AGENTS.md": {
+    "mtime": 1781605973.4285617,
+    "hash": "46bb6ef7881e817bc05e782298697775"
+  },
+  "C:\\scripting\\issue-flow\\HISTORY.md": {
+    "mtime": 1780775153.4398384,
+    "hash": "67c7f2ee7af9a6d25cc5b4760122329c"
+  },
+  "C:\\scripting\\issue-flow\\README.md": {
+    "mtime": 1780775153.4423194,
+    "hash": "f34460e7101c6093f4acf58d35287551"
+  },
+  "C:\\scripting\\issue-flow\\docs\\cursor-issue-workflow.md": {
+    "mtime": 1780771349.752206,
+    "hash": "6e7dc485e00ad0e2f2c7b9abce97d03b"
+  },
+  "C:\\scripting\\issue-flow\\docs\\developing.md": {
+    "mtime": 1776325619.7764564,
+    "hash": "06659aa6acd5c92dee6c92b256c3ffe3"
+  },
+  "C:\\scripting\\issue-flow\\docs\\issue-workflow.md": {
+    "mtime": 1781606811.8141844,
+    "hash": "973ceb915a7c18e8b52a49e853946740"
+  },
+  "C:\\scripting\\issue-flow\\local\\copy-of-other-repo\\README.md": {
+    "mtime": 1775240858.4569998,
+    "hash": "4f61a3d6d10f96a23bc1b1e8b1964976"
+  },
+  "C:\\scripting\\issue-flow\\local\\copy-of-other-repo\\03-solved-issues\\issue1_original.md": {
+    "mtime": 1775222023.8575044,
+    "hash": "650e4cc5553708c2e4c114516d2de58f"
+  },
+  "C:\\scripting\\issue-flow\\local\\copy-of-other-repo\\03-solved-issues\\issue1_status.md": {
+    "mtime": 1775222023.8575044,
+    "hash": "c0ed99667e8e4d95a50afca1d0d0d77a"
+  },
+  "C:\\scripting\\issue-flow\\local\\copy-of-other-repo\\03-solved-issues\\issue2_original.md": {
+    "mtime": 1775223253.5883512,
+    "hash": "71cb171aec2b728b75b46b2f93014bd5"
+  },
+  "C:\\scripting\\issue-flow\\local\\copy-of-other-repo\\03-solved-issues\\issue2_status.md": {
+    "mtime": 1775223253.589181,
+    "hash": "7b836a9006a144d5cfbac2d935861a5c"
+  },
+  "C:\\scripting\\issue-flow\\local\\copy-of-other-repo\\03-solved-issues\\issue5_original.md": {
+    "mtime": 1775240858.454153,
+    "hash": "4907078b57da54d73269a72a9430d130"
+  },
+  "C:\\scripting\\issue-flow\\local\\copy-of-other-repo\\03-solved-issues\\issue5_status.md": {
+    "mtime": 1775240858.4551933,
+    "hash": "47d09a693db72f255a9213b1f038743e"
+  },
+  "C:\\scripting\\issue-flow\\local\\copy-of-other-repo\\03-solved-issues\\issue6_original.md": {
+    "mtime": 1775239732.1319184,
+    "hash": "fd14972f511497a27cfce26531b737dc"
+  },
+  "C:\\scripting\\issue-flow\\local\\copy-of-other-repo\\03-solved-issues\\issue6_status.md": {
+    "mtime": 1775240299.6387124,
+    "hash": "55ae8c43a0ffd82014cbf0c112c117b6"
+  },
+  "C:\\scripting\\issue-flow\\local\\copy-of-other-repo\\docs\\cursor-issue-workflow.md": {
+    "mtime": 1775223253.591926,
+    "hash": "768576033fe9ffa6eb4ed65501aa5b83"
+  }
+}

@@ -372,6 +372,30 @@ def test_issueflow_rules_has_branch_hygiene_section() -> None:
     assert "Folder hygiene" in rendered
 
 
+def test_rules_body_defers_to_project_toolchain_and_covers_conda() -> None:
+    """Regression for issue #58: the shared rules body must defer to the
+    project's existing toolchain and cover conda, not hard-mandate uv."""
+    # The body is included by all three rules outputs; assert on each so none drift.
+    for template_name in (
+        "rules/issueflow-rules.mdc.j2",
+        "rules/AGENTS.md.j2",
+        "rules/CLAUDE.md.j2",
+    ):
+        rendered = render_template(template_name, _default_context())
+        lowered = rendered.lower()
+        # Defers to whatever the project already documents.
+        assert "respect the project's existing toolchain" in lowered
+        # conda is explicitly covered, including pytest inside the activated env.
+        assert "conda" in lowered
+        assert "conda activate" in rendered
+        assert "conda run -n" in rendered
+        # uv stays the documented default/example…
+        assert "uv run" in rendered
+        # …but the old hard mandate is gone.
+        assert "Use `uv` exclusively" not in rendered
+        assert "uv exclusively" not in lowered
+
+
 def test_issue_close_describes_history_update_step() -> None:
     """/issue-close must describe the HISTORY.md update step and its input tokens."""
     rendered = render_template("commands/issue-close.md.j2", _default_context())

@@ -2,8 +2,8 @@
 name: issueflow-issue-start
 description: >-
   Run the /issue-start workflow: pick the current issue, read issue<N>_plan.md
-  (offer to run /issue-plan if missing), then implement with project conventions
-  (e.g. uv run).
+  (offer to run /issue-plan if missing), then implement with the project's
+  documented conventions (e.g. uv run, or inside an activated conda env).
 disable-model-invocation: true
 ---
 
@@ -34,8 +34,7 @@ Follow this skill when the user wants to **begin implementation** from issue not
 5. **Implement** — Execute the plan (or the explicitly-acknowledged plan-less path). Prefer minimal, focused diffs. Match existing code style and tooling.
 
 6. **Project conventions**
-   - Run Python via **`uv run`** (scripts, pytest, tools), not bare `python`, unless the user overrides.
-   - Manage dependencies with **`uv add` / `uv remove` / `uv sync`** only.
+   - Use the project's **documented Python toolchain**, not bare `python`. Default to `uv run` (scripts, pytest, tools) and `uv add` / `uv remove` / `uv sync` for dependencies, **unless** the project documents otherwise — e.g. a conda project runs scripts and `pytest` inside the **activated conda environment** (`conda activate <env>` or `conda run -n <env> …`). Honour existing project rules over these defaults.
    - After meaningful progress, update or create `issue<N>_status.md` under `.issueflows/01-current-issues/` with an explicit `- [ ] Done` checkbox that stays unchecked until fully resolved. Record what has landed and what remains.
 
 7. **Hand off** — When the implementation is ready to ship, tell the user to run `/issue-close` (optionally with `bump`/`patch`/`minor`/`major`). Parking work mid-stream goes through `/issue-pause`.

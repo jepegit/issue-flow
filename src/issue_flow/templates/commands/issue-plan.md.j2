@@ -58,7 +58,7 @@ Optional free-form text after the command. Examples:
    - path/two.md.j2 — what changes
 
    ## Test strategy
-   - Existing tests to re-run (e.g. `uv run pytest`)
+   - Existing tests to re-run, using the project's documented test command (e.g. `uv run pytest`, or `pytest` inside the activated conda env)
    - New tests or manual checks
 
    ## Open questions
