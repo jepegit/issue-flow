@@ -57,8 +57,8 @@ def test_resolve_output_path() -> None:
 
 
 def test_manifest_entry_count() -> None:
-    # 10 commands + 1 rule + 1 doc + 13 skills = 25
-    assert len(TEMPLATE_MANIFEST) == 25
+    # 11 commands + 1 rule + 1 doc + 14 skills = 27
+    assert len(TEMPLATE_MANIFEST) == 27
 
 
 def _resolved_paths(profile_id: str) -> set[str]:
@@ -78,19 +78,19 @@ def _resolved_paths(profile_id: str) -> set[str]:
 def test_build_manifest_cursor_matches_default() -> None:
     """The default TEMPLATE_MANIFEST is the cursor profile manifest."""
     assert build_manifest(EDITORS["cursor"]) == TEMPLATE_MANIFEST
-    assert len(build_manifest(EDITORS["cursor"])) == 25
+    assert len(build_manifest(EDITORS["cursor"])) == 27
 
 
 def test_build_manifest_codex_has_skills_and_docs_but_no_commands() -> None:
-    """Codex: skills (13) + docs (1), no slash commands and no rules extra."""
+    """Codex: skills (14) + docs (1), no slash commands and no rules extra."""
     manifest = build_manifest(get_profile("codex"))
     template_names = [name for name, _ in manifest]
     assert not any(name.startswith("commands/") for name in template_names)
-    assert sum(name.startswith("skills/") for name in template_names) == 13
+    assert sum(name.startswith("skills/") for name in template_names) == 14
     assert "docs/issue-workflow.md.j2" in template_names
     # No .mdc / CLAUDE.md rules extra for Codex.
     assert not any(name.startswith("rules/") for name in template_names)
-    assert len(manifest) == 14
+    assert len(manifest) == 15
 
 
 def test_build_manifest_opencode_uses_singular_command_dir() -> None:
@@ -153,6 +153,7 @@ def test_manifest_has_expected_commands_and_skills() -> None:
         "issue-close",
         "issue-cleanup",
         "issue-yolo",
+        "issue-fix",
         "graphify",
     ):
         assert f"commands/{command}.md.j2" in template_names
@@ -167,6 +168,7 @@ def test_manifest_has_expected_commands_and_skills() -> None:
         "issueflow_issue_close",
         "issueflow_issue_cleanup",
         "issueflow_issue_yolo",
+        "issueflow_issue_fix",
         "issueflow_version_bump",
         "issueflow_history_update",
         "issueflow_graphify",
@@ -271,6 +273,46 @@ def test_issue_yolo_has_safeguards() -> None:
     assert "default branch" in rendered.lower()
     # Must not chain cleanup automatically.
     assert "/issue-cleanup" in rendered
+
+
+def test_issue_fix_describes_interactive_session() -> None:
+    """/issue-fix must describe the off-path interactive iterative-fix session."""
+    rendered = render_template("commands/issue-fix.md.j2", _default_context())
+    # Off-path and explicitly not driven by /iflow during a session.
+    assert "off-path" in rendered.lower()
+    assert "/iflow" in rendered
+    # Always creates a GitHub issue via gh; GitLab is out of scope.
+    assert "gh issue create" in rendered
+    assert "GitLab is not supported" in rendered
+    # The fix loop records each fix in the status file's log section.
+    assert "Iterative fixes log" in rendered
+    assert "issue<N>_status.md" in rendered
+    # Branch-from-current-vs-default choice and delegation to init/close.
+    assert "/issue-init" in rendered
+    assert "/issue-close" in rendered
+    # Keeps the unchecked Done checkbox during the session.
+    assert "- [ ] Done" in rendered
+
+
+def test_issue_fix_skill_mirrors_command() -> None:
+    """The issue-fix skill must carry the same session flow and frontmatter."""
+    rendered = render_template(
+        "skills/issueflow_issue_fix/SKILL.md.j2", _default_context()
+    )
+    assert "name: issueflow-issue-fix" in rendered
+    assert "disable-model-invocation: true" in rendered
+    assert "gh issue create" in rendered
+    assert "Iterative fixes log" in rendered
+    assert "/issue-init" in rendered
+    assert "/issue-close" in rendered
+
+
+def test_iflow_lists_issue_fix_as_off_path() -> None:
+    """/iflow and its skill must list /issue-fix among the explicit-only commands."""
+    cmd = render_template("commands/iflow.md.j2", _default_context())
+    skill = render_template("skills/issueflow_iflow/SKILL.md.j2", _default_context())
+    assert "/issue-fix" in cmd
+    assert "/issue-fix" in skill
 
 
 def test_iflow_describes_state_machine() -> None:

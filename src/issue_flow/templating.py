@@ -82,6 +82,7 @@ COMMAND_NAMES: list[str] = [
     "issue-close",
     "issue-cleanup",
     "issue-yolo",
+    "issue-fix",
     "graphify",
 ]
 
@@ -99,6 +100,7 @@ SKILL_DIRS: list[str] = [
     "issueflow_issue_close",
     "issueflow_issue_cleanup",
     "issueflow_issue_yolo",
+    "issueflow_issue_fix",
     "issueflow_version_bump",
     "issueflow_history_update",
     "issueflow_graphify",

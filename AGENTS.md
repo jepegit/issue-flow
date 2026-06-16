@@ -221,6 +221,8 @@ The full slash-command lifecycle is:
 
 `/issue-yolo` chains `init → plan → start → close` for small, low-risk issues with up-front safeguards (clean tree, passing tests, single consolidated confirm).
 
+`/issue-fix` opens an interactive iterative-fixes session: it creates one GitHub issue + long-lived branch, then loops over many small fixes (each gets a short plan and is implemented only on confirmation, recorded as a dated bullet in `issue<N>_status.md`), and ends with `/issue-close`. It is off-path (never auto-dispatched); while a session is active, drive it with `/issue-fix` + `/issue-close`, not `/iflow`.
+
 > On tools without project slash commands (e.g. Codex CLI), invoke the mirrored Agent Skills instead (for example `issueflow-issue-init` in place of `/issue-init`).
 
 ### When finishing an issue

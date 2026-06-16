@@ -26,6 +26,7 @@ your-project/
       issue-close.md         # /issue-close — test, commit, push, PR
       issue-cleanup.md       # /issue-cleanup — post-merge branch hygiene
       issue-yolo.md          # /issue-yolo — all-in-one for small, low-risk issues
+      issue-fix.md           # /issue-fix — interactive iterative-fixes session
       graphify.md            # /graphify — rebuild the graphify knowledge graph (optional)
     skills/                  # Optional Agent Skills (explicit / @ invoke)
       issueflow-issue-pick/SKILL.md
@@ -37,6 +38,7 @@ your-project/
       issueflow-issue-close/SKILL.md
       issueflow-issue-cleanup/SKILL.md
       issueflow-issue-yolo/SKILL.md
+      issueflow-issue-fix/SKILL.md
       issueflow-version-bump/SKILL.md
       issueflow-history-update/SKILL.md
       issueflow-graphify/SKILL.md
@@ -63,8 +65,9 @@ Plus a few off-path commands:
 - `/iflow` — **quick start**: inspects the current issue's state and dispatches to the right linear step automatically. A branch-derived number (`42-fix-login` → `N=42`) is authoritative, so `/iflow` works from a fresh branch too.
 - `/issue-pause` — park the current issue in `02-partly-solved-issues/` with a **Remaining work** note; optional WIP commit + switch back to the default branch.
 - `/issue-yolo` — all-in-one chain (`init → plan → start → close`) for small, low-risk issues, with up-front safeguards (refuses on the default branch, refuses with dirty unrelated changes, requires passing tests, single consolidated confirm).
+- `/issue-fix` — interactive iterative-fixes session: creates one GitHub issue + long-lived branch, then loops over many small fixes (each gets a short plan, implemented only on confirmation and recorded in `issue<N>_status.md`), ending with `/issue-close`. Coexists with `/issue-pick fix` (the one-shot setup). Off-path; never auto-dispatched.
 
-The matching **Agent Skills** (under `.cursor/skills/`) carry the same workflows for on-demand use with `/issueflow-issue-pick`, `/issueflow-iflow`, `/issueflow-issue-init`, `/issueflow-issue-plan`, `/issueflow-issue-start`, `/issueflow-issue-pause`, `/issueflow-issue-close`, `/issueflow-issue-cleanup`, `/issueflow-issue-yolo`, `@issueflow-version-bump` when you need only the bump steps, or `@issueflow-history-update` when you need only the changelog update (see [Cursor Agent Skills](https://cursor.com/docs/context/skills)).
+The matching **Agent Skills** (under `.cursor/skills/`) carry the same workflows for on-demand use with `/issueflow-issue-pick`, `/issueflow-iflow`, `/issueflow-issue-init`, `/issueflow-issue-plan`, `/issueflow-issue-start`, `/issueflow-issue-pause`, `/issueflow-issue-close`, `/issueflow-issue-cleanup`, `/issueflow-issue-yolo`, `/issueflow-issue-fix`, `@issueflow-version-bump` when you need only the bump steps, or `@issueflow-history-update` when you need only the changelog update (see [Cursor Agent Skills](https://cursor.com/docs/context/skills)).
 
 ## Prerequisites
 

@@ -1,13 +1,13 @@
 # {{ editor_name }} issue workflow (slash commands)
 
-This repo uses ten {{ editor_name }} **slash commands** under `{{ agent_dir }}/{{ commands_dir }}/` that line up with how we track GitHub issues in `{{ issueflows_dir }}/{{ current_issues_folder }}/`.
+This repo uses eleven {{ editor_name }} **slash commands** under `{{ agent_dir }}/{{ commands_dir }}/` that line up with how we track GitHub issues in `{{ issueflows_dir }}/{{ current_issues_folder }}/`.
 
 **Quick start: just run `/iflow`.** It inspects the state of the focus issue and dispatches to the right linear-flow command (`/issue-init`, `/issue-plan`, `/issue-start`, or `/issue-close`) — so you don't have to remember which step is next. Haven't chosen an issue yet? Start with **`/issue-pick`**.
 
 | Command | File | Role |
 |--------|------|------|
 | `/issue-pick` | `issue-pick.md` | **Front door.** Help choose the next issue (parked work first, else ranked open GitHub issues), create the branch, and run `/issue-init`. Off-path; never auto-dispatched. |
-| `/iflow` | `iflow.md` | **Smart dispatcher.** Detect current state and run `/issue-init`, `/issue-plan`, `/issue-start`, or `/issue-close` automatically. Never auto-dispatches to pick / pause / cleanup / yolo / graphify. |
+| `/iflow` | `iflow.md` | **Smart dispatcher.** Detect current state and run `/issue-init`, `/issue-plan`, `/issue-start`, or `/issue-close` automatically. Never auto-dispatches to pick / pause / cleanup / yolo / fix / graphify. |
 | `/issue-init` | `issue-init.md` | Pull an issue from GitHub into the repo as a local markdown file and tidy older current issues. |
 | `/issue-plan` | `issue-plan.md` | Write a structured `issue<N>_plan.md` and get explicit user confirmation before any code is touched. |
 | `/issue-start` | `issue-start.md` | Implement the confirmed plan (no planning step of its own any more). |
@@ -15,6 +15,7 @@ This repo uses ten {{ editor_name }} **slash commands** under `{{ agent_dir }}/{
 | `/issue-close` | `issue-close.md` | Finish: tests, optional semver bump (`uv version --bump …`), `{{ history_file }}` update, issue-folder housekeeping, commit, push, PR. |
 | `/issue-cleanup` | `issue-cleanup.md` | Post-merge hygiene: switch to default, `git pull --ff-only`, `git fetch --prune`, delete merged local branches (single consolidated confirm). |
 | `/issue-yolo` | `issue-yolo.md` | All-in-one for small, low-risk issues: chains `init → plan → start → close` with up-front safeguards and a single confirmation. |
+| `/issue-fix` | `issue-fix.md` | **Off-path.** Interactive iterative-fixes session: create one issue + long-lived branch, then loop over many small fixes (short plan each, recorded in `issue<N>_status.md`), ending with `/issue-close`. |
 | `/graphify` | `graphify.md` | **Off-path.** Rebuild the [graphify](https://graphify.net) knowledge graph (`graphify-out/graph.html`, `GRAPH_REPORT.md`, `graph.json`). Wraps `issue-flow graphify` / `graphify`. Optional: only meaningful when `graphifyy` is installed. |
 
 > On tools without project slash commands (e.g. Codex CLI), invoke the mirrored Agent Skills under `{{ agent_dir }}/skills/` instead — for example `issueflow-issue-init` in place of `/issue-init`.
@@ -36,6 +37,7 @@ This repo uses ten {{ editor_name }} **slash commands** under `{{ agent_dir }}/{
 | `issueflow-issue-close` | `/issueflow-issue-close` | Tests, optional bump, status checkboxes, move issue docs, commit, push, PR. |
 | `issueflow-issue-cleanup` | `/issueflow-issue-cleanup` | Post-merge cleanup (single consolidated confirm, never `-D`). |
 | `issueflow-issue-yolo` | `/issueflow-issue-yolo` | Chain `init → plan → start → close` with safeguards. |
+| `issueflow-issue-fix` | `/issueflow-issue-fix` | Same flow as `/issue-fix`: set up an interactive iterative-fixes session, loop over small fixes, finish with `/issue-close`. Off-path. |
 | `issueflow-version-bump` | `@issueflow-version-bump` (often used from `/issue-close`) | Bump `[project]` version in `pyproject.toml` via `uv version --bump patch|minor|major`. |
 | `issueflow-history-update` | `@issueflow-history-update` (used from `/issue-close`) | Append an entry to `## [Unreleased]` in `{{ history_file }}`, or promote it to a new `## [x.y.z] - YYYY-MM-DD` release section when a version bump happened. |
 | `issueflow-graphify` | `/issueflow-graphify` | Same flow as `/graphify`: rebuild the graphify knowledge graph for the project. Off-path; never auto-dispatched. |
@@ -92,7 +94,7 @@ All the commands that touch git also run a short **branch-status preflight**: `g
 
 **Focus-issue resolution:** prefer the leading digits of the current branch when it matches `^<N>-.+`; else the single group in `{{ issueflows_dir }}/{{ current_issues_folder }}/`; else ask.
 
-**Not auto-dispatched:** `/issue-pause`, `/issue-cleanup`, and `/issue-yolo`. `/iflow` will mention them in its output when relevant (e.g. "after the PR merges, run `/issue-cleanup`") but never picks them for you.
+**Not auto-dispatched:** `/issue-pause`, `/issue-cleanup`, `/issue-yolo`, and `/issue-fix`. `/iflow` will mention them in its output when relevant (e.g. "after the PR merges, run `/issue-cleanup`") but never picks them for you.
 
 **Result:** One of the four linear commands runs, with its own normal checkpoints intact.
 
@@ -257,6 +259,26 @@ The bump runs **after** tests and **before** issue-folder moves and **before** c
 
 ---
 
+## 9. `/issue-fix` — interactive iterative-fixes session
+
+**When:** You have a bucket of small, iterative fixes (little bugs, typos, chores, polish) to knock out on one branch, rather than a single well-defined deliverable.
+
+**What you pass:** An optional session name (used for the issue title and branch slug). No name → defaults to `iterative-small-fixes`. During an active session, a `/issue-fix <description>` (or just describing a fix) means "run the next fix".
+
+**What the assistant does:**
+
+1. **Set up (once).** Preflight (default branch, `git fetch --prune`, clean tree); create a GitHub issue with `gh issue create` (always, after confirmation) and capture `N`; create branch `<N>-<slug>` (off the default, or — when already on a non-default branch — ask whether to branch from current or default); delegate local capture to `/issue-init`; seed `issue<N>_status.md` with an unchecked `- [ ] Done` and an empty **`## Iterative fixes log`**.
+2. **Loop.** For each proposed fix: restate it, write a short inline plan, implement **only on confirmation**, and append a dated bullet to the **Iterative fixes log**. A fix that turns out to be a real feature is split out into its own issue instead.
+3. **Finish.** Tells you to run `/issue-close` to land the session (it never auto-runs it); reminds you about `/issue-cleanup` after the PR merges.
+
+**Coexists with `/issue-pick fix`:** that command is a one-shot setup back into the normal `/issue-plan` → `/issue-start` flow; `/issue-fix` stays and drives the loop until close.
+
+**Off-path:** `/iflow` never auto-dispatches to `/issue-fix`. While a session is active, drive it with `/issue-fix` + `/issue-close`, not `/iflow`. GitHub only (`gh`); GitLab is not supported.
+
+**Result:** A session issue + branch with a running fixes log, ready to land via `/issue-close`.
+
+---
+
 ## End-to-end flow
 
 Tip: at any point in the linear flow below, you can just run `/iflow` and it will dispatch to the right step based on current state.
@@ -288,6 +310,7 @@ Detours:
   /issue-pick   — front door: choose the next issue, branch, init (before the linear flow)
   /issue-pause  — park mid-stream; moves issueN_* to {{ partly_solved_folder }}/
   /issue-yolo   — chain init → plan → start → close for tiny fixes (safeguarded)
+  /issue-fix    — interactive session: one branch, many small fixes, then /issue-close
 ```
 
 The command definitions under `{{ agent_dir }}/{{ commands_dir }}/` are the source of truth. The skill packages under `{{ agent_dir }}/skills/` repeat the same workflows for explicit invocation. This document is a readable overview only.
