@@ -57,8 +57,8 @@ def test_resolve_output_path() -> None:
 
 
 def test_manifest_entry_count() -> None:
-    # 11 commands + 1 rule + 1 doc + 14 skills = 27
-    assert len(TEMPLATE_MANIFEST) == 27
+    # 12 commands + 1 rule + 1 doc + 15 skills = 29
+    assert len(TEMPLATE_MANIFEST) == 29
 
 
 def _resolved_paths(profile_id: str) -> set[str]:
@@ -78,19 +78,19 @@ def _resolved_paths(profile_id: str) -> set[str]:
 def test_build_manifest_cursor_matches_default() -> None:
     """The default TEMPLATE_MANIFEST is the cursor profile manifest."""
     assert build_manifest(EDITORS["cursor"]) == TEMPLATE_MANIFEST
-    assert len(build_manifest(EDITORS["cursor"])) == 27
+    assert len(build_manifest(EDITORS["cursor"])) == 29
 
 
 def test_build_manifest_codex_has_skills_and_docs_but_no_commands() -> None:
-    """Codex: skills (14) + docs (1), no slash commands and no rules extra."""
+    """Codex: skills (15) + docs (1), no slash commands and no rules extra."""
     manifest = build_manifest(get_profile("codex"))
     template_names = [name for name, _ in manifest]
     assert not any(name.startswith("commands/") for name in template_names)
-    assert sum(name.startswith("skills/") for name in template_names) == 14
+    assert sum(name.startswith("skills/") for name in template_names) == 15
     assert "docs/issue-workflow.md.j2" in template_names
     # No .mdc / CLAUDE.md rules extra for Codex.
     assert not any(name.startswith("rules/") for name in template_names)
-    assert len(manifest) == 15
+    assert len(manifest) == 16
 
 
 def test_build_manifest_opencode_uses_singular_command_dir() -> None:
@@ -154,6 +154,7 @@ def test_manifest_has_expected_commands_and_skills() -> None:
         "issue-cleanup",
         "issue-yolo",
         "issue-fix",
+        "issue-status",
         "graphify",
     ):
         assert f"commands/{command}.md.j2" in template_names
@@ -169,6 +170,7 @@ def test_manifest_has_expected_commands_and_skills() -> None:
         "issueflow_issue_cleanup",
         "issueflow_issue_yolo",
         "issueflow_issue_fix",
+        "issueflow_issue_status",
         "issueflow_version_bump",
         "issueflow_history_update",
         "issueflow_graphify",

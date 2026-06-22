@@ -386,6 +386,27 @@ def test_init_creates_graphify_command_and_skill(tmp_path: Path) -> None:
     assert "disable-model-invocation: true" in skill_content
 
 
+def test_init_creates_status_command_and_skill(tmp_path: Path) -> None:
+    """The /issue-status slash command and matching skill must be scaffolded."""
+    run_init(tmp_path)
+
+    status_cmd = tmp_path / ".cursor" / "commands" / "issue-status.md"
+    status_skill = (
+        tmp_path / ".cursor" / "skills" / "issueflow-issue-status" / "SKILL.md"
+    )
+    assert status_cmd.is_file()
+    assert status_skill.is_file()
+
+    cmd_content = status_cmd.read_text(encoding="utf-8")
+    assert "/issue-status" in cmd_content
+    assert "read-only" in cmd_content.lower()
+    assert "off-path" in cmd_content.lower()
+
+    skill_content = status_skill.read_text(encoding="utf-8")
+    assert "name: issueflow-issue-status" in skill_content
+    assert "disable-model-invocation: true" in skill_content
+
+
 def test_init_creates_issue_pick_command_and_skill(tmp_path: Path) -> None:
     """The /issue-pick front-door command and matching skill must be scaffolded."""
     run_init(tmp_path)
