@@ -16,6 +16,8 @@ from issue_flow.dependencies import (
 from issue_flow.editors import EditorProfile, resolve_editors
 from issue_flow.graphify import register_with_editor as graphify_register_with_editor
 from issue_flow.templating import (
+    RETIRED_COMMANDS,
+    RETIRED_SKILLS,
     build_manifest,
     render_template,
     resolve_output_path,
@@ -264,6 +266,7 @@ def run_init(
 
     written_files: list[Path] = []
     skipped_files: list[Path] = []
+    pruned_count = 0
     for profile in profiles:
         console.print(f"\n[bold]{profile.name}[/bold] ([cyan]{profile.agent_dir}[/cyan])")
         context = settings.template_context(project_root, profile)
@@ -271,6 +274,7 @@ def run_init(
             project_root, build_manifest(profile), context, force=force
         )
         _ensure_agents_md(project_root, context)
+        pruned_count += _prune_retired_files(project_root, profile)
         written_files.extend(written)
         skipped_files.extend(skipped)
 
@@ -287,16 +291,20 @@ def run_init(
         console.print(
             f"[bold yellow]Skipped {len(skipped_files)} existing file(s).[/bold yellow]"
         )
-    if not written_files and not skipped_files:
+    if pruned_count:
+        console.print(
+            f"[bold yellow]Pruned {pruned_count} retired file(s) from pre-v0.5.0.[/bold yellow]"
+        )
+    if not written_files and not skipped_files and not pruned_count:
         console.print("[bold]Nothing to do.[/bold]")
 
     primary = profiles[0]
     console.print(
-        "\n[dim]Run [bold]/issue-init <number>[/bold] or [bold]/issue-init[/bold] "
+        "\n[dim]Run [bold]/iflow-init <number>[/bold] or [bold]/iflow-init[/bold] "
         "(on a branch like [bold]42-slug[/bold], after confirmation) in your editor "
         "to start tracking a GitHub issue. "
         f"Optional Agent Skills live under [bold]{primary.agent_dir}/skills/[/bold] "
-        "([bold]/issueflow-issue-init[/bold], etc.).[/dim]\n"
+        "([bold]/iflow-init[/bold], etc.).[/dim]\n"
     )
 
 
@@ -344,6 +352,7 @@ def run_update(
     _create_issueflow_dirs(project_root, settings)
 
     written_files: list[Path] = []
+    pruned_count = 0
     for profile in profiles:
         console.print(f"\n[bold]{profile.name}[/bold] ([cyan]{profile.agent_dir}[/cyan])")
         context = settings.template_context(project_root, profile)
@@ -351,6 +360,7 @@ def run_update(
             project_root, build_manifest(profile), context, force=True
         )
         _ensure_agents_md(project_root, context)
+        pruned_count += _prune_retired_files(project_root, profile)
         written_files.extend(written)
 
     console.print()
@@ -361,13 +371,53 @@ def run_update(
         console.print(
             f"[bold green]Refreshed {len(written_files)} file(s).[/bold green]"
         )
-    else:
+    if pruned_count:
+        console.print(
+            f"[bold yellow]Pruned {pruned_count} retired file(s) from pre-v0.5.0.[/bold yellow]"
+        )
+    if not written_files and not pruned_count:
         console.print("[bold]Nothing to write.[/bold]")
 
     console.print(
         "\n[dim]Manifest outputs were overwritten from the installed package. "
         "Issue files under [bold].issueflows/[/bold] were not modified by this command.[/dim]\n"
     )
+
+
+def _prune_retired_files(
+    project_root: Path,
+    profile: EditorProfile,
+) -> int:
+    """Remove pre-v0.5.0 command and skill files after update.
+
+    Returns the count of pruned files/folders for user reporting.
+    """
+    pruned_count = 0
+
+    # Prune retired command files (only if the profile has a commands_dir).
+    if profile.commands_dir:
+        cmd_dir = project_root / profile.agent_dir / profile.commands_dir
+        for old_name in RETIRED_COMMANDS:
+            old_file = cmd_dir / f"{old_name}.md"
+            if old_file.exists():
+                old_file.unlink()
+                relative = old_file.relative_to(project_root)
+                console.print(f"  [yellow]prune[/yellow]  {relative}")
+                pruned_count += 1
+
+    # Prune retired skill folders.
+    skills_dir = project_root / profile.agent_dir / "skills"
+    for old_skill in RETIRED_SKILLS:
+        old_folder = skills_dir / old_skill
+        if old_folder.exists():
+            import shutil
+
+            shutil.rmtree(old_folder)
+            relative = old_folder.relative_to(project_root)
+            console.print(f"  [yellow]prune[/yellow]  {relative}")
+            pruned_count += 1
+
+    return pruned_count
 
 
 def _graphify_postinstall(

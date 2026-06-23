@@ -37,7 +37,7 @@ uv run <script.py>      # run a script with the right environment
 ```bash
 uv run pytest                      # run the test suite
 uv run ruff check src/ tests/      # lint
-uv version --bump <part>           # bump version (used by /issue-close)
+uv version --bump <part>           # bump version (used by /iflow-close)
 ```
 
 ## Project layout
@@ -51,7 +51,7 @@ src/issue_flow/
   templating.py     # Jinja2 rendering helpers
   graphify.py       # optional graphify integration
   templates/        # Jinja2 templates for all scaffolded output
-    commands/         # /issue-* slash commands
+    commands/         # /iflow-* slash commands
     skills/           # Agent Skills
     rules/            # always-on Cursor rule
 tests/              # pytest suite
@@ -85,11 +85,11 @@ This repo follows the same issue-flow workflow it ships. Issue state lives under
 
 Slash-command lifecycle:
 
-1. `/issue-pick` — front door: choose the next issue, branch, init (off-path)
+1. `/iflow-pick` — front door: choose the next issue, branch, init (off-path)
 2. `/iflow` — smart dispatcher to the right linear step
-3. `/issue-init` → `/issue-plan` → `/issue-start` → `/issue-close` → `/issue-cleanup`
-4. `/issue-pause` — park work mid-stream
-5. `/issue-yolo` — full chain for small, low-risk issues
+3. `/iflow-init` → `/iflow-plan` → `/iflow-start` → `/iflow-close` → `/iflow-cleanup`
+4. `/iflow-pause` — park work mid-stream
+5. `/iflow-yolo` — full chain for small, low-risk issues
 
 Keep status files accurate. Use an explicit checkbox in the status file:
 `- [x] Done` when fully resolved, `- [ ] Done` when not.

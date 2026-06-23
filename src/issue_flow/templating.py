@@ -74,6 +74,42 @@ def render_template(template_name: str, context: dict[str, str]) -> str:
 # Slash-command template stems (emitted only for editors with a commands_dir).
 COMMAND_NAMES: list[str] = [
     "iflow",
+    "iflow-pick",
+    "iflow-init",
+    "iflow-plan",
+    "iflow-start",
+    "iflow-pause",
+    "iflow-close",
+    "iflow-cleanup",
+    "iflow-yolo",
+    "iflow-fix",
+    "iflow-status",
+    "iflow-graphify",
+]
+
+# Skill template sub-directories (underscored). Output folder name is the same
+# with underscores swapped for hyphens (``iflow_iflow`` -> ``iflow-iflow``).
+# Skills are the portable core and are emitted for every editor.
+SKILL_DIRS: list[str] = [
+    "iflow_iflow",
+    "iflow_pick",
+    "iflow_init",
+    "iflow_comments",
+    "iflow_plan",
+    "iflow_start",
+    "iflow_pause",
+    "iflow_close",
+    "iflow_cleanup",
+    "iflow_yolo",
+    "iflow_fix",
+    "iflow_status",
+    "iflow_version_bump",
+    "iflow_history_update",
+    "iflow_graphify",
+]
+
+# Retired command names (pre-v0.5.0 rename) to be removed on update.
+RETIRED_COMMANDS: list[str] = [
     "issue-pick",
     "issue-init",
     "issue-plan",
@@ -87,25 +123,23 @@ COMMAND_NAMES: list[str] = [
     "graphify",
 ]
 
-# Skill template sub-directories (underscored). Output folder name is the same
-# with underscores swapped for hyphens (``issueflow_iflow`` -> ``issueflow-iflow``).
-# Skills are the portable core and are emitted for every editor.
-SKILL_DIRS: list[str] = [
-    "issueflow_iflow",
-    "issueflow_issue_pick",
-    "issueflow_issue_init",
-    "issueflow_issue_comments",
-    "issueflow_issue_plan",
-    "issueflow_issue_start",
-    "issueflow_issue_pause",
-    "issueflow_issue_close",
-    "issueflow_issue_cleanup",
-    "issueflow_issue_yolo",
-    "issueflow_issue_fix",
-    "issueflow_issue_status",
-    "issueflow_version_bump",
-    "issueflow_history_update",
-    "issueflow_graphify",
+# Retired skill folder names (pre-v0.5.0 rename) to be removed on update.
+RETIRED_SKILLS: list[str] = [
+    "issueflow-issue-pick",
+    "issueflow-issue-init",
+    "issueflow-issue-comments",
+    "issueflow-issue-plan",
+    "issueflow-issue-start",
+    "issueflow-issue-pause",
+    "issueflow-issue-close",
+    "issueflow-issue-cleanup",
+    "issueflow-issue-yolo",
+    "issueflow-issue-fix",
+    "issueflow-issue-status",
+    "issueflow-version-bump",
+    "issueflow-history-update",
+    "issueflow-graphify",
+    "issueflow-iflow",
 ]
 
 # Editor-neutral human-readable workflow doc, emitted for every editor.
