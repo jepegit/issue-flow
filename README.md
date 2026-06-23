@@ -22,7 +22,7 @@ your-project/
       iflow-init.md          # /iflow-init — fetch a GitHub issue locally
       iflow-plan.md          # /iflow-plan — write issue<N>_plan.md and confirm
       iflow-start.md         # /iflow-start — implement the plan
-      issue-pause.md         # /iflow-pause — park work in 02-partly-solved-issues/
+      iflow-pause.md         # /iflow-pause — park work in 02-partly-solved-issues/
       iflow-close.md         # /iflow-close — test, commit, push, PR
       iflow-cleanup.md       # /iflow-cleanup — post-merge branch hygiene
       iflow-yolo.md          # /iflow-yolo — all-in-one for small, low-risk issues
