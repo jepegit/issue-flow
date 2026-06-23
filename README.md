@@ -17,33 +17,33 @@ your-project/
     03-solved-issues/        # Completed issues archive
   .cursor/
     commands/
-      issue-pick.md          # /issue-pick — choose the next issue, branch, init (front door)
+      iflow-pick.md          # /iflow-pick — choose the next issue, branch, init (front door)
       iflow.md               # /iflow — smart dispatcher (quick start)
-      issue-init.md          # /issue-init — fetch a GitHub issue locally
-      issue-plan.md          # /issue-plan — write issue<N>_plan.md and confirm
-      issue-start.md         # /issue-start — implement the plan
-      issue-pause.md         # /issue-pause — park work in 02-partly-solved-issues/
-      issue-close.md         # /issue-close — test, commit, push, PR
-      issue-cleanup.md       # /issue-cleanup — post-merge branch hygiene
-      issue-yolo.md          # /issue-yolo — all-in-one for small, low-risk issues
-      issue-fix.md           # /issue-fix — interactive iterative-fixes session
-      issue-status.md        # /issue-status — read-only overview of all issues (off-path)
-      graphify.md            # /graphify — rebuild the graphify knowledge graph (optional)
+      iflow-init.md          # /iflow-init — fetch a GitHub issue locally
+      iflow-plan.md          # /iflow-plan — write issue<N>_plan.md and confirm
+      iflow-start.md         # /iflow-start — implement the plan
+      issue-pause.md         # /iflow-pause — park work in 02-partly-solved-issues/
+      iflow-close.md         # /iflow-close — test, commit, push, PR
+      iflow-cleanup.md       # /iflow-cleanup — post-merge branch hygiene
+      iflow-yolo.md          # /iflow-yolo — all-in-one for small, low-risk issues
+      iflow-fix.md           # /iflow-fix — interactive iterative-fixes session
+      iflow-status.md        # /iflow-status — read-only overview of all issues (off-path)
+      iflow-graphify.md            # /iflow-graphify — rebuild the graphify knowledge graph (optional)
     skills/                  # Optional Agent Skills (explicit / @ invoke)
-      issueflow-issue-pick/SKILL.md
-      issueflow-iflow/SKILL.md
-      issueflow-issue-init/SKILL.md
-      issueflow-issue-plan/SKILL.md
-      issueflow-issue-start/SKILL.md
-      issueflow-issue-pause/SKILL.md
-      issueflow-issue-close/SKILL.md
-      issueflow-issue-cleanup/SKILL.md
-      issueflow-issue-yolo/SKILL.md
-      issueflow-issue-fix/SKILL.md
-      issueflow-issue-status/SKILL.md
-      issueflow-version-bump/SKILL.md
-      issueflow-history-update/SKILL.md
-      issueflow-graphify/SKILL.md
+      iflow-pick/SKILL.md
+      iflow-iflow/SKILL.md
+      iflow-init/SKILL.md
+      iflow-plan/SKILL.md
+      iflow-start/SKILL.md
+      iflow-pause/SKILL.md
+      iflow-close/SKILL.md
+      iflow-cleanup/SKILL.md
+      iflow-yolo/SKILL.md
+      iflow-fix/SKILL.md
+      iflow-status/SKILL.md
+      iflow-version-bump/SKILL.md
+      iflow-history-update/SKILL.md
+      iflow-graphify/SKILL.md
     rules/
       issueflow-rules.mdc    # Always-on Cursor rule for the workflow
   AGENTS.md                  # Workflow rules (managed block; shared by all editors)
@@ -55,22 +55,22 @@ The exact `agent_dir` and the per-editor rules file depend on which editor(s) yo
 
 The Cursor slash commands give agents a repeatable flow. The linear path is:
 
-1. `/issue-init 42` — pulls GitHub issue #42 into `.issueflows/01-current-issues/` and archives older issues.
-2. `/issue-plan` — drafts `issue<N>_plan.md` (Goal / Constraints / Approach / Files to touch / Test strategy / Open questions) and stops for your confirmation.
-3. `/issue-start` — reads the confirmed plan and implements it. If no plan file exists, it offers to run `/issue-plan` first, proceed without a plan, or abort.
-4. `/issue-close` — runs tests, optionally bumps version with `uv version --bump`, appends a `HISTORY.md` entry (or promotes `[Unreleased]` to a new release section on a bump), updates status files, commits, pushes, and opens a PR.
-5. `/issue-cleanup` — after the PR merges, switches to the default branch, fast-forwards, prunes, and deletes the merged local branch.
+1. `/iflow-init 42` — pulls GitHub issue #42 into `.issueflows/01-current-issues/` and archives older issues.
+2. `/iflow-plan` — drafts `issue<N>_plan.md` (Goal / Constraints / Approach / Files to touch / Test strategy / Open questions) and stops for your confirmation.
+3. `/iflow-start` — reads the confirmed plan and implements it. If no plan file exists, it offers to run `/iflow-plan` first, proceed without a plan, or abort.
+4. `/iflow-close` — runs tests, optionally bumps version with `uv version --bump`, appends a `HISTORY.md` entry (or promotes `[Unreleased]` to a new release section on a bump), updates status files, commits, pushes, and opens a PR.
+5. `/iflow-cleanup` — after the PR merges, switches to the default branch, fast-forwards, prunes, and deletes the merged local branch.
 
 Plus a few off-path commands:
 
-- `/issue-pick` — **front door**: when you haven't chosen an issue yet, it helps pick one (parked work in `02-partly-solved-issues/` first, else open GitHub issues ranked by milestone, labels, and similarity to recently solved work), creates the `<N>-slug` branch, and runs `/issue-init`. Pass `fix` to create a new general-fixes issue. Off-path; never auto-dispatched.
+- `/iflow-pick` — **front door**: when you haven't chosen an issue yet, it helps pick one (parked work in `02-partly-solved-issues/` first, else open GitHub issues ranked by milestone, labels, and similarity to recently solved work), creates the `<N>-slug` branch, and runs `/iflow-init`. Pass `fix` to create a new general-fixes issue. Off-path; never auto-dispatched.
 - `/iflow` — **quick start**: inspects the current issue's state and dispatches to the right linear step automatically. A branch-derived number (`42-fix-login` → `N=42`) is authoritative, so `/iflow` works from a fresh branch too.
-- `/issue-pause` — park the current issue in `02-partly-solved-issues/` with a **Remaining work** note; optional WIP commit + switch back to the default branch.
-- `/issue-yolo` — all-in-one chain (`init → plan → start → close`) for small, low-risk issues, with up-front safeguards (refuses on the default branch, refuses with dirty unrelated changes, requires passing tests, single consolidated confirm).
-- `/issue-fix` — interactive iterative-fixes session: creates one GitHub issue + long-lived branch, then loops over many small fixes (each gets a short plan, implemented only on confirmation and recorded in `issue<N>_status.md`), ending with `/issue-close`. Coexists with `/issue-pick fix` (the one-shot setup). Off-path; never auto-dispatched.
-- `/issue-status` — **read-only** overview of where every issue stands: the local tracking state (focus / parked / solved) plus open GitHub issues cross-referenced against it. Pass `local` to skip the GitHub query. Changes nothing; off-path; never auto-dispatched.
+- `/iflow-pause` — park the current issue in `02-partly-solved-issues/` with a **Remaining work** note; optional WIP commit + switch back to the default branch.
+- `/iflow-yolo` — all-in-one chain (`init → plan → start → close`) for small, low-risk issues, with up-front safeguards (refuses on the default branch, refuses with dirty unrelated changes, requires passing tests, single consolidated confirm).
+- `/iflow-fix` — interactive iterative-fixes session: creates one GitHub issue + long-lived branch, then loops over many small fixes (each gets a short plan, implemented only on confirmation and recorded in `issue<N>_status.md`), ending with `/iflow-close`. Coexists with `/iflow-pick fix` (the one-shot setup). Off-path; never auto-dispatched.
+- `/iflow-status` — **read-only** overview of where every issue stands: the local tracking state (focus / parked / solved) plus open GitHub issues cross-referenced against it. Pass `local` to skip the GitHub query. Changes nothing; off-path; never auto-dispatched.
 
-The matching **Agent Skills** (under `.cursor/skills/`) carry the same workflows for on-demand use with `/issueflow-issue-pick`, `/issueflow-iflow`, `/issueflow-issue-init`, `/issueflow-issue-plan`, `/issueflow-issue-start`, `/issueflow-issue-pause`, `/issueflow-issue-close`, `/issueflow-issue-cleanup`, `/issueflow-issue-yolo`, `/issueflow-issue-fix`, `/issueflow-issue-status`, `@issueflow-version-bump` when you need only the bump steps, or `@issueflow-history-update` when you need only the changelog update (see [Cursor Agent Skills](https://cursor.com/docs/context/skills)).
+The matching **Agent Skills** (under `.cursor/skills/`) carry the same workflows for on-demand use with `/iflow-pick`, `/iflow-iflow`, `/iflow-init`, `/iflow-plan`, `/iflow-start`, `/iflow-pause`, `/iflow-close`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-status`, `@iflow-version-bump` when you need only the bump steps, or `@iflow-history-update` when you need only the changelog update (see [Cursor Agent Skills](https://cursor.com/docs/context/skills)).
 
 ## Prerequisites
 
@@ -84,8 +84,8 @@ Required:
 - **[Git](https://git-scm.com/downloads)** — used by every slash command for
 branch, fetch, status, commit, and push operations. Almost certainly already
 installed if you're here, but the check covers it for completeness.
-- **[GitHub CLI (`gh`)](https://cli.github.com/)** — used by `/issue-init` to
-fetch issues, by `/issue-close` to open PRs, and by `/issue-cleanup` to check
+- **[GitHub CLI (`gh`)](https://cli.github.com/)** — used by `/iflow-init` to
+fetch issues, by `/iflow-close` to open PRs, and by `/iflow-cleanup` to check
 PR merge status. After installing, run `gh auth login` once to authenticate.
 
 Recommended:
@@ -111,7 +111,7 @@ a TTY (e.g. CI pipelines).
 
 ### Optional: graphify integration
 
-issue-flow has a lightweight integration with [graphify](https://graphify.net)
+issue-flow has a lightweight integration with [graphify](https://iflow-graphify.net)
 (PyPI: `graphifyy`, CLI: `graphify`) — a tool that turns the project into a
 queryable knowledge graph that AI assistants can read instead of grepping
 through files. The integration is **opt-in by installing `graphifyy` as its
@@ -125,7 +125,7 @@ What `issue-flow` does when `graphify` is on PATH:
 the graphify Cursor skill is registered alongside the issue-flow scaffold.
 If graphify is not installed, both commands just print install hints and
 continue — they never block.
-- A new slash command `/graphify` (and matching `/issueflow-graphify` skill) wraps
+- A new slash command `/iflow-graphify` (and matching `/iflow-graphify` skill) wraps
 `issue-flow graphify`. With no extra args it runs `graphify update <project>`
 — AST-only, **no LLM API key required**, so the no-arg case "just works".
 For richer semantic relationships add `extract` (`issue-flow graphify extract`)
@@ -136,8 +136,8 @@ loads `.env` from the project root before invoking graphify — or export it in
 your shell environment. Cursor's own LLM is not available to subprocesses, so
 graphify needs its own backend. Other subcommands (`watch`, `cluster-only`, …)
 pass through too; trailing flags forward verbatim.
-- The scaffolded rules and `/issue-start` mention `graphify-out/GRAPH_REPORT.md`
-as a recommended pre-read when the file exists. `/graphify` is **off-path** —
+- The scaffolded rules and `/iflow-start` mention `graphify-out/GRAPH_REPORT.md`
+as a recommended pre-read when the file exists. `/iflow-graphify` is **off-path** —
 `/iflow` never auto-dispatches to it.
 
 To enable, install graphify as its own standalone tool:
@@ -153,7 +153,7 @@ pip install graphifyy
 > **Why not an `issue-flow[graphify]` extra (or `uv tool install issue-flow --with graphifyy`)?**
 > `uv tool install` only puts the **host package's** entry-point scripts on
 > PATH. An extra (or `--with graphifyy`) pulls graphifyy into issue-flow's
-> venv but leaves the `graphify` CLI invisible to the shell, so `/graphify`
+> venv but leaves the `graphify` CLI invisible to the shell, so `/iflow-graphify`
 > and `graphify cursor install` would still fail. Installing graphify as
 > its own tool puts a real `graphify` shim on PATH and matches how we
 > treat `git` / `gh`.
@@ -189,7 +189,7 @@ cd your-project
 issue-flow init
 ```
 
-That's it. Open the project in Cursor and start with `/iflow` (or step through `/issue-init`, `/issue-plan`, `/issue-start`, `/issue-close`, `/issue-cleanup` explicitly).
+That's it. Open the project in Cursor and start with `/iflow` (or step through `/iflow-init`, `/iflow-plan`, `/iflow-start`, `/iflow-close`, `/iflow-cleanup` explicitly).
 
 ## Usage
 
@@ -276,9 +276,9 @@ top where the tool supports them.
 
 
 Codex CLI removed project-scoped slash commands, so on Codex you invoke the
-mirrored skills (e.g. `issueflow-issue-init`) instead of `/issue-init`. The
+mirrored skills (e.g. `iflow-init`) instead of `/iflow-init`. The
 graphify integration currently registers only with Cursor; other editors still
-get the `/graphify` command/skill but no automatic `graphify cursor install`.
+get the `/iflow-graphify` command/skill but no automatic `graphify cursor install`.
 
 ## Configuration
 
@@ -291,7 +291,7 @@ issue-flow reads a `.env` file from the project root (.via python-dotenv). The f
 | `ISSUEFLOW_EDITOR`       | `cursor`       | Default editor profile when `--editor` is not passed (`cursor`, `claude`, `opencode`, `codex`).                                               |
 | `ISSUEFLOW_AGENT_DIR`    | *(per editor)* | Override the agent/IDE config directory. When unset it is derived from the editor profile (e.g. `.cursor`, `.claude`, `.opencode`, `.codex`). |
 | `ISSUEFLOW_DOCS_DIR`     | `docs`         | Where to write the workflow documentation file.                                                                                               |
-| `ISSUEFLOW_HISTORY_FILE` | `HISTORY.md`   | Changelog file that `/issue-close` updates (set to e.g. `CHANGELOG.md` for different conventions).                                            |
+| `ISSUEFLOW_HISTORY_FILE` | `HISTORY.md`   | Changelog file that `/iflow-close` updates (set to e.g. `CHANGELOG.md` for different conventions).                                            |
 
 Beyond the `ISSUEFLOW_*` settings above, `issue-flow graphify` also reads an LLM
 API key from `.env` when present (`GEMINI_API_KEY`, `ANTHROPIC_API_KEY`,
