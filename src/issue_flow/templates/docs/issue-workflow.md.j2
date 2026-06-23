@@ -6,18 +6,18 @@ This repo uses twelve {{ editor_name }} **slash commands** under `{{ agent_dir }
 
 | Command | File | Role |
 |--------|------|------|
-| `/iflow-pick` | `issue-pick.md` | **Front door.** Help choose the next issue (parked work first, else ranked open GitHub issues), create the branch, and run `/iflow-init`. Off-path; never auto-dispatched. |
+| `/iflow-pick` | `iflow-pick.md` | **Front door.** Help choose the next issue (parked work first, else ranked open GitHub issues), create the branch, and run `/iflow-init`. Off-path; never auto-dispatched. |
 | `/iflow` | `iflow.md` | **Smart dispatcher.** Detect current state and run `/iflow-init`, `/iflow-plan`, `/iflow-start`, or `/iflow-close` automatically. Never auto-dispatches to pick / pause / cleanup / yolo / fix / status / graphify. |
 | `/iflow-init` | `iflow-init.md` | Pull an issue from GitHub into the repo as a local markdown file and tidy older current issues. |
 | `/iflow-plan` | `iflow-plan.md` | Write a structured `issue<N>_plan.md` and get explicit user confirmation before any code is touched. |
 | `/iflow-start` | `iflow-start.md` | Implement the confirmed plan (no planning step of its own any more). |
-| `/iflow-pause` | `issue-pause.md` | Park work safely: update status, move the issue group to `{{ partly_solved_folder }}/`, optional WIP commit and branch switch. |
+| `/iflow-pause` | `iflow-pause.md` | Park work safely: update status, move the issue group to `{{ partly_solved_folder }}/`, optional WIP commit and branch switch. |
 | `/iflow-close` | `iflow-close.md` | Finish: tests, optional semver bump (`uv version --bump …`), `{{ history_file }}` update, issue-folder housekeeping, commit, push, PR. |
-| `/iflow-cleanup` | `issue-cleanup.md` | Post-merge hygiene: switch to default, `git pull --ff-only`, `git fetch --prune`, delete merged local branches (single consolidated confirm). |
-| `/iflow-yolo` | `issue-yolo.md` | All-in-one for small, low-risk issues: chains `init → plan → start → close` with up-front safeguards and a single confirmation. |
-| `/iflow-fix` | `issue-fix.md` | **Off-path.** Interactive iterative-fixes session: create one issue + long-lived branch, then loop over many small fixes (short plan each, recorded in `issue<N>_status.md`), ending with `/iflow-close`. |
-| `/iflow-status` | `issue-status.md` | **Off-path, read-only.** Snapshot of where every issue stands — local tracking state (focus / parked / solved) plus open GitHub issues cross-referenced against it. Changes nothing. |
-| `/iflow-graphify` | `graphify.md` | **Off-path.** Rebuild the [graphify](https://iflow-graphify.net) knowledge graph (`graphify-out/graph.html`, `GRAPH_REPORT.md`, `graph.json`). Wraps `issue-flow graphify` / `graphify`. Optional: only meaningful when `graphifyy` is installed. |
+| `/iflow-cleanup` | `iflow-cleanup.md` | Post-merge hygiene: switch to default, `git pull --ff-only`, `git fetch --prune`, delete merged local branches (single consolidated confirm). |
+| `/iflow-yolo` | `iflow-yolo.md` | All-in-one for small, low-risk issues: chains `init → plan → start → close` with up-front safeguards and a single confirmation. |
+| `/iflow-fix` | `iflow-fix.md` | **Off-path.** Interactive iterative-fixes session: create one issue + long-lived branch, then loop over many small fixes (short plan each, recorded in `issue<N>_status.md`), ending with `/iflow-close`. |
+| `/iflow-status` | `iflow-status.md` | **Off-path, read-only.** Snapshot of where every issue stands — local tracking state (focus / parked / solved) plus open GitHub issues cross-referenced against it. Changes nothing. |
+| `/iflow-graphify` | `iflow-graphify.md` | **Off-path.** Rebuild the [graphify](https://iflow-graphify.net) knowledge graph (`graphify-out/graph.html`, `GRAPH_REPORT.md`, `graph.json`). Wraps `issue-flow graphify` / `graphify`. Optional: only meaningful when `graphifyy` is installed. |
 
 > On tools without project slash commands (e.g. Codex CLI), invoke the mirrored Agent Skills under `{{ agent_dir }}/skills/` instead — for example `iflow-init` in place of `/iflow-init`.
 
@@ -36,7 +36,7 @@ This repo uses twelve {{ editor_name }} **slash commands** under `{{ agent_dir }
 | `iflow-start` | `/iflow-start` | Read the plan, implement from `{{ issueflows_dir }}/{{ current_issues_folder }}/`. |
 | `iflow-pause` | `/iflow-pause` | Update status, move issue group to `{{ partly_solved_folder }}/`, optional WIP commit + branch switch. |
 | `iflow-close` | `/iflow-close` | Tests, optional bump, status checkboxes, move issue docs, commit, push, PR. |
-| `issueflow-issue-cleanup` | `/issueflow-issue-cleanup` | Post-merge cleanup (single consolidated confirm, never `-D`). |
+| `iflow-cleanup` | `/iflow-cleanup` | Post-merge cleanup (single consolidated confirm, never `-D`). |
 | `iflow-yolo` | `/iflow-yolo` | Chain `init → plan → start → close` with safeguards. |
 | `iflow-fix` | `/iflow-fix` | Same flow as `/iflow-fix`: set up an interactive iterative-fixes session, loop over small fixes, finish with `/iflow-close`. Off-path. |
 | `iflow-status` | `/iflow-status` | Same flow as `/iflow-status`: read-only overview of focus / parked / solved issues plus open GitHub issues. Off-path; writes nothing. |

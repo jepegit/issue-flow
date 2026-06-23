@@ -70,7 +70,7 @@ issue-flow reads a `.env` from the project root (python-dotenv):
 | `ISSUEFLOW_DIR` | `.issueflows` | Issue-tracking directory name |
 | `ISSUEFLOW_AGENT_DIR` | `.cursor` | Agent/IDE config directory |
 | `ISSUEFLOW_DOCS_DIR` | `docs` | Where the workflow doc is written |
-| `ISSUEFLOW_HISTORY_FILE` | `HISTORY.md` | Changelog file `/issue-close` updates |
+| `ISSUEFLOW_HISTORY_FILE` | `HISTORY.md` | Changelog file `/iflow-close` updates |
 
 ## Working on issues (this repo's own workflow)
 
@@ -97,7 +97,7 @@ Keep status files accurate. Use an explicit checkbox in the status file:
 ## Conventions & gotchas
 
 - Do issue work on an **issue branch** (`<N>-<short-slug>`), not the default branch.
-- Assume GitHub PRs are **squash-merged**; use `/issue-cleanup` after merge.
+- Assume GitHub PRs are **squash-merged**; use `/iflow-cleanup` after merge.
 - Before planning/implementing, skim `.issueflows/04-designs-and-guides/` for
   relevant docs and follow them.
 - A `graphify-out/` knowledge graph is optional; if present, skim
