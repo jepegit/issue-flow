@@ -105,6 +105,22 @@ Keep status files accurate. Use an explicit checkbox in the status file:
   never auto-run.
 - Only commit when explicitly asked.
 
+## Cursor Cloud specific instructions
+
+- This is a `uv`-managed CLI (Python 3.13, pinned in `.python-version`). `uv` is
+  installed at `~/.local/bin` and added to `~/.bashrc`; `uv sync` provisions the
+  matching interpreter automatically. Standard commands live in the "Common
+  commands" section above (`uv run pytest`, `uv run ruff check src/ tests/`).
+- The "application" is the `issue-flow` CLI, exercised end-to-end by scaffolding
+  a throwaway project: `git init` an empty dir, then
+  `uv run --project /workspace issue-flow init . --skip-dep-check`. Use
+  `--skip-dep-check` in headless/cloud runs to avoid the interactive `git`/`gh`
+  dependency-check prompt.
+- `graphify` is installed as a `uv` tool (`uv tool install graphifyy`), so
+  `graphify update .` works without an LLM key (AST-only). It rewrites the
+  tracked `graphify-out/` tree and leaves untracked `graphify-out/cache/`
+  files — revert/clean those if you did not intend to commit a graph rebuild.
+
 <!-- BEGIN issue-flow (managed: do not edit this block) -->
 # Issue-flow best practices
 
