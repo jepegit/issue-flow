@@ -1,6 +1,6 @@
 # Issue #53 status
 
-- [ ] Done
+- [x] Done
 
 ## Done so far
 
@@ -16,4 +16,4 @@
 
 ## Remaining work
 
-- Run `/iflow-close` to perform final issue-folder housekeeping, mark this issue done, and prepare the final landing state.
+- None.
