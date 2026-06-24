@@ -8,9 +8,12 @@
 - Added the project brief template and create-if-missing init/update behavior.
 - Updated scaffolded rules, commands, skills, workflow docs, and README guidance to reference `this-project.md`.
 - Added regression tests for init/update preservation and template references.
+- Refreshed this repo's dogfood scaffold and graphify knowledge graph.
+- Verified with:
+  - `uv run pytest tests/test_init.py tests/test_update.py tests/test_templating.py`
+  - `uv run pytest`
+  - `uv run ruff check src/ tests/`
 
 ## Remaining work
 
-- Refresh the dogfood scaffold once the project runner is available in this environment.
-- Run graphify update, tests, and lint.
-- Address any verification failures, then mark this issue done during `/iflow-close`.
+- Run `/iflow-close` to perform final issue-folder housekeeping, mark this issue done, and prepare the final landing state.
