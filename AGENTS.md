@@ -240,6 +240,7 @@ If you want, you can put small scripts etc. that you have made and think could b
 
 Long-lived design docs, design decisions, and project "good practices" live under `.issueflows/04-designs-and-guides/`. Unlike the issue folders, content here is **not** tied to a single issue and is **not** archived when an issue closes — it is the project's durable memory.
 
+- **Project brief:** if `.issueflows/04-designs-and-guides/this-project.md` exists, read it early for project-specific context (what the repo is, stack/runtime, how to run/test, conventions, entry points, and known limitations).
 - **Before planning or implementing**, skim `.issueflows/04-designs-and-guides/` for existing docs relevant to the current issue and follow them (cite them in the plan when they influence the approach).
 - **When a non-trivial design decision is made** during `/iflow-plan` or `/iflow-start`, add or update a markdown file here. Keep entries terse: context, the decision, alternatives considered, and a link back to the issue.
 - **Never overwritten by `issue-flow update`.** The folder is recreated if missing, but existing files are left alone.

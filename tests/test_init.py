@@ -99,6 +99,42 @@ def test_init_creates_gitkeep_files(tmp_path: Path) -> None:
         assert gitkeep.is_file(), f"{subdir}/.gitkeep should exist"
 
 
+def test_init_creates_project_brief(tmp_path: Path) -> None:
+    """init should create the durable project brief when missing."""
+    run_init(tmp_path)
+
+    brief = tmp_path / ".issueflows" / "04-designs-and-guides" / "this-project.md"
+    assert brief.is_file()
+    text = brief.read_text(encoding="utf-8")
+    assert "# " in text
+    assert "What this project is" in text
+    assert "How to run / test" in text
+
+
+def test_init_preserves_existing_project_brief(tmp_path: Path) -> None:
+    """Re-running init should not overwrite the hand-editable project brief."""
+    run_init(tmp_path)
+    brief = tmp_path / ".issueflows" / "04-designs-and-guides" / "this-project.md"
+    custom = "# Custom project brief\n\nKeep this content.\n"
+    brief.write_text(custom, encoding="utf-8")
+
+    run_init(tmp_path)
+
+    assert brief.read_text(encoding="utf-8") == custom
+
+
+def test_init_force_preserves_existing_project_brief(tmp_path: Path) -> None:
+    """Even init --force should not clobber the user-owned project brief."""
+    run_init(tmp_path)
+    brief = tmp_path / ".issueflows" / "04-designs-and-guides" / "this-project.md"
+    custom = "# Custom project brief\n\nKeep this content under force.\n"
+    brief.write_text(custom, encoding="utf-8")
+
+    run_init(tmp_path, force=True)
+
+    assert brief.read_text(encoding="utf-8") == custom
+
+
 def test_init_creates_cursor_commands(tmp_path: Path) -> None:
     """Running init should create all three slash-command files."""
     run_init(tmp_path)

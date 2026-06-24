@@ -78,6 +78,32 @@ def test_update_preserves_designs_folder_contents(tmp_path: Path) -> None:
     assert design_doc.read_text(encoding="utf-8") == body
 
 
+def test_update_creates_project_brief_when_missing(tmp_path: Path) -> None:
+    """update should recreate the starter project brief if it is missing."""
+    run_init(tmp_path)
+    brief = tmp_path / ".issueflows" / "04-designs-and-guides" / "this-project.md"
+    brief.unlink()
+
+    run_update(tmp_path)
+
+    assert brief.is_file()
+    text = brief.read_text(encoding="utf-8")
+    assert "What this project is" in text
+    assert "How to run / test" in text
+
+
+def test_update_preserves_project_brief(tmp_path: Path) -> None:
+    """update must not overwrite the user-owned project brief."""
+    run_init(tmp_path)
+    brief = tmp_path / ".issueflows" / "04-designs-and-guides" / "this-project.md"
+    custom = "# Custom project brief\n\nDo not overwrite me.\n"
+    brief.write_text(custom, encoding="utf-8")
+
+    run_update(tmp_path)
+
+    assert brief.read_text(encoding="utf-8") == custom
+
+
 _AGENTS_BEGIN = "<!-- BEGIN issue-flow (managed: do not edit this block) -->"
 _AGENTS_END = "<!-- END issue-flow (managed) -->"
 
