@@ -45,6 +45,7 @@ _AGENTS_BLOCK_RE = re.compile(
     re.escape(_AGENTS_BEGIN) + ".*?" + re.escape(_AGENTS_END),
     re.DOTALL,
 )
+_PROJECT_BRIEF_FILE = "this-project.md"
 
 
 def _dotenv_documents_key(content: str, key: str) -> bool:
@@ -183,6 +184,34 @@ def _ensure_agents_md(project_root: Path, context: dict[str, str]) -> None:
     )
 
 
+def _ensure_project_brief(
+    project_root: Path,
+    settings: Settings,
+    context: dict[str, str],
+) -> None:
+    """Create the durable project brief when it is missing.
+
+    The brief lives in ``04-designs-and-guides`` and is intended for users to edit
+    freely, so it is deliberately outside the manifest that ``run_update``
+    refreshes.
+    """
+    relative = (
+        Path(settings.issueflows_dir) / settings.designs_folder / _PROJECT_BRIEF_FILE
+    )
+    path = project_root / relative
+
+    if path.exists():
+        console.print(
+            f"  [dim]skip[/dim]  {relative}  (project brief already exists)"
+        )
+        return
+
+    rendered = render_template("docs/this-project.md.j2", context)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(rendered, encoding="utf-8")
+    console.print(f"  [green]write[/green] {relative}")
+
+
 def _already_initialized(
     project_root: Path,
     settings: Settings,
@@ -263,6 +292,11 @@ def run_init(
         )
 
     _create_issueflow_dirs(project_root, settings)
+    _ensure_project_brief(
+        project_root,
+        settings,
+        settings.template_context(project_root, profiles[0]),
+    )
 
     written_files: list[Path] = []
     skipped_files: list[Path] = []
@@ -350,6 +384,11 @@ def run_update(
         raise typer.Exit(code=1)
 
     _create_issueflow_dirs(project_root, settings)
+    _ensure_project_brief(
+        project_root,
+        settings,
+        settings.template_context(project_root, profiles[0]),
+    )
 
     written_files: list[Path] = []
     pruned_count = 0

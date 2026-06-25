@@ -50,6 +50,15 @@ def test_template_substitution() -> None:
     assert "{{ issueflows_dir }}" not in rendered
 
 
+def test_project_brief_template_renders() -> None:
+    """The durable project brief starter template should render with placeholders."""
+    rendered = render_template("docs/this-project.md.j2", _default_context())
+    assert "# test-project" in rendered
+    assert "What this project is" in rendered
+    assert "How to run / test" in rendered
+    assert "Entry points" in rendered
+
+
 def test_resolve_output_path() -> None:
     context = {"agent_dir": ".cursor", "docs_dir": "docs"}
     path = resolve_output_path("{agent_dir}/commands/iflow-init.md", context)
@@ -250,6 +259,23 @@ def test_issue_plan_includes_prior_art_discovery() -> None:
     skill = render_template("skills/iflow_plan/SKILL.md.j2", _default_context())
     assert "Prior-art discovery" in skill or "Prior art" in skill
     assert "### Prior art" in skill
+
+
+def test_templates_reference_project_brief() -> None:
+    """Rules, plan, start, and docs should tell agents about this-project.md."""
+    templates = (
+        "rules/issueflow-rules.mdc.j2",
+        "rules/AGENTS.md.j2",
+        "rules/CLAUDE.md.j2",
+        "commands/iflow-plan.md.j2",
+        "commands/iflow-start.md.j2",
+        "skills/iflow_plan/SKILL.md.j2",
+        "skills/iflow_start/SKILL.md.j2",
+        "docs/issue-workflow.md.j2",
+    )
+    for template_name in templates:
+        rendered = render_template(template_name, _default_context())
+        assert "this-project.md" in rendered, template_name
 
 
 def test_issue_start_reads_prior_art_from_plan() -> None:

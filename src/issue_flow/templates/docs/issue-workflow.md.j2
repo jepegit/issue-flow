@@ -4,6 +4,8 @@ This repo uses twelve {{ editor_name }} **slash commands** under `{{ agent_dir }
 
 **Quick start: just run `/iflow`.** It inspects the state of the focus issue and dispatches to the right linear-flow command (`/iflow-init`, `/iflow-plan`, `/iflow-start`, or `/iflow-close`) — so you don't have to remember which step is next. Haven't chosen an issue yet? Start with **`/iflow-pick`**.
 
+`issue-flow init` also creates a durable project brief at `{{ issueflows_dir }}/{{ designs_folder }}/this-project.md` when it is missing. Edit it by hand with project-specific context; `issue-flow update` and `issue-flow init --force` leave existing content untouched.
+
 | Command | File | Role |
 |--------|------|------|
 | `/iflow-pick` | `iflow-pick.md` | **Front door.** Help choose the next issue (parked work first, else ranked open GitHub issues), create the branch, and run `/iflow-init`. Off-path; never auto-dispatched. |
@@ -129,7 +131,7 @@ All the commands that touch git also run a short **branch-status preflight**: `g
 
 1. Finds the focus issue in `{{ issueflows_dir }}/{{ current_issues_folder }}/`.
 2. Runs the branch-status preflight (non-destructive).
-3. Reads the original issue and any prior status; consults `{{ issueflows_dir }}/{{ designs_folder }}/` when relevant.
+3. Reads the original issue and any prior status; reads `{{ issueflows_dir }}/{{ designs_folder }}/this-project.md` when present and consults other files under `{{ issueflows_dir }}/{{ designs_folder }}/` when relevant.
 4. **Prior-art discovery** — if `graphify-out/GRAPH_REPORT.md` exists, skim God Nodes / Communities / Suggested Questions for the affected area; grep for adjacent helpers; record findings under **`### Prior art`** in **`## Constraints`** (or `- None found (grep + graph checked).`). Strong overlaps become **Open questions**.
 5. Explores read-only, then writes **`issue<N>_plan.md`** with sections: **Goal**, **Constraints** (including **Prior art**), **Approach**, **Files to touch**, **Test strategy**, **Open questions**.
 6. Runs a scope check — if the change is broad, proposes splitting into smaller issues or phases.
@@ -151,7 +153,7 @@ All the commands that touch git also run a short **branch-status preflight**: `g
 2. **Branch status preflight** — `git fetch --prune`, report current branch and ahead/behind vs the default branch, warn if the current branch looks stale or if you are still on the default branch.
 3. **Sweeps stale current issues** — moves every `issue<n>_*` group **other than the focus issue** to `{{ issueflows_dir }}/{{ solved_folder }}/` (done) or `{{ issueflows_dir }}/{{ partly_solved_folder }}/` (not done).
 4. **Plan precondition** — reads `issue<N>_plan.md`. If missing, asks the user to choose: run `/iflow-plan` now, proceed without a plan (note in status file), or abort. Does **not** hard-stop.
-5. **Implements** the plan. Updates the status markdown as work progresses.
+5. **Implements** the plan, using `{{ issueflows_dir }}/{{ designs_folder }}/this-project.md` and relevant design docs for project context when present. Updates the status markdown as work progresses.
 
 **Result:** Implementation aligned with the confirmed plan and project rules (tests with `uv run`, dependency management with `uv`, etc.).
 

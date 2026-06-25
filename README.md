@@ -15,6 +15,8 @@ your-project/
     01-current-issues/       # Active issue markdown files
     02-partly-solved-issues/ # Parked / in-progress issues
     03-solved-issues/        # Completed issues archive
+    04-designs-and-guides/   # Durable project context and decisions
+      this-project.md        # Hand-editable project brief (created if missing)
   .cursor/
     commands/
       iflow-pick.md          # /iflow-pick — choose the next issue, branch, init (front door)
@@ -51,7 +53,7 @@ your-project/
     issue-workflow.md        # Human-readable overview of the workflow
 ```
 
-The exact `agent_dir` and the per-editor rules file depend on which editor(s) you scaffold for — see [Editor support](#editor-support). `AGENTS.md` (written as a non-destructive managed block) and `docs/issue-workflow.md` are shared by every editor.
+The exact `agent_dir` and the per-editor rules file depend on which editor(s) you scaffold for — see [Editor support](#editor-support). `AGENTS.md` (written as a non-destructive managed block), `.issueflows/04-designs-and-guides/this-project.md` (a hand-editable project brief created only when missing), and `docs/issue-workflow.md` are shared by every editor.
 
 The Cursor slash commands give agents a repeatable flow. The linear path is:
 
@@ -210,7 +212,7 @@ issue-flow graphify [-C PROJECT_DIR] [...graphify subcommand + args]
 | `--editor`, `-e`   | AI coding tool(s) to scaffold for: `cursor` (default), `claude`, `opencode`, `codex`, or `all`. Repeatable (`-e cursor -e claude`). See [Editor support](#editor-support). |
 
 
-Running `init` again without `--force` is safe: generated scaffold files that already exist are skipped, and **issue markdown under `.issueflows/` is never touched** by `init` or `update`. When the CLI detects an existing scaffold, it reminds you about `update` and `--force`.
+Running `init` again without `--force` is safe: generated scaffold files that already exist are skipped, and **issue markdown under `.issueflows/` is never touched** by `init` or `update`. The project brief at `.issueflows/04-designs-and-guides/this-project.md` is also user-owned: `init` creates it only when missing, even with `--force`. When the CLI detects an existing scaffold, it reminds you about `update` and `--force`.
 
 ### `issue-flow update`
 
@@ -222,7 +224,7 @@ Running `init` again without `--force` is safe: generated scaffold files that al
 | `--editor`, `-e`   | AI coding tool(s) to refresh for: `cursor` (default), `claude`, `opencode`, `codex`, or `all`. Repeatable. See [Editor support](#editor-support). |
 
 
-Use `update` after upgrading the **issue-flow** package to refresh the packaged slash commands, rules file(s), and `docs/issue-workflow.md` from the version you have installed. This **overwrites** those generated files (unlike a plain second `init`). It still does not modify arbitrary files under `.issueflows/` (for example your `issue*_original.md` / `issue*_status.md` files), and it creates any **new** `.issueflows/` subdirectories required by the current package.
+Use `update` after upgrading the **issue-flow** package to refresh the packaged slash commands, rules file(s), and `docs/issue-workflow.md` from the version you have installed. This **overwrites** those generated files (unlike a plain second `init`). It still does not modify arbitrary files under `.issueflows/` (for example your `issue*_original.md` / `issue*_status.md` files), and it creates any **new** `.issueflows/` subdirectories required by the current package. If `.issueflows/04-designs-and-guides/this-project.md` is missing, `update` recreates the starter brief; if it exists, user content is preserved.
 
 ### `issue-flow graphify`
 
