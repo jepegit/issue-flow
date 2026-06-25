@@ -26,7 +26,7 @@ This repo uses {{ editor_name }} **Agent Skills** under `{{ agent_dir }}/skills/
 | `/iflow-graphify` | `{% if commands_supported %}iflow-graphify.md{% else %}iflow-graphify/SKILL.md{% endif %}` | **Off-path.** Rebuild the [graphify](https://iflow-graphify.net) knowledge graph (`graphify-out/graph.html`, `GRAPH_REPORT.md`, `graph.json`). Wraps `issue-flow graphify` / `graphify`. Optional: only meaningful when `graphifyy` is installed. |
 
 {% if commands_supported -%}
-> On tools without project slash commands (e.g. Cursor and Codex), invoke the mirrored Agent Skills under `{{ agent_dir }}/skills/` instead — for example `iflow-init` in place of `/iflow-init`.
+> On skills-first profiles, invoke the mirrored Agent Skills under that editor's `skills/` directory instead — for example `iflow-init` in place of `/iflow-init`.
 {% endif %}
 
 ---

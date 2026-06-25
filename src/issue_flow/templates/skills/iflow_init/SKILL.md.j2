@@ -25,7 +25,7 @@ Follow this skill when the user wants to **capture a GitHub issue locally**.{% i
 2. **Resolve the reference**
    - **URL** — Parse `owner`, `repo`, issue number.
    - **Number only** — Use `git remote get-url origin` (HTTPS or SSH) to derive `owner/repo`. If parsing fails, ask for a full URL or `owner/repo`.
-   - **Empty / whitespace** — Run `git branch --show-current`. If empty or `main`/`master` (case-insensitive), **stop** and ask for a number, URL, or `owner/repo/#n`. If the branch matches `^\d+-.+`, ask once whether to use that leading issue number; do not proceed without a clear yes/no.
+   - **Empty / whitespace** — Run `git branch --show-current`. If empty or `main`/`master` (case-insensitive), **stop** and ask for a number, URL, or `owner/repo/#n`. If the branch is an **issue-style branch** matching `^\d+-.+`, ask: "You have not provided an issue reference. Should I use issue #NN from the current branch `<branchname>`?" Do not proceed without a clear yes/no.
    - **Archived-issue guard** — Before writing, check `{{ issueflows_dir }}/{{ partly_solved_folder }}/` and `{{ issueflows_dir }}/{{ solved_folder }}/` for existing `issue<n>_*` files. If the issue is already archived, warn and require a second explicit confirmation before re-opening it in `{{ issueflows_dir }}/{{ current_issues_folder }}/`.
 
 3. **Fetch** — `gh issue view <n> --repo owner/repo --json title,body,url,number,comments`. The `comments` field returns an array of `{author.login, body, createdAt, ...}` that step 3a consumes. On failure, report the error and suggest `gh auth login`. After confirming `owner/repo`, change the chat/agent tab title to reflect the issue topic on the form "Issue <issue number> <short description of issue>" (e.g. "Issue 74 cell info").
