@@ -18,22 +18,9 @@ your-project/
     04-designs-and-guides/   # Durable project context and decisions
       this-project.md        # Hand-editable project brief (created if missing)
   .cursor/
-    commands/
-      iflow-pick.md          # /iflow-pick — choose the next issue, branch, init (front door)
-      iflow.md               # /iflow — smart dispatcher (quick start)
-      iflow-init.md          # /iflow-init — fetch a GitHub issue locally
-      iflow-plan.md          # /iflow-plan — write issue<N>_plan.md and confirm
-      iflow-start.md         # /iflow-start — implement the plan
-      iflow-pause.md         # /iflow-pause — park work in 02-partly-solved-issues/
-      iflow-close.md         # /iflow-close — test, commit, push, PR
-      iflow-cleanup.md       # /iflow-cleanup — post-merge branch hygiene
-      iflow-yolo.md          # /iflow-yolo — all-in-one for small, low-risk issues
-      iflow-fix.md           # /iflow-fix — interactive iterative-fixes session
-      iflow-status.md        # /iflow-status — read-only overview of all issues (off-path)
-      iflow-graphify.md            # /iflow-graphify — rebuild the graphify knowledge graph (optional)
-    skills/                  # Optional Agent Skills (explicit / @ invoke)
+    skills/                  # Agent Skills (explicit / @ invoke; shown in slash menu)
       iflow-pick/SKILL.md
-      iflow-iflow/SKILL.md
+      iflow/SKILL.md
       iflow-init/SKILL.md
       iflow-plan/SKILL.md
       iflow-start/SKILL.md
@@ -55,7 +42,7 @@ your-project/
 
 The exact `agent_dir` and the per-editor rules file depend on which editor(s) you scaffold for — see [Editor support](#editor-support). `AGENTS.md` (written as a non-destructive managed block), `.issueflows/04-designs-and-guides/this-project.md` (a hand-editable project brief created only when missing), and `docs/issue-workflow.md` are shared by every editor.
 
-The Cursor slash commands give agents a repeatable flow. The linear path is:
+The Cursor Agent Skills give agents a repeatable flow and appear in the slash menu. The linear path is:
 
 1. `/iflow-init 42` — pulls GitHub issue #42 into `.issueflows/01-current-issues/` and archives older issues.
 2. `/iflow-plan` — drafts `issue<N>_plan.md` (Goal / Constraints / Approach / Files to touch / Test strategy / Open questions) and stops for your confirmation.
@@ -72,13 +59,13 @@ Plus a few off-path commands:
 - `/iflow-fix` — interactive iterative-fixes session: creates one GitHub issue + long-lived branch, then loops over many small fixes (each gets a short plan, implemented only on confirmation and recorded in `issue<N>_status.md`), ending with `/iflow-close`. Coexists with `/iflow-pick fix` (the one-shot setup). Off-path; never auto-dispatched.
 - `/iflow-status` — **read-only** overview of where every issue stands: the local tracking state (focus / parked / solved) plus open GitHub issues cross-referenced against it. Pass `local` to skip the GitHub query. Changes nothing; off-path; never auto-dispatched.
 
-The matching **Agent Skills** (under `.cursor/skills/`) carry the same workflows for on-demand use with `/iflow-pick`, `/iflow-iflow`, `/iflow-init`, `/iflow-plan`, `/iflow-start`, `/iflow-pause`, `/iflow-close`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-status`, `@iflow-version-bump` when you need only the bump steps, or `@iflow-history-update` when you need only the changelog update (see [Cursor Agent Skills](https://cursor.com/docs/context/skills)).
+The **Agent Skills** under `.cursor/skills/` carry the workflows for on-demand use with `/iflow-pick`, `/iflow`, `/iflow-init`, `/iflow-plan`, `/iflow-start`, `/iflow-pause`, `/iflow-close`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-status`, `@iflow-version-bump` when you need only the bump steps, or `@iflow-history-update` when you need only the changelog update (see [Cursor Agent Skills](https://cursor.com/help/customization/skills)).
 
 ## Prerequisites
 
-issue-flow itself is a small Python CLI, but the **scaffolded slash commands
+issue-flow itself is a small Python CLI, but the **scaffolded commands and skills
 it writes into your project shell out to a few external tools**. If they are
-missing, the slash commands will fail at runtime — so `issue-flow init` now
+missing, the workflows will fail at runtime — so `issue-flow init` now
 checks for them up front and prints install hints before it does anything.
 
 Required:
@@ -127,7 +114,8 @@ What `issue-flow` does when `graphify` is on PATH:
 the graphify Cursor skill is registered alongside the issue-flow scaffold.
 If graphify is not installed, both commands just print install hints and
 continue — they never block.
-- A new slash command `/iflow-graphify` (and matching `/iflow-graphify` skill) wraps
+- A new `/iflow-graphify` entry point (skill on Cursor/Codex, command + skill
+for command-emitting editors) wraps
 `issue-flow graphify`. With no extra args it runs `graphify update <project>`
 — AST-only, **no LLM API key required**, so the no-arg case "just works".
 For richer semantic relationships add `extract` (`issue-flow graphify extract`)
@@ -224,7 +212,7 @@ Running `init` again without `--force` is safe: generated scaffold files that al
 | `--editor`, `-e`   | AI coding tool(s) to refresh for: `cursor` (default), `claude`, `opencode`, `codex`, or `all`. Repeatable. See [Editor support](#editor-support). |
 
 
-Use `update` after upgrading the **issue-flow** package to refresh the packaged slash commands, rules file(s), and `docs/issue-workflow.md` from the version you have installed. This **overwrites** those generated files (unlike a plain second `init`). It still does not modify arbitrary files under `.issueflows/` (for example your `issue*_original.md` / `issue*_status.md` files), and it creates any **new** `.issueflows/` subdirectories required by the current package. If `.issueflows/04-designs-and-guides/this-project.md` is missing, `update` recreates the starter brief; if it exists, user content is preserved.
+Use `update` after upgrading the **issue-flow** package to refresh the packaged skills, command files where supported, rules file(s), and `docs/issue-workflow.md` from the version you have installed. This **overwrites** those generated files (unlike a plain second `init`) and prunes retired generated command/skill files. It still does not modify arbitrary files under `.issueflows/` (for example your `issue*_original.md` / `issue*_status.md` files), and it creates any **new** `.issueflows/` subdirectories required by the current package. If `.issueflows/04-designs-and-guides/this-project.md` is missing, `update` recreates the starter brief; if it exists, user content is preserved.
 
 ### `issue-flow graphify`
 
@@ -262,7 +250,7 @@ issue-flow init --editor all             # every supported editor
 ```
 
 **Agent Skills** (`<agent_dir>/skills/<name>/SKILL.md`) are the portable core —
-every editor gets the full set. `**AGENTS.md`** is the convergent rules file and
+every editor gets the full set. **`AGENTS.md`** is the convergent rules file and
 is written for every editor as a non-destructive *managed block* (issue-flow
 only ever owns the content between its markers, so a hand-maintained `AGENTS.md`
 is preserved). Slash commands and an editor-specific rules file are layered on
@@ -271,16 +259,19 @@ top where the tool supports them.
 
 | Editor      | `agent_dir`  | Slash commands | Skills | Extra rules file                    | `AGENTS.md` | graphify auto-register |
 | ----------- | ------------ | -------------- | ------ | ----------------------------------- | ----------- | ---------------------- |
-| Cursor      | `.cursor/`   | `commands/`    | yes    | `.cursor/rules/issueflow-rules.mdc` | yes         | yes                    |
+| Cursor      | `.cursor/`   | — (use skills) | yes    | `.cursor/rules/issueflow-rules.mdc` | yes         | yes                    |
 | Claude Code | `.claude/`   | `commands/`    | yes    | `CLAUDE.md`                         | yes         | no                     |
 | opencode    | `.opencode/` | `command/`     | yes    | —                                   | yes         | no                     |
 | Codex       | `.codex/`    | — (use skills) | yes    | —                                   | yes         | no                     |
 
 
-Codex CLI removed project-scoped slash commands, so on Codex you invoke the
-mirrored skills (e.g. `iflow-init`) instead of `/iflow-init`. The
+Cursor and Codex use skills as their primary slash-menu surface, so you invoke
+the mirrored skills (e.g. `/iflow-init`) instead of separate files under
+`commands/`. `issue-flow update` removes known generated `.cursor/commands/`
+files during the Cursor migration but preserves unrelated user commands. The
 graphify integration currently registers only with Cursor; other editors still
-get the `/iflow-graphify` command/skill but no automatic `graphify cursor install`.
+get the `/iflow-graphify` command/skill where applicable but no automatic
+`graphify cursor install`.
 
 ## Configuration
 

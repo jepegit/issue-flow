@@ -1,5 +1,5 @@
 ---
-name: iflow-iflow
+name: iflow
 description: >-
   Run the /iflow smart dispatcher: detect where the focus issue stands in the
   lifecycle (via files in {{ issueflows_dir }}/{{ current_issues_folder }}/ and
@@ -11,7 +11,7 @@ disable-model-invocation: true
 
 # issue-flow — iflow smart dispatcher (`/iflow`)
 
-Follow this skill when the user wants to run **the right next step** in the issue-flow lifecycle without remembering which specific command applies. Matches `{{ agent_dir }}/commands/iflow.md`.
+Follow this skill when the user wants to run **the right next step** in the issue-flow lifecycle without remembering which specific command applies.{% if commands_supported %} Matches `{{ agent_dir }}/{{ commands_dir }}/iflow.md`.{% endif %}
 
 ## When to use
 

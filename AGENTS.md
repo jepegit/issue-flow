@@ -6,8 +6,9 @@ Guidance for AI agents working in the **issue-flow** repository.
 
 **issue-flow** is a small Python CLI that scaffolds a lightweight, agent-friendly
 issue-tracking workflow into other projects. Running `issue-flow init` writes a
-`.issueflows/` tracking tree plus Cursor slash commands, skills, and rules so that
-AI agents can pick up GitHub issues, plan work, and land PRs in a consistent way.
+`.issueflows/` tracking tree plus editor skills, rules, and command files where
+the selected editor still needs them, so AI agents can pick up GitHub issues,
+plan work, and land PRs in a consistent way.
 
 This repo *is* the tool itself — not a project that has been scaffolded by it.
 

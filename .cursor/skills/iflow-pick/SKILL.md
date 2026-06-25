@@ -12,7 +12,7 @@ disable-model-invocation: true
 
 # issue-flow — pick next issue (`/iflow-pick`)
 
-Follow this skill when the user wants help **choosing what to work on next** and getting set up to start. Matches `.cursor/commands/iflow-pick.md`.
+Follow this skill when the user wants help **choosing what to work on next** and getting set up to start.
 
 ## When to use
 
@@ -44,7 +44,7 @@ Do **not** use this skill from `/iflow`, `/iflow-start`, or `/iflow-close`. `/if
 
 1. **Require a clean tree** (`git status --porcelain`). If dirty, **stop** and ask the user to commit/stash.
 2. **Branch off the default** — switch to default, fast-forward, then `git switch -c <N>-<short-slug>` (GitHub numeric convention). Confirm a non-obvious slug.
-3. **Run `/iflow-init`** for the now-known `<N>` by following `.cursor/commands/iflow-init.md` (or the `iflow-init` skill). Do not duplicate its fetch/archive logic.
+3. **Run `/iflow-init`** for the now-known `<N>` by following the `iflow-init` skill. Do not duplicate its fetch/archive logic.
 
 ### Phase 3 — hand off
 

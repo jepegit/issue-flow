@@ -1,38 +1,38 @@
-# Cursor issue workflow (slash commands)
+# Cursor issue workflow (Agent Skills)
 
-This repo uses twelve Cursor **slash commands** under `.cursor/commands/` that line up with how we track GitHub issues in `.issueflows/01-current-issues/`.
+This repo uses Cursor **Agent Skills** under `.cursor/skills/` that line up with how we track GitHub issues in `.issueflows/01-current-issues/`. Skills appear in the slash menu, so the normal entry points are still `/iflow`, `/iflow-plan`, and friends.
 
-**Quick start: just run `/iflow`.** It inspects the state of the focus issue and dispatches to the right linear-flow command (`/iflow-init`, `/iflow-plan`, `/iflow-start`, or `/iflow-close`) — so you don't have to remember which step is next. Haven't chosen an issue yet? Start with **`/iflow-pick`**.
+**Quick start: just run `/iflow`.** It inspects the state of the focus issue and dispatches to the right linear-flow skill (`/iflow-init`, `/iflow-plan`, `/iflow-start`, or `/iflow-close`) — so you don't have to remember which step is next. Haven't chosen an issue yet? Start with **`/iflow-pick`**.
 
 `issue-flow init` also creates a durable project brief at `.issueflows/04-designs-and-guides/this-project.md` when it is missing. Edit it by hand with project-specific context; `issue-flow update` and `issue-flow init --force` leave existing content untouched.
 
-| Command | File | Role |
+| Entry point | File | Role |
 |--------|------|------|
-| `/iflow-pick` | `iflow-pick.md` | **Front door.** Help choose the next issue (parked work first, else ranked open GitHub issues), create the branch, and run `/iflow-init`. Off-path; never auto-dispatched. |
-| `/iflow` | `iflow.md` | **Smart dispatcher.** Detect current state and run `/iflow-init`, `/iflow-plan`, `/iflow-start`, or `/iflow-close` automatically. Never auto-dispatches to pick / pause / cleanup / yolo / fix / status / graphify. |
-| `/iflow-init` | `iflow-init.md` | Pull an issue from GitHub into the repo as a local markdown file and tidy older current issues. |
-| `/iflow-plan` | `iflow-plan.md` | Write a structured `issue<N>_plan.md` and get explicit user confirmation before any code is touched. |
-| `/iflow-start` | `iflow-start.md` | Implement the confirmed plan (no planning step of its own any more). |
-| `/iflow-pause` | `iflow-pause.md` | Park work safely: update status, move the issue group to `02-partly-solved-issues/`, optional WIP commit and branch switch. |
-| `/iflow-close` | `iflow-close.md` | Finish: tests, optional semver bump (`uv version --bump …`), `HISTORY.md` update, issue-folder housekeeping, commit, push, PR. |
-| `/iflow-cleanup` | `iflow-cleanup.md` | Post-merge hygiene: switch to default, `git pull --ff-only`, `git fetch --prune`, delete merged local branches (single consolidated confirm). |
-| `/iflow-yolo` | `iflow-yolo.md` | All-in-one for small, low-risk issues: chains `init → plan → start → close` with up-front safeguards and a single confirmation. |
-| `/iflow-fix` | `iflow-fix.md` | **Off-path.** Interactive iterative-fixes session: create one issue + long-lived branch, then loop over many small fixes (short plan each, recorded in `issue<N>_status.md`), ending with `/iflow-close`. |
-| `/iflow-status` | `iflow-status.md` | **Off-path, read-only.** Snapshot of where every issue stands — local tracking state (focus / parked / solved) plus open GitHub issues cross-referenced against it. Changes nothing. |
-| `/iflow-graphify` | `iflow-graphify.md` | **Off-path.** Rebuild the [graphify](https://iflow-graphify.net) knowledge graph (`graphify-out/graph.html`, `GRAPH_REPORT.md`, `graph.json`). Wraps `issue-flow graphify` / `graphify`. Optional: only meaningful when `graphifyy` is installed. |
+| `/iflow-pick` | `iflow-pick/SKILL.md` | **Front door.** Help choose the next issue (parked work first, else ranked open GitHub issues), create the branch, and run `/iflow-init`. Off-path; never auto-dispatched. |
+| `/iflow` | `iflow/SKILL.md` | **Smart dispatcher.** Detect current state and run `/iflow-init`, `/iflow-plan`, `/iflow-start`, or `/iflow-close` automatically. Never auto-dispatches to pick / pause / cleanup / yolo / fix / status / graphify. |
+| `/iflow-init` | `iflow-init/SKILL.md` | Pull an issue from GitHub into the repo as a local markdown file and tidy older current issues. |
+| `/iflow-plan` | `iflow-plan/SKILL.md` | Write a structured `issue<N>_plan.md` and get explicit user confirmation before any code is touched. |
+| `/iflow-start` | `iflow-start/SKILL.md` | Implement the confirmed plan (no planning step of its own any more). |
+| `/iflow-pause` | `iflow-pause/SKILL.md` | Park work safely: update status, move the issue group to `02-partly-solved-issues/`, optional WIP commit and branch switch. |
+| `/iflow-close` | `iflow-close/SKILL.md` | Finish: tests, optional semver bump (`uv version --bump …`), `HISTORY.md` update, issue-folder housekeeping, commit, push, PR. |
+| `/iflow-cleanup` | `iflow-cleanup/SKILL.md` | Post-merge hygiene: switch to default, `git pull --ff-only`, `git fetch --prune`, delete merged local branches (single consolidated confirm). |
+| `/iflow-yolo` | `iflow-yolo/SKILL.md` | All-in-one for small, low-risk issues: chains `init → plan → start → close` with up-front safeguards and a single confirmation. |
+| `/iflow-fix` | `iflow-fix/SKILL.md` | **Off-path.** Interactive iterative-fixes session: create one issue + long-lived branch, then loop over many small fixes (short plan each, recorded in `issue<N>_status.md`), ending with `/iflow-close`. |
+| `/iflow-status` | `iflow-status/SKILL.md` | **Off-path, read-only.** Snapshot of where every issue stands — local tracking state (focus / parked / solved) plus open GitHub issues cross-referenced against it. Changes nothing. |
+| `/iflow-graphify` | `iflow-graphify/SKILL.md` | **Off-path.** Rebuild the [graphify](https://iflow-graphify.net) knowledge graph (`graphify-out/graph.html`, `GRAPH_REPORT.md`, `graph.json`). Wraps `issue-flow graphify` / `graphify`. Optional: only meaningful when `graphifyy` is installed. |
 
-> On tools without project slash commands (e.g. Codex CLI), invoke the mirrored Agent Skills under `.cursor/skills/` instead — for example `iflow-init` in place of `/iflow-init`.
+
 
 ---
 
-## Agent Skills (optional)
+## Agent Skills
 
-`issue-flow init` / `issue-flow update` also install **Cursor Agent Skills** under `.cursor/skills/` — longer, on-demand playbooks that mirror the slash commands (plus a small helper for version bumps):
+`issue-flow init` / `issue-flow update` install **Cursor Agent Skills** under `.cursor/skills/` — longer, on-demand playbooks (plus a small helper for version bumps):
 
 | Skill folder | Invoke (examples) | Role |
 |--------------|-------------------|------|
 | `iflow-pick` | `/iflow-pick` | Front door — same flow as `/iflow-pick` (choose issue, branch, init, hand off). |
-| `iflow-iflow` | `/iflow-iflow` or attach `@iflow-iflow` | Smart dispatcher — same state machine as `/iflow`. |
+| `iflow` | `/iflow` or attach `@iflow` | Smart dispatcher — same state machine as `/iflow`. |
 | `iflow-init` | `/iflow-init` or attach `@iflow-init` | Same flow as `/iflow-init`. |
 | `iflow-plan` | `/iflow-plan` | Same flow as `/iflow-plan` (write & confirm plan). |
 | `iflow-start` | `/iflow-start` | Read the plan, implement from `.issueflows/01-current-issues/`. |
@@ -46,18 +46,18 @@ This repo uses twelve Cursor **slash commands** under `.cursor/commands/` that l
 | `iflow-history-update` | `@iflow-history-update` (used from `/iflow-close`) | Append an entry to `## [Unreleased]` in `HISTORY.md`, or promote it to a new `## [x.y.z] - YYYY-MM-DD` release section when a version bump happened. |
 | `iflow-graphify` | `/iflow-graphify` | Same flow as `/iflow-graphify`: rebuild the graphify knowledge graph for the project. Off-path; never auto-dispatched. |
 
-Each skill sets `disable-model-invocation: true` so it is included when you **explicitly** invoke it, not on every chat. See [Agent Skills](https://cursor.com/docs/context/skills) in the Cursor docs.
+Each skill sets `disable-model-invocation: true` so it is included when you **explicitly** invoke it, not on every chat. See [Agent Skills](https://cursor.com/help/customization/skills) in the Cursor docs.
 
 ---
 
 ## Branch and folder hygiene
 
-Two recurring pain points the commands actively help with:
+Two recurring pain points the workflows actively help with:
 
 - **Stale local branches that look "several commits ahead of main" after a squash-merged PR.** `/iflow-cleanup` detects merge status via `gh pr view`, and once the PR is merged it offers (with one consolidated confirm) to switch back to the default branch, `git pull --ff-only`, `git fetch --prune`, and run `git branch -d` on every local branch whose commits are already in the default branch (including squash-merged ones). Destructive flags like `-D` are never used automatically. `/iflow-close` no longer performs this step itself.
 - **Left-overs in `.issueflows/01-current-issues/`.** Both `/iflow-init` (when a new issue is captured) and `/iflow-start` (before implementation begins) sweep that folder: every `issue<n>_*` group **other than the focus issue** is moved automatically to `.issueflows/03-solved-issues/` if a status file contains `- [x] Done`, otherwise to `.issueflows/02-partly-solved-issues/`.
 
-All the commands that touch git also run a short **branch-status preflight**: `git fetch --prune`, current branch, ahead/behind vs the default branch, and a warning when the current branch's leading digits refer to an issue already archived in `02-`/`03-`.
+All workflows that touch git also run a short **branch-status preflight**: `git fetch --prune`, current branch, ahead/behind vs the default branch, and a warning when the current branch's leading digits refer to an issue already archived in `02-`/`03-`.
 
 ---
 
@@ -339,4 +339,4 @@ Detours:
   /iflow-status — read-only overview of all issues (focus / parked / solved + GitHub)
 ```
 
-The command definitions under `.cursor/commands/` are the source of truth. The skill packages under `.cursor/skills/` repeat the same workflows for explicit invocation. This document is a readable overview only.
+The skill packages under `.cursor/skills/` are the primary workflow surface. This document is a readable overview only.

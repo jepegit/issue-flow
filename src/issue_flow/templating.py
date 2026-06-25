@@ -56,7 +56,7 @@ def get_environment() -> Environment:
     return env
 
 
-def render_template(template_name: str, context: dict[str, str]) -> str:
+def render_template(template_name: str, context: dict[str, object]) -> str:
     """Render a single template by name and return the result string."""
     env = get_environment()
     template = env.get_template(template_name)
@@ -108,6 +108,12 @@ SKILL_DIRS: list[str] = [
     "iflow_graphify",
 ]
 
+SKILL_OUTPUT_NAMES: dict[str, str] = {
+    # Keep the template directory stable while exposing the dispatcher as
+    # `/iflow`, not the awkward `/iflow-iflow`, in skills-first editors.
+    "iflow_iflow": "iflow",
+}
+
 # Retired command names (pre-v0.5.0 rename) to be removed on update.
 RETIRED_COMMANDS: list[str] = [
     "issue-pick",
@@ -140,6 +146,7 @@ RETIRED_SKILLS: list[str] = [
     "issueflow-history-update",
     "issueflow-graphify",
     "issueflow-iflow",
+    "iflow-iflow",
 ]
 
 # Editor-neutral human-readable workflow doc, emitted for every editor.
@@ -167,7 +174,7 @@ def build_manifest(profile: EditorProfile) -> list[tuple[str, str]]:
             )
 
     for skill_dir in SKILL_DIRS:
-        output_name = skill_dir.replace("_", "-")
+        output_name = SKILL_OUTPUT_NAMES.get(skill_dir, skill_dir.replace("_", "-"))
         entries.append(
             (
                 f"skills/{skill_dir}/SKILL.md.j2",

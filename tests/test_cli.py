@@ -50,7 +50,7 @@ def test_init_editor_codex_scaffolds_skills_only(
     result = runner.invoke(app, ["init", str(tmp_path), "--editor", "codex"])
 
     assert result.exit_code == 0, result.output
-    assert (tmp_path / ".codex" / "skills" / "iflow-iflow" / "SKILL.md").is_file()
+    assert (tmp_path / ".codex" / "skills" / "iflow" / "SKILL.md").is_file()
     assert not (tmp_path / ".codex" / "commands").exists()
     assert (tmp_path / "AGENTS.md").is_file()
 

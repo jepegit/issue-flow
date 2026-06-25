@@ -11,7 +11,7 @@ disable-model-invocation: true
 
 # issue-flow — issue init (`/iflow-init`)
 
-Follow this skill when the user wants to **capture a GitHub issue locally** using the same rules as `{{ agent_dir }}/commands/iflow-init.md`.
+Follow this skill when the user wants to **capture a GitHub issue locally**.{% if commands_supported %} It uses the same rules as `{{ agent_dir }}/{{ commands_dir }}/iflow-init.md`.{% endif %}
 
 ## When to use
 

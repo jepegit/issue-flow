@@ -9,7 +9,7 @@ disable-model-invocation: true
 
 # issue-flow — history update
 
-Use this skill to update the project's changelog file (default **`HISTORY.md`**, overridable via `ISSUEFLOW_HISTORY_FILE` in `.env`) as part of `/iflow-close`. It never runs on its own schedule; it is driven by the "update HISTORY" step in `.cursor/commands/iflow-close.md`.
+Use this skill to update the project's changelog file (default **`HISTORY.md`**, overridable via `ISSUEFLOW_HISTORY_FILE` in `.env`) as part of `/iflow-close`. It never runs on its own schedule; it is driven by the "update HISTORY" step.
 
 ## When to use
 

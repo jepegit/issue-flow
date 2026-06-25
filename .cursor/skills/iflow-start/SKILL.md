@@ -9,7 +9,7 @@ disable-model-invocation: true
 
 # issue-flow — issue start (`/iflow-start`)
 
-Follow this skill when the user wants to **begin implementation** from issue notes, matching `.cursor/commands/iflow-start.md` and project rules. Planning itself lives in `/iflow-plan`; this skill is now implementation-only.
+Follow this skill when the user wants to **begin implementation** from issue notes and project rules. Planning itself lives in `/iflow-plan`; this skill is now implementation-only.
 
 ## When to use
 

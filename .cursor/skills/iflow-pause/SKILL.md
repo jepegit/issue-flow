@@ -9,7 +9,7 @@ disable-model-invocation: true
 
 # issue-flow — issue pause (`/iflow-pause`)
 
-Follow this skill when the user wants to **park work on the current issue** without closing it, matching `.cursor/commands/iflow-pause.md`.
+Follow this skill when the user wants to **park work on the current issue** without closing it.
 
 ## When to use
 

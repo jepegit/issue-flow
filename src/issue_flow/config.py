@@ -74,7 +74,7 @@ class Settings:
 
     def template_context(
         self, project_root: Path, profile: EditorProfile | None = None
-    ) -> dict[str, str]:
+    ) -> dict[str, object]:
         """Build the Jinja2 template context dictionary for ``profile``.
 
         When ``profile`` is omitted, the context targets the editor configured
@@ -96,6 +96,7 @@ class Settings:
             "editor": profile.id,
             "editor_name": profile.name,
             "commands_dir": profile.commands_dir or "commands",
+            "commands_supported": profile.commands_dir is not None,
             "graphify_installer": profile.graphify_installer or "",
         }
 

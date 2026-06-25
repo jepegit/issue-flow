@@ -36,9 +36,16 @@ Surfaces, by portability:
   editors are selected).
 - **Backward compatibility.** Default `editor=cursor`; `ISSUEFLOW_AGENT_DIR`
   still overrides `agent_dir` when set explicitly, otherwise it is derived from
-  the profile. The only deliberate change to Cursor output is the rename
-  `docs/cursor-issue-workflow.md` → `docs/issue-workflow.md` plus the new shared
-  `AGENTS.md`.
+  the profile. Historical note: issue #62 kept Cursor slash commands for
+  compatibility, with only the rename `docs/cursor-issue-workflow.md` →
+  `docs/issue-workflow.md` plus the new shared `AGENTS.md`.
+- **Cursor skills-first (issue #79).** Cursor 2.4+ documents Agent Skills under
+  `.cursor/skills/`, exposes them through the slash menu, and ships
+  `/migrate-to-skills` for dynamic rules and slash commands. Cursor therefore
+  now has `commands_dir=None`: issue-flow emits `.cursor/skills/`,
+  `.cursor/rules/issueflow-rules.mdc`, `AGENTS.md`, and docs, but no
+  `.cursor/commands/`. `update` prunes only known generated issue-flow command
+  files and preserves unrelated user commands.
 - **De-Cursoring.** Brand wording uses `{{ editor_name }}`; graphify
   registration text is gated on `{{ graphify_installer }}`. Tests assert no
   literal "Cursor" leaks into non-Cursor outputs.

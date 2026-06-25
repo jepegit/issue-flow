@@ -9,7 +9,7 @@ disable-model-invocation: true
 
 # issue-flow — issue cleanup (`/iflow-cleanup`)
 
-Follow this skill when the user wants to **run post-merge branch hygiene** after a PR has been merged, matching `.cursor/commands/iflow-cleanup.md`.
+Follow this skill when the user wants to **run post-merge branch hygiene** after a PR has been merged.
 
 ## When to use
 

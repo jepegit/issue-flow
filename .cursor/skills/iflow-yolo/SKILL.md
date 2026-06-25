@@ -9,7 +9,7 @@ disable-model-invocation: true
 
 # issue-flow — issue yolo (`/iflow-yolo`)
 
-Follow this skill when the user wants to **blast through a small, low-risk issue** in one shot, matching `.cursor/commands/iflow-yolo.md`.
+Follow this skill when the user wants to **blast through a small, low-risk issue** in one shot.
 
 Use only for minor fixes, doc tweaks, and similar low-risk changes. Anything non-trivial should go through the individual commands.
 

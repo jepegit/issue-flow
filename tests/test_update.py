@@ -50,6 +50,49 @@ def test_update_overwrites_skill_files(tmp_path: Path) -> None:
     assert "name: iflow-init" in content
 
 
+def test_update_prunes_generated_cursor_commands_but_keeps_user_commands(
+    tmp_path: Path,
+) -> None:
+    """Cursor migration removes known generated command files only."""
+    run_init(tmp_path)
+    commands_dir = tmp_path / ".cursor" / "commands"
+    commands_dir.mkdir(parents=True)
+    (commands_dir / "iflow-init.md").write_text("generated", encoding="utf-8")
+    (commands_dir / "iflow.md").write_text("generated", encoding="utf-8")
+    (commands_dir / "my-command.md").write_text("user command", encoding="utf-8")
+
+    run_update(tmp_path)
+
+    assert not (commands_dir / "iflow-init.md").exists()
+    assert not (commands_dir / "iflow.md").exists()
+    assert (commands_dir / "my-command.md").read_text(encoding="utf-8") == "user command"
+
+
+def test_update_prunes_empty_cursor_commands_dir(tmp_path: Path) -> None:
+    """If only generated commands existed, update removes the old command dir."""
+    run_init(tmp_path)
+    commands_dir = tmp_path / ".cursor" / "commands"
+    commands_dir.mkdir(parents=True)
+    (commands_dir / "iflow-init.md").write_text("generated", encoding="utf-8")
+
+    run_update(tmp_path)
+
+    assert not commands_dir.exists()
+
+
+def test_update_prunes_old_iflow_iflow_skill_folder(tmp_path: Path) -> None:
+    """The old dispatcher skill folder is removed after the skill is renamed."""
+    run_init(tmp_path)
+    old_skill = tmp_path / ".cursor" / "skills" / "iflow-iflow"
+    old_skill.mkdir(parents=True)
+    (old_skill / "SKILL.md").write_text("old dispatcher", encoding="utf-8")
+
+    run_update(tmp_path)
+
+    assert not old_skill.exists()
+    assert (tmp_path / ".cursor" / "skills" / "iflow" / "SKILL.md").is_file()
+
+
 def test_update_recreates_removed_subdir(tmp_path: Path) -> None:
     """If an issueflows subdir was removed, update should recreate it."""
     run_init(tmp_path)

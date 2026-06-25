@@ -9,7 +9,7 @@ disable-model-invocation: true
 
 # issue-flow — issue close (`/iflow-close`)
 
-Follow this skill when the user wants to **finish and land** work: tests, optional version bump, issue-folder updates, git, and PR. Match `{{ agent_dir }}/commands/iflow-close.md`.
+Follow this skill when the user wants to **finish and land** work: tests, optional version bump, issue-folder updates, git, and PR.{% if commands_supported %} Matches `{{ agent_dir }}/{{ commands_dir }}/iflow-close.md`.{% endif %}
 
 Post-merge branch hygiene now lives in `/iflow-cleanup` — this skill no longer deletes branches.
 
