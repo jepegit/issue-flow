@@ -135,14 +135,16 @@ def test_init_force_preserves_existing_project_brief(tmp_path: Path) -> None:
     assert brief.read_text(encoding="utf-8") == custom
 
 
-def test_init_creates_cursor_commands(tmp_path: Path) -> None:
-    """Running init should create all three slash-command files."""
+def test_init_cursor_is_skills_first(tmp_path: Path) -> None:
+    """Running init should create Cursor skills, not Cursor command files."""
     run_init(tmp_path)
 
-    commands_dir = tmp_path / ".cursor" / "commands"
-    assert (commands_dir / "iflow-init.md").is_file()
-    assert (commands_dir / "iflow-start.md").is_file()
-    assert (commands_dir / "iflow-close.md").is_file()
+    assert not (tmp_path / ".cursor" / "commands").exists()
+    skills_dir = tmp_path / ".cursor" / "skills"
+    assert (skills_dir / "iflow" / "SKILL.md").is_file()
+    assert (skills_dir / "iflow-init" / "SKILL.md").is_file()
+    assert (skills_dir / "iflow-start" / "SKILL.md").is_file()
+    assert (skills_dir / "iflow-close" / "SKILL.md").is_file()
 
 
 def test_init_creates_cursor_skills(tmp_path: Path) -> None:
@@ -151,6 +153,7 @@ def test_init_creates_cursor_skills(tmp_path: Path) -> None:
 
     skills = tmp_path / ".cursor" / "skills"
     for name in (
+        "iflow",
         "iflow-init",
         "iflow-start",
         "iflow-close",
@@ -211,19 +214,19 @@ def test_init_force_overwrites(tmp_path: Path) -> None:
 
 
 def test_init_templates_reference_issueflows_dir(tmp_path: Path) -> None:
-    """All generated command files should reference .issueflows/ paths."""
+    """Generated workflow skills should reference .issueflows/ paths."""
     run_init(tmp_path)
 
-    commands_dir = tmp_path / ".cursor" / "commands"
-    for filename in ["iflow-init.md", "iflow-start.md", "iflow-close.md"]:
-        content = (commands_dir / filename).read_text(encoding="utf-8")
-        assert ".issueflows/" in content, f"{filename} should reference .issueflows/"
+    skills_dir = tmp_path / ".cursor" / "skills"
+    for name in ["iflow-init", "iflow-start", "iflow-close"]:
+        content = (skills_dir / name / "SKILL.md").read_text(encoding="utf-8")
+        assert ".issueflows/" in content, f"{name} should reference .issueflows/"
 
 
 def test_init_issue_close_documents_version_bump(tmp_path: Path) -> None:
-    """iflow-close.md should describe optional uv semver bump before commit/PR."""
+    """iflow-close skill should describe optional uv semver bump before commit/PR."""
     run_init(tmp_path)
-    content = (tmp_path / ".cursor" / "commands" / "iflow-close.md").read_text(
+    content = (tmp_path / ".cursor" / "skills" / "iflow-close" / "SKILL.md").read_text(
         encoding="utf-8"
     )
     assert "uv version --bump" in content
@@ -231,9 +234,9 @@ def test_init_issue_close_documents_version_bump(tmp_path: Path) -> None:
 
 
 def test_init_issue_close_documents_history_update_step(tmp_path: Path) -> None:
-    """iflow-close.md should describe the HISTORY.md update step and opt-out token."""
+    """iflow-close skill should describe the HISTORY.md update step and opt-out token."""
     run_init(tmp_path)
-    content = (tmp_path / ".cursor" / "commands" / "iflow-close.md").read_text(
+    content = (tmp_path / ".cursor" / "skills" / "iflow-close" / "SKILL.md").read_text(
         encoding="utf-8"
     )
     assert "HISTORY.md" in content
@@ -245,9 +248,9 @@ def test_init_issue_close_documents_history_update_step(tmp_path: Path) -> None:
 def test_init_issue_close_documents_uncommitted_and_branch_reminder(
     tmp_path: Path,
 ) -> None:
-    """iflow-close.md should flag unrelated uncommitted changes and warn about the issue branch after PR."""
+    """iflow-close skill should flag unrelated uncommitted changes and warn about the issue branch after PR."""
     run_init(tmp_path)
-    content = (tmp_path / ".cursor" / "commands" / "iflow-close.md").read_text(
+    content = (tmp_path / ".cursor" / "skills" / "iflow-close" / "SKILL.md").read_text(
         encoding="utf-8"
     )
     assert "git status" in content
@@ -266,20 +269,20 @@ def test_init_rule_documents_designs_folder(tmp_path: Path) -> None:
 
 
 def test_init_commands_reference_designs_folder(tmp_path: Path) -> None:
-    """/iflow-plan, /iflow-start, and /iflow-close should reference the designs folder."""
+    """/iflow-plan, /iflow-start, and /iflow-close skills should reference the designs folder."""
     run_init(tmp_path)
-    commands_dir = tmp_path / ".cursor" / "commands"
-    for filename in ("iflow-plan.md", "iflow-start.md", "iflow-close.md"):
-        content = (commands_dir / filename).read_text(encoding="utf-8")
+    skills_dir = tmp_path / ".cursor" / "skills"
+    for name in ("iflow-plan", "iflow-start", "iflow-close"):
+        content = (skills_dir / name / "SKILL.md").read_text(encoding="utf-8")
         assert "04-designs-and-guides" in content, (
-            f"{filename} should reference the designs-and-guides folder"
+            f"{name} should reference the designs-and-guides folder"
         )
 
 
 def test_init_issue_init_documents_branch_inference(tmp_path: Path) -> None:
-    """iflow-init.md should describe resolving an issue from the current branch when no args."""
+    """iflow-init skill should describe resolving an issue from the current branch when no args."""
     run_init(tmp_path)
-    content = (tmp_path / ".cursor" / "commands" / "iflow-init.md").read_text(
+    content = (tmp_path / ".cursor" / "skills" / "iflow-init" / "SKILL.md").read_text(
         encoding="utf-8"
     )
     assert "git branch --show-current" in content
@@ -300,7 +303,7 @@ def test_init_proceeds_silently_when_all_dependencies_present(
 
     run_init(tmp_path)
 
-    assert (tmp_path / ".cursor" / "commands" / "iflow-init.md").is_file()
+    assert (tmp_path / ".cursor" / "skills" / "iflow-init" / "SKILL.md").is_file()
 
 
 def test_init_continues_when_skip_dep_check_is_set(
@@ -318,7 +321,7 @@ def test_init_continues_when_skip_dep_check_is_set(
 
     run_init(tmp_path, skip_dep_check=True)
 
-    assert (tmp_path / ".cursor" / "commands" / "iflow-init.md").is_file()
+    assert (tmp_path / ".cursor" / "skills" / "iflow-init" / "SKILL.md").is_file()
 
 
 def test_init_continues_in_non_tty_when_deps_missing(
@@ -337,7 +340,7 @@ def test_init_continues_in_non_tty_when_deps_missing(
 
     run_init(tmp_path)
 
-    assert (tmp_path / ".cursor" / "commands" / "iflow-init.md").is_file()
+    assert (tmp_path / ".cursor" / "skills" / "iflow-init" / "SKILL.md").is_file()
 
 
 def test_init_aborts_cleanly_when_user_declines_prompt(
@@ -398,69 +401,57 @@ def test_init_skips_graphify_when_unavailable(
 
     run_init(tmp_path)
 
-    assert (tmp_path / ".cursor" / "commands" / "iflow-graphify.md").is_file()
+    assert (tmp_path / ".cursor" / "skills" / "iflow-graphify" / "SKILL.md").is_file()
 
 
-def test_init_creates_graphify_command_and_skill(tmp_path: Path) -> None:
-    """The /graphify slash command and matching skill must be scaffolded."""
+def test_init_creates_graphify_skill(tmp_path: Path) -> None:
+    """The /graphify skill must be scaffolded for Cursor."""
     run_init(tmp_path)
 
-    graphify_cmd = tmp_path / ".cursor" / "commands" / "iflow-graphify.md"
     graphify_skill = (
         tmp_path / ".cursor" / "skills" / "iflow-graphify" / "SKILL.md"
     )
-    assert graphify_cmd.is_file()
+    assert not (tmp_path / ".cursor" / "commands").exists()
     assert graphify_skill.is_file()
-
-    cmd_content = graphify_cmd.read_text(encoding="utf-8")
-    assert "graphify" in cmd_content.lower()
-    assert "issue-flow graphify" in cmd_content
-    assert "graphify-out" in cmd_content
 
     skill_content = graphify_skill.read_text(encoding="utf-8")
     assert "name: iflow-graphify" in skill_content
+    assert "issue-flow graphify" in skill_content
+    assert "graphify-out" in skill_content
     assert "disable-model-invocation: true" in skill_content
 
 
-def test_init_creates_status_command_and_skill(tmp_path: Path) -> None:
-    """The /iflow-status slash command and matching skill must be scaffolded."""
+def test_init_creates_status_skill(tmp_path: Path) -> None:
+    """The /iflow-status skill must be scaffolded for Cursor."""
     run_init(tmp_path)
 
-    status_cmd = tmp_path / ".cursor" / "commands" / "iflow-status.md"
     status_skill = (
         tmp_path / ".cursor" / "skills" / "iflow-status" / "SKILL.md"
     )
-    assert status_cmd.is_file()
     assert status_skill.is_file()
-
-    cmd_content = status_cmd.read_text(encoding="utf-8")
-    assert "/iflow-status" in cmd_content
-    assert "read-only" in cmd_content.lower()
-    assert "off-path" in cmd_content.lower()
 
     skill_content = status_skill.read_text(encoding="utf-8")
     assert "name: iflow-status" in skill_content
+    assert "/iflow-status" in skill_content
+    assert "read-only" in skill_content.lower()
+    assert "off-path" in skill_content.lower()
     assert "disable-model-invocation: true" in skill_content
 
 
-def test_init_creates_issue_pick_command_and_skill(tmp_path: Path) -> None:
-    """The /iflow-pick front-door command and matching skill must be scaffolded."""
+def test_init_creates_issue_pick_skill(tmp_path: Path) -> None:
+    """The /iflow-pick front-door skill must be scaffolded for Cursor."""
     run_init(tmp_path)
 
-    pick_cmd = tmp_path / ".cursor" / "commands" / "iflow-pick.md"
     pick_skill = (
         tmp_path / ".cursor" / "skills" / "iflow-pick" / "SKILL.md"
     )
-    assert pick_cmd.is_file()
     assert pick_skill.is_file()
-
-    cmd_content = pick_cmd.read_text(encoding="utf-8")
-    assert "/iflow-pick" in cmd_content
-    assert "/iflow-init" in cmd_content
-    assert ".issueflows/" in cmd_content
 
     skill_content = pick_skill.read_text(encoding="utf-8")
     assert "name: iflow-pick" in skill_content
+    assert "/iflow-pick" in skill_content
+    assert "/iflow-init" in skill_content
+    assert ".issueflows/" in skill_content
     assert "disable-model-invocation: true" in skill_content
 
 
@@ -549,13 +540,14 @@ def test_init_opencode_editor_uses_singular_command_dir(tmp_path: Path) -> None:
 
     assert (tmp_path / ".opencode" / "command" / "iflow-init.md").is_file()
     assert not (tmp_path / ".opencode" / "commands").exists()
-    assert (tmp_path / ".opencode" / "skills" / "iflow-iflow" / "SKILL.md").is_file()
+    assert (tmp_path / ".opencode" / "skills" / "iflow" / "SKILL.md").is_file()
 
 
 def test_init_all_editors_scaffolds_every_agent_dir(tmp_path: Path) -> None:
     run_init(tmp_path, editors=["all"])
 
-    assert (tmp_path / ".cursor" / "commands" / "iflow-init.md").is_file()
+    assert not (tmp_path / ".cursor" / "commands").exists()
+    assert (tmp_path / ".cursor" / "skills" / "iflow-init" / "SKILL.md").is_file()
     assert (tmp_path / ".claude" / "commands" / "iflow-init.md").is_file()
     assert (tmp_path / ".opencode" / "command" / "iflow-init.md").is_file()
     assert (tmp_path / ".codex" / "skills" / "iflow-init" / "SKILL.md").is_file()

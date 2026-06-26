@@ -11,7 +11,7 @@ disable-model-invocation: true
 
 # issue-flow — interactive iterative-fix session (`/iflow-fix`)
 
-Follow this skill when the user wants an **ongoing working session** for many small fixes on one branch, rather than a single well-defined deliverable. Matches `.cursor/commands/iflow-fix.md`.
+Follow this skill when the user wants an **ongoing working session** for many small fixes on one branch, rather than a single well-defined deliverable.
 
 ## When to use
 

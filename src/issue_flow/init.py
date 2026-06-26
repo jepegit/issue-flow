@@ -16,6 +16,7 @@ from issue_flow.dependencies import (
 from issue_flow.editors import EditorProfile, resolve_editors
 from issue_flow.graphify import register_with_editor as graphify_register_with_editor
 from issue_flow.templating import (
+    COMMAND_NAMES,
     RETIRED_COMMANDS,
     RETIRED_SKILLS,
     build_manifest,
@@ -327,7 +328,7 @@ def run_init(
         )
     if pruned_count:
         console.print(
-            f"[bold yellow]Pruned {pruned_count} retired file(s) from pre-v0.5.0.[/bold yellow]"
+            f"[bold yellow]Pruned {pruned_count} retired scaffold file(s).[/bold yellow]"
         )
     if not written_files and not skipped_files and not pruned_count:
         console.print("[bold]Nothing to do.[/bold]")
@@ -412,7 +413,7 @@ def run_update(
         )
     if pruned_count:
         console.print(
-            f"[bold yellow]Pruned {pruned_count} retired file(s) from pre-v0.5.0.[/bold yellow]"
+            f"[bold yellow]Pruned {pruned_count} retired scaffold file(s).[/bold yellow]"
         )
     if not written_files and not pruned_count:
         console.print("[bold]Nothing to write.[/bold]")
@@ -427,22 +428,31 @@ def _prune_retired_files(
     project_root: Path,
     profile: EditorProfile,
 ) -> int:
-    """Remove pre-v0.5.0 command and skill files after update.
+    """Remove generated files retired by scaffold migrations.
 
     Returns the count of pruned files/folders for user reporting.
     """
     pruned_count = 0
 
-    # Prune retired command files (only if the profile has a commands_dir).
+    # Prune command files. For command-emitting profiles this removes pre-v0.5.0
+    # command names. For skills-first Cursor, this also removes the known
+    # generated issue-flow commands from the old `.cursor/commands/` surface
+    # without touching arbitrary user commands.
     if profile.commands_dir:
-        cmd_dir = project_root / profile.agent_dir / profile.commands_dir
-        for old_name in RETIRED_COMMANDS:
-            old_file = cmd_dir / f"{old_name}.md"
-            if old_file.exists():
-                old_file.unlink()
-                relative = old_file.relative_to(project_root)
-                console.print(f"  [yellow]prune[/yellow]  {relative}")
-                pruned_count += 1
+        pruned_count += _prune_command_files(
+            project_root,
+            profile.agent_dir,
+            profile.commands_dir,
+            RETIRED_COMMANDS,
+        )
+    elif profile.id == "cursor":
+        pruned_count += _prune_command_files(
+            project_root,
+            profile.agent_dir,
+            "commands",
+            [*COMMAND_NAMES, *RETIRED_COMMANDS],
+            remove_empty_dir=True,
+        )
 
     # Prune retired skill folders.
     skills_dir = project_root / profile.agent_dir / "skills"
@@ -455,6 +465,35 @@ def _prune_retired_files(
             relative = old_folder.relative_to(project_root)
             console.print(f"  [yellow]prune[/yellow]  {relative}")
             pruned_count += 1
+
+    return pruned_count
+
+
+def _prune_command_files(
+    project_root: Path,
+    agent_dir: str,
+    commands_dir: str,
+    command_names: list[str],
+    *,
+    remove_empty_dir: bool = False,
+) -> int:
+    """Remove specific generated command files, preserving unrelated commands."""
+    pruned_count = 0
+    cmd_dir = project_root / agent_dir / commands_dir
+
+    for name in command_names:
+        command_file = cmd_dir / f"{name}.md"
+        if command_file.exists():
+            command_file.unlink()
+            relative = command_file.relative_to(project_root)
+            console.print(f"  [yellow]prune[/yellow]  {relative}")
+            pruned_count += 1
+
+    if remove_empty_dir and cmd_dir.is_dir() and not any(cmd_dir.iterdir()):
+        cmd_dir.rmdir()
+        relative = cmd_dir.relative_to(project_root)
+        console.print(f"  [yellow]prune[/yellow]  {relative}/")
+        pruned_count += 1
 
     return pruned_count
 

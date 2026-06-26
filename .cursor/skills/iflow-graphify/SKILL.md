@@ -10,7 +10,7 @@ disable-model-invocation: true
 
 # issue-flow — graph rebuild (`/iflow-graphify`)
 
-Follow this skill when the user wants to refresh the project's [graphify](https://iflow-graphify.net) knowledge graph. Matches `.cursor/commands/iflow-graphify.md`.
+Follow this skill when the user wants to refresh the project's [graphify](https://iflow-graphify.net) knowledge graph.
 
 ## When to use
 

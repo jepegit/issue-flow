@@ -29,9 +29,8 @@ class Dependency:
     install_hints: tuple[tuple[str, str], ...]
 
 
-# The scaffolded slash commands (see
-# ``src/issue_flow/templates/commands/*.md.j2``) invoke these tools. ``uv``
-# is intentionally *not* listed here: it is an install-time prerequisite
+# The scaffolded workflows (skills and command templates) invoke these tools.
+# ``uv`` is intentionally *not* listed here: it is an install-time prerequisite
 # for issue-flow itself, not something the scaffold calls at runtime, so
 # it belongs in the README only.
 REQUIRED_DEPENDENCIES: tuple[Dependency, ...] = (

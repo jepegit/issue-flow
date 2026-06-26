@@ -11,7 +11,7 @@ disable-model-invocation: true
 # issue-flow — issue status overview (`/iflow-status`)
 
 Follow this skill when the user wants a bird's-eye view of every issue's status
-rather than acting on the single focus issue. Matches `.cursor/commands/iflow-status.md`.
+rather than acting on the single focus issue.
 
 ## When to use
 

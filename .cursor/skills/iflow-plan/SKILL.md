@@ -10,7 +10,7 @@ disable-model-invocation: true
 
 # issue-flow — issue plan (`/iflow-plan`)
 
-Follow this skill when the user wants to **design the approach** for an issue before touching code, matching `.cursor/commands/iflow-plan.md`.
+Follow this skill when the user wants to **design the approach** for an issue before touching code.
 
 ## When to use
 

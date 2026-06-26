@@ -26,6 +26,16 @@ def test_default_editor_is_cursor() -> None:
     assert get_profile(DEFAULT_EDITOR).agent_dir == ".cursor"
 
 
+def test_cursor_is_skills_first_with_rules_extra() -> None:
+    cursor = get_profile("cursor")
+    assert cursor.commands_dir is None
+    assert cursor.rules_extra == (
+        "rules/issueflow-rules.mdc.j2",
+        "{agent_dir}/rules/issueflow-rules.mdc",
+    )
+    assert cursor.graphify_installer == "cursor"
+
+
 def test_codex_has_no_commands_dir_and_no_rules_extra() -> None:
     codex = get_profile("codex")
     assert codex.commands_dir is None

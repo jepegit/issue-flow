@@ -24,7 +24,13 @@ def test_all_templates_render_without_error() -> None:
         "current_issues_folder": "01-current-issues",
         "partly_solved_folder": "02-partly-solved-issues",
         "solved_folder": "03-solved-issues",
+        "designs_folder": "04-designs-and-guides",
         "project_name": "test-project",
+        "editor": "cursor",
+        "editor_name": "Cursor",
+        "commands_dir": "commands",
+        "commands_supported": False,
+        "graphify_installer": "cursor",
     }
     for template_name, _ in TEMPLATE_MANIFEST:
         result = render_template(template_name, context)
@@ -43,7 +49,13 @@ def test_template_substitution() -> None:
         "current_issues_folder": "01-current-issues",
         "partly_solved_folder": "02-partly-solved-issues",
         "solved_folder": "03-solved-issues",
+        "designs_folder": "04-designs-and-guides",
         "project_name": "my-project",
+        "editor": "cursor",
+        "editor_name": "Cursor",
+        "commands_dir": "commands",
+        "commands_supported": True,
+        "graphify_installer": "cursor",
     }
     rendered = render_template("commands/iflow-init.md.j2", context)
     assert "CUSTOM_DIR/01-current-issues" in rendered
@@ -66,8 +78,8 @@ def test_resolve_output_path() -> None:
 
 
 def test_manifest_entry_count() -> None:
-    # 12 commands + 1 rule + 1 doc + 15 skills = 29
-    assert len(TEMPLATE_MANIFEST) == 29
+    # Cursor is skills-first: 1 rule + 1 doc + 15 skills = 17
+    assert len(TEMPLATE_MANIFEST) == 17
 
 
 def _resolved_paths(profile_id: str) -> set[str]:
@@ -87,7 +99,18 @@ def _resolved_paths(profile_id: str) -> set[str]:
 def test_build_manifest_cursor_matches_default() -> None:
     """The default TEMPLATE_MANIFEST is the cursor profile manifest."""
     assert build_manifest(EDITORS["cursor"]) == TEMPLATE_MANIFEST
-    assert len(build_manifest(EDITORS["cursor"])) == 29
+    assert len(build_manifest(EDITORS["cursor"])) == 17
+
+
+def test_build_manifest_cursor_has_skills_and_rules_but_no_commands() -> None:
+    """Cursor now uses Agent Skills as the primary slash-menu surface."""
+    manifest = build_manifest(get_profile("cursor"))
+    template_names = [name for name, _ in manifest]
+    paths = _resolved_paths("cursor")
+    assert not any(name.startswith("commands/") for name in template_names)
+    assert ".cursor/skills/iflow/SKILL.md" in paths
+    assert ".cursor/skills/iflow-iflow/SKILL.md" not in paths
+    assert ".cursor/rules/issueflow-rules.mdc" in paths
 
 
 def test_build_manifest_codex_has_skills_and_docs_but_no_commands() -> None:
@@ -137,6 +160,7 @@ def test_build_manifest_no_cursor_leakage_in_non_cursor_outputs() -> None:
             "editor": profile.id,
             "editor_name": profile.name,
             "commands_dir": profile.commands_dir or "commands",
+            "commands_supported": profile.commands_dir is not None,
             "graphify_installer": profile.graphify_installer or "",
         }
         manifest = build_manifest(profile) + [("rules/AGENTS.md.j2", "AGENTS.md")]
@@ -149,26 +173,15 @@ def test_build_manifest_no_cursor_leakage_in_non_cursor_outputs() -> None:
             )
 
 
-def test_manifest_has_expected_commands_and_skills() -> None:
-    """Every expected slash command and skill has a manifest entry."""
+def test_manifest_has_expected_skills() -> None:
+    """Every expected skill has a default Cursor manifest entry."""
     template_names = {name for name, _ in TEMPLATE_MANIFEST}
-    for command in (
-        "iflow",
-        "iflow-pick",
-        "iflow-init",
-        "iflow-plan",
-        "iflow-start",
-        "iflow-pause",
-        "iflow-close",
-        "iflow-cleanup",
-        "iflow-yolo",
-        "iflow-fix",
-        "iflow-status",
-        "iflow-graphify",
-    ):
-        assert f"commands/{command}.md.j2" in template_names
+    assert not any(name.startswith("commands/") for name in template_names)
+    assert (
+        "skills/iflow_iflow/SKILL.md.j2",
+        "{agent_dir}/skills/iflow/SKILL.md",
+    ) in TEMPLATE_MANIFEST
     for skill in (
-        "iflow_iflow",
         "iflow_pick",
         "iflow_init",
         "iflow_comments",
@@ -187,7 +200,27 @@ def test_manifest_has_expected_commands_and_skills() -> None:
         assert f"skills/{skill}/SKILL.md.j2" in template_names
 
 
-def _default_context() -> dict[str, str]:
+def test_claude_manifest_has_expected_commands() -> None:
+    """Command-emitting editors still include every slash-command template."""
+    template_names = {name for name, _ in build_manifest(get_profile("claude"))}
+    for command in (
+        "iflow",
+        "iflow-pick",
+        "iflow-init",
+        "iflow-plan",
+        "iflow-start",
+        "iflow-pause",
+        "iflow-close",
+        "iflow-cleanup",
+        "iflow-yolo",
+        "iflow-fix",
+        "iflow-status",
+        "iflow-graphify",
+    ):
+        assert f"commands/{command}.md.j2" in template_names
+
+
+def _default_context() -> dict[str, object]:
     return {
         "issueflows_dir": ".issueflows",
         "agent_dir": ".cursor",
@@ -199,6 +232,11 @@ def _default_context() -> dict[str, str]:
         "solved_folder": "03-solved-issues",
         "designs_folder": "04-designs-and-guides",
         "project_name": "test-project",
+        "editor": "cursor",
+        "editor_name": "Cursor",
+        "commands_dir": "commands",
+        "commands_supported": True,
+        "graphify_installer": "cursor",
     }
 
 

@@ -2,15 +2,17 @@
 
 issue-flow renders the same template set for several AI coding tools. The only
 things that differ per tool are *where* files land (the agent directory and the
-slash-commands sub-directory), *which* surfaces a tool supports (slash commands
-vs skills vs rules files), and whether graphify can be auto-registered with it.
+slash-commands sub-directory, when a tool still has one), *which* surfaces a
+tool supports (slash commands vs skills vs rules files), and whether graphify
+can be auto-registered with it.
 
 An :class:`EditorProfile` captures exactly those differences; everything else
 (the template bodies, the ``.issueflows/`` tree, skills) is shared. Skills are
 the portable core — all four tools read ``<agent_dir>/skills/<name>/SKILL.md`` —
 and ``AGENTS.md`` is the convergent rules target, so every profile emits both.
-Slash commands and the per-editor rules extra (``.mdc`` / ``CLAUDE.md``) are
-niceties layered on top.
+Slash commands are now only emitted for tools that still need separate command
+files; the per-editor rules extra (``.mdc`` / ``CLAUDE.md``) stays layered on
+top where useful.
 """
 
 from __future__ import annotations
@@ -29,7 +31,7 @@ class EditorProfile:
         agent_dir: The tool's config directory (e.g. ``.cursor``), unless the
             user overrides it with ``ISSUEFLOW_AGENT_DIR``.
         commands_dir: Sub-directory of ``agent_dir`` for slash commands, or
-            ``None`` for tools without project slash commands (Codex CLI).
+            ``None`` for tools whose issue-flow surface is skills-first.
         rules_extra: Optional ``(template_name, output_path_template)`` for a
             tool-specific rules file in addition to the always-emitted
             ``AGENTS.md`` (``.mdc`` for Cursor, ``CLAUDE.md`` for Claude).
@@ -46,14 +48,17 @@ class EditorProfile:
     graphify_installer: str | None
 
 
-# Registry of supported editors. ``cursor`` is first / default so existing
-# installs are unchanged when no ``--editor`` is given.
+# Registry of supported editors. ``cursor`` is first / default so no
+# ``--editor`` flag is needed for the common case.
 EDITORS: dict[str, EditorProfile] = {
     "cursor": EditorProfile(
         id="cursor",
         name="Cursor",
         agent_dir=".cursor",
-        commands_dir="commands",
+        # Cursor 2.4+ exposes Agent Skills through the slash menu and ships a
+        # migration path for commands -> skills. Keep Cursor skills-first and
+        # leave the always-on .mdc rule in place.
+        commands_dir=None,
         rules_extra=(
             "rules/issueflow-rules.mdc.j2",
             "{agent_dir}/rules/issueflow-rules.mdc",

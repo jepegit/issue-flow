@@ -43,6 +43,7 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "editor",
         "editor_name",
         "commands_dir",
+        "commands_supported",
         "graphify_installer",
     }
     assert set(context.keys()) == expected_keys
