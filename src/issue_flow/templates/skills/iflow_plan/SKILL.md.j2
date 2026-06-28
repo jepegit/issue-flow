@@ -32,9 +32,10 @@ Follow this skill when the user wants to **design the approach** for an issue be
 3. **Read context.** Load `issue<N>_original.md` and any existing `issue<N>_status.md`. If `{{ issueflows_dir }}/{{ designs_folder }}/this-project.md` exists, read it for project-specific context, then skim `{{ issueflows_dir }}/{{ designs_folder }}/` for relevant design docs.
 
 4. **Prior-art discovery** (before drafting the plan):
+   - **Toolbox:** Skim `{{ issueflows_dir }}/{{ tools_folder }}/` (start with its `README.md` index) for an existing helper that already does part of the work, so the plan reuses it instead of proposing a new script.
    - **Graph (optional):** If `graphify-out/GRAPH_REPORT.md` exists, skim **God Nodes**, **Communities**, and **Suggested Questions** whose names touch the affected area; note community numbers. If absent, skip (grep-only is fine).
    - **Grep:** Search for sibling helpers / functions adjacent to the new work (domain prefixes like `filter_*`, `remove_*`, or names from the issue / graph).
-   - **Record:** Under **`## Constraints`**, add **`### Prior art`** listing each hit (function + module, convention, mirror / coexist / migrate later). If nothing relevant: `- None found (grep + graph checked).`
+   - **Record:** Under **`## Constraints`**, add **`### Prior art`** listing each hit (function + module, convention, mirror / coexist / migrate later). If nothing relevant: `- None found (toolbox + grep + graph checked).`
    - **Strong overlap:** Put merge-vs-coexist decisions in **`## Open questions`**, not silent choices in Approach.
 
 5. **Explore read-only** — search code, read files most likely to change, check existing tests; keep research proportional to the issue.

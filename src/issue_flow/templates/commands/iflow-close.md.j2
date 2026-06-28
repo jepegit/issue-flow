@@ -7,10 +7,9 @@ Run this when implementation is done and you are ready to land the work (commit,
 Optional text after the command (same line). Examples:
 
 - **No extra text** — close the issue without bumping the package version.
-- **`bump`** or **`patch`** — bump the **patch** semver (e.g. `1.2.0` → `1.2.1`).
-- **`bump minor`** or **`minor`** — bump **minor**.
-- **`bump major`** or **`major`** — bump **major**.
-- **Free text** — if it clearly asks to release or bump the version, infer `patch`, `minor`, or `major` from wording (e.g. "bugfix release" → patch); if unclear, ask once.
+- **`bump`** (no level) — bump using the **pre-release-aware default**: stay on the current release channel (alpha→alpha, beta→beta, rc→rc, dev→dev) or **patch** when the current version is already stable. See `iflow-version-bump`.
+- **A named level** — `patch`, `minor`, `major`, `stable`, `alpha`, `beta`, `rc`, `post`, or `dev` (e.g. `bump minor`, `beta`) → use exactly that `uv version --bump <level>`. `dev` must be paired with another component (e.g. `bump patch dev`).
+- **Free text** — if it clearly asks to release or bump the version, infer the level from wording (e.g. "bugfix release" → `patch`, "promote to beta" → `beta`); if unclear, ask once. Never auto-pick `major`.
 - **`nohistory`** or **`skip history`** — skip the `{{ history_file }}` update step (step 3) for this run.
 - **`log "..."`** or **`note "..."`** — use the quoted text verbatim as the `{{ history_file }}` bullet summary (otherwise the GitHub issue title is used).
 - **`stay`**, **`stay on branch`**, **`don't switch`**, or **`dont switch to main`** — after the PR step, stay on the issue branch instead of switching back to the default branch.
@@ -26,8 +25,8 @@ Other optional notes still apply: branch name, PR title, draft PR, skip issue do
    - **Graph freshness (optional).** If this change touched the project's structure (new modules, big refactor, removed files) and `graphify-out/` exists, suggest the user run `/iflow-graphify` (default: `graphify update`, AST-only, no LLM key needed) before pushing so teammates pull a current `GRAPH_REPORT.md`. Do not run `/iflow-graphify` automatically — it is opt-in. Skip this bullet entirely if `graphify-out/` is not present.
 
 2. **Optional version bump** (only if the user asked for it in the command input)
-   - Read `{{ agent_dir }}/skills/iflow-version-bump/SKILL.md` and follow it.
-   - From the project root, run `uv version --bump patch`, `uv version --bump minor`, or `uv version --bump major` according to the input rules above.
+   - Read `{{ agent_dir }}/skills/iflow-version-bump/SKILL.md` and follow it — it defines every supported level and the pre-release-aware default.
+   - From the project root, run `uv version --bump <level>` for the resolved level (`bump` with no level → the default rule based on the current version; or the named level from the input).
    - Do this **before** updating issue markdown and **before** commit / push / PR so the new version is in the tree that gets merged.
    - If the project has no bumpable `pyproject.toml` version, skip and say so; continue with the remaining steps.
 
