@@ -40,6 +40,12 @@ def test_simple_is_strict_subset() -> None:
         assert stem not in simple.skills
 
 
+def test_caveman_in_standard_not_in_simple() -> None:
+    """The caveman behavior skill ships in standard but is omitted by simple."""
+    assert "caveman" in resolve_mode("standard").skills
+    assert "caveman" not in resolve_mode("simple").skills
+
+
 def test_unknown_mode_raises_with_known_list() -> None:
     with pytest.raises(ValueError) as exc:
         resolve_mode("bogus")
