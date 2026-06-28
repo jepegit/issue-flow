@@ -1,6 +1,6 @@
 [project]
 name = "issue-flow"
-version = "0.4.1a5"
+version = "0.4.1b1"
 description = "Agents should behave. Let them follow the issue flow."
 readme = "README.md"
 license = "MIT"
