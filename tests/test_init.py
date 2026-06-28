@@ -248,7 +248,7 @@ def test_init_issue_close_documents_history_update_step(tmp_path: Path) -> None:
 def test_init_issue_close_documents_uncommitted_and_branch_reminder(
     tmp_path: Path,
 ) -> None:
-    """iflow-close skill should flag unrelated uncommitted changes and warn about the issue branch after PR."""
+    """iflow-close skill should flag unrelated changes and document post-PR switching."""
     run_init(tmp_path)
     content = (tmp_path / ".cursor" / "skills" / "iflow-close" / "SKILL.md").read_text(
         encoding="utf-8"
@@ -256,6 +256,10 @@ def test_init_issue_close_documents_uncommitted_and_branch_reminder(
     assert "git status" in content
     assert "not relevant" in content
     assert "issue branch" in content
+    assert "stay on branch" in content
+    assert "don't switch" in content
+    assert "git switch <default>" in content
+    assert "git status --porcelain" in content
 
 
 def test_init_rule_documents_designs_folder(tmp_path: Path) -> None:
