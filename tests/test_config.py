@@ -45,6 +45,10 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "commands_dir",
         "commands_supported",
         "graphify_installer",
+        "mode",
+        "mode_name",
+        "included_skills",
+        "included_commands",
     }
     assert set(context.keys()) == expected_keys
 

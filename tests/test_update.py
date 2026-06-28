@@ -188,6 +188,45 @@ def test_update_claude_editor_refreshes_claude_md(tmp_path: Path) -> None:
     assert "Issue-flow best practices" in content
 
 
+def test_update_respects_persisted_simple_mode(tmp_path: Path) -> None:
+    """update reads the persisted mode and keeps the surface narrow."""
+    run_init(tmp_path, mode="simple")
+    skills = tmp_path / ".cursor" / "skills"
+    assert not (skills / "iflow-close").exists()
+
+    run_update(tmp_path)
+
+    # Excluded skills are not re-created by update.
+    assert not (skills / "iflow-close").exists()
+    assert not (skills / "iflow-yolo").exists()
+    # Included skills are refreshed.
+    assert (skills / "iflow-init" / "SKILL.md").is_file()
+
+
+def test_update_default_mode_keeps_full_surface(tmp_path: Path) -> None:
+    """With no persisted mode, update keeps the full standard scaffold."""
+    run_init(tmp_path)
+    run_update(tmp_path)
+
+    skills = tmp_path / ".cursor" / "skills"
+    assert (skills / "iflow-close" / "SKILL.md").is_file()
+    assert (skills / "iflow-yolo" / "SKILL.md").is_file()
+
+
+def test_update_prunes_after_external_mode_switch(tmp_path: Path) -> None:
+    """Editing config.toml then running update prunes newly-excluded skills."""
+    run_init(tmp_path)
+    close = tmp_path / ".cursor" / "skills" / "iflow-close"
+    assert close.is_dir()
+
+    from issue_flow.modes import config_path, write_active_mode
+
+    write_active_mode(config_path(tmp_path, ".issueflows"), "simple")
+    run_update(tmp_path)
+
+    assert not close.exists()
+
+
 def test_update_recreates_removed_designs_folder(tmp_path: Path) -> None:
     """If 04-designs-and-guides/ was removed, update should recreate it."""
     run_init(tmp_path)

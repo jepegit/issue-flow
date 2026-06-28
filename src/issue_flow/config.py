@@ -8,7 +8,9 @@ from pathlib import Path
 from dotenv import load_dotenv
 import os
 
+from issue_flow import modes as modes_module
 from issue_flow.editors import DEFAULT_EDITOR, EditorProfile, get_profile
+from issue_flow.modes import DEFAULT_MODE, Mode
 
 
 # Load .env from the current working directory (the user's project root).
@@ -72,15 +74,56 @@ class Settings:
         """Agent directory for the default/selected editor (back-compat helper)."""
         return self.agent_dir_for(get_profile(self.editor))
 
+    def config_path(self, project_root: Path) -> Path:
+        """Path to the project's ``.issueflows/config.toml``."""
+        return modes_module.config_path(project_root, self.issueflows_dir)
+
+    def resolve_active_mode_id(self, project_root: Path) -> str:
+        """Resolve the active mode id for ``project_root`` (no CLI ``--mode``).
+
+        The CLI ``--mode`` argument takes precedence over everything and is
+        applied by ``run_init`` before this fallback is consulted. Here the order
+        is: persisted ``.issueflows/config.toml [issueflow].mode`` >
+        ``ISSUEFLOW_MODE`` env/``.env`` > :data:`DEFAULT_MODE`.
+
+        The persisted (init-chosen) mode deliberately beats the environment so a
+        stray ``ISSUEFLOW_MODE`` cannot silently override the project's mode on
+        ``update`` — switching modes is an ``init --mode`` action.
+        """
+        persisted = modes_module.read_active_mode(self.config_path(project_root))
+        if persisted:
+            return persisted
+        env = os.getenv("ISSUEFLOW_MODE")
+        if env and env.strip():
+            return env.strip()
+        return DEFAULT_MODE
+
+    def resolve_mode(self, project_root: Path) -> Mode:
+        """Resolve the active :class:`Mode` (built-ins + project overrides)."""
+        return modes_module.resolve_mode(
+            self.resolve_active_mode_id(project_root),
+            self.config_path(project_root),
+        )
+
     def template_context(
-        self, project_root: Path, profile: EditorProfile | None = None
+        self,
+        project_root: Path,
+        profile: EditorProfile | None = None,
+        mode: Mode | None = None,
     ) -> dict[str, object]:
         """Build the Jinja2 template context dictionary for ``profile``.
 
         When ``profile`` is omitted, the context targets the editor configured
-        via ``ISSUEFLOW_EDITOR`` (default ``cursor``).
+        via ``ISSUEFLOW_EDITOR`` (default ``cursor``). When ``mode`` is omitted,
+        the active mode is resolved from env / persisted config / default.
+
+        Templates can branch on the resolved mode via ``mode`` / ``mode_name``
+        and, more robustly, on surface membership via ``included_skills`` /
+        ``included_commands`` (so new modes and surfaces need no per-mode
+        conditionals).
         """
         profile = profile or get_profile(self.editor)
+        mode = mode or self.resolve_mode(project_root)
         project_name = _detect_project_name(project_root)
         return {
             "issueflows_dir": self.issueflows_dir,
@@ -98,6 +141,10 @@ class Settings:
             "commands_dir": profile.commands_dir or "commands",
             "commands_supported": profile.commands_dir is not None,
             "graphify_installer": profile.graphify_installer or "",
+            "mode": mode.id,
+            "mode_name": mode.name,
+            "included_skills": sorted(mode.skills),
+            "included_commands": sorted(mode.commands),
         }
 
 

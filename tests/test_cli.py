@@ -62,6 +62,50 @@ def test_init_unknown_editor_exits_with_code_2(
     assert result.exit_code == 2
 
 
+def test_init_help_documents_mode_option(runner: CliRunner) -> None:
+    """`issue-flow init --help` must advertise the --mode option."""
+    result = runner.invoke(app, ["init", "--help"])
+    assert result.exit_code == 0
+    plain = _plain(result.stdout)
+    assert "--mode" in plain
+    assert "simple" in plain
+
+
+def test_init_mode_simple_scaffolds_subset_and_persists(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    """`issue-flow init --mode simple` installs the subset and records the mode."""
+    result = runner.invoke(app, ["init", str(tmp_path), "--mode", "simple"])
+    assert result.exit_code == 0, result.output
+
+    skills = tmp_path / ".cursor" / "skills"
+    assert (skills / "iflow-init" / "SKILL.md").is_file()
+    assert (skills / "iflow-plan" / "SKILL.md").is_file()
+    # Excluded by simple mode.
+    assert not (skills / "iflow-close").exists()
+    assert not (skills / "iflow-yolo").exists()
+    assert not (skills / "iflow-fix").exists()
+
+    config = tmp_path / ".issueflows" / "config.toml"
+    assert config.is_file()
+    assert 'mode = "simple"' in config.read_text(encoding="utf-8")
+
+
+def test_init_unknown_mode_exits_with_code_2(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    result = runner.invoke(app, ["init", str(tmp_path), "--mode", "bogus"])
+    assert result.exit_code == 2
+    assert not (tmp_path / ".cursor").exists()
+
+
+def test_update_has_no_mode_option(runner: CliRunner) -> None:
+    """`issue-flow update` must not expose a --mode flag (init-only)."""
+    result = runner.invoke(app, ["update", "--help"])
+    assert result.exit_code == 0
+    assert "--mode" not in _plain(result.stdout)
+
+
 def test_graphify_help_describes_passthrough(runner: CliRunner) -> None:
     result = runner.invoke(app, ["graphify", "--help"])
     assert result.exit_code == 0

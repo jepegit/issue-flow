@@ -59,6 +59,9 @@ issue-flow/
     __init__.py           # Version string
     cli.py                # Command-line interface (typer)
     config.py             # Settings loaded from .env / environment
+    editors.py            # Per-editor scaffolding profiles (cursor, claude, ...)
+    modes.py              # Scaffolding-mode registry, resolution, persistence
+    modes.toml            # Built-in mode definitions (standard, simple)
     init.py               # `init` and `update` command logic
     templating.py         # Jinja2 template loading
     templates/            # Templates rendered by "init"
@@ -75,6 +78,52 @@ issue-flow/
       02-partly-solved-issues/  # Issues with partial progress
       03-solved-issues/         # Completed issues
 ```
+
+---
+
+## Scaffolding modes
+
+A **mode** selects which workflow surfaces (skills / slash commands) `issue-flow
+init` installs. Two modes ship built in:
+
+- **`standard`** (default) -- the full workflow: planning, PRs, history, cleanup,
+  graphify, and all helpers.
+- **`simple`** -- a markdown-only lifecycle (capture, plan, implement, park,
+  status); no PR/cleanup/yolo/fix/graphify automation.
+
+```bash
+uv run issue-flow init <DIR> --mode simple
+```
+
+The chosen mode is persisted to the project's `.issueflows/config.toml` under
+`[issueflow].mode`, so `issue-flow update` refreshes exactly that mode's
+surfaces. **`update` never changes the mode** -- switch by re-running
+`issue-flow init --mode <id>` (which also prunes surfaces the new mode excludes).
+Resolution order for the active mode: `--mode` (CLI, on `init`) > persisted
+`.issueflows/config.toml` > `ISSUEFLOW_MODE` env > `standard`. The persisted
+choice beats the env var on purpose, so a stray `ISSUEFLOW_MODE` can't override
+the project's mode on `update`.
+
+**Defining modes (developers):** built-in modes live in
+[src/issue_flow/modes.toml](../src/issue_flow/modes.toml). Each `[modes.<id>]`
+table accepts `name`, `description`, `skills`/`commands` (`"all"` or a list of
+stems), or `extends` + `add`/`remove` to compose on top of another mode.
+
+**Custom modes (users):** a project can add or override modes in its own
+`.issueflows/config.toml` using the same `[modes.<id>]` grammar, e.g.:
+
+```toml
+[issueflow]
+mode = "mine"
+
+[modes.mine]
+extends = "simple"
+add = ["iflow_graphify"]   # any packaged surface stem
+```
+
+Templates branch on surface membership via `included_skills` /
+`included_commands` (not on the mode id), so new modes and surfaces compose
+without per-mode conditionals.
 
 ---
 

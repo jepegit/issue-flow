@@ -36,7 +36,9 @@ Do **not** use this skill for `/iflow-pick`, `/iflow-pause`, `/iflow-cleanup`, `
    - **A** — no `issue<N>_original.md` (or no focus issue) → dispatch to **`/iflow-init`**. Reason: "no `*_original.md` yet".
    - **B** — original exists, no `issue<N>_plan.md` → dispatch to **`/iflow-plan`**. Reason: "no plan file yet".
    - **C** — plan exists, and status file is missing or its `- [x] Done` is unchecked → dispatch to **`/iflow-start`**. Reason: "plan is confirmed but status is not `- [x] Done`".
-   - **D** — status file contains `- [x] Done` (case-insensitive on `done`) → dispatch to **`/iflow-close`**. Reason: "status marks the issue `- [x] Done`".
+{% if "iflow_close" in included_skills %}   - **D** — status file contains `- [x] Done` (case-insensitive on `done`) → dispatch to **`/iflow-close`**. Reason: "status marks the issue `- [x] Done`".
+{% else %}   - **D** — status file contains `- [x] Done` (case-insensitive on `done`) → this mode has no `/iflow-close`; report that the issue is done and move its `issue<N>_*` files to `{{ issueflows_dir }}/{{ solved_folder }}/`.
+{% endif %}
 
 3. **Announce and dispatch.** Print one line like `/iflow -> /iflow-plan  (issue #N: no plan file yet)` and then follow the chosen command's playbook. Forward the user's trailing text verbatim.
 
