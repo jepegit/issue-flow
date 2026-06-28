@@ -21,7 +21,7 @@ from typing import Any
 from rich.console import Console
 from rich.markup import escape
 
-from issue_flow import gitutils, tracking
+from issue_flow import gitutils, modes, tracking
 from issue_flow.config import Settings
 
 
@@ -325,6 +325,78 @@ def run_capture(
             f"  [dim]{len(comments)} comment(s) fetched — triage them into the "
             "'## Comments (curated summary)' section.[/dim]"
         )
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# config add
+# ---------------------------------------------------------------------------
+
+
+def _print_config_guide(console: Console, cfg_path: Path) -> None:
+    """Print a short guide on hand-editing ``config.toml`` later."""
+    console.print(
+        f"  [dim]Edit [bold]{escape(str(cfg_path))}[/bold] later to tune the "
+        "project:[/dim]"
+    )
+    console.print(
+        "  [dim]- [bold]mode[/bold]: 'standard' (full) or 'simple' (markdown-only); "
+        "switch via 'issue-flow init --mode <id>'.[/dim]"
+    )
+    console.print(
+        "  [dim]- [bold]caveman_default[/bold] / [bold]grill_me_default[/bold]: "
+        "true/false; re-run 'issue-flow update' so the rule re-renders.[/dim]"
+    )
+    console.print(
+        "  [dim]Other ISSUEFLOW_* settings are environment-only (set them in "
+        ".env), not in config.toml.[/dim]"
+    )
+
+
+def run_config_add(
+    project_root: Path, console: Console, force: bool, as_json: bool
+) -> int:
+    """Create ``.issueflows/config.toml`` seeded from ``.env`` or defaults.
+
+    Writes the three ``[issueflow]`` keys issue-flow reads from ``config.toml``.
+    Refuses to clobber an existing file unless ``force`` is set (which upserts
+    those keys while preserving other content).
+    """
+    settings = Settings()
+    cfg_path = settings.config_path(project_root)
+    values = settings.seed_config_values()
+    existed = cfg_path.is_file()
+
+    if existed and not force:
+        msg = (
+            f"{cfg_path} already exists; pass --force to regenerate its "
+            "[issueflow] keys."
+        )
+        if as_json:
+            _emit_json(
+                console,
+                {"written": False, "path": str(cfg_path), "error": msg, **values},
+            )
+        else:
+            console.print(f"[yellow]exists[/yellow]  {msg}")
+            _print_config_guide(console, cfg_path)
+        return 1
+
+    modes.write_default_config(cfg_path, overwrite=force, **values)
+
+    payload = {
+        "written": True,
+        "path": str(cfg_path),
+        "overwritten": existed,
+        **values,
+    }
+    if as_json:
+        _emit_json(console, payload)
+        return 0
+
+    verb = "regenerated" if existed else "wrote"
+    console.print(f"[green]{verb}[/green]  {cfg_path}")
+    _print_config_guide(console, cfg_path)
     return 0
 
 

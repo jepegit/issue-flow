@@ -292,3 +292,94 @@ def write_active_mode(cfg_path: Path, mode_id: str) -> None:
     section["mode"] = mode_id
 
     cfg_path.write_text(tomlkit.dumps(doc), encoding="utf-8")
+
+
+def write_default_config(
+    cfg_path: Path,
+    *,
+    mode: str,
+    caveman_default: bool,
+    grill_me_default: bool,
+    overwrite: bool = False,
+) -> bool:
+    """Create (or, with ``overwrite``, refresh) the project's ``config.toml``.
+
+    Writes the three ``[issueflow]`` keys issue-flow actually reads from
+    ``config.toml`` — ``mode``, ``caveman_default``, ``grill_me_default`` — using
+    the supplied values. Other ``ISSUEFLOW_*`` settings are env-only and are
+    deliberately not written here.
+
+    Behaviour:
+
+    - File missing → create it with a commented ``[issueflow]`` table.
+    - File present and ``overwrite`` is ``False`` → write nothing, return ``False``.
+    - File present and ``overwrite`` is ``True`` → upsert the three keys via
+      tomlkit, leaving user comments, ``[modes.*]`` tables, and formatting intact.
+
+    Returns ``True`` when the file was written, ``False`` when it already existed
+    and ``overwrite`` was not set.
+    """
+    existed = cfg_path.is_file()
+    if existed and not overwrite:
+        return False
+
+    cfg_path.parent.mkdir(parents=True, exist_ok=True)
+    if existed:
+        doc = tomlkit.parse(cfg_path.read_text(encoding="utf-8"))
+        section = doc.get("issueflow")
+        if not isinstance(section, dict):
+            section = tomlkit.table()
+            doc["issueflow"] = section
+        section["mode"] = mode
+        section["caveman_default"] = caveman_default
+        section["grill_me_default"] = grill_me_default
+    else:
+        doc = tomlkit.document()
+        doc.add(
+            tomlkit.comment(
+                "issue-flow project config. Created by 'issue-flow config add'."
+            )
+        )
+        doc.add(
+            tomlkit.comment(
+                "Only these keys are read from config.toml; other ISSUEFLOW_* "
+                "settings are environment-only (see 'issue-flow config add --help')."
+            )
+        )
+        doc["issueflow"] = _commented_issueflow_table(
+            mode, caveman_default, grill_me_default
+        )
+
+    cfg_path.write_text(tomlkit.dumps(doc), encoding="utf-8")
+    return True
+
+
+def _commented_issueflow_table(
+    mode: str, caveman_default: bool, grill_me_default: bool
+) -> tomlkit.items.Table:
+    """Build a fresh ``[issueflow]`` table with explanatory comments per key."""
+    table = tomlkit.table()
+    table.add(
+        tomlkit.comment(
+            "Scaffolding mode: 'standard' (full workflow) or 'simple' "
+            "(markdown-only). Switch by re-running 'issue-flow init --mode <id>'."
+        )
+    )
+    table["mode"] = mode
+    table.add(tomlkit.nl())
+    table.add(
+        tomlkit.comment(
+            "Reply in the terse caveman style by default (true/false). "
+            "Re-run 'issue-flow update' after changing so the rule re-renders."
+        )
+    )
+    table["caveman_default"] = caveman_default
+    table.add(tomlkit.nl())
+    table.add(
+        tomlkit.comment(
+            "Run the grill-me planning interview by default (true/false). "
+            "Re-run 'issue-flow update' after changing so the rule re-renders."
+        )
+    )
+    table["grill_me_default"] = grill_me_default
+    return table
