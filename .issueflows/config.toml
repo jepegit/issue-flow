@@ -1,0 +1,3 @@
+[issueflow]
+mode = "standard"
+caveman_default = true
