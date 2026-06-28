@@ -110,6 +110,9 @@ SKILL_DIRS: list[str] = [
     "iflow_version_bump",
     "iflow_history_update",
     "iflow_graphify",
+    # Behavior skill (not a workflow command): a terse "caveman" response style.
+    # Part of the "all"/standard surface; excluded by the explicit "simple" list.
+    "caveman",
 ]
 
 SKILL_OUTPUT_NAMES: dict[str, str] = {
