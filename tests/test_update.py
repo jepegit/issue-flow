@@ -147,6 +147,30 @@ def test_update_preserves_project_brief(tmp_path: Path) -> None:
     assert brief.read_text(encoding="utf-8") == custom
 
 
+def test_update_creates_tools_readme_when_missing(tmp_path: Path) -> None:
+    """update should recreate the 00-tools README if it is missing."""
+    run_init(tmp_path)
+    readme = tmp_path / ".issueflows" / "00-tools" / "README.md"
+    readme.unlink()
+
+    run_update(tmp_path)
+
+    assert readme.is_file()
+    assert "Tool index" in readme.read_text(encoding="utf-8")
+
+
+def test_update_preserves_tools_readme(tmp_path: Path) -> None:
+    """update must not overwrite the agent-grown tools index."""
+    run_init(tmp_path)
+    readme = tmp_path / ".issueflows" / "00-tools" / "README.md"
+    custom = "# My toolbox\n\n| dedupe.py | drops dups | always |\n"
+    readme.write_text(custom, encoding="utf-8")
+
+    run_update(tmp_path)
+
+    assert readme.read_text(encoding="utf-8") == custom
+
+
 _AGENTS_BEGIN = "<!-- BEGIN issue-flow (managed: do not edit this block) -->"
 _AGENTS_END = "<!-- END issue-flow (managed) -->"
 

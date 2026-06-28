@@ -135,6 +135,62 @@ def test_init_force_preserves_existing_project_brief(tmp_path: Path) -> None:
     assert brief.read_text(encoding="utf-8") == custom
 
 
+def test_init_creates_tools_readme(tmp_path: Path) -> None:
+    """init should seed the 00-tools README index when missing."""
+    run_init(tmp_path)
+
+    readme = tmp_path / ".issueflows" / "00-tools" / "README.md"
+    assert readme.is_file()
+    text = readme.read_text(encoding="utf-8")
+    assert "00-tools" in text
+    assert "Tool index" in text
+    assert "Check here first" in text
+
+
+def test_init_preserves_existing_tools_readme(tmp_path: Path) -> None:
+    """Re-running init must not overwrite the agent-grown tools index."""
+    run_init(tmp_path)
+    readme = tmp_path / ".issueflows" / "00-tools" / "README.md"
+    custom = "# My toolbox\n\n| dedupe.py | drops dups | always |\n"
+    readme.write_text(custom, encoding="utf-8")
+
+    run_init(tmp_path)
+
+    assert readme.read_text(encoding="utf-8") == custom
+
+
+def test_init_force_preserves_existing_tools_readme(tmp_path: Path) -> None:
+    """Even init --force must not clobber the user-owned tools index."""
+    run_init(tmp_path)
+    readme = tmp_path / ".issueflows" / "00-tools" / "README.md"
+    custom = "# My toolbox under force\n\nKeep me.\n"
+    readme.write_text(custom, encoding="utf-8")
+
+    run_init(tmp_path, force=True)
+
+    assert readme.read_text(encoding="utf-8") == custom
+
+
+def test_init_start_skill_documents_toolbox_and_upfront_status(tmp_path: Path) -> None:
+    """iflow-start skill should nudge toolbox reuse and up-front status seeding."""
+    run_init(tmp_path)
+    content = (tmp_path / ".cursor" / "skills" / "iflow-start" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    assert "00-tools" in content
+    # Status file is seeded before code, not just at close.
+    assert "Seed the status file up front" in content
+
+
+def test_init_plan_skill_documents_toolbox_prior_art(tmp_path: Path) -> None:
+    """iflow-plan skill prior-art discovery should check the tools folder."""
+    run_init(tmp_path)
+    content = (tmp_path / ".cursor" / "skills" / "iflow-plan" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    assert "00-tools" in content
+
+
 def test_init_cursor_is_skills_first(tmp_path: Path) -> None:
     """Running init should create Cursor skills, not Cursor command files."""
     run_init(tmp_path)
@@ -231,6 +287,32 @@ def test_init_issue_close_documents_version_bump(tmp_path: Path) -> None:
     )
     assert "uv version --bump" in content
     assert "iflow-version-bump" in content
+
+
+def test_init_version_bump_skill_documents_all_levels_and_default(
+    tmp_path: Path,
+) -> None:
+    """version-bump skill should list every uv level and the pre-release default."""
+    run_init(tmp_path)
+    content = (
+        tmp_path / ".cursor" / "skills" / "iflow-version-bump" / "SKILL.md"
+    ).read_text(encoding="utf-8")
+    for level in ("major", "minor", "patch", "stable", "alpha", "beta", "rc", "post", "dev"):
+        assert level in content, f"version-bump skill should mention {level}"
+    # Pre-release-aware default when no level is given.
+    assert "pre-release-aware default" in content
+    assert "alpha" in content and "beta" in content
+
+
+def test_init_close_skill_documents_prerelease_default(tmp_path: Path) -> None:
+    """iflow-close skill should describe the pre-release-aware default bump."""
+    run_init(tmp_path)
+    content = (tmp_path / ".cursor" / "skills" / "iflow-close" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    assert "pre-release-aware default" in content
+    # The named-level list should include a pre-release level.
+    assert "beta" in content
 
 
 def test_init_issue_close_documents_history_update_step(tmp_path: Path) -> None:

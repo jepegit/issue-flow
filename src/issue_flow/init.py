@@ -219,6 +219,32 @@ def _ensure_project_brief(
     console.print(f"  [green]write[/green] {relative}")
 
 
+def _ensure_tools_readme(
+    project_root: Path,
+    settings: Settings,
+    context: dict[str, str],
+) -> None:
+    """Create the ``00-tools/`` README when it is missing.
+
+    The README is a self-describing index of reusable helper scripts that
+    agents grow over time, so it lives outside the manifest ``run_update``
+    refreshes — once written, its index is never clobbered.
+    """
+    relative = Path(settings.issueflows_dir) / settings.tools_folder / "README.md"
+    path = project_root / relative
+
+    if path.exists():
+        console.print(
+            f"  [dim]skip[/dim]  {relative}  (tools README already exists)"
+        )
+        return
+
+    rendered = render_template("tools/README.md.j2", context)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(rendered, encoding="utf-8")
+    console.print(f"  [green]write[/green] {relative}")
+
+
 def _already_initialized(
     project_root: Path,
     settings: Settings,
@@ -325,6 +351,11 @@ def run_init(
         settings,
         settings.template_context(project_root, profiles[0], mode=mode_obj),
     )
+    _ensure_tools_readme(
+        project_root,
+        settings,
+        settings.template_context(project_root, profiles[0], mode=mode_obj),
+    )
 
     written_files: list[Path] = []
     skipped_files: list[Path] = []
@@ -425,6 +456,11 @@ def run_update(
 
     _create_issueflow_dirs(project_root, settings)
     _ensure_project_brief(
+        project_root,
+        settings,
+        settings.template_context(project_root, profiles[0], mode=mode_obj),
+    )
+    _ensure_tools_readme(
         project_root,
         settings,
         settings.template_context(project_root, profiles[0], mode=mode_obj),

@@ -21,10 +21,11 @@ Post-merge branch hygiene now lives in `/iflow-cleanup` — this skill no longer
 
 If the user included text after `/iflow-close` that requests a version bump:
 
-- **`bump`** or **`patch`** → `uv version --bump patch`
-- **`bump minor`** or **`minor`** → `uv version --bump minor`
-- **`bump major`** or **`major`** → `uv version --bump major`
-- Otherwise infer **patch** / **minor** / **major** from natural language; ask once if ambiguous.
+- **`bump`** (no level) → **pre-release-aware default**: stay on the current channel (alpha→`alpha`, beta→`beta`, rc→`rc`, dev→`dev`) or `patch` when the current version is already stable.
+- **A named level** → `uv version --bump <level>` for any uv level: `patch`, `minor`, `major`, `stable`, `alpha`, `beta`, `rc`, `post`, `dev` (`dev` must be paired, e.g. `--bump patch --bump dev`).
+- Otherwise infer the level from natural language (e.g. "bugfix release" → `patch`, "promote to beta" → `beta`); ask once if ambiguous. Never auto-pick `major`.
+
+The exact semantics and the default rule live in `{{ agent_dir }}/skills/iflow-version-bump/SKILL.md` — that skill is the source of truth.
 
 When a bump applies: read `{{ agent_dir }}/skills/iflow-version-bump/SKILL.md`, run the bump from the **project root** **after** the sanity check and **before** issue-folder updates and **before** commit / push / PR.
 

@@ -38,16 +38,19 @@ Follow this skill when the user wants to **begin implementation** from issue not
      - **Proceed without a plan** — add a short `- Skipped /iflow-plan on <date>` note to `issue<N>_status.md` and continue.
      - **Abort.**
 
-5. **Implement** — Execute the plan (or the explicitly-acknowledged plan-less path). Prefer minimal, focused diffs. Match existing code style and tooling.
+5. **Seed the status file up front** — Before writing code, create `issue<N>_status.md` under `.issueflows/01-current-issues/` (if missing) with an unchecked `- [ ] Done` checkbox and short **What's done** / **Remaining work** sections. It is a living document that should exist *during* the work, not only at `/iflow-close`.
 
-6. **Project conventions**
+6. **Implement** — Execute the plan (or the explicitly-acknowledged plan-less path). Prefer minimal, focused diffs. Match existing code style and tooling.
+
+7. **Project conventions**
    - Use the project's **documented Python toolchain**, not bare `python`. Default to `uv run` (scripts, pytest, tools) and `uv add` / `uv remove` / `uv sync` for dependencies, **unless** the project documents otherwise — e.g. a conda project runs scripts and `pytest` inside the **activated conda environment** (`conda activate <env>` or `conda run -n <env> …`). Honour existing project rules over these defaults.
+   - **Toolbox** — Before writing a one-off helper script, check `.issueflows/00-tools/` (start with its `README.md` index) for an existing tool. If you build something reusable during this issue, save it into `.issueflows/00-tools/` and add a one-line entry to that README's index (name, what it does, when to use it) for the next agent.
    - If `.issueflows/04-designs-and-guides/this-project.md` exists, read it for project-specific context before implementing; then skim relevant design docs under `.issueflows/04-designs-and-guides/`.
-   - After meaningful progress, update or create `issue<N>_status.md` under `.issueflows/01-current-issues/` with an explicit `- [ ] Done` checkbox that stays unchecked until fully resolved. Record what has landed and what remains.
+   - As you iterate, re-read and keep `issue<N>_status.md` current — move items between **What's done** and **Remaining work**, leaving `- [ ] Done` unchecked until fully resolved.
 
-7. **Hand off** — When the implementation is ready to ship, tell the user to run `/iflow-close` (optionally with `bump`/`patch`/`minor`/`major`). Parking work mid-stream goes through `/iflow-pause`.
+8. **Hand off** — When the implementation is ready to ship, tell the user to run `/iflow-close` (optionally with `bump`/`patch`/`minor`/`major`). Parking work mid-stream goes through `/iflow-pause`.
 
-8. **Reporting** — Summarize what changed, what remains, and where the issue docs live. Include any branch warnings from step 2, any group moves from step 3, and whether the plan was followed or explicitly skipped.
+9. **Reporting** — Summarize what changed, what remains, and where the issue docs live. Include any branch warnings from step 2, any group moves from step 3, and whether the plan was followed or explicitly skipped.
 
 ## Constraints
 

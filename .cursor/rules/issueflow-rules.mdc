@@ -132,7 +132,10 @@ If the issue is fully resolved (no additional subtasks present), move the origin
 
 ### Scripts that can help us when working on issues
 
-If you want, you can put small scripts etc. that you have made and think could be useful in the future in our llm tools folder: `.issueflows/00-tools`. Also, feel free to use the tools in our llm tools folder if you find someone that could be useful.
+`.issueflows/00-tools/` is the project's durable toolbox of reusable helper scripts, with a `README.md` index describing each one.
+
+- **Check it first.** Before writing a new one-off helper for an issue, skim the `00-tools/README.md` index and the folder — a suitable tool may already exist.
+- **Contribute back.** If you build something during an issue that could help on a future one, save it into `.issueflows/00-tools/` and add a one-line entry to the index (name, what it does, when to use it) so the next agent knows whether to reach for it.
 
 
 
