@@ -19,6 +19,12 @@ Follow this skill when the user wants to **design the approach** for an issue be
 
 ## Instructions
 
+> **CLI fast path (optional).** If the `issue-flow` CLI is on `PATH`, run
+> `issue-flow agent preflight` for the branch status preflight (step 2). The
+> CLI is optional: if it is missing or errors, fall back to the manual commands
+> below. (`issue-flow` is only present when the user installed it, e.g.
+> `uv tool install issue-flow`.)
+
 1. **Find the focus issue.** Look in `.issueflows/01-current-issues/` for `issue<N>_original.md`. If it is missing or multiple groups are ambiguous, **stop** and ask. Suggest `/iflow-init` first.
 
 2. **Branch status preflight** (non-destructive). Detect the default branch (prefer `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`, else `git symbolic-ref --quiet --short refs/remotes/origin/HEAD`, else `main`). Run `git fetch --prune`. Report current branch, clean/dirty working tree, and ahead/behind vs `origin/<default>`. If on the default branch, suggest creating an issue branch (`git switch -c <N>-<short-slug>`) but do **not** auto-run it — planning itself does not require a branch switch.

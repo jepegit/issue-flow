@@ -253,6 +253,18 @@ If the issue is fully resolved (no additional subtasks present), move the origin
 If you want, you can put small scripts etc. that you have made and think could be useful in the future in our llm tools folder: `.issueflows/00-tools`. Also, feel free to use the tools in our llm tools folder if you find someone that could be useful.
 
 
+
+### Optional response styles
+
+A **caveman** Agent Skill is installed under `.cursor/skills/caveman/`. It
+is a terse, "token-greedy" response style that keeps all technical substance
+while dropping filler, articles, and pleasantries. It is **off by default** and
+only kicks in when the user asks for it (e.g. "caveman", "token greedy", "be
+terse"). Turn it off with **"stop caveman"** or **"normal mode"**. Code,
+commits, PRs, security warnings, and destructive-action confirmations are always
+written in normal prose, never caveman.
+
+
 ### Designs and guides
 
 Long-lived design docs, design decisions, and project "good practices" live under `.issueflows/04-designs-and-guides/`. Unlike the issue folders, content here is **not** tied to a single issue and is **not** archived when an issue closes — it is the project's durable memory.

@@ -22,6 +22,14 @@ Do **not** use this skill for `/iflow-pick`, `/iflow-pause`, `/iflow-cleanup`, `
 
 ## Instructions
 
+> **CLI fast path (optional).** If the `issue-flow` CLI is on `PATH`, run
+> `issue-flow agent state --json` to resolve the focus issue, its lifecycle
+> stage, and the suggested `next_command` in one deterministic step (covers
+> instructions 1–2), then dispatch to that command. The CLI is optional: if it
+> is not installed or it errors, fall back to the manual instructions below.
+> (`issue-flow` is only present when the user installed it, e.g.
+> `uv tool install issue-flow`.)
+
 1. **Resolve the focus issue number `N`.**
    - `git branch --show-current`. If it matches `^(\d+)-.+`, the leading digits are the **authoritative** `N`.
    - List `issue<n>_*` groups in `.issueflows/01-current-issues/`, and also check `.issueflows/02-partly-solved-issues/` and `.issueflows/03-solved-issues/` for archived groups matching `N`.
