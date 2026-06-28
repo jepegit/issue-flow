@@ -91,8 +91,8 @@ def test_resolve_output_path() -> None:
 
 
 def test_manifest_entry_count() -> None:
-    # Cursor is skills-first: 1 rule + 1 doc + 15 skills = 17
-    assert len(TEMPLATE_MANIFEST) == 17
+    # Cursor is skills-first: 1 rule + 1 doc + 16 skills = 18
+    assert len(TEMPLATE_MANIFEST) == 18
 
 
 def _resolved_paths(profile_id: str) -> set[str]:
@@ -112,7 +112,7 @@ def _resolved_paths(profile_id: str) -> set[str]:
 def test_build_manifest_cursor_matches_default() -> None:
     """The default TEMPLATE_MANIFEST is the cursor profile manifest."""
     assert build_manifest(EDITORS["cursor"]) == TEMPLATE_MANIFEST
-    assert len(build_manifest(EDITORS["cursor"])) == 17
+    assert len(build_manifest(EDITORS["cursor"])) == 18
 
 
 def test_build_manifest_cursor_has_skills_and_rules_but_no_commands() -> None:
@@ -127,15 +127,15 @@ def test_build_manifest_cursor_has_skills_and_rules_but_no_commands() -> None:
 
 
 def test_build_manifest_codex_has_skills_and_docs_but_no_commands() -> None:
-    """Codex: skills (15) + docs (1), no slash commands and no rules extra."""
+    """Codex: skills (16) + docs (1), no slash commands and no rules extra."""
     manifest = build_manifest(get_profile("codex"))
     template_names = [name for name, _ in manifest]
     assert not any(name.startswith("commands/") for name in template_names)
-    assert sum(name.startswith("skills/") for name in template_names) == 15
+    assert sum(name.startswith("skills/") for name in template_names) == 16
     assert "docs/issue-workflow.md.j2" in template_names
     # No .mdc / CLAUDE.md rules extra for Codex.
     assert not any(name.startswith("rules/") for name in template_names)
-    assert len(manifest) == 16
+    assert len(manifest) == 17
 
 
 def test_build_manifest_opencode_uses_singular_command_dir() -> None:
@@ -625,6 +625,43 @@ def test_issue_init_skill_delegates_to_comments_skill() -> None:
     assert "title,body,url,number,comments" in rendered
     assert "iflow-comments" in rendered
     assert "## Comments (curated summary)" in rendered
+
+
+def test_caveman_skill_renders_full_mode_english_only() -> None:
+    """The caveman skill ships as a model-invocable, full-mode-only behavior skill."""
+    rendered = render_template("skills/caveman/SKILL.md.j2", _default_context())
+    assert "name: caveman" in rendered
+    # Model-invocable (unlike workflow skills): the user opts in at runtime.
+    assert "disable-model-invocation: true" not in rendered
+    # Off switches and single full intensity, English only.
+    assert "stop caveman" in rendered
+    assert "normal mode" in rendered
+    assert "English only" in rendered
+    assert "Single level: **full**" in rendered
+
+
+def test_caveman_in_standard_manifest_as_skills_caveman() -> None:
+    """Standard scaffolding emits the caveman skill at skills/caveman/SKILL.md."""
+    template_names = {name for name, _ in TEMPLATE_MANIFEST}
+    assert "skills/caveman/SKILL.md.j2" in template_names
+    assert "{agent_dir}/skills/caveman/SKILL.md" in {
+        path for _, path in TEMPLATE_MANIFEST
+    }
+
+
+def test_rules_body_caveman_pointer_is_membership_gated() -> None:
+    """The rules body mentions caveman only when it is in included_skills."""
+    with_caveman = _default_context()
+    rendered_on = render_template("rules/AGENTS.md.j2", with_caveman)
+    assert "caveman" in rendered_on.lower()
+    assert "Optional response styles" in rendered_on
+
+    without_caveman = _default_context()
+    without_caveman["included_skills"] = [
+        s for s in _ALL_SKILLS if s != "caveman"
+    ]
+    rendered_off = render_template("rules/AGENTS.md.j2", without_caveman)
+    assert "Optional response styles" not in rendered_off
 
 
 def test_issue_comments_skill_documents_triage_rules() -> None:
