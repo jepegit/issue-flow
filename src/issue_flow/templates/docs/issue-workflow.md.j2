@@ -9,6 +9,9 @@ This repo uses {{ editor_name }} **Agent Skills** under `{{ agent_dir }}/skills/
 **Quick start: just run `/iflow`.** It inspects the state of the focus issue and dispatches to the right linear-flow {% if commands_supported %}command{% else %}skill{% endif %} (`/iflow-init`, `/iflow-plan`, `/iflow-start`, or `/iflow-close`) — so you don't have to remember which step is next. Haven't chosen an issue yet? Start with **`/iflow-pick`**.
 
 `issue-flow init` also creates a durable project brief at `{{ issueflows_dir }}/{{ designs_folder }}/this-project.md` when it is missing. Edit it by hand with project-specific context; `issue-flow update` and `issue-flow init --force` leave existing content untouched.
+{% if mode != "standard" %}
+> **Scaffolding mode: `{{ mode }}`.** This project was scaffolded in the **{{ mode_name }}** mode, so only a subset of the surfaces below are installed: `{{ included_skills | join("`, `") }}`. Entries for surfaces this mode does not install are listed below for reference but are not present in `{{ agent_dir }}/skills/`. Switch modes with `issue-flow init --mode <id>`.
+{% endif %}
 
 | Entry point | File | Role |
 |--------|------|------|

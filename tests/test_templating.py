@@ -6,11 +6,22 @@ from pathlib import Path
 
 from issue_flow.editors import EDITORS, get_profile
 from issue_flow.templating import (
+    COMMAND_NAMES,
+    SKILL_DIRS,
     TEMPLATE_MANIFEST,
     build_manifest,
     render_template,
     resolve_output_path,
 )
+
+_ALL_SKILLS = sorted(SKILL_DIRS)
+_ALL_COMMANDS = sorted(COMMAND_NAMES)
+_MODE_CONTEXT = {
+    "mode": "standard",
+    "mode_name": "Standard",
+    "included_skills": _ALL_SKILLS,
+    "included_commands": _ALL_COMMANDS,
+}
 
 
 def test_all_templates_render_without_error() -> None:
@@ -31,6 +42,7 @@ def test_all_templates_render_without_error() -> None:
         "commands_dir": "commands",
         "commands_supported": False,
         "graphify_installer": "cursor",
+        **_MODE_CONTEXT,
     }
     for template_name, _ in TEMPLATE_MANIFEST:
         result = render_template(template_name, context)
@@ -56,6 +68,7 @@ def test_template_substitution() -> None:
         "commands_dir": "commands",
         "commands_supported": True,
         "graphify_installer": "cursor",
+        **_MODE_CONTEXT,
     }
     rendered = render_template("commands/iflow-init.md.j2", context)
     assert "CUSTOM_DIR/01-current-issues" in rendered
@@ -162,6 +175,7 @@ def test_build_manifest_no_cursor_leakage_in_non_cursor_outputs() -> None:
             "commands_dir": profile.commands_dir or "commands",
             "commands_supported": profile.commands_dir is not None,
             "graphify_installer": profile.graphify_installer or "",
+            **_MODE_CONTEXT,
         }
         manifest = build_manifest(profile) + [("rules/AGENTS.md.j2", "AGENTS.md")]
         for template_name, path_template in manifest:
@@ -237,6 +251,7 @@ def _default_context() -> dict[str, object]:
         "commands_dir": "commands",
         "commands_supported": True,
         "graphify_installer": "cursor",
+        **_MODE_CONTEXT,
     }
 
 

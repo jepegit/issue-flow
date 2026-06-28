@@ -4,10 +4,14 @@ from __future__ import annotations
 
 from importlib import resources
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from jinja2 import Environment, BaseLoader, TemplateNotFound
 
 from issue_flow.editors import EDITORS, EditorProfile
+
+if TYPE_CHECKING:
+    from issue_flow.modes import Mode
 
 
 # ---------------------------------------------------------------------------
@@ -156,24 +160,38 @@ DOCS_ENTRY: tuple[str, str] = (
 )
 
 
-def build_manifest(profile: EditorProfile) -> list[tuple[str, str]]:
+def build_manifest(
+    profile: EditorProfile, mode: Mode | None = None
+) -> list[tuple[str, str]]:
     """Return the ``(template, output_path_template)`` entries for ``profile``.
 
-    Skills and the workflow doc are always emitted. Slash commands are emitted
-    only when the profile defines a ``commands_dir`` (Codex has none). The
-    per-editor rules extra (``.mdc`` / ``CLAUDE.md``) is added when present. The
-    always-on ``AGENTS.md`` rules file is written separately by the init layer
-    (as a managed block) and is intentionally not part of this manifest.
+    When ``mode`` is given, only the command/skill surfaces that mode includes
+    are emitted (its ``commands`` / ``skills`` stem sets). ``mode=None`` keeps the
+    full set (the back-compat ``standard`` behaviour), so existing call sites and
+    tests are unaffected.
+
+    The per-editor rules extra (``.mdc`` / ``CLAUDE.md``) and the workflow doc are
+    always emitted regardless of mode; their *content* adapts via the
+    ``included_skills`` membership available in the render context. The always-on
+    ``AGENTS.md`` rules file is written separately by the init layer (as a managed
+    block) and is intentionally not part of this manifest.
     """
+    skills_filter = None if mode is None else mode.skills
+    commands_filter = None if mode is None else mode.commands
+
     entries: list[tuple[str, str]] = []
 
     if profile.commands_dir:
         for name in COMMAND_NAMES:
+            if commands_filter is not None and name not in commands_filter:
+                continue
             entries.append(
                 (f"commands/{name}.md.j2", "{agent_dir}/{commands_dir}/" + f"{name}.md")
             )
 
     for skill_dir in SKILL_DIRS:
+        if skills_filter is not None and skill_dir not in skills_filter:
+            continue
         output_name = SKILL_OUTPUT_NAMES.get(skill_dir, skill_dir.replace("_", "-"))
         entries.append(
             (
@@ -187,6 +205,11 @@ def build_manifest(profile: EditorProfile) -> list[tuple[str, str]]:
 
     entries.append(DOCS_ENTRY)
     return entries
+
+
+def skill_output_name(skill_dir: str) -> str:
+    """Map a skill template stem to its output folder name (underscores->hyphens)."""
+    return SKILL_OUTPUT_NAMES.get(skill_dir, skill_dir.replace("_", "-"))
 
 
 # Backwards-compatible default manifest (Cursor). Kept so existing imports and

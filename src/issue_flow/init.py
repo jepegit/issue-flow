@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import re
+import shutil
 from pathlib import Path
 
 import typer
 from rich.console import Console
 
+from issue_flow import modes as modes_module
 from issue_flow.config import Settings
 from issue_flow.dependencies import (
     check_dependencies,
@@ -15,13 +17,16 @@ from issue_flow.dependencies import (
 )
 from issue_flow.editors import EditorProfile, resolve_editors
 from issue_flow.graphify import register_with_editor as graphify_register_with_editor
+from issue_flow.modes import Mode
 from issue_flow.templating import (
     COMMAND_NAMES,
     RETIRED_COMMANDS,
     RETIRED_SKILLS,
+    SKILL_DIRS,
     build_manifest,
     render_template,
     resolve_output_path,
+    skill_output_name,
 )
 
 console = Console()
@@ -33,6 +38,7 @@ _DOTENV_KEYS: tuple[tuple[str, str], ...] = (
     ("ISSUEFLOW_AGENT_DIR", ".cursor"),
     ("ISSUEFLOW_DOCS_DIR", "docs"),
     ("ISSUEFLOW_HISTORY_FILE", "HISTORY.md"),
+    ("ISSUEFLOW_MODE", "standard"),
 )
 _DOTENV_SECTION_HEADER = "# --- issue-flow: optional environment variables ---\n"
 
@@ -238,6 +244,7 @@ def run_init(
     force: bool = False,
     skip_dep_check: bool = False,
     editors: list[str] | None = None,
+    mode: str | None = None,
 ) -> None:
     """Scaffold .issueflows/ directories and editor config (commands, rules, skills).
 
@@ -265,6 +272,10 @@ def run_init(
         skip_dep_check: If True, bypass the external-CLI dependency check.
         editors: Editor ids to scaffold for (``"all"`` expands to every
             supported editor). Defaults to the configured/default editor.
+        mode: Scaffolding mode id (e.g. ``"simple"``). When given it is
+            validated and persisted to ``.issueflows/config.toml`` so later
+            ``update`` runs honour it. When omitted, the persisted/active mode is
+            used (default ``standard``), and the persisted value is left as-is.
     """
     settings = Settings()
     try:
@@ -273,12 +284,22 @@ def run_init(
         console.print(f"[red]error[/red]  {exc}")
         raise typer.Exit(code=2) from None
 
+    cfg_path = settings.config_path(project_root)
+    explicit_mode = mode is not None
+    mode_id = mode if explicit_mode else settings.resolve_active_mode_id(project_root)
+    try:
+        mode_obj = modes_module.resolve_mode(mode_id, cfg_path)
+    except ValueError as exc:
+        console.print(f"[red]error[/red]  {exc}")
+        raise typer.Exit(code=2) from None
+
     console.print(
         f"\n[bold]Initializing issue-flow in [cyan]{project_root}[/cyan][/bold]"
     )
     console.print(
-        f"[dim]Editors: {', '.join(p.id for p in profiles)}[/dim]\n"
+        f"[dim]Editors: {', '.join(p.id for p in profiles)}[/dim]"
     )
+    console.print(f"[dim]Mode: {mode_obj.id}[/dim]\n")
 
     if not _dependency_gate(skip_dep_check):
         raise typer.Exit(code=1)
@@ -293,10 +314,16 @@ def run_init(
         )
 
     _create_issueflow_dirs(project_root, settings)
+    if explicit_mode:
+        modes_module.write_active_mode(cfg_path, mode_obj.id)
+        console.print(
+            f"  [green]write[/green] {cfg_path.relative_to(project_root).as_posix()}  "
+            f"(mode = {mode_obj.id})"
+        )
     _ensure_project_brief(
         project_root,
         settings,
-        settings.template_context(project_root, profiles[0]),
+        settings.template_context(project_root, profiles[0], mode=mode_obj),
     )
 
     written_files: list[Path] = []
@@ -304,12 +331,13 @@ def run_init(
     pruned_count = 0
     for profile in profiles:
         console.print(f"\n[bold]{profile.name}[/bold] ([cyan]{profile.agent_dir}[/cyan])")
-        context = settings.template_context(project_root, profile)
+        context = settings.template_context(project_root, profile, mode=mode_obj)
         written, skipped = _write_manifest_files(
-            project_root, build_manifest(profile), context, force=force
+            project_root, build_manifest(profile, mode_obj), context, force=force
         )
         _ensure_agents_md(project_root, context)
         pruned_count += _prune_retired_files(project_root, profile)
+        pruned_count += _prune_excluded_surfaces(project_root, profile, mode_obj)
         written_files.extend(written)
         skipped_files.extend(skipped)
 
@@ -366,6 +394,10 @@ def run_update(
         skip_dep_check: If True, bypass the external-CLI dependency check.
         editors: Editor ids to refresh (``"all"`` expands to every supported
             editor). Defaults to the configured/default editor.
+
+    The scaffolding mode is read from the persisted ``.issueflows/config.toml``
+    (or ``ISSUEFLOW_MODE``); ``update`` never changes the mode — switch modes via
+    ``issue-flow init --mode <id>``.
     """
     settings = Settings()
     try:
@@ -374,12 +406,19 @@ def run_update(
         console.print(f"[red]error[/red]  {exc}")
         raise typer.Exit(code=2) from None
 
+    try:
+        mode_obj = settings.resolve_mode(project_root)
+    except ValueError as exc:
+        console.print(f"[red]error[/red]  {exc}")
+        raise typer.Exit(code=2) from None
+
     console.print(
         f"\n[bold]Updating issue-flow scaffold in [cyan]{project_root}[/cyan][/bold]"
     )
     console.print(
-        f"[dim]Editors: {', '.join(p.id for p in profiles)}[/dim]\n"
+        f"[dim]Editors: {', '.join(p.id for p in profiles)}[/dim]"
     )
+    console.print(f"[dim]Mode: {mode_obj.id}[/dim]\n")
 
     if not _dependency_gate(skip_dep_check):
         raise typer.Exit(code=1)
@@ -388,19 +427,20 @@ def run_update(
     _ensure_project_brief(
         project_root,
         settings,
-        settings.template_context(project_root, profiles[0]),
+        settings.template_context(project_root, profiles[0], mode=mode_obj),
     )
 
     written_files: list[Path] = []
     pruned_count = 0
     for profile in profiles:
         console.print(f"\n[bold]{profile.name}[/bold] ([cyan]{profile.agent_dir}[/cyan])")
-        context = settings.template_context(project_root, profile)
+        context = settings.template_context(project_root, profile, mode=mode_obj)
         written, _skipped = _write_manifest_files(
-            project_root, build_manifest(profile), context, force=True
+            project_root, build_manifest(profile, mode_obj), context, force=True
         )
         _ensure_agents_md(project_root, context)
         pruned_count += _prune_retired_files(project_root, profile)
+        pruned_count += _prune_excluded_surfaces(project_root, profile, mode_obj)
         written_files.extend(written)
 
     console.print()
@@ -494,6 +534,57 @@ def _prune_command_files(
         relative = cmd_dir.relative_to(project_root)
         console.print(f"  [yellow]prune[/yellow]  {relative}/")
         pruned_count += 1
+
+    return pruned_count
+
+
+def _prune_excluded_surfaces(
+    project_root: Path,
+    profile: EditorProfile,
+    mode: Mode,
+) -> int:
+    """Remove generated skills/commands that the active ``mode`` excludes.
+
+    This keeps a narrower mode honest after a mode switch (e.g.
+    ``standard`` -> ``simple``) and keeps ``update`` idempotent: any packaged
+    surface not in the mode is removed if it was previously scaffolded. Only
+    issue-flow's own generated surfaces are touched; user files are left alone.
+    """
+    pruned_count = 0
+
+    skills_dir = project_root / profile.agent_dir / "skills"
+    for skill_dir in SKILL_DIRS:
+        if skill_dir in mode.skills:
+            continue
+        folder = skills_dir / skill_output_name(skill_dir)
+        if folder.exists():
+            shutil.rmtree(folder)
+            console.print(
+                f"  [yellow]prune[/yellow]  {folder.relative_to(project_root)}  "
+                f"(excluded by mode {mode.id})"
+            )
+            pruned_count += 1
+
+    if profile.commands_dir:
+        cmd_dir = project_root / profile.agent_dir / profile.commands_dir
+        for name in COMMAND_NAMES:
+            if name in mode.commands:
+                continue
+            command_file = cmd_dir / f"{name}.md"
+            if command_file.exists():
+                command_file.unlink()
+                console.print(
+                    f"  [yellow]prune[/yellow]  "
+                    f"{command_file.relative_to(project_root)}  "
+                    f"(excluded by mode {mode.id})"
+                )
+                pruned_count += 1
+        if cmd_dir.is_dir() and not any(cmd_dir.iterdir()):
+            cmd_dir.rmdir()
+            console.print(
+                f"  [yellow]prune[/yellow]  {cmd_dir.relative_to(project_root)}/"
+            )
+            pruned_count += 1
 
     return pruned_count
 

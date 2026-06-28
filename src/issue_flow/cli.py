@@ -21,6 +21,14 @@ _EDITOR_HELP = (
     f"{', '.join(sorted(EDITORS))}, or 'all'. Defaults to 'cursor'."
 )
 
+_MODE_HELP = (
+    "Scaffolding mode (which workflow surfaces to install). Built-ins: "
+    "'standard' (full workflow) and 'simple' (markdown-only lifecycle). "
+    "Projects may define custom modes in .issueflows/config.toml. The choice is "
+    "persisted; change it by re-running init. Defaults to the persisted mode "
+    "(or 'standard')."
+)
+
 
 @app.callback()
 def _callback() -> None:
@@ -56,6 +64,12 @@ def init(
         "-e",
         help=_EDITOR_HELP,
     ),
+    mode: str | None = typer.Option(
+        None,
+        "--mode",
+        "-m",
+        help=_MODE_HELP,
+    ),
 ) -> None:
     """Scaffold issue-flow directories and editor config files in a project."""
     from issue_flow.init import run_init
@@ -65,6 +79,7 @@ def init(
         force=force,
         skip_dep_check=skip_dep_check,
         editors=editor,
+        mode=mode,
     )
 
 

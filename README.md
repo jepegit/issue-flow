@@ -184,8 +184,8 @@ That's it. Open the project in Cursor and start with `/iflow` (or step through `
 ## Usage
 
 ```
-issue-flow init [PROJECT_DIR] [--force] [--skip-dep-check]
-issue-flow update [PROJECT_DIR] [--skip-dep-check]
+issue-flow init [PROJECT_DIR] [--force] [--skip-dep-check] [--editor EDITOR] [--mode MODE]
+issue-flow update [PROJECT_DIR] [--skip-dep-check] [--editor EDITOR]
 issue-flow graphify [-C PROJECT_DIR] [...graphify subcommand + args]
 ```
 
@@ -198,6 +198,7 @@ issue-flow graphify [-C PROJECT_DIR] [...graphify subcommand + args]
 | `--force`, `-f`    | Overwrite generated commands, rules, and workflow doc instead of skipping them.                                                                                            |
 | `--skip-dep-check` | Skip the external-CLI dependency check (`git`, `gh`) and the confirmation prompt that follows if anything is missing. Useful in automation.                                |
 | `--editor`, `-e`   | AI coding tool(s) to scaffold for: `cursor` (default), `claude`, `opencode`, `codex`, or `all`. Repeatable (`-e cursor -e claude`). See [Editor support](#editor-support). |
+| `--mode`, `-m`     | Scaffolding mode — which workflow surfaces to install: `standard` (default, full workflow) or `simple` (markdown-only lifecycle). Persisted to `.issueflows/config.toml`; `update` honours it. See [Modes](#modes). |
 
 
 Running `init` again without `--force` is safe: generated scaffold files that already exist are skipped, and **issue markdown under `.issueflows/` is never touched** by `init` or `update`. The project brief at `.issueflows/04-designs-and-guides/this-project.md` is also user-owned: `init` creates it only when missing, even with `--force`. When the CLI detects an existing scaffold, it reminds you about `update` and `--force`.
@@ -212,7 +213,7 @@ Running `init` again without `--force` is safe: generated scaffold files that al
 | `--editor`, `-e`   | AI coding tool(s) to refresh for: `cursor` (default), `claude`, `opencode`, `codex`, or `all`. Repeatable. See [Editor support](#editor-support). |
 
 
-Use `update` after upgrading the **issue-flow** package to refresh the packaged skills, command files where supported, rules file(s), and `docs/issue-workflow.md` from the version you have installed. This **overwrites** those generated files (unlike a plain second `init`) and prunes retired generated command/skill files. It still does not modify arbitrary files under `.issueflows/` (for example your `issue*_original.md` / `issue*_status.md` files), and it creates any **new** `.issueflows/` subdirectories required by the current package. If `.issueflows/04-designs-and-guides/this-project.md` is missing, `update` recreates the starter brief; if it exists, user content is preserved.
+Use `update` after upgrading the **issue-flow** package to refresh the packaged skills, command files where supported, rules file(s), and `docs/issue-workflow.md` from the version you have installed. This **overwrites** those generated files (unlike a plain second `init`) and prunes retired generated command/skill files. It still does not modify arbitrary files under `.issueflows/` (for example your `issue*_original.md` / `issue*_status.md` files), and it creates any **new** `.issueflows/` subdirectories required by the current package. If `.issueflows/04-designs-and-guides/this-project.md` is missing, `update` recreates the starter brief; if it exists, user content is preserved. `update` also respects the project's persisted [mode](#modes): it refreshes only that mode's surfaces (and prunes any that the mode excludes). To change mode, re-run `issue-flow init --mode <id>`.
 
 ### `issue-flow graphify`
 
@@ -234,6 +235,47 @@ Use `update` after upgrading the **issue-flow** package to refresh the packaged 
 | Pull newer templates after `uv tool upgrade issue-flow` (or similar) | `issue-flow update`       |
 | Replace generated scaffolds without upgrading logic                  | `issue-flow init --force` |
 | Rebuild the graphify knowledge graph                                 | `issue-flow graphify`     |
+
+
+## Modes
+
+A **mode** selects which workflow surfaces (skills / slash commands) `init`
+installs, so you can scaffold a lighter workflow when the full lifecycle is more
+than you need. Two modes ship built in:
+
+| Mode | What you get |
+| --- | --- |
+| `standard` (default) | The full workflow: planning, PRs, history, cleanup, graphify, and all helpers. |
+| `simple` | A markdown-only lifecycle (capture, plan, implement, park, status). No PR/cleanup/yolo/fix/graphify automation. |
+
+```bash
+issue-flow init --mode simple
+```
+
+The chosen mode is **persisted** to `.issueflows/config.toml`
+(`[issueflow].mode`), so `issue-flow update` refreshes exactly that mode's
+surfaces. `update` never changes the mode — switch by re-running `init --mode
+<id>` (which also prunes the surfaces the new mode drops). The active mode
+resolves in this order: **`--mode` (CLI, on `init`)** > **`.issueflows/config.toml`**
+(the persisted choice) > **`ISSUEFLOW_MODE`** (env, a fallback for projects that
+haven't persisted a mode) > **`standard`**. The persisted choice deliberately
+beats the environment, so a stray `ISSUEFLOW_MODE` can't silently override your
+project's mode on `update`.
+
+**Custom modes.** A project can define its own modes in
+`.issueflows/config.toml` using `[modes.<id>]` tables — either explicit
+`skills`/`commands` lists or `extends` + `add`/`remove` to compose on top of a
+built-in mode (a mode may reference any surface issue-flow ships):
+
+```toml
+[issueflow]
+mode = "mine"
+
+[modes.mine]
+name = "Mine"
+extends = "simple"
+add = ["iflow_graphify"]
+```
 
 
 ## Editor support
@@ -275,7 +317,7 @@ get the `/iflow-graphify` command/skill where applicable but no automatic
 
 ## Configuration
 
-issue-flow reads a `.env` file from the project root (.via python-dotenv). The following environment variables are supported:
+issue-flow reads a `.env` file from the project root (.via python-dotenv). `issue-flow init` **creates a starter `.env` when one is missing** (all `ISSUEFLOW_*` lines written commented-out, so nothing is overridden until you uncomment). It never replaces an existing `.env` — not even with `--force`; on later runs it only *appends* commented hints for any `ISSUEFLOW_*` keys you don't already have. `issue-flow update` does not touch `.env` at all. The following environment variables are supported:
 
 
 | Variable                 | Default        | Description                                                                                                                                   |
@@ -285,6 +327,7 @@ issue-flow reads a `.env` file from the project root (.via python-dotenv). The f
 | `ISSUEFLOW_AGENT_DIR`    | *(per editor)* | Override the agent/IDE config directory. When unset it is derived from the editor profile (e.g. `.cursor`, `.claude`, `.opencode`, `.codex`). |
 | `ISSUEFLOW_DOCS_DIR`     | `docs`         | Where to write the workflow documentation file.                                                                                               |
 | `ISSUEFLOW_HISTORY_FILE` | `HISTORY.md`   | Changelog file that `/iflow-close` updates (set to e.g. `CHANGELOG.md` for different conventions).                                            |
+| `ISSUEFLOW_MODE`         | `standard`     | Fallback [scaffolding mode](#modes) when none is persisted in `.issueflows/config.toml`. The canonical store is `config.toml` (written by `init --mode`), which **takes precedence over this env var**. Full order: `--mode` (CLI) > `config.toml` > `ISSUEFLOW_MODE` > `standard`. |
 
 Beyond the `ISSUEFLOW_*` settings above, `issue-flow graphify` also reads an LLM
 API key from `.env` when present (`GEMINI_API_KEY`, `ANTHROPIC_API_KEY`,

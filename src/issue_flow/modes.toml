@@ -1,0 +1,46 @@
+# Built-in issue-flow workflow modes.
+#
+# A *mode* selects which workflow surfaces (skills / slash commands) `issue-flow
+# init` scaffolds. The chosen mode is persisted to the project's
+# `.issueflows/config.toml` so `issue-flow update` refreshes exactly that mode's
+# surfaces. Change mode by re-running `issue-flow init --mode <id>`.
+#
+# Each `[modes.<id>]` table accepts:
+#   name         human-readable label
+#   description  one-line summary
+#   skills       "all", or a list of skill stems (see SKILL_DIRS in templating.py)
+#   commands     "all", or a list of command stems (see COMMAND_NAMES)
+#   extends      optional base mode id to start from
+#   add          optional list of stems to union in (skill and/or command stems)
+#   remove       optional list of stems to subtract
+#
+# Users can add or override modes in their own project's
+# `.issueflows/config.toml` using the same `[modes.<id>]` grammar; a mode may
+# only reference surface stems that ship as packaged templates.
+
+[modes.standard]
+name = "Standard"
+description = "Full issue-flow workflow: planning, PRs, history, cleanup, graphify, and all helpers."
+skills = "all"
+commands = "all"
+
+[modes.simple]
+name = "Simple"
+description = "Lightweight markdown-only lifecycle: capture, plan, implement, park, and status. No PR/cleanup/yolo/fix/graphify automation."
+skills = [
+    "iflow_iflow",
+    "iflow_init",
+    "iflow_comments",
+    "iflow_plan",
+    "iflow_start",
+    "iflow_pause",
+    "iflow_status",
+]
+commands = [
+    "iflow",
+    "iflow-init",
+    "iflow-plan",
+    "iflow-start",
+    "iflow-pause",
+    "iflow-status",
+]

@@ -570,6 +570,70 @@ def test_init_unknown_editor_exits_cleanly(tmp_path: Path) -> None:
     assert not (tmp_path / ".issueflows").exists()
 
 
+def test_init_default_mode_is_full_and_writes_no_config(tmp_path: Path) -> None:
+    """Without --mode, init scaffolds the full set and writes no config.toml."""
+    run_init(tmp_path)
+
+    skills = tmp_path / ".cursor" / "skills"
+    assert (skills / "iflow-close" / "SKILL.md").is_file()
+    assert (skills / "iflow-yolo" / "SKILL.md").is_file()
+    # Default mode leaves the persisted config untouched (back-compat).
+    assert not (tmp_path / ".issueflows" / "config.toml").exists()
+
+
+def test_init_mode_simple_scaffolds_subset(tmp_path: Path) -> None:
+    run_init(tmp_path, mode="simple")
+
+    skills = tmp_path / ".cursor" / "skills"
+    for present in ("iflow", "iflow-init", "iflow-plan", "iflow-start", "iflow-pause", "iflow-status"):
+        assert (skills / present / "SKILL.md").is_file(), present
+    for absent in ("iflow-close", "iflow-cleanup", "iflow-yolo", "iflow-fix", "iflow-graphify", "iflow-pick"):
+        assert not (skills / absent).exists(), absent
+
+    config = tmp_path / ".issueflows" / "config.toml"
+    assert 'mode = "simple"' in config.read_text(encoding="utf-8")
+
+
+def test_init_switch_to_simple_prunes_excluded_skills(tmp_path: Path) -> None:
+    """Switching standard -> simple removes the now-excluded skills."""
+    run_init(tmp_path)
+    close = tmp_path / ".cursor" / "skills" / "iflow-close"
+    assert close.is_dir()
+
+    run_init(tmp_path, mode="simple", force=True)
+
+    assert not close.exists()
+    assert (tmp_path / ".cursor" / "skills" / "iflow-init" / "SKILL.md").is_file()
+
+
+def test_init_unknown_mode_aborts_without_scaffold(tmp_path: Path) -> None:
+    with pytest.raises(typer.Exit) as exc_info:
+        run_init(tmp_path, mode="nope")
+
+    assert exc_info.value.exit_code == 2
+    assert not (tmp_path / ".cursor").exists()
+
+
+def test_init_simple_mode_dispatcher_has_no_close_target(tmp_path: Path) -> None:
+    """The /iflow dispatcher's done-state must not route to /iflow-close in simple mode."""
+    run_init(tmp_path, mode="simple")
+    dispatcher = (
+        tmp_path / ".cursor" / "skills" / "iflow" / "SKILL.md"
+    ).read_text(encoding="utf-8")
+    # The close-dispatch reason line is gated out; the markdown-only fallback is in.
+    assert "status marks the issue" not in dispatcher
+    assert "03-solved-issues" in dispatcher
+
+
+def test_init_standard_mode_dispatcher_routes_to_close(tmp_path: Path) -> None:
+    """Standard mode keeps the /iflow-close dispatch in the done state."""
+    run_init(tmp_path)
+    dispatcher = (
+        tmp_path / ".cursor" / "skills" / "iflow" / "SKILL.md"
+    ).read_text(encoding="utf-8")
+    assert "status marks the issue" in dispatcher
+
+
 def test_init_detects_project_name(tmp_path: Path) -> None:
     """If a pyproject.toml exists, its name should appear in the rule file."""
     pyproject = tmp_path / "pyproject.toml"
