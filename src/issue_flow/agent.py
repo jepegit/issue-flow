@@ -1,0 +1,477 @@
+"""Orchestrators behind the agent-facing CLI surface.
+
+These functions back ``issue-flow status`` (human-facing, top-level) and the
+``issue-flow agent ...`` sub-commands (``state`` / ``preflight`` / ``sweep`` /
+``capture``) that exist so AI agents can ask the tool for a deterministic
+answer instead of re-deriving lifecycle state by hand on every run.
+
+Each ``run_*`` returns a process exit code and emits either a short human
+report (via :class:`rich.console.Console`) or a stable JSON object on stdout
+when ``as_json`` is set. They all degrade gracefully: a missing/unauthenticated
+``gh`` never hard-fails a read-only command, it just trims the GitHub section
+and notes the gap — mirroring the scaffolded ``/iflow-status`` contract.
+"""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from typing import Any
+
+from rich.console import Console
+from rich.markup import escape
+
+from issue_flow import gitutils, tracking
+from issue_flow.config import Settings
+
+
+def _folders(project_root: Path, settings: Settings) -> dict[str, Path]:
+    base = project_root / settings.issueflows_dir
+    return {
+        "current": base / settings.current_issues_folder,
+        "partly": base / settings.partly_solved_folder,
+        "solved": base / settings.solved_folder,
+    }
+
+
+def _emit_json(console: Console, payload: dict[str, Any]) -> None:
+    """Print a JSON payload to stdout without Rich markup interpretation."""
+    console.print_json(json.dumps(payload))
+
+
+# ---------------------------------------------------------------------------
+# agent state
+# ---------------------------------------------------------------------------
+
+
+def run_state(project_root: Path, console: Console, as_json: bool) -> int:
+    """Resolve the focus issue + lifecycle stage and the suggested next step."""
+    settings = Settings()
+    folders = _folders(project_root, settings)
+    branch = gitutils.current_branch(project_root)
+    focus = tracking.resolve_focus(folders["current"], branch)
+
+    payload: dict[str, Any] = {
+        "focus": focus.number,
+        "resolved_via": focus.resolved_via,
+        "branch": branch,
+        "candidates": focus.candidates,
+        "stage": None,
+        "next_command": None,
+        "files": {"original": False, "plan": False, "status": False, "done": False},
+        "ambiguous": focus.resolved_via == "ambiguous",
+    }
+
+    if focus.number is not None:
+        group = _focus_group(folders, focus.number)
+        payload["stage"] = group.stage
+        payload["next_command"] = group.next_command
+        payload["files"] = {
+            "original": group.original is not None,
+            "plan": group.plan is not None,
+            "status": bool(group.status_files),
+            "done": group.is_done,
+        }
+
+    if as_json:
+        _emit_json(console, payload)
+        return 0
+
+    if focus.resolved_via == "ambiguous":
+        console.print(
+            "[yellow]Ambiguous focus[/yellow]: multiple issue groups in "
+            f"{settings.current_issues_folder} -> "
+            f"{', '.join(f'#{n}' for n in focus.candidates)}. "
+            "Specify which issue to act on."
+        )
+        return 0
+    if focus.number is None:
+        console.print(
+            "[dim]No focus issue found.[/dim] Next step: "
+            f"{tracking.STAGE_NEXT_COMMAND[tracking.STAGE_INIT]}"
+        )
+        return 0
+
+    console.print(
+        f"Focus #{payload['focus']} (via {payload['resolved_via']}) — "
+        f"stage [bold]{payload['stage']}[/bold] -> {payload['next_command']}"
+    )
+    return 0
+
+
+def _focus_group(folders: dict[str, Path], number: int) -> tracking.IssueGroup:
+    """Build the focus group from current-issues files (empty group if none)."""
+    groups = tracking.group_issue_files(folders["current"])
+    return groups.get(
+        number, tracking.IssueGroup(number=number, location=folders["current"].name)
+    )
+
+
+# ---------------------------------------------------------------------------
+# agent preflight
+# ---------------------------------------------------------------------------
+
+
+def run_preflight(project_root: Path, console: Console, as_json: bool) -> int:
+    """Report branch hygiene: default branch, clean/dirty, ahead/behind, stale."""
+    settings = Settings()
+    folders = _folders(project_root, settings)
+
+    if not gitutils.git_available():
+        payload = {"git_available": False, "notes": ["git is not on PATH"]}
+        if as_json:
+            _emit_json(console, payload)
+        else:
+            console.print("[yellow]git is not available[/yellow]; preflight skipped.")
+        return 0
+
+    gitutils.fetch_prune(project_root)
+    branch = gitutils.current_branch(project_root)
+    default = gitutils.default_branch(project_root)
+    clean = gitutils.working_tree_clean(project_root)
+    counts = gitutils.ahead_behind(project_root, default)
+    issue_number = tracking.issue_number_from_branch(branch)
+
+    notes: list[str] = []
+    stale = False
+    if issue_number is not None:
+        partly = tracking.group_issue_files(folders["partly"])
+        solved = tracking.group_issue_files(folders["solved"])
+        if issue_number in partly or issue_number in solved:
+            stale = True
+            notes.append(
+                f"branch looks stale: issue #{issue_number} is already archived "
+                "under partly/solved — switch to the default branch before resuming."
+            )
+
+    payload = {
+        "git_available": True,
+        "current_branch": branch,
+        "default_branch": default,
+        "clean": clean,
+        "ahead": counts[0] if counts else None,
+        "behind": counts[1] if counts else None,
+        "issue_number": issue_number,
+        "stale": stale,
+        "notes": notes,
+    }
+
+    if as_json:
+        _emit_json(console, payload)
+        return 0
+
+    tree = "clean" if clean else "dirty" if clean is not None else "unknown"
+    counts_str = (
+        f"{counts[0]} ahead / {counts[1]} behind" if counts else "ahead/behind unknown"
+    )
+    console.print(
+        f"Branch [bold]{escape(branch) if branch else '(detached)'}[/bold] vs "
+        f"origin/{escape(default)}: {counts_str}, working tree {tree}."
+    )
+    for note in notes:
+        console.print(f"  [yellow]warn[/yellow]  {note}")
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# agent sweep
+# ---------------------------------------------------------------------------
+
+
+def run_sweep(
+    project_root: Path,
+    console: Console,
+    except_number: int | None,
+    dry_run: bool,
+    as_json: bool,
+) -> int:
+    """Archive non-focus issue groups from current-issues to partly/solved."""
+    settings = Settings()
+    folders = _folders(project_root, settings)
+
+    moves = tracking.plan_sweep(
+        folders["current"], folders["partly"], folders["solved"], except_number
+    )
+    if not dry_run and moves:
+        moves = tracking.apply_sweep(moves, folders["partly"], folders["solved"])
+
+    payload = {
+        "dry_run": dry_run,
+        "except": except_number,
+        "moves": [
+            {
+                "issue": m.number,
+                "done": m.done,
+                "from": m.source,
+                "to": m.destination,
+                "files": [p.name for p in m.files],
+            }
+            for m in moves
+        ],
+    }
+
+    if as_json:
+        _emit_json(console, payload)
+        return 0
+
+    if not moves:
+        console.print("[dim]Nothing to sweep.[/dim]")
+        return 0
+    verb = "Would move" if dry_run else "Moved"
+    for m in moves:
+        console.print(
+            f"  {verb} #{m.number} ({'done' if m.done else 'not done'}): "
+            f"{m.source} -> {m.destination}"
+        )
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# agent capture
+# ---------------------------------------------------------------------------
+
+_ORIGINAL_TEMPLATE = """# Issue #{number}: {title}
+
+Source: {url}
+
+## Original issue text
+
+{body}
+"""
+
+
+def run_capture(
+    project_root: Path,
+    console: Console,
+    number: int,
+    repo: str | None,
+    force: bool,
+    as_json: bool,
+) -> int:
+    """Fetch a GitHub issue and write ``issue<N>_original.md`` (body only).
+
+    Comment *triage* is intentionally left to the agent — it is interpretive,
+    not mechanical — so this command also surfaces the raw comments payload
+    (count in text mode, full array in JSON) for the agent to summarise.
+    """
+    settings = Settings()
+    folders = _folders(project_root, settings)
+
+    if not gitutils.gh_available():
+        msg = "gh is not on PATH; cannot fetch the issue. Try `gh auth login`."
+        if as_json:
+            _emit_json(console, {"written": False, "error": msg})
+        else:
+            console.print(f"[red]error[/red]  {msg}")
+        return 1
+
+    resolved_repo = repo
+    if resolved_repo is None:
+        owner_repo = gitutils.remote_owner_repo(project_root)
+        if owner_repo is not None:
+            resolved_repo = f"{owner_repo[0]}/{owner_repo[1]}"
+
+    data = gitutils.gh_issue_view(number, project_root, resolved_repo)
+    if data is None:
+        msg = (
+            f"could not fetch issue #{number}"
+            + (f" from {resolved_repo}" if resolved_repo else "")
+            + " (gh failed or unauthenticated)."
+        )
+        if as_json:
+            _emit_json(console, {"written": False, "error": msg})
+        else:
+            console.print(f"[red]error[/red]  {msg}")
+        return 1
+
+    target_dir = folders["current"]
+    target = target_dir / f"issue{number}_original.md"
+    if target.exists() and not force:
+        msg = f"{target} already exists; pass --force to overwrite."
+        if as_json:
+            _emit_json(
+                console, {"written": False, "path": str(target), "error": msg}
+            )
+        else:
+            console.print(f"[yellow]exists[/yellow]  {msg}")
+        return 1
+
+    comments = data.get("comments") or []
+    content = _ORIGINAL_TEMPLATE.format(
+        number=data.get("number", number),
+        title=data.get("title", "").strip(),
+        url=data.get("url", ""),
+        body=(data.get("body") or "").strip(),
+    )
+    target_dir.mkdir(parents=True, exist_ok=True)
+    target.write_text(content, encoding="utf-8")
+
+    payload = {
+        "written": True,
+        "issue": data.get("number", number),
+        "repo": resolved_repo,
+        "path": str(target),
+        "comments_count": len(comments),
+        "comments": comments,
+    }
+
+    if as_json:
+        _emit_json(console, payload)
+        return 0
+
+    console.print(f"[green]wrote[/green]  {target}")
+    if comments:
+        console.print(
+            f"  [dim]{len(comments)} comment(s) fetched — triage them into the "
+            "'## Comments (curated summary)' section.[/dim]"
+        )
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# status (top-level, human-facing)
+# ---------------------------------------------------------------------------
+
+
+def run_status(
+    project_root: Path, console: Console, local: bool, as_json: bool
+) -> int:
+    """Read-only overview: focus stage, parked, solved, optional GitHub cross-ref."""
+    settings = Settings()
+    folders = _folders(project_root, settings)
+    branch = gitutils.current_branch(project_root)
+
+    focus = tracking.resolve_focus(folders["current"], branch)
+    focus_section: dict[str, Any] | None = None
+    if focus.number is not None:
+        group = _focus_group(folders, focus.number)
+        focus_section = {
+            "number": focus.number,
+            "title": group.title(),
+            "stage": group.stage,
+            "next_command": group.next_command,
+            "resolved_via": focus.resolved_via,
+        }
+
+    parked_groups = tracking.group_issue_files(folders["partly"])
+    parked = [
+        {"number": n, "title": g.title()}
+        for n, g in sorted(parked_groups.items())
+    ]
+    solved_numbers = sorted(tracking.group_issue_files(folders["solved"]))
+
+    github: dict[str, Any] | None = None
+    if not local:
+        github = _github_section(project_root, folders)
+
+    payload: dict[str, Any] = {
+        "branch": branch,
+        "focus": focus_section,
+        "ambiguous_candidates": focus.candidates,
+        "parked": parked,
+        "solved_count": len(solved_numbers),
+        "solved_recent": solved_numbers[-5:],
+        "github": github,
+    }
+
+    if as_json:
+        _emit_json(console, payload)
+        return 0
+
+    _render_status_text(console, settings, payload)
+    return 0
+
+
+def _github_section(
+    project_root: Path, folders: dict[str, Path]
+) -> dict[str, Any]:
+    """Cross-reference open GitHub issues against local tracking folders."""
+    if not gitutils.gh_available():
+        return {"available": False, "reason": "gh not on PATH"}
+
+    issues = gitutils.gh_issue_list(project_root)
+    if issues is None:
+        return {"available": False, "reason": "gh failed or unauthenticated"}
+
+    current = set(tracking.group_issue_files(folders["current"]))
+    partly = set(tracking.group_issue_files(folders["partly"]))
+    solved = set(tracking.group_issue_files(folders["solved"]))
+
+    annotated: list[dict[str, Any]] = []
+    untracked = 0
+    for issue in issues:
+        number = issue.get("number")
+        if number in current:
+            state = "focus"
+        elif number in partly:
+            state = "parked"
+        elif number in solved:
+            state = "solved-locally"
+        else:
+            state = "untracked"
+            untracked += 1
+        annotated.append(
+            {"number": number, "title": issue.get("title"), "local_state": state}
+        )
+
+    return {
+        "available": True,
+        "open_count": len(annotated),
+        "untracked_count": untracked,
+        "issues": annotated,
+    }
+
+
+def _render_status_text(
+    console: Console, settings: Settings, payload: dict[str, Any]
+) -> None:
+    branch = payload["branch"]
+    console.print(f"[bold]Branch[/bold]: {escape(branch) if branch else '(detached)'}")
+
+    focus = payload["focus"]
+    if focus is not None:
+        title = f" — {escape(focus['title'])}" if focus["title"] else ""
+        console.print(
+            f"[bold]Focus[/bold]: #{focus['number']}{title} "
+            f"(stage {focus['stage']} -> {focus['next_command']})"
+        )
+    elif payload["ambiguous_candidates"]:
+        cands = ", ".join(f"#{n}" for n in payload["ambiguous_candidates"])
+        console.print(f"[bold]Focus[/bold]: ambiguous ({cands})")
+    else:
+        console.print("[bold]Focus[/bold]: none")
+
+    parked = payload["parked"]
+    if parked:
+        console.print(f"[bold]Parked[/bold]: {len(parked)}")
+        for item in parked:
+            title = f" — {escape(item['title'])}" if item["title"] else ""
+            console.print(f"  #{item['number']}{title}")
+    else:
+        console.print("[bold]Parked[/bold]: 0")
+
+    console.print(f"[bold]Solved[/bold]: {payload['solved_count']}")
+
+    github = payload["github"]
+    summary_github = ""
+    if github is None:
+        pass
+    elif not github.get("available"):
+        console.print(
+            f"[bold]GitHub[/bold]: unavailable ({github.get('reason')})"
+        )
+    else:
+        console.print(
+            f"[bold]GitHub[/bold]: {github['open_count']} open "
+            f"({github['untracked_count']} untracked)"
+        )
+        summary_github = (
+            f" Open on GitHub: {github['open_count']} "
+            f"({github['untracked_count']} untracked)."
+        )
+
+    focus_str = f"#{focus['number']} ({focus['stage']})" if focus else "none"
+    console.print(
+        f"[dim]Summary: Focus: {focus_str}. Parked: {len(parked)}. "
+        f"Solved: {payload['solved_count']}.{summary_github}[/dim]"
+    )

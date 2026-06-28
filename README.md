@@ -187,6 +187,11 @@ That's it. Open the project in Cursor and start with `/iflow` (or step through `
 issue-flow init [PROJECT_DIR] [--force] [--skip-dep-check] [--editor EDITOR] [--mode MODE]
 issue-flow update [PROJECT_DIR] [--skip-dep-check] [--editor EDITOR]
 issue-flow graphify [-C PROJECT_DIR] [...graphify subcommand + args]
+issue-flow status [PROJECT_DIR] [--local] [--json]
+issue-flow agent state [PROJECT_DIR] [--json]
+issue-flow agent preflight [PROJECT_DIR] [--json]
+issue-flow agent sweep [PROJECT_DIR] [--except N] [--dry-run] [--json]
+issue-flow agent capture N [-C PROJECT_DIR] [--repo OWNER/REPO] [--force] [--json]
 ```
 
 ### `issue-flow init`
@@ -226,6 +231,48 @@ Use `update` after upgrading the **issue-flow** package to refresh the packaged 
 
 `graphify` requires `graphifyy` to be installed (`uv tool install graphifyy`). When the `graphify` CLI is missing, the command prints install hints and exits with code `2`. Outputs land in `graphify-out/` (`graph.html`, `GRAPH_REPORT.md`, `graph.json`).
 
+### `issue-flow status`
+
+A **read-only** overview of where every issue stands — the same picture the
+`/iflow-status` skill produces, but computed deterministically in Python. It
+reports the focus issue and its lifecycle stage, parked work, the solved-issue
+count, and (unless `--local`) open GitHub issues cross-referenced against your
+local `.issueflows/` folders.
+
+
+| Argument / Option | Description                                                                       |
+| ----------------- | --------------------------------------------------------------------------------- |
+| `PROJECT_DIR`     | Project root directory. Defaults to `.` (current directory).                      |
+| `--local`         | Skip the GitHub query; report only the local `.issueflows/` state.                |
+| `--json`          | Emit a machine-readable JSON object instead of the human-readable text report.    |
+
+
+A missing or unauthenticated `gh` never fails the command — the GitHub section
+is simply skipped and noted.
+
+### `issue-flow agent ...`
+
+The `agent` sub-app exposes the deterministic, mechanical building blocks the
+scaffolded skills repeat over and over, so an AI agent can ask the tool for an
+answer (ideally with `--json`) instead of re-deriving lifecycle state by hand.
+The scaffolded skills/commands use these as an **optional fast path** and fall
+back to their manual steps when the CLI is not installed, so nothing breaks if a
+project never installs `issue-flow`.
+
+
+| Command                  | What it does                                                                                                                                       |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `agent state`            | Resolve the focus issue (branch-derived number wins, else the single current group), its lifecycle stage (`init`/`plan`/`start`/`close`), and the suggested next command. |
+| `agent preflight`        | Branch hygiene report: default branch, clean/dirty working tree, ahead/behind vs `origin/<default>`, and a stale-branch flag when the issue is already archived. Runs `git fetch --prune` first. |
+| `agent sweep`            | Archive `issue<N>_*` groups out of `01-current-issues/` to `03-solved-issues/` (Done) or `02-partly-solved-issues/` (not Done). Use `--except N` to keep the focus issue and `--dry-run` to preview. |
+| `agent capture N`        | Fetch GitHub issue `N` with `gh` and write `issue<N>_original.md` (the `## Original issue text` body). Prints the comments payload so the agent can triage them; comment triage stays agent-side. Use `--repo`, `--force`, `-C`. |
+
+
+All `agent` commands accept `--json` and degrade gracefully: read-only commands
+never hard-fail when `git`/`gh` is missing (they return partial data with a
+note), while `agent capture` needs `gh` and exits non-zero with a hint when it
+is unavailable or the fetch fails.
+
 ### When to use which
 
 
@@ -235,6 +282,8 @@ Use `update` after upgrading the **issue-flow** package to refresh the packaged 
 | Pull newer templates after `uv tool upgrade issue-flow` (or similar) | `issue-flow update`       |
 | Replace generated scaffolds without upgrading logic                  | `issue-flow init --force` |
 | Rebuild the graphify knowledge graph                                 | `issue-flow graphify`     |
+| See where every issue stands (focus / parked / solved / GitHub)      | `issue-flow status`       |
+| Let an agent resolve lifecycle state / sweep / capture deterministically | `issue-flow agent ...`    |
 
 
 ## Modes
@@ -363,7 +412,6 @@ See [HISTORY.md](HISTORY.md) for release notes.
 ## Future plans
 
 - **More editors** — extend `--editor` coverage to further AI coding tools (e.g. Windsurf) on top of the current Cursor / Claude Code / opencode / Codex support.
-- `**issue-flow status`** — show a dashboard of current, partly-solved, and solved issues.
 - **Custom templates** — let users supply their own Jinja2 templates to tailor slash commands and rules to their team's conventions.
 - **Git hook integration** — optionally move issue files on commit based on status markers.
 - **GitHub Actions workflow** — ship a reusable action that syncs issue state between `.issueflows/` and GitHub issue labels/milestones.

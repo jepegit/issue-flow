@@ -10,6 +10,13 @@ If additional input is added, use that as implementation hints (scope, constrain
 
 ## Steps
 
+> **CLI fast path (optional).** If the `issue-flow` CLI is on `PATH`, use
+> `issue-flow agent preflight` for the branch status preflight (step 0.5) and
+> `issue-flow agent sweep --except <N>` for the stale sweep (step 0.6; add
+> `--dry-run` to preview). The CLI is optional: if it is missing or errors,
+> fall back to the manual steps below. (`issue-flow` is only present when the
+> user installed it, e.g. `uv tool install issue-flow`.)
+
 0. **Find the focus issue.** Look in `{{ issueflows_dir }}/{{ current_issues_folder }}/` for `issue<N>_original.md`. If missing or multiple groups are ambiguous, ask. Could the user have skipped `/iflow-init`?
 
 0.5 **Branch status preflight** (non-destructive — report, do not delete).

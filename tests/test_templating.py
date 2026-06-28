@@ -263,6 +263,37 @@ def test_issue_start_mentions_branch_and_sweep_preflight() -> None:
     assert "git fetch --prune" in rendered
 
 
+_CLI_FASTPATH_SURFACES = {
+    "commands/iflow.md.j2": "issue-flow agent state",
+    "commands/iflow-status.md.j2": "issue-flow status",
+    "commands/iflow-init.md.j2": "issue-flow agent capture",
+    "commands/iflow-start.md.j2": "issue-flow agent preflight",
+    "commands/iflow-plan.md.j2": "issue-flow agent preflight",
+    "skills/iflow_iflow/SKILL.md.j2": "issue-flow agent state",
+    "skills/iflow_status/SKILL.md.j2": "issue-flow status",
+    "skills/iflow_init/SKILL.md.j2": "issue-flow agent capture",
+    "skills/iflow_start/SKILL.md.j2": "issue-flow agent preflight",
+    "skills/iflow_plan/SKILL.md.j2": "issue-flow agent preflight",
+}
+
+
+def test_cli_fast_path_notes_render_with_fallback() -> None:
+    """Updated surfaces advertise the optional CLI fast path AND keep a fallback."""
+    for template_name, expected_cmd in _CLI_FASTPATH_SURFACES.items():
+        rendered = render_template(template_name, _default_context())
+        assert "CLI fast path (optional)" in rendered, template_name
+        assert expected_cmd in rendered, template_name
+        # The CLI is optional, so the note must point back to the manual steps.
+        assert "fall back to the manual" in rendered, template_name
+
+
+def test_iflow_init_fast_path_mentions_sweep_and_capture() -> None:
+    """/iflow-init's fast path covers both the capture and the sweep shortcuts."""
+    rendered = render_template("commands/iflow-init.md.j2", _default_context())
+    assert "issue-flow agent capture" in rendered
+    assert "issue-flow agent sweep --except" in rendered
+
+
 def test_issue_close_delegates_post_merge_cleanup_to_issue_cleanup() -> None:
     """/iflow-close no longer deletes branches; it points at /iflow-cleanup instead."""
     rendered = render_template("commands/iflow-close.md.j2", _default_context())

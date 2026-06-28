@@ -20,6 +20,13 @@ Optional free-form text after the command:
 
 ## Steps
 
+> **CLI fast path (optional).** If the `issue-flow` CLI is on `PATH`, run
+> `issue-flow status` (add `--local` to skip the GitHub query, `--json` for a
+> machine-readable object) — it produces this whole overview deterministically.
+> The CLI is optional: if it is missing or errors, fall back to the manual
+> steps below. (`issue-flow` is only present when the user installed it, e.g.
+> `uv tool install issue-flow`.)
+
 1. **Context / preflight** (read-only; no `fetch` is required, but a `git fetch --prune` keeps ahead/behind accurate).
    - Detect the default branch: `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`; fall back to `git symbolic-ref --quiet --short refs/remotes/origin/HEAD | sed 's|^origin/||'`, else `main`.
    - Report current branch, clean/dirty working tree (`git status --porcelain`), and ahead/behind vs `origin/<default>` (`git rev-list --left-right --count origin/<default>...HEAD`).
