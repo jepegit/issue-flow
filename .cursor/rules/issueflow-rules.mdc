@@ -141,13 +141,31 @@ If the issue is fully resolved (no additional subtasks present), move the origin
 
 ### Optional response styles
 
-A **caveman** Agent Skill is installed under `.cursor/skills/caveman/`. It
-is a terse, "token-greedy" response style that keeps all technical substance
-while dropping filler, articles, and pleasantries. It is **off by default** and
-only kicks in when the user asks for it (e.g. "caveman", "token greedy", "be
-terse"). Turn it off with **"stop caveman"** or **"normal mode"**. Code,
+A **caveman** Agent Skill is installed under `.cursor/skills/caveman/` and
+is **on by default for this project**: reply in the terse, "token-greedy" caveman
+style — keep all technical substance, drop filler, articles, and pleasantries —
+from the first message of every session, re-arming each new session. Turn it off
+for the rest of a session with **"stop caveman"** or **"normal mode"**. Code,
 commits, PRs, security warnings, and destructive-action confirmations are always
-written in normal prose, never caveman.
+written in normal prose, never caveman. (This default comes from
+`caveman_default = true` under `[issueflow]` in `.issueflows/config.toml`;
+set it to `false` and re-run `issue-flow update` to make caveman opt-in per
+session instead.)
+
+
+
+
+### Planning aids
+
+A **grill-me** Agent Skill is installed under `.cursor/skills/grill-me/`.
+It runs a relentless planning interview that stress-tests a plan or design —
+one question at a time, each with a recommended answer — until every branch of
+the decision tree is resolved. It is **off by default** and only kicks in when
+you ask for it (e.g. "grill me", "poke holes in this"). Turn it off with **"stop
+grilling"** or **"normal mode"**. (To make grilling on by default during planning
+for this project, set `grill_me_default = true` under `[issueflow]` in
+`.issueflows/config.toml` and re-run `issue-flow update`.)
+
 
 
 ### Designs and guides

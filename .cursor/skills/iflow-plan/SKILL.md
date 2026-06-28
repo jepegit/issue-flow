@@ -40,6 +40,10 @@ Follow this skill when the user wants to **design the approach** for an issue be
 
 5. **Explore read-only** — search code, read files most likely to change, check existing tests; keep research proportional to the issue.
 
+
+5a. **Grill the approach** (planning interview). The [`grill-me`](../grill-me/SKILL.md) skill is available to stress-test the approach before drafting: ask the user to "grill me" (or turn it on by default with `grill_me_default = true` in `.issueflows/config.toml`). It interviews one question at a time until every decision branch is resolved, then feeds the conclusions into the plan.
+
+
 6. **Write `issue<N>_plan.md`** under `.issueflows/01-current-issues/` with these sections:
    - **Goal** — one or two sentences.
    - **Constraints** — project rules, back-compat, scope limits; include **`### Prior art`** (from step 4).

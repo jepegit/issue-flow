@@ -272,6 +272,20 @@ session instead.)
 
 
 
+
+### Planning aids
+
+A **grill-me** Agent Skill is installed under `.cursor/skills/grill-me/`.
+It runs a relentless planning interview that stress-tests a plan or design —
+one question at a time, each with a recommended answer — until every branch of
+the decision tree is resolved. It is **off by default** and only kicks in when
+you ask for it (e.g. "grill me", "poke holes in this"). Turn it off with **"stop
+grilling"** or **"normal mode"**. (To make grilling on by default during planning
+for this project, set `grill_me_default = true` under `[issueflow]` in
+`.issueflows/config.toml` and re-run `issue-flow update`.)
+
+
+
 ### Designs and guides
 
 Long-lived design docs, design decisions, and project "good practices" live under `.issueflows/04-designs-and-guides/`. Unlike the issue folders, content here is **not** tied to a single issue and is **not** archived when an issue closes — it is the project's durable memory.
