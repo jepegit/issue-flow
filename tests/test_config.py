@@ -50,6 +50,7 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "included_skills",
         "included_commands",
         "caveman_default",
+        "grill_me_default",
     }
     assert set(context.keys()) == expected_keys
 
@@ -120,3 +121,40 @@ def test_caveman_default_config_beats_env(
     monkeypatch.setenv("ISSUEFLOW_CAVEMAN_DEFAULT", "true")
     settings = Settings()
     assert settings.resolve_caveman_default(tmp_path) is False
+
+
+def test_grill_me_default_off_by_default(
+    tmp_path: Path, monkeypatch: "pytest.MonkeyPatch"  # noqa: F821
+) -> None:
+    """With no config and no env, grill-me is not on by default."""
+    monkeypatch.delenv("ISSUEFLOW_GRILL_ME_DEFAULT", raising=False)
+    settings = Settings()
+    assert settings.resolve_grill_me_default(tmp_path) is False
+    context = settings.template_context(tmp_path)
+    assert context["grill_me_default"] is False
+
+
+def test_grill_me_default_from_config(tmp_path: Path) -> None:
+    """A persisted [issueflow].grill_me_default=true is honored."""
+    _write_config(tmp_path, "[issueflow]\ngrill_me_default = true\n")
+    settings = Settings()
+    assert settings.resolve_grill_me_default(tmp_path) is True
+
+
+def test_grill_me_default_from_env(
+    tmp_path: Path, monkeypatch: "pytest.MonkeyPatch"  # noqa: F821
+) -> None:
+    """ISSUEFLOW_GRILL_ME_DEFAULT is used when config does not set the key."""
+    monkeypatch.setenv("ISSUEFLOW_GRILL_ME_DEFAULT", "true")
+    settings = Settings()
+    assert settings.resolve_grill_me_default(tmp_path) is True
+
+
+def test_grill_me_default_config_beats_env(
+    tmp_path: Path, monkeypatch: "pytest.MonkeyPatch"  # noqa: F821
+) -> None:
+    """The persisted config value wins over a conflicting env var."""
+    _write_config(tmp_path, "[issueflow]\ngrill_me_default = false\n")
+    monkeypatch.setenv("ISSUEFLOW_GRILL_ME_DEFAULT", "true")
+    settings = Settings()
+    assert settings.resolve_grill_me_default(tmp_path) is False

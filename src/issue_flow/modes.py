@@ -251,6 +251,22 @@ def read_caveman_default(cfg_path: Path) -> bool | None:
     return None
 
 
+def read_grill_me_default(cfg_path: Path) -> bool | None:
+    """Return the persisted ``[issueflow].grill_me_default`` flag.
+
+    Returns ``None`` when the file is missing or the key is unset, so callers can
+    distinguish "not configured" (fall through to env / default) from an explicit
+    ``false``.
+    """
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "grill_me_default" in section:
+        return bool(section.get("grill_me_default"))
+    return None
+
+
 def write_active_mode(cfg_path: Path, mode_id: str) -> None:
     """Persist ``[issueflow].mode = mode_id`` while preserving other content.
 

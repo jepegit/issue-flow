@@ -40,6 +40,7 @@ _DOTENV_KEYS: tuple[tuple[str, str], ...] = (
     ("ISSUEFLOW_HISTORY_FILE", "HISTORY.md"),
     ("ISSUEFLOW_MODE", "standard"),
     ("ISSUEFLOW_CAVEMAN_DEFAULT", "false"),
+    ("ISSUEFLOW_GRILL_ME_DEFAULT", "false"),
 )
 _DOTENV_SECTION_HEADER = "# --- issue-flow: optional environment variables ---\n"
 

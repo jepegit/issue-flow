@@ -39,6 +39,10 @@ Follow this skill when the user wants to **design the approach** for an issue be
    - **Strong overlap:** Put merge-vs-coexist decisions in **`## Open questions`**, not silent choices in Approach.
 
 5. **Explore read-only** — search code, read files most likely to change, check existing tests; keep research proportional to the issue.
+{% if "grill_me" in included_skills %}
+
+5a. **Grill the approach** (planning interview).{% if grill_me_default %} For this project grilling is **on by default**: before drafting the plan, follow the [`grill-me`](../grill-me/SKILL.md) skill — interview the user one question at a time (each with a recommended answer; explore the code/issue instead of asking when answerable) until every branch of the decision tree is resolved, then fold the agreed decisions into the plan below. Drop it for the rest of a session with "stop grilling" / "normal mode".{% else %} The [`grill-me`](../grill-me/SKILL.md) skill is available to stress-test the approach before drafting: ask the user to "grill me" (or turn it on by default with `grill_me_default = true` in `{{ issueflows_dir }}/config.toml`). It interviews one question at a time until every decision branch is resolved, then feeds the conclusions into the plan.{% endif %}
+{% endif %}
 
 6. **Write `issue<N>_plan.md`** under `{{ issueflows_dir }}/{{ current_issues_folder }}/` with these sections:
    - **Goal** — one or two sentences.
