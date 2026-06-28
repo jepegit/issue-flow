@@ -24,6 +24,12 @@ agent_app = typer.Typer(
     ),
 )
 
+config_app = typer.Typer(
+    name="config",
+    add_completion=False,
+    help="Manage the project's .issueflows/config.toml.",
+)
+
 _console = Console()
 
 _PROJECT_DIR_ARGUMENT = typer.Argument(
@@ -279,7 +285,42 @@ def agent_capture(
     )
 
 
+@config_app.command("add")
+def config_add(
+    project_dir: Path = typer.Option(
+        Path("."),
+        "--project-dir",
+        "-C",
+        help="Project root directory (defaults to current directory).",
+        exists=True,
+        file_okay=False,
+        resolve_path=True,
+    ),
+    force: bool = typer.Option(
+        False,
+        "--force",
+        "-f",
+        help="Regenerate the [issueflow] keys even if config.toml already exists.",
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Create .issueflows/config.toml, seeded from .env (or issue-flow defaults).
+
+    Writes the three keys issue-flow reads from config.toml — ``mode``,
+    ``caveman_default``, ``grill_me_default`` — taking each from its
+    ``ISSUEFLOW_*`` env var when set, else the default. Other ``ISSUEFLOW_*``
+    settings are environment-only and are not written here. Existing files are
+    left untouched unless ``--force`` is passed.
+    """
+    from issue_flow.agent import run_config_add
+
+    raise typer.Exit(code=run_config_add(project_dir, _console, force, json_output))
+
+
 app.add_typer(agent_app)
+app.add_typer(config_app)
 
 
 def main() -> None:

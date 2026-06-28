@@ -137,6 +137,22 @@ class Settings:
             return persisted
         return _env_flag("ISSUEFLOW_GRILL_ME_DEFAULT")
 
+    def seed_config_values(self) -> dict[str, object]:
+        """Values for a freshly created ``config.toml``: env/``.env`` else defaults.
+
+        Returns the three ``[issueflow]`` keys issue-flow reads from
+        ``config.toml`` — ``mode``, ``caveman_default``, ``grill_me_default`` —
+        taking each from its ``ISSUEFLOW_*`` env var (loaded from ``.env`` at
+        import) when set, otherwise the issue-flow default. Deliberately ignores
+        any existing ``config.toml`` since that is the layer being written.
+        """
+        mode = os.getenv("ISSUEFLOW_MODE")
+        return {
+            "mode": mode.strip() if mode and mode.strip() else DEFAULT_MODE,
+            "caveman_default": _env_flag("ISSUEFLOW_CAVEMAN_DEFAULT"),
+            "grill_me_default": _env_flag("ISSUEFLOW_GRILL_ME_DEFAULT"),
+        }
+
     def template_context(
         self,
         project_root: Path,

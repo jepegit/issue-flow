@@ -383,6 +383,134 @@ def test_agent_capture_writes_original(
     assert "Please fix it." in content
 
 
+# ---------------------------------------------------------------------------
+# config sub-app
+# ---------------------------------------------------------------------------
+
+
+def _clear_issueflow_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    for var in (
+        "ISSUEFLOW_MODE",
+        "ISSUEFLOW_CAVEMAN_DEFAULT",
+        "ISSUEFLOW_GRILL_ME_DEFAULT",
+    ):
+        monkeypatch.delenv(var, raising=False)
+
+
+def test_config_help_lists_add(runner: CliRunner) -> None:
+    result = runner.invoke(app, ["config", "--help"])
+    assert result.exit_code == 0
+    assert "add" in _plain(result.stdout)
+
+
+def test_config_add_creates_defaults(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import tomllib
+
+    _clear_issueflow_env(monkeypatch)
+
+    result = runner.invoke(
+        app, ["config", "add", "-C", str(tmp_path), "--json"]
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["written"] is True
+    assert payload["overwritten"] is False
+    assert payload["mode"] == "standard"
+    assert payload["caveman_default"] is False
+    assert payload["grill_me_default"] is False
+
+    cfg = tmp_path / ".issueflows" / "config.toml"
+    assert cfg.is_file()
+    data = tomllib.loads(cfg.read_text(encoding="utf-8"))
+    assert data["issueflow"]["mode"] == "standard"
+    assert data["issueflow"]["caveman_default"] is False
+    assert data["issueflow"]["grill_me_default"] is False
+
+
+def test_config_add_reads_env(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import tomllib
+
+    monkeypatch.setenv("ISSUEFLOW_MODE", "simple")
+    monkeypatch.setenv("ISSUEFLOW_CAVEMAN_DEFAULT", "true")
+    monkeypatch.delenv("ISSUEFLOW_GRILL_ME_DEFAULT", raising=False)
+
+    result = runner.invoke(app, ["config", "add", "-C", str(tmp_path), "--json"])
+
+    assert result.exit_code == 0, result.output
+    cfg = tmp_path / ".issueflows" / "config.toml"
+    data = tomllib.loads(cfg.read_text(encoding="utf-8"))
+    assert data["issueflow"]["mode"] == "simple"
+    assert data["issueflow"]["caveman_default"] is True
+    assert data["issueflow"]["grill_me_default"] is False
+
+
+def test_config_add_does_not_clobber_without_force(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _clear_issueflow_env(monkeypatch)
+    cfg = tmp_path / ".issueflows" / "config.toml"
+    cfg.parent.mkdir(parents=True, exist_ok=True)
+    original = (
+        "[issueflow]\n"
+        'mode = "simple"\n'
+        "caveman_default = true\n\n"
+        "# hand-added comment\n"
+        "[modes.mine]\n"
+        'extends = "simple"\n'
+    )
+    cfg.write_text(original, encoding="utf-8")
+
+    result = runner.invoke(app, ["config", "add", "-C", str(tmp_path), "--json"])
+
+    assert result.exit_code == 1
+    payload = _json(result.stdout)
+    assert payload["written"] is False
+    # File untouched.
+    assert cfg.read_text(encoding="utf-8") == original
+
+
+def test_config_add_force_upserts_and_preserves(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import tomllib
+
+    _clear_issueflow_env(monkeypatch)
+    cfg = tmp_path / ".issueflows" / "config.toml"
+    cfg.parent.mkdir(parents=True, exist_ok=True)
+    cfg.write_text(
+        "[issueflow]\n"
+        'mode = "simple"\n\n'
+        "# keep me\n"
+        "[modes.mine]\n"
+        'extends = "simple"\n',
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(
+        app, ["config", "add", "-C", str(tmp_path), "--force", "--json"]
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["written"] is True
+    assert payload["overwritten"] is True
+
+    text = cfg.read_text(encoding="utf-8")
+    data = tomllib.loads(text)
+    # Three keys upserted to env/defaults.
+    assert data["issueflow"]["mode"] == "standard"
+    assert data["issueflow"]["caveman_default"] is False
+    assert data["issueflow"]["grill_me_default"] is False
+    # User content preserved.
+    assert "# keep me" in text
+    assert data["modes"]["mine"]["extends"] == "simple"
+
+
 def test_status_local_json(
     runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

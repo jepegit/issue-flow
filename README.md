@@ -432,6 +432,27 @@ API key from `.env` when present (`GEMINI_API_KEY`, `ANTHROPIC_API_KEY`,
 `graphify extract` semantic pass. The no-arg `graphify update` build is
 AST-only and needs no key.
 
+### Creating `config.toml`
+
+`init --mode <id>` is the usual way `.issueflows/config.toml` first appears, but
+you can also materialize a fully-commented file on demand:
+
+```bash
+issue-flow config add            # create .issueflows/config.toml if missing
+issue-flow config add --force    # regenerate its [issueflow] keys in place
+```
+
+It writes the three keys issue-flow actually reads from `config.toml` — `mode`,
+`caveman_default`, `grill_me_default` — taking each value from its `ISSUEFLOW_*`
+env var / `.env` when set, otherwise the issue-flow default (`standard`,
+`false`, `false`). The other `ISSUEFLOW_*` settings are **environment-only** and
+are deliberately *not* written to `config.toml` (putting them there would have no
+effect). An existing file is left untouched unless `--force` is passed, in which
+case the three keys are upserted while your comments and `[modes.*]` tables are
+preserved. After changing `caveman_default` / `grill_me_default`, re-run
+`issue-flow update` so the always-on rule re-renders. Pass `--json` for a
+machine-readable result.
+
 
 ## Development
 
