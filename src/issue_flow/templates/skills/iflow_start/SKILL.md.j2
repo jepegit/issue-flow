@@ -18,6 +18,13 @@ Follow this skill when the user wants to **begin implementation** from issue not
 
 ## Instructions
 
+> **CLI fast path (optional).** If the `issue-flow` CLI is on `PATH`, use
+> `issue-flow agent preflight` for the branch status preflight (step 2) and
+> `issue-flow agent sweep --except <N>` for the stale sweep (step 3; add
+> `--dry-run` to preview). The CLI is optional: if it is missing or errors,
+> fall back to the manual instructions below. (`issue-flow` is only present
+> when the user installed it, e.g. `uv tool install issue-flow`.)
+
 1. **Select the issue** — Read `{{ issueflows_dir }}/{{ current_issues_folder }}/`. If there is no `*_original.md` (or multiple ambiguous groups), **stop** and ask which issue to use.
 
 2. **Branch status preflight** (non-destructive) — Detect the default branch (prefer `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`, else `git symbolic-ref --quiet --short refs/remotes/origin/HEAD`, else `main`). Run `git fetch --prune`. Report current branch, clean/dirty working tree, and ahead/behind counts vs `origin/<default>`. If on the default branch, propose creating an issue branch (`git switch -c <N>-<short-slug>`); ask before running. If the current branch matches `^(\d+)-.+` and files for that issue now live in `{{ issueflows_dir }}/{{ partly_solved_folder }}/` or `{{ issueflows_dir }}/{{ solved_folder }}/`, warn the branch looks stale and ask whether to switch back before continuing. If the branch is neither default nor an issue-style branch, warn and ask whether to continue. Never delete a branch from `/iflow-start`.

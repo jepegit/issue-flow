@@ -11,6 +11,12 @@ Optional free-form text after the command. Examples:
 
 ## Steps
 
+> **CLI fast path (optional).** If the `issue-flow` CLI is on `PATH`, run
+> `issue-flow agent preflight` for the branch status preflight (step 0.5). The
+> CLI is optional: if it is missing or errors, fall back to the manual commands
+> below. (`issue-flow` is only present when the user installed it, e.g.
+> `uv tool install issue-flow`.)
+
 0. **Locate the focus issue.** In `{{ issueflows_dir }}/{{ current_issues_folder }}/`, find the `issue<N>_original.md`. If there is none, or multiple ambiguous groups, **stop** and ask the user. Suggest running `/iflow-init` first.
 
 0.5 **Branch status preflight** (non-destructive — report, do not delete).

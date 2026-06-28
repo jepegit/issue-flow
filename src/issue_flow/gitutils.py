@@ -1,0 +1,202 @@
+"""Thin, best-effort wrappers around the ``git`` and ``gh`` CLIs.
+
+The scaffolded workflow leans on a handful of read-only ``git`` / ``gh``
+queries over and over (current branch, default branch, ahead/behind,
+``owner/repo`` of the remote, fetching a GitHub issue). The ``issue-flow
+status`` / ``issue-flow agent ...`` commands centralise those calls here so the
+behaviour matches the templates exactly and degrades the same way: a missing
+or unauthenticated ``gh`` must never hard-fail a command, it just yields
+``None`` and the caller notes the gap.
+
+The shell-out style mirrors :mod:`issue_flow.graphify`: ``shutil.which`` to
+check availability, build an explicit argv, ``subprocess.run(check=False)``,
+and translate failures into ``None`` rather than exceptions.
+"""
+
+from __future__ import annotations
+
+import json
+import re
+import shutil
+import subprocess
+from pathlib import Path
+from typing import Any
+
+GIT = "git"
+GH = "gh"
+
+# Accepts the common remote URL shapes:
+#   https://github.com/owner/repo(.git)
+#   git@github.com:owner/repo(.git)
+#   ssh://git@github.com/owner/repo(.git)
+_REMOTE_RE = re.compile(
+    r"""
+    (?:[\w.+-]+@)?              # optional user@
+    [\w.-]+                     # host
+    [:/]                        # ':' for scp-style, '/' for URLs
+    (?P<owner>[^/]+)/
+    (?P<repo>[^/]+?)
+    (?:\.git)?/?$
+    """,
+    re.VERBOSE,
+)
+
+
+def git_available() -> bool:
+    """True iff the ``git`` CLI is on PATH."""
+    return shutil.which(GIT) is not None
+
+
+def gh_available() -> bool:
+    """True iff the ``gh`` CLI is on PATH."""
+    return shutil.which(GH) is not None
+
+
+def _run(argv: list[str], cwd: Path) -> subprocess.CompletedProcess[str] | None:
+    """Run ``argv`` in ``cwd`` capturing text output.
+
+    Returns ``None`` if the executable is missing or cannot be spawned;
+    otherwise the completed process (even on a non-zero exit, so callers can
+    inspect ``returncode``).
+    """
+    if shutil.which(argv[0]) is None:
+        return None
+    try:
+        return subprocess.run(
+            argv,
+            cwd=cwd,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except OSError:
+        return None
+
+
+def _stdout(argv: list[str], cwd: Path) -> str | None:
+    """Return stripped stdout for a successful command, else ``None``."""
+    result = _run(argv, cwd)
+    if result is None or result.returncode != 0:
+        return None
+    return result.stdout.strip()
+
+
+def current_branch(cwd: Path) -> str | None:
+    """Current branch name, or ``None`` (detached HEAD / not a repo / no git)."""
+    branch = _stdout([GIT, "branch", "--show-current"], cwd)
+    return branch or None
+
+
+def default_branch(cwd: Path) -> str:
+    """Best-effort default branch name.
+
+    Prefers ``gh repo view``; falls back to the local ``origin/HEAD`` symbolic
+    ref; finally defaults to ``main``. This mirrors the detection logic the
+    slash commands describe.
+    """
+    gh_default = _stdout(
+        [GH, "repo", "view", "--json", "defaultBranchRef", "-q",
+         ".defaultBranchRef.name"],
+        cwd,
+    )
+    if gh_default:
+        return gh_default
+
+    symbolic = _stdout(
+        [GIT, "symbolic-ref", "--quiet", "--short", "refs/remotes/origin/HEAD"],
+        cwd,
+    )
+    if symbolic:
+        return symbolic.removeprefix("origin/")
+
+    return "main"
+
+
+def working_tree_clean(cwd: Path) -> bool | None:
+    """True for a clean tree, False if dirty, ``None`` if git is unavailable."""
+    result = _run([GIT, "status", "--porcelain"], cwd)
+    if result is None or result.returncode != 0:
+        return None
+    return result.stdout.strip() == ""
+
+
+def fetch_prune(cwd: Path) -> bool:
+    """Run ``git fetch --prune`` (best effort). True on success."""
+    result = _run([GIT, "fetch", "--prune"], cwd)
+    return result is not None and result.returncode == 0
+
+
+def ahead_behind(cwd: Path, default: str) -> tuple[int, int] | None:
+    """Return ``(ahead, behind)`` of HEAD vs ``origin/<default>``.
+
+    Uses ``git rev-list --left-right --count origin/<default>...HEAD`` whose
+    output is ``<behind>\\t<ahead>`` (left side is the upstream). Returns
+    ``None`` when the comparison cannot be made (e.g. no remote-tracking ref).
+    """
+    out = _stdout(
+        [GIT, "rev-list", "--left-right", "--count", f"origin/{default}...HEAD"],
+        cwd,
+    )
+    if not out:
+        return None
+    parts = out.split()
+    if len(parts) != 2:
+        return None
+    try:
+        behind, ahead = int(parts[0]), int(parts[1])
+    except ValueError:
+        return None
+    return ahead, behind
+
+
+def remote_owner_repo(cwd: Path) -> tuple[str, str] | None:
+    """Parse ``owner``/``repo`` from the ``origin`` remote URL."""
+    url = _stdout([GIT, "remote", "get-url", "origin"], cwd)
+    if not url:
+        return None
+    match = _REMOTE_RE.search(url.strip())
+    if not match:
+        return None
+    return match.group("owner"), match.group("repo")
+
+
+def gh_issue_view(
+    number: int, cwd: Path, repo: str | None = None
+) -> dict[str, Any] | None:
+    """Fetch a single GitHub issue as a dict (``title``/``body``/``url``/...).
+
+    Returns ``None`` if ``gh`` is missing, unauthenticated, or the call fails.
+    """
+    argv = [
+        GH, "issue", "view", str(number),
+        "--json", "title,body,url,number,comments",
+    ]
+    if repo:
+        argv += ["--repo", repo]
+    out = _stdout(argv, cwd)
+    if out is None:
+        return None
+    try:
+        return json.loads(out)
+    except json.JSONDecodeError:
+        return None
+
+
+def gh_issue_list(
+    cwd: Path, repo: str | None = None, limit: int = 100
+) -> list[dict[str, Any]] | None:
+    """List open GitHub issues as dicts, or ``None`` when unavailable."""
+    argv = [
+        GH, "issue", "list", "--state", "open", "--limit", str(limit),
+        "--json", "number,title,labels,milestone,updatedAt",
+    ]
+    if repo:
+        argv += ["--repo", repo]
+    out = _stdout(argv, cwd)
+    if out is None:
+        return None
+    try:
+        data = json.loads(out)
+    except json.JSONDecodeError:
+        return None
+    return data if isinstance(data, list) else None

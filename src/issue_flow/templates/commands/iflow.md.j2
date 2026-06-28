@@ -17,6 +17,13 @@ Optional free-form text after the command. `/iflow` forwards the raw trailing te
 
 ## Steps
 
+> **CLI fast path (optional).** If the `issue-flow` CLI is on `PATH`, run
+> `issue-flow agent state --json` to resolve the focus issue, its lifecycle
+> stage, and the suggested `next_command` in one deterministic step (covers
+> steps 0–1), then dispatch to that command. The CLI is optional: if it is not
+> installed or it errors, fall back to the manual steps below. (`issue-flow` is
+> only present when the user installed it, e.g. `uv tool install issue-flow`.)
+
 0. **Resolve the focus issue number `N`.**
    - Run `git branch --show-current`. If it matches `^(\d+)-.+`, the leading digits are the **authoritative** `N`.
    - List `issue<n>_*` groups in `{{ issueflows_dir }}/{{ current_issues_folder }}/`, and also check `{{ issueflows_dir }}/{{ partly_solved_folder }}/` and `{{ issueflows_dir }}/{{ solved_folder }}/` for archived groups matching `N`.

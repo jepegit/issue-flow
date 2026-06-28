@@ -20,6 +20,15 @@ Follow this skill when the user wants to **capture a GitHub issue locally**.{% i
 
 ## Instructions
 
+> **CLI fast path (optional).** If the `issue-flow` CLI is on `PATH`, two
+> mechanical steps have a deterministic shortcut:
+> - **Fetch + write (steps 3 & 5):** `issue-flow agent capture <N>` (use `--repo owner/repo` to override the resolved remote, `--force` to overwrite). It writes the `## Original issue text` body deterministically and prints the comments payload — you still triage comments (step 3a) and add the curated section yourself.
+> - **Archive (step 4):** `issue-flow agent sweep --except <N>` (add `--dry-run` to preview).
+>
+> The CLI is optional: if it is missing or errors, fall back to the manual
+> instructions below. (`issue-flow` is only present when the user installed it,
+> e.g. `uv tool install issue-flow`.)
+
 1. **Folders** — Ensure `{{ issueflows_dir }}/{{ tools_folder }}/`, `{{ issueflows_dir }}/{{ current_issues_folder }}/`, `{{ issueflows_dir }}/{{ partly_solved_folder }}/`, and `{{ issueflows_dir }}/{{ solved_folder }}/` exist (create only if the user allows; never delete issue markdown).
 
 2. **Resolve the reference**

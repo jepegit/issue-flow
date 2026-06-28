@@ -16,6 +16,15 @@ The text after this slash command is the **issue reference**. It may also be **e
 
 ## Steps
 
+> **CLI fast path (optional).** If the `issue-flow` CLI is on `PATH`, two
+> mechanical steps below have a deterministic shortcut:
+> - **Fetch + write (steps 2 & 5):** `issue-flow agent capture <N>` (use `--repo owner/repo` to override the resolved remote, `--force` to overwrite an existing file). It writes the `## Original issue text` body deterministically and prints the comments payload — you still do the comment triage (step 2a) and add the `## Comments (curated summary)` section yourself.
+> - **Archive (step 3):** `issue-flow agent sweep --except <N>` (add `--dry-run` to preview the moves).
+>
+> The CLI is optional: if it is missing or errors, fall back to the manual
+> steps below. (`issue-flow` is only present when the user installed it, e.g.
+> `uv tool install issue-flow`.)
+
 0. Check that the required folders exist (`{{ issueflows_dir }}/{{ tools_folder }}`, `{{ issueflows_dir }}/{{ current_issues_folder }}`, `{{ issueflows_dir }}/{{ partly_solved_folder }}`, `{{ issueflows_dir }}/{{ solved_folder }}`). If not, create them after asking for permission.
 
 1. Resolve the issue reference.

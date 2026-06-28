@@ -14,7 +14,25 @@ app = typer.Typer(
     add_completion=False,
 )
 
+agent_app = typer.Typer(
+    name="agent",
+    add_completion=False,
+    help=(
+        "Agent-facing helpers that read the .issueflows/ tree and git/gh so "
+        "AI agents get deterministic answers instead of re-deriving lifecycle "
+        "state by hand. All are read-only except `sweep` and `capture`."
+    ),
+)
+
 _console = Console()
+
+_PROJECT_DIR_ARGUMENT = typer.Argument(
+    default=Path("."),
+    help="Project root directory (defaults to current directory).",
+    exists=True,
+    file_okay=False,
+    resolve_path=True,
+)
 
 _EDITOR_HELP = (
     "AI coding tool(s) to scaffold for. Repeatable; accepts "
@@ -157,6 +175,111 @@ def graphify(
     exit_code = run_build(project_dir, ctx.args, _console)
     if exit_code != 0:
         raise typer.Exit(code=exit_code)
+
+
+@app.command()
+def status(
+    project_dir: Path = _PROJECT_DIR_ARGUMENT,
+    local: bool = typer.Option(
+        False,
+        "--local",
+        help="Skip the GitHub query; report only local .issueflows/ state.",
+    ),
+    json_output: bool = typer.Option(
+        False,
+        "--json",
+        help="Emit a machine-readable JSON object instead of a text report.",
+    ),
+) -> None:
+    """Read-only overview of every issue: focus stage, parked, solved, GitHub."""
+    from issue_flow.agent import run_status
+
+    raise typer.Exit(code=run_status(project_dir, _console, local, json_output))
+
+
+@agent_app.command("state")
+def agent_state(
+    project_dir: Path = _PROJECT_DIR_ARGUMENT,
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Resolve the focus issue, its lifecycle stage, and the next command."""
+    from issue_flow.agent import run_state
+
+    raise typer.Exit(code=run_state(project_dir, _console, json_output))
+
+
+@agent_app.command("preflight")
+def agent_preflight(
+    project_dir: Path = _PROJECT_DIR_ARGUMENT,
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Branch hygiene report: default branch, clean/dirty, ahead/behind, stale."""
+    from issue_flow.agent import run_preflight
+
+    raise typer.Exit(code=run_preflight(project_dir, _console, json_output))
+
+
+@agent_app.command("sweep")
+def agent_sweep(
+    project_dir: Path = _PROJECT_DIR_ARGUMENT,
+    except_number: int | None = typer.Option(
+        None,
+        "--except",
+        "-x",
+        help="Issue number to keep in current-issues (the focus issue).",
+    ),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Show planned moves without touching files."
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Archive non-focus issue groups to partly-/solved- folders by Done status."""
+    from issue_flow.agent import run_sweep
+
+    raise typer.Exit(
+        code=run_sweep(project_dir, _console, except_number, dry_run, json_output)
+    )
+
+
+@agent_app.command("capture")
+def agent_capture(
+    number: int = typer.Argument(..., help="GitHub issue number to capture."),
+    project_dir: Path = typer.Option(
+        Path("."),
+        "--project-dir",
+        "-C",
+        help="Project root directory (defaults to current directory).",
+        exists=True,
+        file_okay=False,
+        resolve_path=True,
+    ),
+    repo: str | None = typer.Option(
+        None,
+        "--repo",
+        help="owner/repo override (else derived from the origin remote).",
+    ),
+    force: bool = typer.Option(
+        False, "--force", "-f", help="Overwrite an existing issue<N>_original.md."
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Fetch a GitHub issue and write issue<N>_original.md (body only)."""
+    from issue_flow.agent import run_capture
+
+    raise typer.Exit(
+        code=run_capture(project_dir, _console, number, repo, force, json_output)
+    )
+
+
+app.add_typer(agent_app)
 
 
 def main() -> None:
