@@ -570,8 +570,8 @@
     "semantic_hash": ""
   },
   "HISTORY.md": {
-    "mtime": 1782643318.6221437,
-    "ast_hash": "60754d55ada6573fb5a28b26b1f63c7d",
+    "mtime": 1782643936.53788,
+    "ast_hash": "fd7a71602172af2f1108edbae9e496c7",
     "semantic_hash": ""
   },
   "README.md": {
@@ -609,21 +609,6 @@
     "ast_hash": "8bffaf83163a2efab4d6d1a66828ad2c",
     "semantic_hash": ""
   },
-  ".issueflows/01-current-issues/issue82_original.md": {
-    "mtime": 1782643568.666645,
-    "ast_hash": "e550d89c07b1f9479a8816e76ebd2ff6",
-    "semantic_hash": ""
-  },
-  ".issueflows/01-current-issues/issue82_plan.md": {
-    "mtime": 1782643676.3183258,
-    "ast_hash": "e209b01d585d39f92b15e720867ec89e",
-    "semantic_hash": ""
-  },
-  ".issueflows/01-current-issues/issue82_status.md": {
-    "mtime": 1782643849.9541152,
-    "ast_hash": "0a7b9f323ca450f66a5847bac9af0b0e",
-    "semantic_hash": ""
-  },
   ".issueflows/03-solved-issues/issue79_original.md": {
     "mtime": 1782643318.6221437,
     "ast_hash": "29ca80bbddcc19febd20c1cc9fdf54ce",
@@ -637,6 +622,21 @@
   ".issueflows/03-solved-issues/issue79_status.md": {
     "mtime": 1782643318.6221437,
     "ast_hash": "f741d622f5e8456cf9f05239f61c1583",
+    "semantic_hash": ""
+  },
+  ".issueflows/03-solved-issues/issue82_original.md": {
+    "mtime": 1782643568.666645,
+    "ast_hash": "e550d89c07b1f9479a8816e76ebd2ff6",
+    "semantic_hash": ""
+  },
+  ".issueflows/03-solved-issues/issue82_plan.md": {
+    "mtime": 1782643676.3183258,
+    "ast_hash": "e209b01d585d39f92b15e720867ec89e",
+    "semantic_hash": ""
+  },
+  ".issueflows/03-solved-issues/issue82_status.md": {
+    "mtime": 1782643939.5338748,
+    "ast_hash": "80c43955bd67cce74893f2043665fc9d",
     "semantic_hash": ""
   }
 }

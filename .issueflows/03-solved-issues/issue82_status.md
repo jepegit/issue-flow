@@ -8,8 +8,8 @@
 
 ## Remaining work
 
-- Run focused tests, full test suite, lint, end-to-end scaffold validation, and graph refresh.
+- None.
 
 ## Status
 
-- [ ] Done
+- [x] Done

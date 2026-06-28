@@ -1,7 +1,7 @@
 # Graph Report - workspace  (2026-06-28)
 
 ## Corpus Check
-- 126 files · ~65,138 words
+- 126 files · ~65,180 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `d78a35c5`
+- Built from commit: `61802857`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -188,7 +188,7 @@
 
 ### Community 0 - "Community 0"
 Cohesion: 0.12
-Nodes (17): _default_context(), /iflow-plan must document graceful graphify + grep prior-art checklist., The issue-fix skill must carry the same session flow and frontmatter., /iflow must describe the four-state dispatch and name its downstream targets., The workspace rules must describe branch and folder hygiene expectations., The history-update skill must describe append-and-promote, plus the missing-file, /iflow-init must fetch comments and call the comments-triage skill., The issue-init skill must fetch comments and point at the comments skill. (+9 more)
+Nodes (17): _default_context(), /iflow-plan must document graceful graphify + grep prior-art checklist., The issue-fix skill must carry the same session flow and frontmatter., /iflow must describe the four-state dispatch and name its downstream targets., /iflow's step 0 must treat a branch-derived N as authoritative.      The branch-, The workspace rules must describe branch and folder hygiene expectations., The history-update skill must describe append-and-promote, plus the missing-file, /iflow-init must fetch comments and call the comments-triage skill. (+9 more)
 
 ### Community 1 - "Community 1"
 Cohesion: 0.14
@@ -316,7 +316,7 @@ Nodes (16): 1. Editor profiles (`src/issue_flow/editors.py`, new), 2. Config (`c
 
 ### Community 32 - "Community 32"
 Cohesion: 0.14
-Nodes (12): Tests for issue_flow.templating., Every template in the manifest should render with default context values., Every expected skill has a default Cursor manifest entry., /issue-close must describe the HISTORY.md update step and its input tokens., /iflow's step 0 must treat a branch-derived N as authoritative.      The branch-, The issue-pick skill must carry the same front-door flow and frontmatter., /iflow-close must describe the HISTORY.md update step and its input tokens., test_all_templates_render_without_error() (+4 more)
+Nodes (12): Tests for issue_flow.templating., Every template in the manifest should render with default context values., Every expected skill has a default Cursor manifest entry., /issue-close must describe the HISTORY.md update step and its input tokens., The issue-pick skill must carry the same front-door flow and frontmatter., /iflow-close must describe the HISTORY.md update step and its input tokens., Regression guard for issue #9: the Agent efficiency guidance must live in the te, test_all_templates_render_without_error() (+4 more)
 
 ### Community 33 - "Community 33"
 Cohesion: 0.15
