@@ -332,6 +332,21 @@ that keeps technical substance but drops filler. It is off by default and only
 activates when you ask for it ("caveman" / "token greedy"); turn it off with
 "stop caveman" or "normal mode". The lightweight `simple` mode omits it.
 
+To make caveman **on by default for a project**, set `caveman_default = true`
+under `[issueflow]` in `.issueflows/config.toml` and re-run `issue-flow update`:
+
+```toml
+[issueflow]
+caveman_default = true
+```
+
+This renders an always-on caveman pointer into the managed rule body (so the
+always-applied rule re-arms it every session); you can still drop it for the rest
+of a session with "stop caveman" / "normal mode". The flag is only honored when
+the `caveman` skill is part of the active mode. It resolves in the order
+`config.toml` > `ISSUEFLOW_CAVEMAN_DEFAULT` (env) > `false`; the persisted value
+beats the env var so a stray env can't flip it on `update`.
+
 
 ## Editor support
 
@@ -383,6 +398,7 @@ issue-flow reads a `.env` file from the project root (.via python-dotenv). `issu
 | `ISSUEFLOW_DOCS_DIR`     | `docs`         | Where to write the workflow documentation file.                                                                                               |
 | `ISSUEFLOW_HISTORY_FILE` | `HISTORY.md`   | Changelog file that `/iflow-close` updates (set to e.g. `CHANGELOG.md` for different conventions).                                            |
 | `ISSUEFLOW_MODE`         | `standard`     | Fallback [scaffolding mode](#modes) when none is persisted in `.issueflows/config.toml`. The canonical store is `config.toml` (written by `init --mode`), which **takes precedence over this env var**. Full order: `--mode` (CLI) > `config.toml` > `ISSUEFLOW_MODE` > `standard`. |
+| `ISSUEFLOW_CAVEMAN_DEFAULT` | `false`     | Fallback for the [always-on caveman](#modes) toggle when `[issueflow].caveman_default` is not persisted in `.issueflows/config.toml`. The persisted value takes precedence. Full order: `config.toml` > `ISSUEFLOW_CAVEMAN_DEFAULT` > `false`. Only honored when the `caveman` skill is in the active mode. |
 
 Beyond the `ISSUEFLOW_*` settings above, `issue-flow graphify` also reads an LLM
 API key from `.env` when present (`GEMINI_API_KEY`, `ANTHROPIC_API_KEY`,

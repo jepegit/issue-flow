@@ -49,6 +49,7 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "mode_name",
         "included_skills",
         "included_commands",
+        "caveman_default",
     }
     assert set(context.keys()) == expected_keys
 
@@ -76,3 +77,46 @@ def test_history_file_override_from_env(monkeypatch: "pytest.MonkeyPatch") -> No
     monkeypatch.setenv("ISSUEFLOW_HISTORY_FILE", "CHANGELOG.md")
     settings = Settings()
     assert settings.history_file == "CHANGELOG.md"
+
+
+def _write_config(tmp_path: Path, body: str) -> None:
+    cfg = tmp_path / ".issueflows" / "config.toml"
+    cfg.parent.mkdir(parents=True, exist_ok=True)
+    cfg.write_text(body, encoding="utf-8")
+
+
+def test_caveman_default_off_by_default(
+    tmp_path: Path, monkeypatch: "pytest.MonkeyPatch"  # noqa: F821
+) -> None:
+    """With no config and no env, caveman is not on by default."""
+    monkeypatch.delenv("ISSUEFLOW_CAVEMAN_DEFAULT", raising=False)
+    settings = Settings()
+    assert settings.resolve_caveman_default(tmp_path) is False
+    context = settings.template_context(tmp_path)
+    assert context["caveman_default"] is False
+
+
+def test_caveman_default_from_config(tmp_path: Path) -> None:
+    """A persisted [issueflow].caveman_default=true is honored."""
+    _write_config(tmp_path, "[issueflow]\ncaveman_default = true\n")
+    settings = Settings()
+    assert settings.resolve_caveman_default(tmp_path) is True
+
+
+def test_caveman_default_from_env(
+    tmp_path: Path, monkeypatch: "pytest.MonkeyPatch"  # noqa: F821
+) -> None:
+    """ISSUEFLOW_CAVEMAN_DEFAULT is used when config does not set the key."""
+    monkeypatch.setenv("ISSUEFLOW_CAVEMAN_DEFAULT", "true")
+    settings = Settings()
+    assert settings.resolve_caveman_default(tmp_path) is True
+
+
+def test_caveman_default_config_beats_env(
+    tmp_path: Path, monkeypatch: "pytest.MonkeyPatch"  # noqa: F821
+) -> None:
+    """The persisted config value wins over a conflicting env var."""
+    _write_config(tmp_path, "[issueflow]\ncaveman_default = false\n")
+    monkeypatch.setenv("ISSUEFLOW_CAVEMAN_DEFAULT", "true")
+    settings = Settings()
+    assert settings.resolve_caveman_default(tmp_path) is False

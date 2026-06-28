@@ -33,3 +33,35 @@ only — no intensity table, no multi-language.
   feeds an `alwaysApply: true` rule, so it would force caveman on by default.
 
 Link: https://github.com/jepegit/issue-flow/issues/81
+
+## Follow-up: opt-in always-on default (issue #91)
+
+Context: users wanted a per-project way to make caveman the default style,
+without re-asking every session.
+
+### Decision
+
+- New **opt-in** config key `[issueflow].caveman_default` (bool, default
+  `false`), with an `ISSUEFLOW_CAVEMAN_DEFAULT` env fallback. Resolution order
+  mirrors `mode`: persisted `config.toml` > env > default. The persisted value
+  beats the env so a stray env var can't flip it on `update`
+  (`Settings.resolve_caveman_default`; reader `modes.read_caveman_default`).
+- Surfaced to templates as the `caveman_default` context key. The caveman block
+  in `rules/_body.md.j2` now branches: when `caveman_default` is true (and
+  `caveman` is in `included_skills`) it renders an **always-on** pointer; the
+  pointer reaching the `alwaysApply: true` rule is exactly what re-arms caveman
+  each session. Default stays off-by-default, preserving #81 behavior.
+- This intentionally revisits the #81 rejection of "force caveman on by default":
+  it is no longer the default — it only happens when a project explicitly opts in,
+  so the always-applied rule stays inert unless the user asked for it.
+
+### Alternatives considered
+
+- A `--caveman-default` CLI flag — rejected to match the existing config-key
+  pattern (`mode`) and keep the toggle editable in `config.toml` + re-`update`,
+  not re-`init`.
+- A paste-in snippet for the user's unmanaged `AGENTS.md` — viable but not
+  discoverable; the config key plus managed-block rendering keeps it consistent
+  across `AGENTS.md` / `CLAUDE.md` / `.mdc`.
+
+Link: https://github.com/jepegit/issue-flow/issues/91
