@@ -13,6 +13,7 @@ from issue_flow.modes import (
     config_path,
     read_active_mode,
     read_caveman_default,
+    read_grill_me_default,
     resolve_mode,
     write_active_mode,
 )
@@ -191,6 +192,25 @@ def test_read_caveman_default_true_and_false(tmp_path: Path) -> None:
     assert read_caveman_default(cfg_true) is True
     cfg_false = _write_config(tmp_path, "[issueflow]\ncaveman_default = false\n")
     assert read_caveman_default(cfg_false) is False
+
+
+def test_read_grill_me_default_missing_returns_none(tmp_path: Path) -> None:
+    """No config file -> grill_me_default is unset (None), not False."""
+    assert read_grill_me_default(config_path(tmp_path, ".issueflows")) is None
+
+
+def test_read_grill_me_default_unset_key_returns_none(tmp_path: Path) -> None:
+    """A config without the key -> unset (None), so env/default can apply."""
+    cfg = _write_config(tmp_path, '[issueflow]\nmode = "standard"\n')
+    assert read_grill_me_default(cfg) is None
+
+
+def test_read_grill_me_default_true_and_false(tmp_path: Path) -> None:
+    """An explicit boolean is read back as that boolean."""
+    cfg_true = _write_config(tmp_path, "[issueflow]\ngrill_me_default = true\n")
+    assert read_grill_me_default(cfg_true) is True
+    cfg_false = _write_config(tmp_path, "[issueflow]\ngrill_me_default = false\n")
+    assert read_grill_me_default(cfg_false) is False
 
 
 def test_resolve_mode_module_alias() -> None:

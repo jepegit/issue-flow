@@ -113,6 +113,10 @@ SKILL_DIRS: list[str] = [
     # Behavior skill (not a workflow command): a terse "caveman" response style.
     # Part of the "all"/standard surface; excluded by the explicit "simple" list.
     "caveman",
+    # Planning skill (not a workflow command): a relentless "grill-me" design
+    # interview. Like caveman it is part of the "all"/standard surface, excluded
+    # by the explicit "simple" list, and dormant until invoked / turned on.
+    "grill_me",
 ]
 
 SKILL_OUTPUT_NAMES: dict[str, str] = {

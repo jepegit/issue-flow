@@ -157,6 +157,30 @@ project, set `caveman_default = true` under `[issueflow]` in
 {% endif %}
 
 {% endif %}
+{% if "grill_me" in included_skills %}
+### Planning aids
+{% if grill_me_default %}
+A **grill-me** Agent Skill is installed under `{{ agent_dir }}/skills/grill-me/`
+and is **on by default during planning for this project**: when running
+`/iflow-plan`, run a relentless interview (one question at a time, each with a
+recommended answer; explore the code/issue instead of asking when answerable) to
+resolve every branch of the design tree before drafting `issue<N>_plan.md`. Turn
+it off for the rest of a session with **"stop grilling"** or **"normal mode"**.
+(This default comes from `grill_me_default = true` under `[issueflow]` in
+`{{ issueflows_dir }}/config.toml`; set it to `false` and re-run `issue-flow
+update` to make grilling opt-in per session instead.)
+{% else %}
+A **grill-me** Agent Skill is installed under `{{ agent_dir }}/skills/grill-me/`.
+It runs a relentless planning interview that stress-tests a plan or design —
+one question at a time, each with a recommended answer — until every branch of
+the decision tree is resolved. It is **off by default** and only kicks in when
+you ask for it (e.g. "grill me", "poke holes in this"). Turn it off with **"stop
+grilling"** or **"normal mode"**. (To make grilling on by default during planning
+for this project, set `grill_me_default = true` under `[issueflow]` in
+`{{ issueflows_dir }}/config.toml` and re-run `issue-flow update`.)
+{% endif %}
+
+{% endif %}
 ### Designs and guides
 
 Long-lived design docs, design decisions, and project "good practices" live under `{{ issueflows_dir }}/{{ designs_folder }}/`. Unlike the issue folders, content here is **not** tied to a single issue and is **not** archived when an issue closes — it is the project's durable memory.

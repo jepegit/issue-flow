@@ -121,6 +121,22 @@ class Settings:
             return persisted
         return _env_flag("ISSUEFLOW_CAVEMAN_DEFAULT")
 
+    def resolve_grill_me_default(self, project_root: Path) -> bool:
+        """Resolve whether the grill-me skill is on by default for ``project_root``.
+
+        Order: persisted ``.issueflows/config.toml [issueflow].grill_me_default`` >
+        ``ISSUEFLOW_GRILL_ME_DEFAULT`` env/``.env`` > ``False``. As with the active
+        mode, the persisted value deliberately beats the environment so a stray
+        env var cannot silently flip the behavior on ``update``.
+
+        Only meaningful when the ``grill_me`` skill is part of the active mode; the
+        rule and plan templates gate the always-on pointer on skill membership too.
+        """
+        persisted = modes_module.read_grill_me_default(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        return _env_flag("ISSUEFLOW_GRILL_ME_DEFAULT")
+
     def template_context(
         self,
         project_root: Path,
@@ -162,6 +178,7 @@ class Settings:
             "included_skills": sorted(mode.skills),
             "included_commands": sorted(mode.commands),
             "caveman_default": self.resolve_caveman_default(project_root),
+            "grill_me_default": self.resolve_grill_me_default(project_root),
         }
 
 

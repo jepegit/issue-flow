@@ -22,6 +22,7 @@ _MODE_CONTEXT = {
     "included_skills": _ALL_SKILLS,
     "included_commands": _ALL_COMMANDS,
     "caveman_default": False,
+    "grill_me_default": False,
 }
 
 
@@ -92,8 +93,8 @@ def test_resolve_output_path() -> None:
 
 
 def test_manifest_entry_count() -> None:
-    # Cursor is skills-first: 1 rule + 1 doc + 16 skills = 18
-    assert len(TEMPLATE_MANIFEST) == 18
+    # Cursor is skills-first: 1 rule + 1 doc + 17 skills = 19
+    assert len(TEMPLATE_MANIFEST) == 19
 
 
 def _resolved_paths(profile_id: str) -> set[str]:
@@ -113,7 +114,7 @@ def _resolved_paths(profile_id: str) -> set[str]:
 def test_build_manifest_cursor_matches_default() -> None:
     """The default TEMPLATE_MANIFEST is the cursor profile manifest."""
     assert build_manifest(EDITORS["cursor"]) == TEMPLATE_MANIFEST
-    assert len(build_manifest(EDITORS["cursor"])) == 18
+    assert len(build_manifest(EDITORS["cursor"])) == 19
 
 
 def test_build_manifest_cursor_has_skills_and_rules_but_no_commands() -> None:
@@ -128,15 +129,15 @@ def test_build_manifest_cursor_has_skills_and_rules_but_no_commands() -> None:
 
 
 def test_build_manifest_codex_has_skills_and_docs_but_no_commands() -> None:
-    """Codex: skills (16) + docs (1), no slash commands and no rules extra."""
+    """Codex: skills (17) + docs (1), no slash commands and no rules extra."""
     manifest = build_manifest(get_profile("codex"))
     template_names = [name for name, _ in manifest]
     assert not any(name.startswith("commands/") for name in template_names)
-    assert sum(name.startswith("skills/") for name in template_names) == 16
+    assert sum(name.startswith("skills/") for name in template_names) == 17
     assert "docs/issue-workflow.md.j2" in template_names
     # No .mdc / CLAUDE.md rules extra for Codex.
     assert not any(name.startswith("rules/") for name in template_names)
-    assert len(manifest) == 17
+    assert len(manifest) == 18
 
 
 def test_build_manifest_opencode_uses_singular_command_dir() -> None:
@@ -711,6 +712,57 @@ def test_rules_body_caveman_default_switches_pointer_wording() -> None:
     assert "caveman_default = true" in rendered_on
     # The always-on pointer must still preserve the normal-prose carve-outs.
     assert "never caveman" in rendered_on
+
+
+def test_grill_me_skill_renders_as_planning_interview() -> None:
+    """The grill-me skill ships as a model-invocable planning-interview skill."""
+    rendered = render_template("skills/grill_me/SKILL.md.j2", _default_context())
+    assert "name: grill-me" in rendered
+    # Model-invocable (unlike workflow skills): the user opts in at runtime.
+    assert "disable-model-invocation: true" not in rendered
+    # Off switches and the core grilling discipline.
+    assert "stop grilling" in rendered
+    assert "normal mode" in rendered
+    assert "One question at a time" in rendered
+
+
+def test_grill_me_in_standard_manifest_as_skills_grill_me() -> None:
+    """Standard scaffolding emits the grill-me skill at skills/grill-me/SKILL.md."""
+    template_names = {name for name, _ in TEMPLATE_MANIFEST}
+    assert "skills/grill_me/SKILL.md.j2" in template_names
+    assert "{agent_dir}/skills/grill-me/SKILL.md" in {
+        path for _, path in TEMPLATE_MANIFEST
+    }
+
+
+def test_rules_body_grill_me_pointer_is_membership_gated() -> None:
+    """The rules body mentions grill-me only when it is in included_skills."""
+    with_grill = _default_context()
+    rendered_on = render_template("rules/AGENTS.md.j2", with_grill)
+    assert "grill-me" in rendered_on.lower()
+    assert "Planning aids" in rendered_on
+
+    without_grill = _default_context()
+    without_grill["included_skills"] = [
+        s for s in _ALL_SKILLS if s != "grill_me"
+    ]
+    rendered_off = render_template("rules/AGENTS.md.j2", without_grill)
+    assert "Planning aids" not in rendered_off
+
+
+def test_rules_body_grill_me_default_switches_pointer_wording() -> None:
+    """grill_me_default flips the pointer between off-by-default and always-on."""
+    off = _default_context()
+    off["grill_me_default"] = False
+    rendered_off = render_template("rules/AGENTS.md.j2", off)
+    assert "off by default" in rendered_off
+    assert "on by default during planning for this project" not in rendered_off
+
+    on = _default_context()
+    on["grill_me_default"] = True
+    rendered_on = render_template("rules/AGENTS.md.j2", on)
+    assert "on by default during planning for this project" in rendered_on
+    assert "grill_me_default = true" in rendered_on
 
 
 def test_issue_comments_skill_documents_triage_rules() -> None:

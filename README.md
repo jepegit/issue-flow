@@ -347,6 +347,31 @@ the `caveman` skill is part of the active mode. It resolves in the order
 `config.toml` > `ISSUEFLOW_CAVEMAN_DEFAULT` (env) > `false`; the persisted value
 beats the env var so a stray env can't flip it on `update`.
 
+**Grill-me skill.** The `standard` mode also installs a `grill-me` Agent Skill
+(`<agent_dir>/skills/grill-me/`) — a relentless planning interview that
+stress-tests a plan or design (one question at a time, each with a recommended
+answer) until every branch of the decision tree is resolved, then feeds the
+conclusions into `issue<N>_plan.md`. It is off by default and only activates when
+you ask for it ("grill me"); turn it off with "stop grilling" or "normal mode".
+The lightweight `simple` mode omits it.
+
+To make grilling **on by default during planning for a project**, set
+`grill_me_default = true` under `[issueflow]` in `.issueflows/config.toml` and
+re-run `issue-flow update`:
+
+```toml
+[issueflow]
+grill_me_default = true
+```
+
+This renders an always-on grill-me pointer into the managed rule body and the
+`/iflow-plan` skill, so planning starts with a grilling pass every session; you
+can still drop it for the rest of a session with "stop grilling" / "normal mode".
+The flag is only honored when the `grill_me` skill is part of the active mode. It
+resolves in the order `config.toml` > `ISSUEFLOW_GRILL_ME_DEFAULT` (env) >
+`false`; the persisted value beats the env var so a stray env can't flip it on
+`update`.
+
 
 ## Editor support
 
@@ -399,6 +424,7 @@ issue-flow reads a `.env` file from the project root (.via python-dotenv). `issu
 | `ISSUEFLOW_HISTORY_FILE` | `HISTORY.md`   | Changelog file that `/iflow-close` updates (set to e.g. `CHANGELOG.md` for different conventions).                                            |
 | `ISSUEFLOW_MODE`         | `standard`     | Fallback [scaffolding mode](#modes) when none is persisted in `.issueflows/config.toml`. The canonical store is `config.toml` (written by `init --mode`), which **takes precedence over this env var**. Full order: `--mode` (CLI) > `config.toml` > `ISSUEFLOW_MODE` > `standard`. |
 | `ISSUEFLOW_CAVEMAN_DEFAULT` | `false`     | Fallback for the [always-on caveman](#modes) toggle when `[issueflow].caveman_default` is not persisted in `.issueflows/config.toml`. The persisted value takes precedence. Full order: `config.toml` > `ISSUEFLOW_CAVEMAN_DEFAULT` > `false`. Only honored when the `caveman` skill is in the active mode. |
+| `ISSUEFLOW_GRILL_ME_DEFAULT` | `false`    | Fallback for the [grill-me-during-planning](#modes) toggle when `[issueflow].grill_me_default` is not persisted in `.issueflows/config.toml`. The persisted value takes precedence. Full order: `config.toml` > `ISSUEFLOW_GRILL_ME_DEFAULT` > `false`. Only honored when the `grill_me` skill is in the active mode. |
 
 Beyond the `ISSUEFLOW_*` settings above, `issue-flow graphify` also reads an LLM
 API key from `.env` when present (`GEMINI_API_KEY`, `ANTHROPIC_API_KEY`,
