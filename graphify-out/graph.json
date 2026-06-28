@@ -93,7 +93,7 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "issue_flow_cli_init",
-      "community": 14,
+      "community": 18,
       "norm_label": "init()"
     },
     {
@@ -103,7 +103,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "path",
-      "community": 14,
+      "community": 18,
       "norm_label": "path"
     },
     {
@@ -113,7 +113,7 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "issue_flow_cli_update",
-      "community": 14,
+      "community": 2,
       "norm_label": "update()"
     },
     {
@@ -173,7 +173,7 @@
       "source_location": "L60",
       "_origin": "ast",
       "id": "issue_flow_cli_rationale_60",
-      "community": 14,
+      "community": 18,
       "norm_label": "scaffold issue-flow directories and editor config files in a project."
     },
     {
@@ -183,7 +183,7 @@
       "source_location": "L95",
       "_origin": "ast",
       "id": "issue_flow_cli_rationale_95",
-      "community": 14,
+      "community": 2,
       "norm_label": "refresh packaged editor commands, rules, and workflow doc from this package."
     },
     {
@@ -803,7 +803,7 @@
       "source_location": "L216",
       "_origin": "ast",
       "id": "issue_flow_init_already_initialized",
-      "community": 27,
+      "community": 29,
       "norm_label": "_already_initialized()"
     },
     {
@@ -933,7 +933,7 @@
       "source_location": "L221",
       "_origin": "ast",
       "id": "issue_flow_init_rationale_221",
-      "community": 27,
+      "community": 29,
       "norm_label": "true if the tree looks like issue-flow was set up here for any profile."
     },
     {
@@ -1123,7 +1123,7 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "issue_flow_templating_render_template",
-      "community": 0,
+      "community": 40,
       "norm_label": "render_template()"
     },
     {
@@ -1183,7 +1183,7 @@
       "source_location": "L60",
       "_origin": "ast",
       "id": "issue_flow_templating_rationale_60",
-      "community": 0,
+      "community": 40,
       "norm_label": "render a single template by name and return the result string."
     },
     {
@@ -2393,7 +2393,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "tests_test_init_test_init_creates_dotenv_with_commented_keys",
-      "community": 14,
+      "community": 18,
       "norm_label": "test_init_creates_dotenv_with_commented_keys()"
     },
     {
@@ -2423,7 +2423,7 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "tests_test_init_test_init_force_does_not_wipe_custom_dotenv",
-      "community": 14,
+      "community": 18,
       "norm_label": "test_init_force_does_not_wipe_custom_dotenv()"
     },
     {
@@ -2463,7 +2463,7 @@
       "source_location": "L114",
       "_origin": "ast",
       "id": "tests_test_init_test_init_preserves_existing_project_brief",
-      "community": 14,
+      "community": 18,
       "norm_label": "test_init_preserves_existing_project_brief()"
     },
     {
@@ -2493,7 +2493,7 @@
       "source_location": "L150",
       "_origin": "ast",
       "id": "tests_test_init_test_init_creates_cursor_skills",
-      "community": 14,
+      "community": 18,
       "norm_label": "test_init_creates_cursor_skills()"
     },
     {
@@ -2523,7 +2523,7 @@
       "source_location": "L189",
       "_origin": "ast",
       "id": "tests_test_init_test_init_idempotent_skips_existing",
-      "community": 14,
+      "community": 18,
       "norm_label": "test_init_idempotent_skips_existing()"
     },
     {
@@ -2573,44 +2573,44 @@
       "source_location": "L248",
       "_origin": "ast",
       "id": "tests_test_init_test_init_issue_close_documents_uncommitted_and_branch_reminder",
-      "community": 28,
+      "community": 18,
       "norm_label": "test_init_issue_close_documents_uncommitted_and_branch_reminder()"
     },
     {
       "label": "test_init_rule_documents_designs_folder()",
       "file_type": "code",
       "source_file": "tests/test_init.py",
-      "source_location": "L261",
+      "source_location": "L265",
       "_origin": "ast",
       "id": "tests_test_init_test_init_rule_documents_designs_folder",
-      "community": 14,
+      "community": 18,
       "norm_label": "test_init_rule_documents_designs_folder()"
     },
     {
       "label": "test_init_commands_reference_designs_folder()",
       "file_type": "code",
       "source_file": "tests/test_init.py",
-      "source_location": "L271",
+      "source_location": "L275",
       "_origin": "ast",
       "id": "tests_test_init_test_init_commands_reference_designs_folder",
-      "community": 18,
+      "community": 135,
       "norm_label": "test_init_commands_reference_designs_folder()"
     },
     {
       "label": "test_init_issue_init_documents_branch_inference()",
       "file_type": "code",
       "source_file": "tests/test_init.py",
-      "source_location": "L282",
+      "source_location": "L286",
       "_origin": "ast",
       "id": "tests_test_init_test_init_issue_init_documents_branch_inference",
-      "community": 18,
+      "community": 144,
       "norm_label": "test_init_issue_init_documents_branch_inference()"
     },
     {
       "label": "test_init_proceeds_silently_when_all_dependencies_present()",
       "file_type": "code",
       "source_file": "tests/test_init.py",
-      "source_location": "L293",
+      "source_location": "L297",
       "_origin": "ast",
       "id": "tests_test_init_test_init_proceeds_silently_when_all_dependencies_present",
       "community": 49,
@@ -2630,17 +2630,17 @@
       "label": "test_init_continues_when_skip_dep_check_is_set()",
       "file_type": "code",
       "source_file": "tests/test_init.py",
-      "source_location": "L309",
+      "source_location": "L313",
       "_origin": "ast",
       "id": "tests_test_init_test_init_continues_when_skip_dep_check_is_set",
-      "community": 14,
+      "community": 18,
       "norm_label": "test_init_continues_when_skip_dep_check_is_set()"
     },
     {
       "label": "test_init_continues_in_non_tty_when_deps_missing()",
       "file_type": "code",
       "source_file": "tests/test_init.py",
-      "source_location": "L327",
+      "source_location": "L331",
       "_origin": "ast",
       "id": "tests_test_init_test_init_continues_in_non_tty_when_deps_missing",
       "community": 18,
@@ -2650,7 +2650,7 @@
       "label": "test_init_aborts_cleanly_when_user_declines_prompt()",
       "file_type": "code",
       "source_file": "tests/test_init.py",
-      "source_location": "L346",
+      "source_location": "L350",
       "_origin": "ast",
       "id": "tests_test_init_test_init_aborts_cleanly_when_user_declines_prompt",
       "community": 18,
@@ -2660,7 +2660,7 @@
       "label": "test_init_calls_graphify_register_when_available()",
       "file_type": "code",
       "source_file": "tests/test_init.py",
-      "source_location": "L364",
+      "source_location": "L368",
       "_origin": "ast",
       "id": "tests_test_init_test_init_calls_graphify_register_when_available",
       "community": 18,
@@ -2670,7 +2670,7 @@
       "label": "test_init_skips_graphify_when_unavailable()",
       "file_type": "code",
       "source_file": "tests/test_init.py",
-      "source_location": "L389",
+      "source_location": "L393",
       "_origin": "ast",
       "id": "tests_test_init_test_init_skips_graphify_when_unavailable",
       "community": 18,
@@ -2680,7 +2680,7 @@
       "label": "test_init_creates_graphify_skill()",
       "file_type": "code",
       "source_file": "tests/test_init.py",
-      "source_location": "L407",
+      "source_location": "L411",
       "_origin": "ast",
       "id": "tests_test_init_test_init_creates_graphify_skill",
       "community": 18,
@@ -2690,17 +2690,17 @@
       "label": "test_init_creates_status_skill()",
       "file_type": "code",
       "source_file": "tests/test_init.py",
-      "source_location": "L424",
+      "source_location": "L428",
       "_origin": "ast",
       "id": "tests_test_init_test_init_creates_status_skill",
-      "community": 14,
+      "community": 18,
       "norm_label": "test_init_creates_status_skill()"
     },
     {
       "label": "test_init_creates_issue_pick_skill()",
       "file_type": "code",
       "source_file": "tests/test_init.py",
-      "source_location": "L441",
+      "source_location": "L445",
       "_origin": "ast",
       "id": "tests_test_init_test_init_creates_issue_pick_skill",
       "community": 18,
@@ -2710,17 +2710,17 @@
       "label": "test_init_rule_documents_knowledge_graph_section()",
       "file_type": "code",
       "source_file": "tests/test_init.py",
-      "source_location": "L458",
+      "source_location": "L462",
       "_origin": "ast",
       "id": "tests_test_init_test_init_rule_documents_knowledge_graph_section",
-      "community": 14,
+      "community": 18,
       "norm_label": "test_init_rule_documents_knowledge_graph_section()"
     },
     {
       "label": "test_init_creates_agents_md_with_managed_block()",
       "file_type": "code",
       "source_file": "tests/test_init.py",
-      "source_location": "L473",
+      "source_location": "L477",
       "_origin": "ast",
       "id": "tests_test_init_test_init_creates_agents_md_with_managed_block",
       "community": 18,
@@ -2730,17 +2730,17 @@
       "label": "test_init_preserves_existing_agents_md_user_content()",
       "file_type": "code",
       "source_file": "tests/test_init.py",
-      "source_location": "L487",
+      "source_location": "L491",
       "_origin": "ast",
       "id": "tests_test_init_test_init_preserves_existing_agents_md_user_content",
-      "community": 14,
+      "community": 18,
       "norm_label": "test_init_preserves_existing_agents_md_user_content()"
     },
     {
       "label": "test_init_agents_md_block_is_idempotent()",
       "file_type": "code",
       "source_file": "tests/test_init.py",
-      "source_location": "L502",
+      "source_location": "L506",
       "_origin": "ast",
       "id": "tests_test_init_test_init_agents_md_block_is_idempotent",
       "community": 18,
@@ -2750,7 +2750,7 @@
       "label": "test_init_claude_editor_writes_claude_tree_and_claude_md()",
       "file_type": "code",
       "source_file": "tests/test_init.py",
-      "source_location": "L514",
+      "source_location": "L518",
       "_origin": "ast",
       "id": "tests_test_init_test_init_claude_editor_writes_claude_tree_and_claude_md",
       "community": 18,
@@ -2760,7 +2760,7 @@
       "label": "test_init_codex_editor_has_skills_but_no_commands()",
       "file_type": "code",
       "source_file": "tests/test_init.py",
-      "source_location": "L526",
+      "source_location": "L530",
       "_origin": "ast",
       "id": "tests_test_init_test_init_codex_editor_has_skills_but_no_commands",
       "community": 18,
@@ -2770,7 +2770,7 @@
       "label": "test_init_opencode_editor_uses_singular_command_dir()",
       "file_type": "code",
       "source_file": "tests/test_init.py",
-      "source_location": "L538",
+      "source_location": "L542",
       "_origin": "ast",
       "id": "tests_test_init_test_init_opencode_editor_uses_singular_command_dir",
       "community": 18,
@@ -2780,7 +2780,7 @@
       "label": "test_init_all_editors_scaffolds_every_agent_dir()",
       "file_type": "code",
       "source_file": "tests/test_init.py",
-      "source_location": "L546",
+      "source_location": "L550",
       "_origin": "ast",
       "id": "tests_test_init_test_init_all_editors_scaffolds_every_agent_dir",
       "community": 18,
@@ -2790,7 +2790,7 @@
       "label": "test_init_unknown_editor_exits_cleanly()",
       "file_type": "code",
       "source_file": "tests/test_init.py",
-      "source_location": "L560",
+      "source_location": "L564",
       "_origin": "ast",
       "id": "tests_test_init_test_init_unknown_editor_exits_cleanly",
       "community": 18,
@@ -2800,7 +2800,7 @@
       "label": "test_init_detects_project_name()",
       "file_type": "code",
       "source_file": "tests/test_init.py",
-      "source_location": "L569",
+      "source_location": "L573",
       "_origin": "ast",
       "id": "tests_test_init_test_init_detects_project_name",
       "community": 18,
@@ -2823,7 +2823,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "tests_test_init_rationale_17",
-      "community": 14,
+      "community": 18,
       "norm_label": "init should create .env with commented issueflow_* defaults when absent."
     },
     {
@@ -2853,7 +2853,7 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "tests_test_init_rationale_56",
-      "community": 14,
+      "community": 18,
       "norm_label": "init --force must not replace an existing .env wholesale."
     },
     {
@@ -2893,7 +2893,7 @@
       "source_location": "L115",
       "_origin": "ast",
       "id": "tests_test_init_rationale_115",
-      "community": 14,
+      "community": 18,
       "norm_label": "re-running init should not overwrite the hand-editable project brief."
     },
     {
@@ -2923,7 +2923,7 @@
       "source_location": "L151",
       "_origin": "ast",
       "id": "tests_test_init_rationale_151",
-      "community": 14,
+      "community": 18,
       "norm_label": "running init should create bundled agent skills under .cursor/skills/."
     },
     {
@@ -2933,7 +2933,7 @@
       "source_location": "L190",
       "_origin": "ast",
       "id": "tests_test_init_rationale_190",
-      "community": 14,
+      "community": 18,
       "norm_label": "running init twice should skip files that already exist (no overwrite)."
     },
     {
@@ -2977,52 +2977,52 @@
       "norm_label": "iflow-close skill should describe the history.md update step and opt-out token."
     },
     {
-      "label": "iflow-close skill should flag unrelated uncommitted changes and warn about the i",
+      "label": "iflow-close skill should flag unrelated changes and document post-PR switching.",
       "file_type": "rationale",
       "source_file": "tests/test_init.py",
       "source_location": "L251",
       "_origin": "ast",
       "id": "tests_test_init_rationale_251",
-      "community": 28,
-      "norm_label": "iflow-close skill should flag unrelated uncommitted changes and warn about the i"
+      "community": 18,
+      "norm_label": "iflow-close skill should flag unrelated changes and document post-pr switching."
     },
     {
       "label": "The generated rule file should mention the designs-and-guides folder.",
       "file_type": "rationale",
       "source_file": "tests/test_init.py",
-      "source_location": "L262",
+      "source_location": "L266",
       "_origin": "ast",
-      "id": "tests_test_init_rationale_262",
-      "community": 14,
+      "id": "tests_test_init_rationale_266",
+      "community": 18,
       "norm_label": "the generated rule file should mention the designs-and-guides folder."
     },
     {
       "label": "/iflow-plan, /iflow-start, and /iflow-close skills should reference the designs",
       "file_type": "rationale",
       "source_file": "tests/test_init.py",
-      "source_location": "L272",
+      "source_location": "L276",
       "_origin": "ast",
-      "id": "tests_test_init_rationale_272",
-      "community": 18,
+      "id": "tests_test_init_rationale_276",
+      "community": 135,
       "norm_label": "/iflow-plan, /iflow-start, and /iflow-close skills should reference the designs"
     },
     {
       "label": "iflow-init skill should describe resolving an issue from the current branch when",
       "file_type": "rationale",
       "source_file": "tests/test_init.py",
-      "source_location": "L283",
+      "source_location": "L287",
       "_origin": "ast",
-      "id": "tests_test_init_rationale_283",
-      "community": 18,
+      "id": "tests_test_init_rationale_287",
+      "community": 144,
       "norm_label": "iflow-init skill should describe resolving an issue from the current branch when"
     },
     {
       "label": "With all deps present the check should not prompt or abort.",
       "file_type": "rationale",
       "source_file": "tests/test_init.py",
-      "source_location": "L296",
+      "source_location": "L300",
       "_origin": "ast",
-      "id": "tests_test_init_rationale_296",
+      "id": "tests_test_init_rationale_300",
       "community": 49,
       "norm_label": "with all deps present the check should not prompt or abort."
     },
@@ -3030,19 +3030,19 @@
       "label": "``skip_dep_check=True`` must bypass the prompt even if deps are missing.",
       "file_type": "rationale",
       "source_file": "tests/test_init.py",
-      "source_location": "L312",
+      "source_location": "L316",
       "_origin": "ast",
-      "id": "tests_test_init_rationale_312",
-      "community": 14,
+      "id": "tests_test_init_rationale_316",
+      "community": 18,
       "norm_label": "``skip_dep_check=true`` must bypass the prompt even if deps are missing."
     },
     {
       "label": "Non-interactive stdin (CI) must auto-skip the prompt.",
       "file_type": "rationale",
       "source_file": "tests/test_init.py",
-      "source_location": "L330",
+      "source_location": "L334",
       "_origin": "ast",
-      "id": "tests_test_init_rationale_330",
+      "id": "tests_test_init_rationale_334",
       "community": 18,
       "norm_label": "non-interactive stdin (ci) must auto-skip the prompt."
     },
@@ -3050,9 +3050,9 @@
       "label": "A decline at the prompt must raise typer.Exit and leave no scaffold behind.",
       "file_type": "rationale",
       "source_file": "tests/test_init.py",
-      "source_location": "L349",
+      "source_location": "L353",
       "_origin": "ast",
-      "id": "tests_test_init_rationale_349",
+      "id": "tests_test_init_rationale_353",
       "community": 18,
       "norm_label": "a decline at the prompt must raise typer.exit and leave no scaffold behind."
     },
@@ -3060,9 +3060,9 @@
       "label": "When graphify is on PATH, run_init must call register_with_cursor.",
       "file_type": "rationale",
       "source_file": "tests/test_init.py",
-      "source_location": "L367",
+      "source_location": "L371",
       "_origin": "ast",
-      "id": "tests_test_init_rationale_367",
+      "id": "tests_test_init_rationale_371",
       "community": 18,
       "norm_label": "when graphify is on path, run_init must call register_with_cursor."
     },
@@ -3070,9 +3070,9 @@
       "label": "When graphify is missing, run_init must not call subprocess and must still succe",
       "file_type": "rationale",
       "source_file": "tests/test_init.py",
-      "source_location": "L392",
+      "source_location": "L396",
       "_origin": "ast",
-      "id": "tests_test_init_rationale_392",
+      "id": "tests_test_init_rationale_396",
       "community": 18,
       "norm_label": "when graphify is missing, run_init must not call subprocess and must still succe"
     },
@@ -3080,9 +3080,9 @@
       "label": "The /graphify skill must be scaffolded for Cursor.",
       "file_type": "rationale",
       "source_file": "tests/test_init.py",
-      "source_location": "L408",
+      "source_location": "L412",
       "_origin": "ast",
-      "id": "tests_test_init_rationale_408",
+      "id": "tests_test_init_rationale_412",
       "community": 18,
       "norm_label": "the /graphify skill must be scaffolded for cursor."
     },
@@ -3090,19 +3090,19 @@
       "label": "The /iflow-status skill must be scaffolded for Cursor.",
       "file_type": "rationale",
       "source_file": "tests/test_init.py",
-      "source_location": "L425",
+      "source_location": "L429",
       "_origin": "ast",
-      "id": "tests_test_init_rationale_425",
-      "community": 14,
+      "id": "tests_test_init_rationale_429",
+      "community": 18,
       "norm_label": "the /iflow-status skill must be scaffolded for cursor."
     },
     {
       "label": "The /iflow-pick front-door skill must be scaffolded for Cursor.",
       "file_type": "rationale",
       "source_file": "tests/test_init.py",
-      "source_location": "L442",
+      "source_location": "L446",
       "_origin": "ast",
-      "id": "tests_test_init_rationale_442",
+      "id": "tests_test_init_rationale_446",
       "community": 18,
       "norm_label": "the /iflow-pick front-door skill must be scaffolded for cursor."
     },
@@ -3110,19 +3110,19 @@
       "label": "The generated rule file should mention the optional graphify knowledge graph.",
       "file_type": "rationale",
       "source_file": "tests/test_init.py",
-      "source_location": "L459",
+      "source_location": "L463",
       "_origin": "ast",
-      "id": "tests_test_init_rationale_459",
-      "community": 14,
+      "id": "tests_test_init_rationale_463",
+      "community": 18,
       "norm_label": "the generated rule file should mention the optional graphify knowledge graph."
     },
     {
       "label": "init writes AGENTS.md containing the issue-flow managed block.",
       "file_type": "rationale",
       "source_file": "tests/test_init.py",
-      "source_location": "L474",
+      "source_location": "L478",
       "_origin": "ast",
-      "id": "tests_test_init_rationale_474",
+      "id": "tests_test_init_rationale_478",
       "community": 18,
       "norm_label": "init writes agents.md containing the issue-flow managed block."
     },
@@ -3130,19 +3130,19 @@
       "label": "A hand-maintained AGENTS.md keeps its content; the block is appended.",
       "file_type": "rationale",
       "source_file": "tests/test_init.py",
-      "source_location": "L488",
+      "source_location": "L492",
       "_origin": "ast",
-      "id": "tests_test_init_rationale_488",
-      "community": 14,
+      "id": "tests_test_init_rationale_492",
+      "community": 18,
       "norm_label": "a hand-maintained agents.md keeps its content; the block is appended."
     },
     {
       "label": "Re-running init must not duplicate the managed block.",
       "file_type": "rationale",
       "source_file": "tests/test_init.py",
-      "source_location": "L503",
+      "source_location": "L507",
       "_origin": "ast",
-      "id": "tests_test_init_rationale_503",
+      "id": "tests_test_init_rationale_507",
       "community": 18,
       "norm_label": "re-running init must not duplicate the managed block."
     },
@@ -3150,9 +3150,9 @@
       "label": "--editor claude scaffolds under .claude/ with a CLAUDE.md rules file.",
       "file_type": "rationale",
       "source_file": "tests/test_init.py",
-      "source_location": "L515",
+      "source_location": "L519",
       "_origin": "ast",
-      "id": "tests_test_init_rationale_515",
+      "id": "tests_test_init_rationale_519",
       "community": 18,
       "norm_label": "--editor claude scaffolds under .claude/ with a claude.md rules file."
     },
@@ -3160,9 +3160,9 @@
       "label": "--editor codex scaffolds skills + AGENTS.md but no slash commands.",
       "file_type": "rationale",
       "source_file": "tests/test_init.py",
-      "source_location": "L527",
+      "source_location": "L531",
       "_origin": "ast",
-      "id": "tests_test_init_rationale_527",
+      "id": "tests_test_init_rationale_531",
       "community": 18,
       "norm_label": "--editor codex scaffolds skills + agents.md but no slash commands."
     },
@@ -3170,9 +3170,9 @@
       "label": "An unknown --editor value aborts with a non-zero exit and no scaffold.",
       "file_type": "rationale",
       "source_file": "tests/test_init.py",
-      "source_location": "L561",
+      "source_location": "L565",
       "_origin": "ast",
-      "id": "tests_test_init_rationale_561",
+      "id": "tests_test_init_rationale_565",
       "community": 18,
       "norm_label": "an unknown --editor value aborts with a non-zero exit and no scaffold."
     },
@@ -3180,9 +3180,9 @@
       "label": "If a pyproject.toml exists, its name should appear in the rule file.",
       "file_type": "rationale",
       "source_file": "tests/test_init.py",
-      "source_location": "L570",
+      "source_location": "L574",
       "_origin": "ast",
-      "id": "tests_test_init_rationale_570",
+      "id": "tests_test_init_rationale_574",
       "community": 18,
       "norm_label": "if a pyproject.toml exists, its name should appear in the rule file."
     },
@@ -3213,7 +3213,7 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "tests_test_templating_test_template_substitution",
-      "community": 0,
+      "community": 40,
       "norm_label": "test_template_substitution()"
     },
     {
@@ -3367,10 +3367,20 @@
       "norm_label": "test_issue_close_delegates_post_merge_cleanup_to_issue_cleanup()"
     },
     {
-      "label": "test_issue_cleanup_describes_post_merge_branch_cleanup()",
+      "label": "test_issue_close_switches_to_default_when_clean_unless_stay()",
       "file_type": "code",
       "source_file": "tests/test_templating.py",
       "source_location": "L260",
+      "_origin": "ast",
+      "id": "tests_test_templating_test_issue_close_switches_to_default_when_clean_unless_stay",
+      "community": 50,
+      "norm_label": "test_issue_close_switches_to_default_when_clean_unless_stay()"
+    },
+    {
+      "label": "test_issue_cleanup_describes_post_merge_branch_cleanup()",
+      "file_type": "code",
+      "source_file": "tests/test_templating.py",
+      "source_location": "L271",
       "_origin": "ast",
       "id": "tests_test_templating_test_issue_cleanup_describes_post_merge_branch_cleanup",
       "community": 50,
@@ -3380,7 +3390,7 @@
       "label": "test_issue_start_requires_or_offers_plan()",
       "file_type": "code",
       "source_file": "tests/test_templating.py",
-      "source_location": "L270",
+      "source_location": "L281",
       "_origin": "ast",
       "id": "tests_test_templating_test_issue_start_requires_or_offers_plan",
       "community": 53,
@@ -3390,17 +3400,17 @@
       "label": "test_issue_plan_writes_plan_file_and_stops_for_confirmation()",
       "file_type": "code",
       "source_file": "tests/test_templating.py",
-      "source_location": "L277",
+      "source_location": "L288",
       "_origin": "ast",
       "id": "tests_test_templating_test_issue_plan_writes_plan_file_and_stops_for_confirmation",
-      "community": 0,
+      "community": 40,
       "norm_label": "test_issue_plan_writes_plan_file_and_stops_for_confirmation()"
     },
     {
       "label": "test_issue_plan_includes_prior_art_discovery()",
       "file_type": "code",
       "source_file": "tests/test_templating.py",
-      "source_location": "L290",
+      "source_location": "L301",
       "_origin": "ast",
       "id": "tests_test_templating_test_issue_plan_includes_prior_art_discovery",
       "community": 0,
@@ -3410,17 +3420,17 @@
       "label": "test_templates_reference_project_brief()",
       "file_type": "code",
       "source_file": "tests/test_templating.py",
-      "source_location": "L302",
+      "source_location": "L313",
       "_origin": "ast",
       "id": "tests_test_templating_test_templates_reference_project_brief",
-      "community": 0,
+      "community": 133,
       "norm_label": "test_templates_reference_project_brief()"
     },
     {
       "label": "test_issue_start_reads_prior_art_from_plan()",
       "file_type": "code",
       "source_file": "tests/test_templating.py",
-      "source_location": "L319",
+      "source_location": "L330",
       "_origin": "ast",
       "id": "tests_test_templating_test_issue_start_reads_prior_art_from_plan",
       "community": 131,
@@ -3430,17 +3440,17 @@
       "label": "test_issue_pause_moves_to_partly_solved()",
       "file_type": "code",
       "source_file": "tests/test_templating.py",
-      "source_location": "L327",
+      "source_location": "L338",
       "_origin": "ast",
       "id": "tests_test_templating_test_issue_pause_moves_to_partly_solved",
-      "community": 0,
+      "community": 145,
       "norm_label": "test_issue_pause_moves_to_partly_solved()"
     },
     {
       "label": "test_issue_yolo_has_safeguards()",
       "file_type": "code",
       "source_file": "tests/test_templating.py",
-      "source_location": "L335",
+      "source_location": "L346",
       "_origin": "ast",
       "id": "tests_test_templating_test_issue_yolo_has_safeguards",
       "community": 40,
@@ -3450,7 +3460,7 @@
       "label": "test_issue_fix_describes_interactive_session()",
       "file_type": "code",
       "source_file": "tests/test_templating.py",
-      "source_location": "L344",
+      "source_location": "L355",
       "_origin": "ast",
       "id": "tests_test_templating_test_issue_fix_describes_interactive_session",
       "community": 67,
@@ -3460,7 +3470,7 @@
       "label": "test_issue_fix_skill_mirrors_command()",
       "file_type": "code",
       "source_file": "tests/test_templating.py",
-      "source_location": "L363",
+      "source_location": "L374",
       "_origin": "ast",
       "id": "tests_test_templating_test_issue_fix_skill_mirrors_command",
       "community": 0,
@@ -3470,27 +3480,27 @@
       "label": "test_iflow_lists_issue_fix_as_off_path()",
       "file_type": "code",
       "source_file": "tests/test_templating.py",
-      "source_location": "L376",
+      "source_location": "L387",
       "_origin": "ast",
       "id": "tests_test_templating_test_iflow_lists_issue_fix_as_off_path",
-      "community": 32,
+      "community": 146,
       "norm_label": "test_iflow_lists_issue_fix_as_off_path()"
     },
     {
       "label": "test_iflow_describes_state_machine()",
       "file_type": "code",
       "source_file": "tests/test_templating.py",
-      "source_location": "L384",
+      "source_location": "L395",
       "_origin": "ast",
       "id": "tests_test_templating_test_iflow_describes_state_machine",
-      "community": 32,
+      "community": 0,
       "norm_label": "test_iflow_describes_state_machine()"
     },
     {
       "label": "test_iflow_treats_branch_derived_n_as_authoritative()",
       "file_type": "code",
       "source_file": "tests/test_templating.py",
-      "source_location": "L405",
+      "source_location": "L416",
       "_origin": "ast",
       "id": "tests_test_templating_test_iflow_treats_branch_derived_n_as_authoritative",
       "community": 32,
@@ -3500,7 +3510,7 @@
       "label": "test_issue_pick_documents_three_phases_and_fix_shortcut()",
       "file_type": "code",
       "source_file": "tests/test_templating.py",
-      "source_location": "L421",
+      "source_location": "L432",
       "_origin": "ast",
       "id": "tests_test_templating_test_issue_pick_documents_three_phases_and_fix_shortcut",
       "community": 133,
@@ -3510,7 +3520,7 @@
       "label": "test_issue_pick_skill_mirrors_command()",
       "file_type": "code",
       "source_file": "tests/test_templating.py",
-      "source_location": "L446",
+      "source_location": "L457",
       "_origin": "ast",
       "id": "tests_test_templating_test_issue_pick_skill_mirrors_command",
       "community": 32,
@@ -3520,17 +3530,17 @@
       "label": "test_iflow_does_not_auto_dispatch_issue_pick()",
       "file_type": "code",
       "source_file": "tests/test_templating.py",
-      "source_location": "L460",
+      "source_location": "L471",
       "_origin": "ast",
       "id": "tests_test_templating_test_iflow_does_not_auto_dispatch_issue_pick",
-      "community": 134,
+      "community": 40,
       "norm_label": "test_iflow_does_not_auto_dispatch_issue_pick()"
     },
     {
       "label": "test_issue_init_mentions_branch_preflight_and_archive_guard()",
       "file_type": "code",
       "source_file": "tests/test_templating.py",
-      "source_location": "L468",
+      "source_location": "L479",
       "_origin": "ast",
       "id": "tests_test_templating_test_issue_init_mentions_branch_preflight_and_archive_guard",
       "community": 68,
@@ -3540,7 +3550,7 @@
       "label": "test_issueflow_rules_has_branch_hygiene_section()",
       "file_type": "code",
       "source_file": "tests/test_templating.py",
-      "source_location": "L475",
+      "source_location": "L486",
       "_origin": "ast",
       "id": "tests_test_templating_test_issueflow_rules_has_branch_hygiene_section",
       "community": 0,
@@ -3550,27 +3560,27 @@
       "label": "test_rules_body_defers_to_project_toolchain_and_covers_conda()",
       "file_type": "code",
       "source_file": "tests/test_templating.py",
-      "source_location": "L483",
+      "source_location": "L494",
       "_origin": "ast",
       "id": "tests_test_templating_test_rules_body_defers_to_project_toolchain_and_covers_conda",
-      "community": 0,
+      "community": 73,
       "norm_label": "test_rules_body_defers_to_project_toolchain_and_covers_conda()"
     },
     {
       "label": "test_issue_close_describes_history_update_step()",
       "file_type": "code",
       "source_file": "tests/test_templating.py",
-      "source_location": "L507",
+      "source_location": "L518",
       "_origin": "ast",
       "id": "tests_test_templating_test_issue_close_describes_history_update_step",
-      "community": 0,
+      "community": 32,
       "norm_label": "test_issue_close_describes_history_update_step()"
     },
     {
       "label": "test_history_update_skill_documents_both_modes()",
       "file_type": "code",
       "source_file": "tests/test_templating.py",
-      "source_location": "L519",
+      "source_location": "L530",
       "_origin": "ast",
       "id": "tests_test_templating_test_history_update_skill_documents_both_modes",
       "community": 0,
@@ -3580,17 +3590,17 @@
       "label": "test_history_update_skill_respects_history_file_override()",
       "file_type": "code",
       "source_file": "tests/test_templating.py",
-      "source_location": "L534",
+      "source_location": "L545",
       "_origin": "ast",
       "id": "tests_test_templating_test_history_update_skill_respects_history_file_override",
-      "community": 0,
+      "community": 40,
       "norm_label": "test_history_update_skill_respects_history_file_override()"
     },
     {
       "label": "test_issue_yolo_forwards_history_tokens()",
       "file_type": "code",
       "source_file": "tests/test_templating.py",
-      "source_location": "L546",
+      "source_location": "L557",
       "_origin": "ast",
       "id": "tests_test_templating_test_issue_yolo_forwards_history_tokens",
       "community": 136,
@@ -3600,7 +3610,7 @@
       "label": "test_issue_init_fetches_and_triages_comments()",
       "file_type": "code",
       "source_file": "tests/test_templating.py",
-      "source_location": "L553",
+      "source_location": "L566",
       "_origin": "ast",
       "id": "tests_test_templating_test_issue_init_fetches_and_triages_comments",
       "community": 0,
@@ -3610,17 +3620,17 @@
       "label": "test_issue_init_documents_agent_efficiency()",
       "file_type": "code",
       "source_file": "tests/test_templating.py",
-      "source_location": "L573",
+      "source_location": "L586",
       "_origin": "ast",
       "id": "tests_test_templating_test_issue_init_documents_agent_efficiency",
-      "community": 0,
+      "community": 40,
       "norm_label": "test_issue_init_documents_agent_efficiency()"
     },
     {
       "label": "test_issue_init_skill_delegates_to_comments_skill()",
       "file_type": "code",
       "source_file": "tests/test_templating.py",
-      "source_location": "L592",
+      "source_location": "L605",
       "_origin": "ast",
       "id": "tests_test_templating_test_issue_init_skill_delegates_to_comments_skill",
       "community": 0,
@@ -3630,7 +3640,7 @@
       "label": "test_issue_comments_skill_documents_triage_rules()",
       "file_type": "code",
       "source_file": "tests/test_templating.py",
-      "source_location": "L602",
+      "source_location": "L615",
       "_origin": "ast",
       "id": "tests_test_templating_test_issue_comments_skill_documents_triage_rules",
       "community": 73,
@@ -3663,7 +3673,7 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "tests_test_templating_rationale_42",
-      "community": 0,
+      "community": 40,
       "norm_label": "template variables should be replaced in the rendered output."
     },
     {
@@ -3767,12 +3777,22 @@
       "norm_label": "/iflow-close no longer deletes branches; it points at /iflow-cleanup instead."
     },
     {
-      "label": "The /iflow-cleanup command owns the post-merge branch cleanup logic.",
+      "label": "/iflow-close should switch back to default after PR when the tree is clean.",
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
       "source_location": "L261",
       "_origin": "ast",
       "id": "tests_test_templating_rationale_261",
+      "community": 50,
+      "norm_label": "/iflow-close should switch back to default after pr when the tree is clean."
+    },
+    {
+      "label": "The /iflow-cleanup command owns the post-merge branch cleanup logic.",
+      "file_type": "rationale",
+      "source_file": "tests/test_templating.py",
+      "source_location": "L272",
+      "_origin": "ast",
+      "id": "tests_test_templating_rationale_272",
       "community": 50,
       "norm_label": "the /iflow-cleanup command owns the post-merge branch cleanup logic."
     },
@@ -3780,9 +3800,9 @@
       "label": "/iflow-start should read the plan file and offer to run /iflow-plan when missing",
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
-      "source_location": "L271",
+      "source_location": "L282",
       "_origin": "ast",
-      "id": "tests_test_templating_rationale_271",
+      "id": "tests_test_templating_rationale_282",
       "community": 53,
       "norm_label": "/iflow-start should read the plan file and offer to run /iflow-plan when missing"
     },
@@ -3790,19 +3810,19 @@
       "label": "/iflow-plan must produce a plan file and require confirmation.",
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
-      "source_location": "L278",
+      "source_location": "L289",
       "_origin": "ast",
-      "id": "tests_test_templating_rationale_278",
-      "community": 0,
+      "id": "tests_test_templating_rationale_289",
+      "community": 40,
       "norm_label": "/iflow-plan must produce a plan file and require confirmation."
     },
     {
       "label": "/iflow-plan must document graceful graphify + grep prior-art checklist.",
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
-      "source_location": "L291",
+      "source_location": "L302",
       "_origin": "ast",
-      "id": "tests_test_templating_rationale_291",
+      "id": "tests_test_templating_rationale_302",
       "community": 0,
       "norm_label": "/iflow-plan must document graceful graphify + grep prior-art checklist."
     },
@@ -3810,19 +3830,19 @@
       "label": "Rules, plan, start, and docs should tell agents about this-project.md.",
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
-      "source_location": "L303",
+      "source_location": "L314",
       "_origin": "ast",
-      "id": "tests_test_templating_rationale_303",
-      "community": 0,
+      "id": "tests_test_templating_rationale_314",
+      "community": 133,
       "norm_label": "rules, plan, start, and docs should tell agents about this-project.md."
     },
     {
       "label": "/iflow-start should remind the agent to read ### Prior art from the plan.",
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
-      "source_location": "L320",
+      "source_location": "L331",
       "_origin": "ast",
-      "id": "tests_test_templating_rationale_320",
+      "id": "tests_test_templating_rationale_331",
       "community": 131,
       "norm_label": "/iflow-start should remind the agent to read ### prior art from the plan."
     },
@@ -3830,19 +3850,19 @@
       "label": "/iflow-pause moves the issue group to the partly-solved folder.",
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
-      "source_location": "L328",
+      "source_location": "L339",
       "_origin": "ast",
-      "id": "tests_test_templating_rationale_328",
-      "community": 0,
+      "id": "tests_test_templating_rationale_339",
+      "community": 145,
       "norm_label": "/iflow-pause moves the issue group to the partly-solved folder."
     },
     {
       "label": "/iflow-yolo must advertise the up-front safeguards before chaining.",
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
-      "source_location": "L336",
+      "source_location": "L347",
       "_origin": "ast",
-      "id": "tests_test_templating_rationale_336",
+      "id": "tests_test_templating_rationale_347",
       "community": 40,
       "norm_label": "/iflow-yolo must advertise the up-front safeguards before chaining."
     },
@@ -3850,9 +3870,9 @@
       "label": "/iflow-fix must describe the off-path interactive iterative-fix session.",
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
-      "source_location": "L345",
+      "source_location": "L356",
       "_origin": "ast",
-      "id": "tests_test_templating_rationale_345",
+      "id": "tests_test_templating_rationale_356",
       "community": 67,
       "norm_label": "/iflow-fix must describe the off-path interactive iterative-fix session."
     },
@@ -3860,9 +3880,9 @@
       "label": "The issue-fix skill must carry the same session flow and frontmatter.",
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
-      "source_location": "L364",
+      "source_location": "L375",
       "_origin": "ast",
-      "id": "tests_test_templating_rationale_364",
+      "id": "tests_test_templating_rationale_375",
       "community": 0,
       "norm_label": "the issue-fix skill must carry the same session flow and frontmatter."
     },
@@ -3870,29 +3890,29 @@
       "label": "/iflow and its skill must list /iflow-fix among the explicit-only commands.",
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
-      "source_location": "L377",
+      "source_location": "L388",
       "_origin": "ast",
-      "id": "tests_test_templating_rationale_377",
-      "community": 32,
+      "id": "tests_test_templating_rationale_388",
+      "community": 146,
       "norm_label": "/iflow and its skill must list /iflow-fix among the explicit-only commands."
     },
     {
       "label": "/iflow must describe the four-state dispatch and name its downstream targets.",
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
-      "source_location": "L385",
+      "source_location": "L396",
       "_origin": "ast",
-      "id": "tests_test_templating_rationale_385",
-      "community": 32,
+      "id": "tests_test_templating_rationale_396",
+      "community": 0,
       "norm_label": "/iflow must describe the four-state dispatch and name its downstream targets."
     },
     {
       "label": "/iflow's step 0 must treat a branch-derived N as authoritative.      The branch-",
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
-      "source_location": "L406",
+      "source_location": "L417",
       "_origin": "ast",
-      "id": "tests_test_templating_rationale_406",
+      "id": "tests_test_templating_rationale_417",
       "community": 32,
       "norm_label": "/iflow's step 0 must treat a branch-derived n as authoritative.      the branch-"
     },
@@ -3900,9 +3920,9 @@
       "label": "/iflow-pick must describe its three phases, ranking inputs, and the `fix` shortc",
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
-      "source_location": "L422",
+      "source_location": "L433",
       "_origin": "ast",
-      "id": "tests_test_templating_rationale_422",
+      "id": "tests_test_templating_rationale_433",
       "community": 133,
       "norm_label": "/iflow-pick must describe its three phases, ranking inputs, and the `fix` shortc"
     },
@@ -3910,9 +3930,9 @@
       "label": "The issue-pick skill must carry the same front-door flow and frontmatter.",
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
-      "source_location": "L447",
+      "source_location": "L458",
       "_origin": "ast",
-      "id": "tests_test_templating_rationale_447",
+      "id": "tests_test_templating_rationale_458",
       "community": 32,
       "norm_label": "the issue-pick skill must carry the same front-door flow and frontmatter."
     },
@@ -3920,19 +3940,19 @@
       "label": "/iflow must list /iflow-pick among the explicit-only, never-auto-dispatched comm",
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
-      "source_location": "L461",
+      "source_location": "L472",
       "_origin": "ast",
-      "id": "tests_test_templating_rationale_461",
-      "community": 134,
+      "id": "tests_test_templating_rationale_472",
+      "community": 40,
       "norm_label": "/iflow must list /iflow-pick among the explicit-only, never-auto-dispatched comm"
     },
     {
       "label": "The /iflow-init command must include the preflight and archived-issue guard.",
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
-      "source_location": "L469",
+      "source_location": "L480",
       "_origin": "ast",
-      "id": "tests_test_templating_rationale_469",
+      "id": "tests_test_templating_rationale_480",
       "community": 68,
       "norm_label": "the /iflow-init command must include the preflight and archived-issue guard."
     },
@@ -3940,9 +3960,9 @@
       "label": "The workspace rules must describe branch and folder hygiene expectations.",
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
-      "source_location": "L476",
+      "source_location": "L487",
       "_origin": "ast",
-      "id": "tests_test_templating_rationale_476",
+      "id": "tests_test_templating_rationale_487",
       "community": 0,
       "norm_label": "the workspace rules must describe branch and folder hygiene expectations."
     },
@@ -3950,29 +3970,29 @@
       "label": "Regression for issue #58: the shared rules body must defer to the     project's",
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
-      "source_location": "L484",
+      "source_location": "L495",
       "_origin": "ast",
-      "id": "tests_test_templating_rationale_484",
-      "community": 0,
+      "id": "tests_test_templating_rationale_495",
+      "community": 73,
       "norm_label": "regression for issue #58: the shared rules body must defer to the     project's"
     },
     {
       "label": "/iflow-close must describe the HISTORY.md update step and its input tokens.",
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
-      "source_location": "L508",
+      "source_location": "L519",
       "_origin": "ast",
-      "id": "tests_test_templating_rationale_508",
-      "community": 0,
+      "id": "tests_test_templating_rationale_519",
+      "community": 32,
       "norm_label": "/iflow-close must describe the history.md update step and its input tokens."
     },
     {
       "label": "The history-update skill must describe append-and-promote, plus the missing-file",
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
-      "source_location": "L520",
+      "source_location": "L531",
       "_origin": "ast",
-      "id": "tests_test_templating_rationale_520",
+      "id": "tests_test_templating_rationale_531",
       "community": 0,
       "norm_label": "the history-update skill must describe append-and-promote, plus the missing-file"
     },
@@ -3980,19 +4000,19 @@
       "label": "The history-update skill should reference {{ history_file }} so custom filenames",
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
-      "source_location": "L535",
+      "source_location": "L546",
       "_origin": "ast",
-      "id": "tests_test_templating_rationale_535",
-      "community": 0,
+      "id": "tests_test_templating_rationale_546",
+      "community": 40,
       "norm_label": "the history-update skill should reference {{ history_file }} so custom filenames"
     },
     {
       "label": "/iflow-yolo must forward the new history-related tokens to /iflow-close.",
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
-      "source_location": "L547",
+      "source_location": "L558",
       "_origin": "ast",
-      "id": "tests_test_templating_rationale_547",
+      "id": "tests_test_templating_rationale_558",
       "community": 136,
       "norm_label": "/iflow-yolo must forward the new history-related tokens to /iflow-close."
     },
@@ -4000,9 +4020,9 @@
       "label": "/iflow-init must fetch comments and call the comments-triage skill.",
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
-      "source_location": "L554",
+      "source_location": "L567",
       "_origin": "ast",
-      "id": "tests_test_templating_rationale_554",
+      "id": "tests_test_templating_rationale_567",
       "community": 0,
       "norm_label": "/iflow-init must fetch comments and call the comments-triage skill."
     },
@@ -4010,19 +4030,19 @@
       "label": "Regression guard for issue #9: the Agent efficiency guidance must live in the te",
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
-      "source_location": "L574",
+      "source_location": "L587",
       "_origin": "ast",
-      "id": "tests_test_templating_rationale_574",
-      "community": 0,
+      "id": "tests_test_templating_rationale_587",
+      "community": 40,
       "norm_label": "regression guard for issue #9: the agent efficiency guidance must live in the te"
     },
     {
       "label": "The issue-init skill must fetch comments and point at the comments skill.",
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
-      "source_location": "L593",
+      "source_location": "L606",
       "_origin": "ast",
-      "id": "tests_test_templating_rationale_593",
+      "id": "tests_test_templating_rationale_606",
       "community": 0,
       "norm_label": "the issue-init skill must fetch comments and point at the comments skill."
     },
@@ -4030,9 +4050,9 @@
       "label": "The new iflow-comments skill must describe triage rules and buckets.",
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
-      "source_location": "L603",
+      "source_location": "L616",
       "_origin": "ast",
-      "id": "tests_test_templating_rationale_603",
+      "id": "tests_test_templating_rationale_616",
       "community": 73,
       "norm_label": "the new iflow-comments skill must describe triage rules and buckets."
     },
@@ -4417,10 +4437,20 @@
       "norm_label": "changelog update tokens (command input)"
     },
     {
-      "label": "Instructions",
+      "label": "Branch switch tokens (command input)",
       "file_type": "document",
       "source_file": ".cursor/skills/iflow-close/SKILL.md",
       "source_location": "L36",
+      "_origin": "ast",
+      "id": "iflow_close_skill_branch_switch_tokens_command_input",
+      "community": 74,
+      "norm_label": "branch switch tokens (command input)"
+    },
+    {
+      "label": "Instructions",
+      "file_type": "document",
+      "source_file": ".cursor/skills/iflow-close/SKILL.md",
+      "source_location": "L40",
       "_origin": "ast",
       "id": "iflow_close_skill_instructions",
       "community": 74,
@@ -4430,7 +4460,7 @@
       "label": "Constraints",
       "file_type": "document",
       "source_file": ".cursor/skills/iflow-close/SKILL.md",
-      "source_location": "L58",
+      "source_location": "L64",
       "_origin": "ast",
       "id": "iflow_close_skill_constraints",
       "community": 74,
@@ -5287,204 +5317,174 @@
       "norm_label": "constraints"
     },
     {
-      "label": "issue79_original.md",
+      "label": "issue82_original.md",
       "file_type": "document",
-      "source_file": ".issueflows/01-current-issues/issue79_original.md",
+      "source_file": ".issueflows/01-current-issues/issue82_original.md",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "01_current_issues_issue79_original",
-      "community": 17,
-      "norm_label": "issue79_original.md"
+      "id": "01_current_issues_issue82_original",
+      "community": 134,
+      "norm_label": "issue82_original.md"
     },
     {
-      "label": "Issue #79: new cursor conventions",
+      "label": "Issue #82: switch back to main if clean",
       "file_type": "document",
-      "source_file": ".issueflows/01-current-issues/issue79_original.md",
+      "source_file": ".issueflows/01-current-issues/issue82_original.md",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "01_current_issues_issue79_original_issue_79_new_cursor_conventions",
-      "community": 17,
-      "norm_label": "issue #79: new cursor conventions"
+      "id": "01_current_issues_issue82_original_issue_82_switch_back_to_main_if_clean",
+      "community": 134,
+      "norm_label": "issue #82: switch back to main if clean"
     },
     {
       "label": "Original issue text",
       "file_type": "document",
-      "source_file": ".issueflows/01-current-issues/issue79_original.md",
+      "source_file": ".issueflows/01-current-issues/issue82_original.md",
       "source_location": "L5",
       "_origin": "ast",
-      "id": "01_current_issues_issue79_original_original_issue_text",
-      "community": 17,
+      "id": "01_current_issues_issue82_original_original_issue_text",
+      "community": 134,
       "norm_label": "original issue text"
     },
     {
-      "label": "Before: .cursor/rules/my-rule.mdc",
+      "label": "issue82_plan.md",
       "file_type": "document",
-      "source_file": ".issueflows/01-current-issues/issue79_original.md",
-      "source_location": "L55",
-      "_origin": "ast",
-      "id": "01_current_issues_issue79_original_before_cursor_rules_my_rule_mdc",
-      "community": 17,
-      "norm_label": "before: .cursor/rules/my-rule.mdc"
-    },
-    {
-      "label": "Title",
-      "file_type": "document",
-      "source_file": ".issueflows/01-current-issues/issue79_original.md",
-      "source_location": "L61",
-      "_origin": "ast",
-      "id": "01_current_issues_issue79_original_title",
-      "community": 17,
-      "norm_label": "title"
-    },
-    {
-      "label": "After: .cursor/skills/my-rule/SKILL.md",
-      "file_type": "document",
-      "source_file": ".issueflows/01-current-issues/issue79_original.md",
-      "source_location": "L66",
-      "_origin": "ast",
-      "id": "01_current_issues_issue79_original_after_cursor_skills_my_rule_skill_md",
-      "community": 17,
-      "norm_label": "after: .cursor/skills/my-rule/skill.md"
-    },
-    {
-      "label": "Title",
-      "file_type": "document",
-      "source_file": ".issueflows/01-current-issues/issue79_original.md",
-      "source_location": "L71",
-      "_origin": "ast",
-      "id": "01_current_issues_issue79_original_title_71",
-      "community": 17,
-      "norm_label": "title"
-    },
-    {
-      "label": "Before: .cursor/commands/commit.md",
-      "file_type": "document",
-      "source_file": ".issueflows/01-current-issues/issue79_original.md",
-      "source_location": "L80",
-      "_origin": "ast",
-      "id": "01_current_issues_issue79_original_before_cursor_commands_commit_md",
-      "community": 17,
-      "norm_label": "before: .cursor/commands/commit.md"
-    },
-    {
-      "label": "Commit current work",
-      "file_type": "document",
-      "source_file": ".issueflows/01-current-issues/issue79_original.md",
-      "source_location": "L81",
-      "_origin": "ast",
-      "id": "01_current_issues_issue79_original_commit_current_work",
-      "community": 17,
-      "norm_label": "commit current work"
-    },
-    {
-      "label": "After: .cursor/skills/commit/SKILL.md",
-      "file_type": "document",
-      "source_file": ".issueflows/01-current-issues/issue79_original.md",
-      "source_location": "L86",
-      "_origin": "ast",
-      "id": "01_current_issues_issue79_original_after_cursor_skills_commit_skill_md",
-      "community": 17,
-      "norm_label": "after: .cursor/skills/commit/skill.md"
-    },
-    {
-      "label": "Commit current work",
-      "file_type": "document",
-      "source_file": ".issueflows/01-current-issues/issue79_original.md",
-      "source_location": "L92",
-      "_origin": "ast",
-      "id": "01_current_issues_issue79_original_commit_current_work_92",
-      "community": 17,
-      "norm_label": "commit current work"
-    },
-    {
-      "label": "issue79_plan.md",
-      "file_type": "document",
-      "source_file": ".issueflows/01-current-issues/issue79_plan.md",
+      "source_file": ".issueflows/01-current-issues/issue82_plan.md",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "01_current_issues_issue79_plan",
-      "community": 30,
-      "norm_label": "issue79_plan.md"
+      "id": "01_current_issues_issue82_plan",
+      "community": 17,
+      "norm_label": "issue82_plan.md"
     },
     {
-      "label": "Issue #79 plan: new Cursor conventions",
+      "label": "Plan for issue #82: switch back to main if clean",
       "file_type": "document",
-      "source_file": ".issueflows/01-current-issues/issue79_plan.md",
+      "source_file": ".issueflows/01-current-issues/issue82_plan.md",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "01_current_issues_issue79_plan_issue_79_plan_new_cursor_conventions",
-      "community": 30,
-      "norm_label": "issue #79 plan: new cursor conventions"
+      "id": "01_current_issues_issue82_plan_plan_for_issue_82_switch_back_to_main_if_clean",
+      "community": 17,
+      "norm_label": "plan for issue #82: switch back to main if clean"
     },
     {
       "label": "Goal",
       "file_type": "document",
-      "source_file": ".issueflows/01-current-issues/issue79_plan.md",
+      "source_file": ".issueflows/01-current-issues/issue82_plan.md",
       "source_location": "L3",
       "_origin": "ast",
-      "id": "01_current_issues_issue79_plan_goal",
-      "community": 30,
+      "id": "01_current_issues_issue82_plan_goal",
+      "community": 17,
       "norm_label": "goal"
     },
     {
       "label": "Constraints",
       "file_type": "document",
-      "source_file": ".issueflows/01-current-issues/issue79_plan.md",
+      "source_file": ".issueflows/01-current-issues/issue82_plan.md",
       "source_location": "L7",
       "_origin": "ast",
-      "id": "01_current_issues_issue79_plan_constraints",
-      "community": 30,
+      "id": "01_current_issues_issue82_plan_constraints",
+      "community": 17,
       "norm_label": "constraints"
     },
     {
       "label": "Prior art",
       "file_type": "document",
-      "source_file": ".issueflows/01-current-issues/issue79_plan.md",
+      "source_file": ".issueflows/01-current-issues/issue82_plan.md",
       "source_location": "L14",
       "_origin": "ast",
-      "id": "01_current_issues_issue79_plan_prior_art",
-      "community": 30,
+      "id": "01_current_issues_issue82_plan_prior_art",
+      "community": 17,
       "norm_label": "prior art"
     },
     {
       "label": "Approach",
       "file_type": "document",
-      "source_file": ".issueflows/01-current-issues/issue79_plan.md",
-      "source_location": "L24",
+      "source_file": ".issueflows/01-current-issues/issue82_plan.md",
+      "source_location": "L23",
       "_origin": "ast",
-      "id": "01_current_issues_issue79_plan_approach",
-      "community": 30,
+      "id": "01_current_issues_issue82_plan_approach",
+      "community": 17,
       "norm_label": "approach"
     },
     {
       "label": "Files to touch",
       "file_type": "document",
-      "source_file": ".issueflows/01-current-issues/issue79_plan.md",
-      "source_location": "L32",
+      "source_file": ".issueflows/01-current-issues/issue82_plan.md",
+      "source_location": "L41",
       "_origin": "ast",
-      "id": "01_current_issues_issue79_plan_files_to_touch",
-      "community": 30,
+      "id": "01_current_issues_issue82_plan_files_to_touch",
+      "community": 17,
       "norm_label": "files to touch"
     },
     {
       "label": "Test strategy",
       "file_type": "document",
-      "source_file": ".issueflows/01-current-issues/issue79_plan.md",
-      "source_location": "L43",
+      "source_file": ".issueflows/01-current-issues/issue82_plan.md",
+      "source_location": "L51",
       "_origin": "ast",
-      "id": "01_current_issues_issue79_plan_test_strategy",
-      "community": 30,
+      "id": "01_current_issues_issue82_plan_test_strategy",
+      "community": 17,
       "norm_label": "test strategy"
     },
     {
       "label": "Open questions",
       "file_type": "document",
-      "source_file": ".issueflows/01-current-issues/issue79_plan.md",
-      "source_location": "L50",
+      "source_file": ".issueflows/01-current-issues/issue82_plan.md",
+      "source_location": "L58",
       "_origin": "ast",
-      "id": "01_current_issues_issue79_plan_open_questions",
-      "community": 30,
+      "id": "01_current_issues_issue82_plan_open_questions",
+      "community": 17,
       "norm_label": "open questions"
+    },
+    {
+      "label": "issue82_status.md",
+      "file_type": "document",
+      "source_file": ".issueflows/01-current-issues/issue82_status.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "01_current_issues_issue82_status",
+      "community": 30,
+      "norm_label": "issue82_status.md"
+    },
+    {
+      "label": "Status for issue #82: switch back to main if clean",
+      "file_type": "document",
+      "source_file": ".issueflows/01-current-issues/issue82_status.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "01_current_issues_issue82_status_status_for_issue_82_switch_back_to_main_if_clean",
+      "community": 30,
+      "norm_label": "status for issue #82: switch back to main if clean"
+    },
+    {
+      "label": "Done so far",
+      "file_type": "document",
+      "source_file": ".issueflows/01-current-issues/issue82_status.md",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "01_current_issues_issue82_status_done_so_far",
+      "community": 30,
+      "norm_label": "done so far"
+    },
+    {
+      "label": "Remaining work",
+      "file_type": "document",
+      "source_file": ".issueflows/01-current-issues/issue82_status.md",
+      "source_location": "L9",
+      "_origin": "ast",
+      "id": "01_current_issues_issue82_status_remaining_work",
+      "community": 30,
+      "norm_label": "remaining work"
+    },
+    {
+      "label": "Status",
+      "file_type": "document",
+      "source_file": ".issueflows/01-current-issues/issue82_status.md",
+      "source_location": "L13",
+      "_origin": "ast",
+      "id": "01_current_issues_issue82_status_status",
+      "community": 30,
+      "norm_label": "status"
     },
     {
       "label": "issue10_original.md",
@@ -9657,6 +9657,256 @@
       "norm_label": "iterative fixes log"
     },
     {
+      "label": "issue79_original.md",
+      "file_type": "document",
+      "source_file": ".issueflows/03-solved-issues/issue79_original.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "03_solved_issues_issue79_original",
+      "community": 14,
+      "norm_label": "issue79_original.md"
+    },
+    {
+      "label": "Issue #79: new cursor conventions",
+      "file_type": "document",
+      "source_file": ".issueflows/03-solved-issues/issue79_original.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "03_solved_issues_issue79_original_issue_79_new_cursor_conventions",
+      "community": 14,
+      "norm_label": "issue #79: new cursor conventions"
+    },
+    {
+      "label": "Original issue text",
+      "file_type": "document",
+      "source_file": ".issueflows/03-solved-issues/issue79_original.md",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "03_solved_issues_issue79_original_original_issue_text",
+      "community": 14,
+      "norm_label": "original issue text"
+    },
+    {
+      "label": "Before: .cursor/rules/my-rule.mdc",
+      "file_type": "document",
+      "source_file": ".issueflows/03-solved-issues/issue79_original.md",
+      "source_location": "L55",
+      "_origin": "ast",
+      "id": "03_solved_issues_issue79_original_before_cursor_rules_my_rule_mdc",
+      "community": 14,
+      "norm_label": "before: .cursor/rules/my-rule.mdc"
+    },
+    {
+      "label": "Title",
+      "file_type": "document",
+      "source_file": ".issueflows/03-solved-issues/issue79_original.md",
+      "source_location": "L61",
+      "_origin": "ast",
+      "id": "03_solved_issues_issue79_original_title",
+      "community": 14,
+      "norm_label": "title"
+    },
+    {
+      "label": "After: .cursor/skills/my-rule/SKILL.md",
+      "file_type": "document",
+      "source_file": ".issueflows/03-solved-issues/issue79_original.md",
+      "source_location": "L66",
+      "_origin": "ast",
+      "id": "03_solved_issues_issue79_original_after_cursor_skills_my_rule_skill_md",
+      "community": 14,
+      "norm_label": "after: .cursor/skills/my-rule/skill.md"
+    },
+    {
+      "label": "Title",
+      "file_type": "document",
+      "source_file": ".issueflows/03-solved-issues/issue79_original.md",
+      "source_location": "L71",
+      "_origin": "ast",
+      "id": "03_solved_issues_issue79_original_title_71",
+      "community": 14,
+      "norm_label": "title"
+    },
+    {
+      "label": "Before: .cursor/commands/commit.md",
+      "file_type": "document",
+      "source_file": ".issueflows/03-solved-issues/issue79_original.md",
+      "source_location": "L80",
+      "_origin": "ast",
+      "id": "03_solved_issues_issue79_original_before_cursor_commands_commit_md",
+      "community": 14,
+      "norm_label": "before: .cursor/commands/commit.md"
+    },
+    {
+      "label": "Commit current work",
+      "file_type": "document",
+      "source_file": ".issueflows/03-solved-issues/issue79_original.md",
+      "source_location": "L81",
+      "_origin": "ast",
+      "id": "03_solved_issues_issue79_original_commit_current_work",
+      "community": 14,
+      "norm_label": "commit current work"
+    },
+    {
+      "label": "After: .cursor/skills/commit/SKILL.md",
+      "file_type": "document",
+      "source_file": ".issueflows/03-solved-issues/issue79_original.md",
+      "source_location": "L86",
+      "_origin": "ast",
+      "id": "03_solved_issues_issue79_original_after_cursor_skills_commit_skill_md",
+      "community": 14,
+      "norm_label": "after: .cursor/skills/commit/skill.md"
+    },
+    {
+      "label": "Commit current work",
+      "file_type": "document",
+      "source_file": ".issueflows/03-solved-issues/issue79_original.md",
+      "source_location": "L92",
+      "_origin": "ast",
+      "id": "03_solved_issues_issue79_original_commit_current_work_92",
+      "community": 14,
+      "norm_label": "commit current work"
+    },
+    {
+      "label": "issue79_plan.md",
+      "file_type": "document",
+      "source_file": ".issueflows/03-solved-issues/issue79_plan.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "03_solved_issues_issue79_plan",
+      "community": 28,
+      "norm_label": "issue79_plan.md"
+    },
+    {
+      "label": "Issue #79 plan: new Cursor conventions",
+      "file_type": "document",
+      "source_file": ".issueflows/03-solved-issues/issue79_plan.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "03_solved_issues_issue79_plan_issue_79_plan_new_cursor_conventions",
+      "community": 28,
+      "norm_label": "issue #79 plan: new cursor conventions"
+    },
+    {
+      "label": "Goal",
+      "file_type": "document",
+      "source_file": ".issueflows/03-solved-issues/issue79_plan.md",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "03_solved_issues_issue79_plan_goal",
+      "community": 28,
+      "norm_label": "goal"
+    },
+    {
+      "label": "Constraints",
+      "file_type": "document",
+      "source_file": ".issueflows/03-solved-issues/issue79_plan.md",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "03_solved_issues_issue79_plan_constraints",
+      "community": 28,
+      "norm_label": "constraints"
+    },
+    {
+      "label": "Prior art",
+      "file_type": "document",
+      "source_file": ".issueflows/03-solved-issues/issue79_plan.md",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "03_solved_issues_issue79_plan_prior_art",
+      "community": 28,
+      "norm_label": "prior art"
+    },
+    {
+      "label": "Approach",
+      "file_type": "document",
+      "source_file": ".issueflows/03-solved-issues/issue79_plan.md",
+      "source_location": "L24",
+      "_origin": "ast",
+      "id": "03_solved_issues_issue79_plan_approach",
+      "community": 28,
+      "norm_label": "approach"
+    },
+    {
+      "label": "Files to touch",
+      "file_type": "document",
+      "source_file": ".issueflows/03-solved-issues/issue79_plan.md",
+      "source_location": "L32",
+      "_origin": "ast",
+      "id": "03_solved_issues_issue79_plan_files_to_touch",
+      "community": 28,
+      "norm_label": "files to touch"
+    },
+    {
+      "label": "Test strategy",
+      "file_type": "document",
+      "source_file": ".issueflows/03-solved-issues/issue79_plan.md",
+      "source_location": "L43",
+      "_origin": "ast",
+      "id": "03_solved_issues_issue79_plan_test_strategy",
+      "community": 28,
+      "norm_label": "test strategy"
+    },
+    {
+      "label": "Open questions",
+      "file_type": "document",
+      "source_file": ".issueflows/03-solved-issues/issue79_plan.md",
+      "source_location": "L50",
+      "_origin": "ast",
+      "id": "03_solved_issues_issue79_plan_open_questions",
+      "community": 28,
+      "norm_label": "open questions"
+    },
+    {
+      "label": "issue79_status.md",
+      "file_type": "document",
+      "source_file": ".issueflows/03-solved-issues/issue79_status.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "03_solved_issues_issue79_status",
+      "community": 132,
+      "norm_label": "issue79_status.md"
+    },
+    {
+      "label": "Status for issue #79: new Cursor conventions",
+      "file_type": "document",
+      "source_file": ".issueflows/03-solved-issues/issue79_status.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "03_solved_issues_issue79_status_status_for_issue_79_new_cursor_conventions",
+      "community": 132,
+      "norm_label": "status for issue #79: new cursor conventions"
+    },
+    {
+      "label": "Done checklist",
+      "file_type": "document",
+      "source_file": ".issueflows/03-solved-issues/issue79_status.md",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "03_solved_issues_issue79_status_done_checklist",
+      "community": 132,
+      "norm_label": "done checklist"
+    },
+    {
+      "label": "What changed",
+      "file_type": "document",
+      "source_file": ".issueflows/03-solved-issues/issue79_status.md",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "03_solved_issues_issue79_status_what_changed",
+      "community": 132,
+      "norm_label": "what changed"
+    },
+    {
+      "label": "Verification",
+      "file_type": "document",
+      "source_file": ".issueflows/03-solved-issues/issue79_status.md",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "03_solved_issues_issue79_status_verification",
+      "community": 132,
+      "norm_label": "verification"
+    },
+    {
       "label": "issue7_original.md",
       "file_type": "document",
       "source_file": ".issueflows/03-solved-issues/issue7_original.md",
@@ -10450,7 +10700,7 @@
       "label": "[0.3.2] - 2026-06-06",
       "file_type": "document",
       "source_file": "HISTORY.md",
-      "source_location": "L21",
+      "source_location": "L22",
       "_origin": "ast",
       "id": "history_0_3_2_2026_06_06",
       "community": 4,
@@ -10460,7 +10710,7 @@
       "label": "[0.2.3] - 2026-04-19",
       "file_type": "document",
       "source_file": "HISTORY.md",
-      "source_location": "L30",
+      "source_location": "L31",
       "_origin": "ast",
       "id": "history_0_2_3_2026_04_19",
       "community": 4,
@@ -10470,7 +10720,7 @@
       "label": "[0.2.2] - 2026-04-17",
       "file_type": "document",
       "source_file": "HISTORY.md",
-      "source_location": "L46",
+      "source_location": "L47",
       "_origin": "ast",
       "id": "history_0_2_2_2026_04_17",
       "community": 4,
@@ -10480,7 +10730,7 @@
       "label": "[0.2.1.post2] - 2026-04-16",
       "file_type": "document",
       "source_file": "HISTORY.md",
-      "source_location": "L53",
+      "source_location": "L54",
       "_origin": "ast",
       "id": "history_0_2_1_post2_2026_04_16",
       "community": 4,
@@ -10490,7 +10740,7 @@
       "label": "[0.2.1.post1] - 2026-04-16",
       "file_type": "document",
       "source_file": "HISTORY.md",
-      "source_location": "L57",
+      "source_location": "L58",
       "_origin": "ast",
       "id": "history_0_2_1_post1_2026_04_16",
       "community": 4,
@@ -10500,7 +10750,7 @@
       "label": "[0.2.1] - 2026-04-16",
       "file_type": "document",
       "source_file": "HISTORY.md",
-      "source_location": "L61",
+      "source_location": "L62",
       "_origin": "ast",
       "id": "history_0_2_1_2026_04_16",
       "community": 4,
@@ -10510,7 +10760,7 @@
       "label": "[0.2.0] - 2026-04-15",
       "file_type": "document",
       "source_file": "HISTORY.md",
-      "source_location": "L66",
+      "source_location": "L67",
       "_origin": "ast",
       "id": "history_0_2_0_2026_04_15",
       "community": 4,
@@ -10520,7 +10770,7 @@
       "label": "[0.1.4] - 2026-04-15",
       "file_type": "document",
       "source_file": "HISTORY.md",
-      "source_location": "L70",
+      "source_location": "L71",
       "_origin": "ast",
       "id": "history_0_1_4_2026_04_15",
       "community": 4,
@@ -10530,7 +10780,7 @@
       "label": "[0.1.3] - 2026-04-15",
       "file_type": "document",
       "source_file": "HISTORY.md",
-      "source_location": "L75",
+      "source_location": "L76",
       "_origin": "ast",
       "id": "history_0_1_3_2026_04_15",
       "community": 4,
@@ -10540,7 +10790,7 @@
       "label": "[0.1.2] - 2026-04-15",
       "file_type": "document",
       "source_file": "HISTORY.md",
-      "source_location": "L79",
+      "source_location": "L80",
       "_origin": "ast",
       "id": "history_0_1_2_2026_04_15",
       "community": 4,
@@ -10550,7 +10800,7 @@
       "label": "[0.1.1] - 2026-04-04",
       "file_type": "document",
       "source_file": "HISTORY.md",
-      "source_location": "L83",
+      "source_location": "L84",
       "_origin": "ast",
       "id": "history_0_1_1_2026_04_04",
       "community": 4,
@@ -10560,7 +10810,7 @@
       "label": "[0.1.0] - 2026-04-03",
       "file_type": "document",
       "source_file": "HISTORY.md",
-      "source_location": "L88",
+      "source_location": "L89",
       "_origin": "ast",
       "id": "history_0_1_0_2026_04_03",
       "community": 4,
@@ -11030,7 +11280,7 @@
       "label": "6. `/iflow-cleanup` \u2014 post-merge branch hygiene",
       "file_type": "document",
       "source_file": "docs/issue-workflow.md",
-      "source_location": "L208",
+      "source_location": "L210",
       "_origin": "ast",
       "id": "docs_issue_workflow_6_iflow_cleanup_post_merge_branch_hygiene",
       "community": 9,
@@ -11040,7 +11290,7 @@
       "label": "7. `/iflow-graphify` \u2014 rebuild the knowledge graph (optional)",
       "file_type": "document",
       "source_file": "docs/issue-workflow.md",
-      "source_location": "L226",
+      "source_location": "L228",
       "_origin": "ast",
       "id": "docs_issue_workflow_7_iflow_graphify_rebuild_the_knowledge_graph_optional",
       "community": 9,
@@ -11050,7 +11300,7 @@
       "label": "8. `/iflow-yolo` \u2014 all-in-one for small issues",
       "file_type": "document",
       "source_file": "docs/issue-workflow.md",
-      "source_location": "L249",
+      "source_location": "L251",
       "_origin": "ast",
       "id": "docs_issue_workflow_8_iflow_yolo_all_in_one_for_small_issues",
       "community": 9,
@@ -11060,7 +11310,7 @@
       "label": "9. `/iflow-fix` \u2014 interactive iterative-fixes session",
       "file_type": "document",
       "source_file": "docs/issue-workflow.md",
-      "source_location": "L266",
+      "source_location": "L268",
       "_origin": "ast",
       "id": "docs_issue_workflow_9_iflow_fix_interactive_iterative_fixes_session",
       "community": 9,
@@ -11070,7 +11320,7 @@
       "label": "10. `/iflow-status` \u2014 status overview of all issues (read-only)",
       "file_type": "document",
       "source_file": "docs/issue-workflow.md",
-      "source_location": "L286",
+      "source_location": "L288",
       "_origin": "ast",
       "id": "docs_issue_workflow_10_iflow_status_status_overview_of_all_issues_read_only",
       "community": 9,
@@ -11080,7 +11330,7 @@
       "label": "End-to-end flow",
       "file_type": "document",
       "source_file": "docs/issue-workflow.md",
-      "source_location": "L307",
+      "source_location": "L309",
       "_origin": "ast",
       "id": "docs_issue_workflow_end_to_end_flow",
       "community": 9,
@@ -11217,7 +11467,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_init.py",
       "source_location": "L212",
-      "community": 28,
+      "community": 18,
       "norm_label": "issue-close.md should flag unrelated uncommitted changes and warn about the issu",
       "id": "tests_test_init_rationale_212"
     },
@@ -11226,7 +11476,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_init.py",
       "source_location": "L233",
-      "community": 18,
+      "community": 135,
       "norm_label": "/issue-plan, /issue-start, and /issue-close should reference the designs folder.",
       "id": "tests_test_init_rationale_233"
     },
@@ -11235,7 +11485,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_init.py",
       "source_location": "L244",
-      "community": 18,
+      "community": 144,
       "norm_label": "issue-init.md should describe resolving an issue from the current branch when no",
       "id": "tests_test_init_rationale_244"
     },
@@ -11298,7 +11548,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
       "source_location": "L227",
-      "community": 0,
+      "community": 40,
       "norm_label": "/issue-plan must produce a plan file and require confirmation.",
       "id": "tests_test_templating_rationale_227"
     },
@@ -11307,7 +11557,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
       "source_location": "L260",
-      "community": 0,
+      "community": 145,
       "norm_label": "/issue-pause moves the issue group to the partly-solved folder.",
       "id": "tests_test_templating_rationale_260"
     },
@@ -11321,20 +11571,11 @@
       "id": "tests_test_templating_rationale_268"
     },
     {
-      "label": "/issue-pick must describe its three phases, ranking inputs, and the `fix` shortc",
-      "file_type": "rationale",
-      "source_file": "tests/test_templating.py",
-      "source_location": "L314",
-      "community": 133,
-      "norm_label": "/issue-pick must describe its three phases, ranking inputs, and the `fix` shortc",
-      "id": "tests_test_templating_rationale_314"
-    },
-    {
       "label": "/iflow must list /issue-pick among the explicit-only, never-auto-dispatched comm",
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
       "source_location": "L353",
-      "community": 134,
+      "community": 40,
       "norm_label": "/iflow must list /issue-pick among the explicit-only, never-auto-dispatched comm",
       "id": "tests_test_templating_rationale_353"
     },
@@ -11352,7 +11593,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
       "source_location": "L400",
-      "community": 0,
+      "community": 32,
       "norm_label": "/issue-close must describe the history.md update step and its input tokens.",
       "id": "tests_test_templating_rationale_400"
     },
@@ -11364,15 +11605,6 @@
       "community": 136,
       "norm_label": "/issue-yolo must forward the new history-related tokens to /issue-close.",
       "id": "tests_test_templating_rationale_439"
-    },
-    {
-      "label": "The new issueflow-issue-comments skill must describe triage rules and buckets.",
-      "file_type": "rationale",
-      "source_file": "tests/test_templating.py",
-      "source_location": "L495",
-      "community": 73,
-      "norm_label": "the new issueflow-issue-comments skill must describe triage rules and buckets.",
-      "id": "tests_test_templating_rationale_495"
     },
     {
       "label": "__init__.py",
@@ -12126,7 +12358,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_templating.py",
       "source_location": "L311",
-      "community": 32,
+      "community": 146,
       "norm_label": "/iflow and its skill must list /issue-fix among the explicit-only commands.",
       "id": "tests_test_templating_rationale_311"
     }
@@ -12303,9 +12535,9 @@
       "source_file": "src/issue_flow/init.py",
       "source_location": "L472",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "src_issue_flow_init_py_issue_flow_init",
-      "target": "issue_flow_init_prune_command_files",
-      "confidence_score": 1.0
+      "target": "issue_flow_init_prune_command_files"
     },
     {
       "relation": "contains",
@@ -12675,9 +12907,9 @@
       "source_file": "src/issue_flow/init.py",
       "source_location": "L472",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "issue_flow_init_prune_command_files",
-      "target": "path",
-      "confidence_score": 1.0
+      "target": "path"
     },
     {
       "relation": "references",
@@ -13225,9 +13457,9 @@
       "source_file": "tests/test_init.py",
       "source_location": "L407",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_init_test_init_creates_graphify_skill",
-      "target": "path",
-      "confidence_score": 1.0
+      "target": "path"
     },
     {
       "relation": "references",
@@ -13236,9 +13468,9 @@
       "source_file": "tests/test_init.py",
       "source_location": "L441",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_init_test_init_creates_issue_pick_skill",
-      "target": "path",
-      "confidence_score": 1.0
+      "target": "path"
     },
     {
       "relation": "references",
@@ -13258,9 +13490,9 @@
       "source_file": "tests/test_init.py",
       "source_location": "L424",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_init_test_init_creates_status_skill",
-      "target": "path",
-      "confidence_score": 1.0
+      "target": "path"
     },
     {
       "relation": "references",
@@ -13269,9 +13501,9 @@
       "source_file": "tests/test_init.py",
       "source_location": "L138",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_init_test_init_cursor_is_skills_first",
-      "target": "path",
-      "confidence_score": 1.0
+      "target": "path"
     },
     {
       "relation": "references",
@@ -13566,9 +13798,9 @@
       "source_file": "tests/test_update.py",
       "source_location": "L71",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_update_test_update_prunes_empty_cursor_commands_dir",
-      "target": "path",
-      "confidence_score": 1.0
+      "target": "path"
     },
     {
       "relation": "references",
@@ -13577,9 +13809,9 @@
       "source_file": "tests/test_update.py",
       "source_location": "L53",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_update_test_update_prunes_generated_cursor_commands_but_keeps_user_commands",
-      "target": "path",
-      "confidence_score": 1.0
+      "target": "path"
     },
     {
       "relation": "references",
@@ -13588,9 +13820,9 @@
       "source_file": "tests/test_update.py",
       "source_location": "L83",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_update_test_update_prunes_old_iflow_iflow_skill_folder",
-      "target": "path",
-      "confidence_score": 1.0
+      "target": "path"
     },
     {
       "relation": "references",
@@ -14155,9 +14387,9 @@
       "source_file": "src/issue_flow/config.py",
       "source_location": "L105",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "issue_flow_config_rationale_105",
-      "target": "issue_flow_config_detect_project_name",
-      "confidence_score": 1.0
+      "target": "issue_flow_config_detect_project_name"
     },
     {
       "relation": "calls",
@@ -14355,9 +14587,9 @@
       "source_file": "src/issue_flow/dependencies.py",
       "source_location": "L100",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "issue_flow_dependencies_rationale_100",
-      "target": "issue_flow_dependencies_check_recommended",
-      "confidence_score": 1.0
+      "target": "issue_flow_dependencies_check_recommended"
     },
     {
       "relation": "calls",
@@ -14387,9 +14619,9 @@
       "source_file": "src/issue_flow/dependencies.py",
       "source_location": "L111",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "issue_flow_dependencies_rationale_111",
-      "target": "issue_flow_dependencies_check_dependencies",
-      "confidence_score": 1.0
+      "target": "issue_flow_dependencies_check_dependencies"
     },
     {
       "relation": "calls",
@@ -14463,9 +14695,9 @@
       "source_file": "src/issue_flow/dependencies.py",
       "source_location": "L123",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "issue_flow_dependencies_rationale_123",
-      "target": "issue_flow_dependencies_format_missing_report",
-      "confidence_score": 1.0
+      "target": "issue_flow_dependencies_format_missing_report"
     },
     {
       "relation": "calls",
@@ -14561,9 +14793,9 @@
       "source_file": "src/issue_flow/dependencies.py",
       "source_location": "L156",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "issue_flow_dependencies_rationale_156",
-      "target": "issue_flow_dependencies_prompt_or_skip",
-      "confidence_score": 1.0
+      "target": "issue_flow_dependencies_prompt_or_skip"
     },
     {
       "relation": "calls",
@@ -14721,9 +14953,9 @@
       "source_file": "src/issue_flow/editors.py",
       "source_location": "L25",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "issue_flow_editors_rationale_25",
-      "target": "issue_flow_editors_editorprofile",
-      "confidence_score": 1.0
+      "target": "issue_flow_editors_editorprofile"
     },
     {
       "relation": "references",
@@ -14807,9 +15039,9 @@
       "source_file": "src/issue_flow/editors.py",
       "source_location": "L102",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "issue_flow_editors_rationale_102",
-      "target": "issue_flow_editors_get_profile",
-      "confidence_score": 1.0
+      "target": "issue_flow_editors_get_profile"
     },
     {
       "relation": "calls",
@@ -14960,9 +15192,9 @@
       "source_file": "src/issue_flow/editors.py",
       "source_location": "L117",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "issue_flow_editors_rationale_117",
-      "target": "issue_flow_editors_resolve_editors",
-      "confidence_score": 1.0
+      "target": "issue_flow_editors_resolve_editors"
     },
     {
       "relation": "calls",
@@ -15619,9 +15851,9 @@
       "source_file": "src/issue_flow/init.py",
       "source_location": "L53",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "issue_flow_init_rationale_53",
-      "target": "issue_flow_init_dotenv_documents_key",
-      "confidence_score": 1.0
+      "target": "issue_flow_init_dotenv_documents_key"
     },
     {
       "relation": "contains",
@@ -15649,9 +15881,9 @@
       "source_file": "src/issue_flow/init.py",
       "source_location": "L61",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "issue_flow_init_rationale_61",
-      "target": "issue_flow_init_ensure_dotenv_file",
-      "confidence_score": 1.0
+      "target": "issue_flow_init_ensure_dotenv_file"
     },
     {
       "relation": "calls",
@@ -15690,9 +15922,9 @@
       "source_file": "src/issue_flow/init.py",
       "source_location": "L109",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "issue_flow_init_rationale_109",
-      "target": "issue_flow_init_write_manifest_files",
-      "confidence_score": 1.0
+      "target": "issue_flow_init_write_manifest_files"
     },
     {
       "relation": "calls",
@@ -15775,9 +16007,9 @@
       "source_file": "src/issue_flow/init.py",
       "source_location": "L141",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "issue_flow_init_rationale_141",
-      "target": "issue_flow_init_ensure_agents_md",
-      "confidence_score": 1.0
+      "target": "issue_flow_init_ensure_agents_md"
     },
     {
       "relation": "calls",
@@ -15828,9 +16060,9 @@
       "source_file": "src/issue_flow/init.py",
       "source_location": "L193",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "issue_flow_init_rationale_193",
-      "target": "issue_flow_init_ensure_project_brief",
-      "confidence_score": 1.0
+      "target": "issue_flow_init_ensure_project_brief"
     },
     {
       "relation": "calls",
@@ -15882,9 +16114,9 @@
       "source_file": "src/issue_flow/init.py",
       "source_location": "L221",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "issue_flow_init_rationale_221",
-      "target": "issue_flow_init_already_initialized",
-      "confidence_score": 1.0
+      "target": "issue_flow_init_already_initialized"
     },
     {
       "relation": "calls",
@@ -15913,9 +16145,9 @@
       "source_file": "src/issue_flow/init.py",
       "source_location": "L242",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "issue_flow_init_rationale_242",
-      "target": "issue_flow_init_run_init",
-      "confidence_score": 1.0
+      "target": "issue_flow_init_run_init"
     },
     {
       "relation": "calls",
@@ -16592,9 +16824,9 @@
       "source_file": "src/issue_flow/init.py",
       "source_location": "L351",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "issue_flow_init_rationale_351",
-      "target": "issue_flow_init_run_update",
-      "confidence_score": 1.0
+      "target": "issue_flow_init_run_update"
     },
     {
       "relation": "calls",
@@ -16811,9 +17043,9 @@
       "source_file": "src/issue_flow/init.py",
       "source_location": "L442",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "issue_flow_init_prune_retired_files",
-      "target": "issue_flow_init_prune_command_files",
-      "confidence_score": 1.0
+      "target": "issue_flow_init_prune_command_files"
     },
     {
       "relation": "rationale_for",
@@ -16821,9 +17053,9 @@
       "source_file": "src/issue_flow/init.py",
       "source_location": "L431",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "issue_flow_init_rationale_431",
-      "target": "issue_flow_init_prune_retired_files",
-      "confidence_score": 1.0
+      "target": "issue_flow_init_prune_retired_files"
     },
     {
       "relation": "rationale_for",
@@ -16831,9 +17063,9 @@
       "source_file": "src/issue_flow/init.py",
       "source_location": "L480",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "issue_flow_init_rationale_480",
-      "target": "issue_flow_init_prune_command_files",
-      "confidence_score": 1.0
+      "target": "issue_flow_init_prune_command_files"
     },
     {
       "relation": "rationale_for",
@@ -16851,9 +17083,9 @@
       "source_file": "src/issue_flow/init.py",
       "source_location": "L504",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "issue_flow_init_rationale_504",
-      "target": "issue_flow_init_graphify_postinstall",
-      "confidence_score": 1.0
+      "target": "issue_flow_init_graphify_postinstall"
     },
     {
       "relation": "contains",
@@ -16881,9 +17113,9 @@
       "source_file": "src/issue_flow/init.py",
       "source_location": "L530",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "issue_flow_init_rationale_530",
-      "target": "issue_flow_init_dependency_gate",
-      "confidence_score": 1.0
+      "target": "issue_flow_init_dependency_gate"
     },
     {
       "relation": "contains",
@@ -16901,9 +17133,9 @@
       "source_file": "src/issue_flow/init.py",
       "source_location": "L541",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "issue_flow_init_rationale_541",
-      "target": "issue_flow_init_create_issueflow_dirs",
-      "confidence_score": 1.0
+      "target": "issue_flow_init_create_issueflow_dirs"
     },
     {
       "relation": "contains",
@@ -17215,6 +17447,17 @@
     {
       "relation": "calls",
       "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_templating.py",
+      "source_location": "L262",
+      "weight": 1.0,
+      "source": "tests_test_templating_test_issue_close_switches_to_default_when_clean_unless_stay",
+      "target": "issue_flow_templating_render_template"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "tests/test_templating.py",
@@ -17470,9 +17713,9 @@
       "source_file": "src/issue_flow/templating.py",
       "source_location": "L160",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "issue_flow_templating_rationale_160",
-      "target": "issue_flow_templating_build_manifest",
-      "confidence_score": 1.0
+      "target": "issue_flow_templating_build_manifest"
     },
     {
       "relation": "calls",
@@ -17557,9 +17800,9 @@
       "source_file": "src/issue_flow/templating.py",
       "source_location": "L198",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "issue_flow_templating_rationale_198",
-      "target": "issue_flow_templating_resolve_output_path",
-      "confidence_score": 1.0
+      "target": "issue_flow_templating_resolve_output_path"
     },
     {
       "relation": "calls",
@@ -18461,9 +18704,9 @@
       "source_file": "tests/test_config.py",
       "source_location": "L71",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_config_rationale_71",
-      "target": "tests_test_config_test_history_file_override_from_env",
-      "confidence_score": 1.0
+      "target": "tests_test_config_test_history_file_override_from_env"
     },
     {
       "relation": "contains",
@@ -18887,9 +19130,9 @@
       "source_file": "tests/test_editors.py",
       "source_location": "L29",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_editors",
-      "target": "tests_test_editors_test_cursor_is_skills_first_with_rules_extra",
-      "confidence_score": 1.0
+      "target": "tests_test_editors_test_cursor_is_skills_first_with_rules_extra"
     },
     {
       "relation": "contains",
@@ -19794,9 +20037,9 @@
       "source_file": "tests/test_init.py",
       "source_location": "L407",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_init",
-      "target": "tests_test_init_test_init_creates_graphify_skill",
-      "confidence_score": 1.0
+      "target": "tests_test_init_test_init_creates_graphify_skill"
     },
     {
       "relation": "contains",
@@ -19804,9 +20047,9 @@
       "source_file": "tests/test_init.py",
       "source_location": "L441",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_init",
-      "target": "tests_test_init_test_init_creates_issue_pick_skill",
-      "confidence_score": 1.0
+      "target": "tests_test_init_test_init_creates_issue_pick_skill"
     },
     {
       "relation": "contains",
@@ -19824,9 +20067,9 @@
       "source_file": "tests/test_init.py",
       "source_location": "L424",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_init",
-      "target": "tests_test_init_test_init_creates_status_skill",
-      "confidence_score": 1.0
+      "target": "tests_test_init_test_init_creates_status_skill"
     },
     {
       "relation": "contains",
@@ -19834,9 +20077,9 @@
       "source_file": "tests/test_init.py",
       "source_location": "L138",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_init",
-      "target": "tests_test_init_test_init_cursor_is_skills_first",
-      "confidence_score": 1.0
+      "target": "tests_test_init_test_init_cursor_is_skills_first"
     },
     {
       "relation": "contains",
@@ -20134,9 +20377,9 @@
       "source_file": "tests/test_init.py",
       "source_location": "L139",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_init_rationale_139",
-      "target": "tests_test_init_test_init_cursor_is_skills_first",
-      "confidence_score": 1.0
+      "target": "tests_test_init_test_init_cursor_is_skills_first"
     },
     {
       "relation": "rationale_for",
@@ -20144,9 +20387,9 @@
       "source_file": "tests/test_init.py",
       "source_location": "L151",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_init_rationale_151",
-      "target": "tests_test_init_test_init_creates_cursor_skills",
-      "confidence_score": 1.0
+      "target": "tests_test_init_test_init_creates_cursor_skills"
     },
     {
       "relation": "rationale_for",
@@ -20154,9 +20397,9 @@
       "source_file": "tests/test_init.py",
       "source_location": "L190",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_init_rationale_190",
-      "target": "tests_test_init_test_init_idempotent_skips_existing",
-      "confidence_score": 1.0
+      "target": "tests_test_init_test_init_idempotent_skips_existing"
     },
     {
       "relation": "rationale_for",
@@ -20164,9 +20407,9 @@
       "source_file": "tests/test_init.py",
       "source_location": "L203",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_init_rationale_203",
-      "target": "tests_test_init_test_init_force_overwrites",
-      "confidence_score": 1.0
+      "target": "tests_test_init_test_init_force_overwrites"
     },
     {
       "relation": "rationale_for",
@@ -20174,9 +20417,9 @@
       "source_file": "tests/test_init.py",
       "source_location": "L217",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_init_rationale_217",
-      "target": "tests_test_init_test_init_templates_reference_issueflows_dir",
-      "confidence_score": 1.0
+      "target": "tests_test_init_test_init_templates_reference_issueflows_dir"
     },
     {
       "relation": "rationale_for",
@@ -20194,9 +20437,9 @@
       "source_file": "tests/test_init.py",
       "source_location": "L227",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_init_rationale_227",
-      "target": "tests_test_init_test_init_issue_close_documents_version_bump",
-      "confidence_score": 1.0
+      "target": "tests_test_init_test_init_issue_close_documents_version_bump"
     },
     {
       "relation": "rationale_for",
@@ -20214,9 +20457,9 @@
       "source_file": "tests/test_init.py",
       "source_location": "L237",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_init_rationale_237",
-      "target": "tests_test_init_test_init_issue_close_documents_history_update_step",
-      "confidence_score": 1.0
+      "target": "tests_test_init_test_init_issue_close_documents_history_update_step"
     },
     {
       "relation": "rationale_for",
@@ -20234,17 +20477,17 @@
       "source_file": "tests/test_init.py",
       "source_location": "L251",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_init_rationale_251",
-      "target": "tests_test_init_test_init_issue_close_documents_uncommitted_and_branch_reminder",
-      "confidence_score": 1.0
+      "target": "tests_test_init_test_init_issue_close_documents_uncommitted_and_branch_reminder"
     },
     {
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_init.py",
-      "source_location": "L262",
+      "source_location": "L266",
       "weight": 1.0,
-      "source": "tests_test_init_rationale_262",
+      "source": "tests_test_init_rationale_266",
       "target": "tests_test_init_test_init_rule_documents_designs_folder",
       "confidence_score": 1.0
     },
@@ -20262,9 +20505,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_init.py",
-      "source_location": "L272",
+      "source_location": "L276",
       "weight": 1.0,
-      "source": "tests_test_init_rationale_272",
+      "source": "tests_test_init_rationale_276",
       "target": "tests_test_init_test_init_commands_reference_designs_folder",
       "confidence_score": 1.0
     },
@@ -20282,9 +20525,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_init.py",
-      "source_location": "L283",
+      "source_location": "L287",
       "weight": 1.0,
-      "source": "tests_test_init_rationale_283",
+      "source": "tests_test_init_rationale_287",
       "target": "tests_test_init_test_init_issue_init_documents_branch_inference",
       "confidence_score": 1.0
     },
@@ -20292,9 +20535,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_init.py",
-      "source_location": "L296",
+      "source_location": "L300",
       "weight": 1.0,
-      "source": "tests_test_init_rationale_296",
+      "source": "tests_test_init_rationale_300",
       "target": "tests_test_init_test_init_proceeds_silently_when_all_dependencies_present",
       "confidence_score": 1.0
     },
@@ -20313,9 +20556,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_init.py",
-      "source_location": "L312",
+      "source_location": "L316",
       "weight": 1.0,
-      "source": "tests_test_init_rationale_312",
+      "source": "tests_test_init_rationale_316",
       "target": "tests_test_init_test_init_continues_when_skip_dep_check_is_set",
       "confidence_score": 1.0
     },
@@ -20323,9 +20566,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_init.py",
-      "source_location": "L330",
+      "source_location": "L334",
       "weight": 1.0,
-      "source": "tests_test_init_rationale_330",
+      "source": "tests_test_init_rationale_334",
       "target": "tests_test_init_test_init_continues_in_non_tty_when_deps_missing",
       "confidence_score": 1.0
     },
@@ -20333,9 +20576,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_init.py",
-      "source_location": "L349",
+      "source_location": "L353",
       "weight": 1.0,
-      "source": "tests_test_init_rationale_349",
+      "source": "tests_test_init_rationale_353",
       "target": "tests_test_init_test_init_aborts_cleanly_when_user_declines_prompt",
       "confidence_score": 1.0
     },
@@ -20343,9 +20586,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_init.py",
-      "source_location": "L367",
+      "source_location": "L371",
       "weight": 1.0,
-      "source": "tests_test_init_rationale_367",
+      "source": "tests_test_init_rationale_371",
       "target": "tests_test_init_test_init_calls_graphify_register_when_available",
       "confidence_score": 1.0
     },
@@ -20353,9 +20596,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_init.py",
-      "source_location": "L392",
+      "source_location": "L396",
       "weight": 1.0,
-      "source": "tests_test_init_rationale_392",
+      "source": "tests_test_init_rationale_396",
       "target": "tests_test_init_test_init_skips_graphify_when_unavailable",
       "confidence_score": 1.0
     },
@@ -20363,9 +20606,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_init.py",
-      "source_location": "L408",
+      "source_location": "L412",
       "weight": 1.0,
-      "source": "tests_test_init_rationale_408",
+      "source": "tests_test_init_rationale_412",
       "target": "tests_test_init_test_init_creates_graphify_skill",
       "confidence_score": 1.0
     },
@@ -20373,9 +20616,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_init.py",
-      "source_location": "L425",
+      "source_location": "L429",
       "weight": 1.0,
-      "source": "tests_test_init_rationale_425",
+      "source": "tests_test_init_rationale_429",
       "target": "tests_test_init_test_init_creates_status_skill",
       "confidence_score": 1.0
     },
@@ -20383,9 +20626,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_init.py",
-      "source_location": "L442",
+      "source_location": "L446",
       "weight": 1.0,
-      "source": "tests_test_init_rationale_442",
+      "source": "tests_test_init_rationale_446",
       "target": "tests_test_init_test_init_creates_issue_pick_skill",
       "confidence_score": 1.0
     },
@@ -20393,9 +20636,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_init.py",
-      "source_location": "L459",
+      "source_location": "L463",
       "weight": 1.0,
-      "source": "tests_test_init_rationale_459",
+      "source": "tests_test_init_rationale_463",
       "target": "tests_test_init_test_init_rule_documents_knowledge_graph_section",
       "confidence_score": 1.0
     },
@@ -20403,9 +20646,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_init.py",
-      "source_location": "L474",
+      "source_location": "L478",
       "weight": 1.0,
-      "source": "tests_test_init_rationale_474",
+      "source": "tests_test_init_rationale_478",
       "target": "tests_test_init_test_init_creates_agents_md_with_managed_block",
       "confidence_score": 1.0
     },
@@ -20413,9 +20656,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_init.py",
-      "source_location": "L488",
+      "source_location": "L492",
       "weight": 1.0,
-      "source": "tests_test_init_rationale_488",
+      "source": "tests_test_init_rationale_492",
       "target": "tests_test_init_test_init_preserves_existing_agents_md_user_content",
       "confidence_score": 1.0
     },
@@ -20423,9 +20666,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_init.py",
-      "source_location": "L503",
+      "source_location": "L507",
       "weight": 1.0,
-      "source": "tests_test_init_rationale_503",
+      "source": "tests_test_init_rationale_507",
       "target": "tests_test_init_test_init_agents_md_block_is_idempotent",
       "confidence_score": 1.0
     },
@@ -20433,9 +20676,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_init.py",
-      "source_location": "L515",
+      "source_location": "L519",
       "weight": 1.0,
-      "source": "tests_test_init_rationale_515",
+      "source": "tests_test_init_rationale_519",
       "target": "tests_test_init_test_init_claude_editor_writes_claude_tree_and_claude_md",
       "confidence_score": 1.0
     },
@@ -20443,9 +20686,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_init.py",
-      "source_location": "L527",
+      "source_location": "L531",
       "weight": 1.0,
-      "source": "tests_test_init_rationale_527",
+      "source": "tests_test_init_rationale_531",
       "target": "tests_test_init_test_init_codex_editor_has_skills_but_no_commands",
       "confidence_score": 1.0
     },
@@ -20453,9 +20696,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_init.py",
-      "source_location": "L561",
+      "source_location": "L565",
       "weight": 1.0,
-      "source": "tests_test_init_rationale_561",
+      "source": "tests_test_init_rationale_565",
       "target": "tests_test_init_test_init_unknown_editor_exits_cleanly",
       "confidence_score": 1.0
     },
@@ -20463,9 +20706,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_init.py",
-      "source_location": "L570",
+      "source_location": "L574",
       "weight": 1.0,
-      "source": "tests_test_init_rationale_570",
+      "source": "tests_test_init_rationale_574",
       "target": "tests_test_init_test_init_detects_project_name",
       "confidence_score": 1.0
     },
@@ -20525,9 +20768,9 @@
       "source_file": "tests/test_templating.py",
       "source_location": "L105",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_templating",
-      "target": "tests_test_templating_test_build_manifest_cursor_has_skills_and_rules_but_no_commands",
-      "confidence_score": 1.0
+      "target": "tests_test_templating_test_build_manifest_cursor_has_skills_and_rules_but_no_commands"
     },
     {
       "relation": "contains",
@@ -20565,9 +20808,9 @@
       "source_file": "tests/test_templating.py",
       "source_location": "L203",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_templating",
-      "target": "tests_test_templating_test_claude_manifest_has_expected_commands",
-      "confidence_score": 1.0
+      "target": "tests_test_templating_test_claude_manifest_has_expected_commands"
     },
     {
       "relation": "contains",
@@ -20658,6 +20901,16 @@
       "confidence_score": 1.0,
       "source": "tests_test_templating",
       "target": "tests_test_templating_test_issue_close_describes_history_update_step"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_templating.py",
+      "source_location": "L260",
+      "weight": 1.0,
+      "source": "tests_test_templating",
+      "target": "tests_test_templating_test_issue_close_switches_to_default_when_clean_unless_stay",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -20855,9 +21108,9 @@
       "source_file": "tests/test_templating.py",
       "source_location": "L176",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_templating",
-      "target": "tests_test_templating_test_manifest_has_expected_skills",
-      "confidence_score": 1.0
+      "target": "tests_test_templating_test_manifest_has_expected_skills"
     },
     {
       "relation": "contains",
@@ -20935,9 +21188,9 @@
       "source_file": "tests/test_templating.py",
       "source_location": "L42",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_templating_rationale_42",
-      "target": "tests_test_templating_test_template_substitution",
-      "confidence_score": 1.0
+      "target": "tests_test_templating_test_template_substitution"
     },
     {
       "relation": "rationale_for",
@@ -20945,9 +21198,9 @@
       "source_file": "tests/test_templating.py",
       "source_location": "L66",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_templating_rationale_66",
-      "target": "tests_test_templating_test_project_brief_template_renders",
-      "confidence_score": 1.0
+      "target": "tests_test_templating_test_project_brief_template_renders"
     },
     {
       "relation": "calls",
@@ -20966,9 +21219,9 @@
       "source_file": "tests/test_templating.py",
       "source_location": "L86",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_templating_rationale_86",
-      "target": "tests_test_templating_resolved_paths",
-      "confidence_score": 1.0
+      "target": "tests_test_templating_resolved_paths"
     },
     {
       "relation": "calls",
@@ -20988,9 +21241,9 @@
       "source_file": "tests/test_templating.py",
       "source_location": "L109",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_templating_test_build_manifest_cursor_has_skills_and_rules_but_no_commands",
-      "target": "tests_test_templating_resolved_paths",
-      "confidence_score": 1.0
+      "target": "tests_test_templating_resolved_paths"
     },
     {
       "relation": "calls",
@@ -21009,9 +21262,9 @@
       "source_file": "tests/test_templating.py",
       "source_location": "L100",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_templating_rationale_100",
-      "target": "tests_test_templating_test_build_manifest_cursor_matches_default",
-      "confidence_score": 1.0
+      "target": "tests_test_templating_test_build_manifest_cursor_matches_default"
     },
     {
       "relation": "rationale_for",
@@ -21019,9 +21272,9 @@
       "source_file": "tests/test_templating.py",
       "source_location": "L106",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_templating_rationale_106",
-      "target": "tests_test_templating_test_build_manifest_cursor_has_skills_and_rules_but_no_commands",
-      "confidence_score": 1.0
+      "target": "tests_test_templating_test_build_manifest_cursor_has_skills_and_rules_but_no_commands"
     },
     {
       "relation": "rationale_for",
@@ -21029,9 +21282,9 @@
       "source_file": "tests/test_templating.py",
       "source_location": "L117",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_templating_rationale_117",
-      "target": "tests_test_templating_test_build_manifest_codex_has_skills_and_docs_but_no_commands",
-      "confidence_score": 1.0
+      "target": "tests_test_templating_test_build_manifest_codex_has_skills_and_docs_but_no_commands"
     },
     {
       "relation": "rationale_for",
@@ -21049,9 +21302,9 @@
       "source_file": "tests/test_templating.py",
       "source_location": "L146",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_templating_rationale_146",
-      "target": "tests_test_templating_test_build_manifest_no_cursor_leakage_in_non_cursor_outputs",
-      "confidence_score": 1.0
+      "target": "tests_test_templating_test_build_manifest_no_cursor_leakage_in_non_cursor_outputs"
     },
     {
       "relation": "rationale_for",
@@ -21059,9 +21312,9 @@
       "source_file": "tests/test_templating.py",
       "source_location": "L177",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_templating_rationale_177",
-      "target": "tests_test_templating_test_manifest_has_expected_skills",
-      "confidence_score": 1.0
+      "target": "tests_test_templating_test_manifest_has_expected_skills"
     },
     {
       "relation": "rationale_for",
@@ -21069,9 +21322,9 @@
       "source_file": "tests/test_templating.py",
       "source_location": "L204",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_templating_rationale_204",
-      "target": "tests_test_templating_test_claude_manifest_has_expected_commands",
-      "confidence_score": 1.0
+      "target": "tests_test_templating_test_claude_manifest_has_expected_commands"
     },
     {
       "relation": "calls",
@@ -21171,6 +21424,17 @@
       "confidence_score": 1.0,
       "source": "tests_test_templating_test_issue_close_describes_history_update_step",
       "target": "tests_test_templating_default_context"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_templating.py",
+      "source_location": "L262",
+      "weight": 1.0,
+      "source": "tests_test_templating_test_issue_close_switches_to_default_when_clean_unless_stay",
+      "target": "tests_test_templating_default_context",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -21408,9 +21672,9 @@
       "source_file": "tests/test_templating.py",
       "source_location": "L244",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_templating_rationale_244",
-      "target": "tests_test_templating_test_issue_start_mentions_branch_and_sweep_preflight",
-      "confidence_score": 1.0
+      "target": "tests_test_templating_test_issue_start_mentions_branch_and_sweep_preflight"
     },
     {
       "relation": "rationale_for",
@@ -21428,8 +21692,18 @@
       "source_file": "tests/test_templating.py",
       "source_location": "L252",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_templating_rationale_252",
-      "target": "tests_test_templating_test_issue_close_delegates_post_merge_cleanup_to_issue_cleanup",
+      "target": "tests_test_templating_test_issue_close_delegates_post_merge_cleanup_to_issue_cleanup"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_templating.py",
+      "source_location": "L261",
+      "weight": 1.0,
+      "source": "tests_test_templating_rationale_261",
+      "target": "tests_test_templating_test_issue_close_switches_to_default_when_clean_unless_stay",
       "confidence_score": 1.0
     },
     {
@@ -21448,7 +21722,17 @@
       "source_file": "tests/test_templating.py",
       "source_location": "L261",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_templating_rationale_261",
+      "target": "tests_test_templating_test_issue_cleanup_describes_post_merge_branch_cleanup"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_templating.py",
+      "source_location": "L272",
+      "weight": 1.0,
+      "source": "tests_test_templating_rationale_272",
       "target": "tests_test_templating_test_issue_cleanup_describes_post_merge_branch_cleanup",
       "confidence_score": 1.0
     },
@@ -21466,9 +21750,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_templating.py",
-      "source_location": "L271",
+      "source_location": "L282",
       "weight": 1.0,
-      "source": "tests_test_templating_rationale_271",
+      "source": "tests_test_templating_rationale_282",
       "target": "tests_test_templating_test_issue_start_requires_or_offers_plan",
       "confidence_score": 1.0
     },
@@ -21486,9 +21770,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_templating.py",
-      "source_location": "L278",
+      "source_location": "L289",
       "weight": 1.0,
-      "source": "tests_test_templating_rationale_278",
+      "source": "tests_test_templating_rationale_289",
       "target": "tests_test_templating_test_issue_plan_writes_plan_file_and_stops_for_confirmation",
       "confidence_score": 1.0
     },
@@ -21496,9 +21780,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_templating.py",
-      "source_location": "L291",
+      "source_location": "L302",
       "weight": 1.0,
-      "source": "tests_test_templating_rationale_291",
+      "source": "tests_test_templating_rationale_302",
       "target": "tests_test_templating_test_issue_plan_includes_prior_art_discovery",
       "confidence_score": 1.0
     },
@@ -21506,9 +21790,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_templating.py",
-      "source_location": "L303",
+      "source_location": "L314",
       "weight": 1.0,
-      "source": "tests_test_templating_rationale_303",
+      "source": "tests_test_templating_rationale_314",
       "target": "tests_test_templating_test_templates_reference_project_brief",
       "confidence_score": 1.0
     },
@@ -21526,9 +21810,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_templating.py",
-      "source_location": "L320",
+      "source_location": "L331",
       "weight": 1.0,
-      "source": "tests_test_templating_rationale_320",
+      "source": "tests_test_templating_rationale_331",
       "target": "tests_test_templating_test_issue_start_reads_prior_art_from_plan",
       "confidence_score": 1.0
     },
@@ -21546,9 +21830,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_templating.py",
-      "source_location": "L328",
+      "source_location": "L339",
       "weight": 1.0,
-      "source": "tests_test_templating_rationale_328",
+      "source": "tests_test_templating_rationale_339",
       "target": "tests_test_templating_test_issue_pause_moves_to_partly_solved",
       "confidence_score": 1.0
     },
@@ -21566,9 +21850,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_templating.py",
-      "source_location": "L336",
+      "source_location": "L347",
       "weight": 1.0,
-      "source": "tests_test_templating_rationale_336",
+      "source": "tests_test_templating_rationale_347",
       "target": "tests_test_templating_test_issue_yolo_has_safeguards",
       "confidence_score": 1.0
     },
@@ -21586,9 +21870,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_templating.py",
-      "source_location": "L345",
+      "source_location": "L356",
       "weight": 1.0,
-      "source": "tests_test_templating_rationale_345",
+      "source": "tests_test_templating_rationale_356",
       "target": "tests_test_templating_test_issue_fix_describes_interactive_session",
       "confidence_score": 1.0
     },
@@ -21596,9 +21880,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_templating.py",
-      "source_location": "L364",
+      "source_location": "L375",
       "weight": 1.0,
-      "source": "tests_test_templating_rationale_364",
+      "source": "tests_test_templating_rationale_375",
       "target": "tests_test_templating_test_issue_fix_skill_mirrors_command",
       "confidence_score": 1.0
     },
@@ -21616,9 +21900,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_templating.py",
-      "source_location": "L377",
+      "source_location": "L388",
       "weight": 1.0,
-      "source": "tests_test_templating_rationale_377",
+      "source": "tests_test_templating_rationale_388",
       "target": "tests_test_templating_test_iflow_lists_issue_fix_as_off_path",
       "confidence_score": 1.0
     },
@@ -21626,9 +21910,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_templating.py",
-      "source_location": "L385",
+      "source_location": "L396",
       "weight": 1.0,
-      "source": "tests_test_templating_rationale_385",
+      "source": "tests_test_templating_rationale_396",
       "target": "tests_test_templating_test_iflow_describes_state_machine",
       "confidence_score": 1.0
     },
@@ -21636,9 +21920,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_templating.py",
-      "source_location": "L406",
+      "source_location": "L417",
       "weight": 1.0,
-      "source": "tests_test_templating_rationale_406",
+      "source": "tests_test_templating_rationale_417",
       "target": "tests_test_templating_test_iflow_treats_branch_derived_n_as_authoritative",
       "confidence_score": 1.0
     },
@@ -21656,9 +21940,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_templating.py",
-      "source_location": "L422",
+      "source_location": "L433",
       "weight": 1.0,
-      "source": "tests_test_templating_rationale_422",
+      "source": "tests_test_templating_rationale_433",
       "target": "tests_test_templating_test_issue_pick_documents_three_phases_and_fix_shortcut",
       "confidence_score": 1.0
     },
@@ -21666,9 +21950,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_templating.py",
-      "source_location": "L447",
+      "source_location": "L458",
       "weight": 1.0,
-      "source": "tests_test_templating_rationale_447",
+      "source": "tests_test_templating_rationale_458",
       "target": "tests_test_templating_test_issue_pick_skill_mirrors_command",
       "confidence_score": 1.0
     },
@@ -21686,9 +21970,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_templating.py",
-      "source_location": "L461",
+      "source_location": "L472",
       "weight": 1.0,
-      "source": "tests_test_templating_rationale_461",
+      "source": "tests_test_templating_rationale_472",
       "target": "tests_test_templating_test_iflow_does_not_auto_dispatch_issue_pick",
       "confidence_score": 1.0
     },
@@ -21706,9 +21990,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_templating.py",
-      "source_location": "L469",
+      "source_location": "L480",
       "weight": 1.0,
-      "source": "tests_test_templating_rationale_469",
+      "source": "tests_test_templating_rationale_480",
       "target": "tests_test_templating_test_issue_init_mentions_branch_preflight_and_archive_guard",
       "confidence_score": 1.0
     },
@@ -21716,9 +22000,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_templating.py",
-      "source_location": "L476",
+      "source_location": "L487",
       "weight": 1.0,
-      "source": "tests_test_templating_rationale_476",
+      "source": "tests_test_templating_rationale_487",
       "target": "tests_test_templating_test_issueflow_rules_has_branch_hygiene_section",
       "confidence_score": 1.0
     },
@@ -21726,9 +22010,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_templating.py",
-      "source_location": "L484",
+      "source_location": "L495",
       "weight": 1.0,
-      "source": "tests_test_templating_rationale_484",
+      "source": "tests_test_templating_rationale_495",
       "target": "tests_test_templating_test_rules_body_defers_to_project_toolchain_and_covers_conda",
       "confidence_score": 1.0
     },
@@ -21746,9 +22030,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_templating.py",
-      "source_location": "L508",
+      "source_location": "L519",
       "weight": 1.0,
-      "source": "tests_test_templating_rationale_508",
+      "source": "tests_test_templating_rationale_519",
       "target": "tests_test_templating_test_issue_close_describes_history_update_step",
       "confidence_score": 1.0
     },
@@ -21756,9 +22040,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_templating.py",
-      "source_location": "L520",
+      "source_location": "L531",
       "weight": 1.0,
-      "source": "tests_test_templating_rationale_520",
+      "source": "tests_test_templating_rationale_531",
       "target": "tests_test_templating_test_history_update_skill_documents_both_modes",
       "confidence_score": 1.0
     },
@@ -21766,9 +22050,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_templating.py",
-      "source_location": "L535",
+      "source_location": "L546",
       "weight": 1.0,
-      "source": "tests_test_templating_rationale_535",
+      "source": "tests_test_templating_rationale_546",
       "target": "tests_test_templating_test_history_update_skill_respects_history_file_override",
       "confidence_score": 1.0
     },
@@ -21786,9 +22070,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_templating.py",
-      "source_location": "L547",
+      "source_location": "L558",
       "weight": 1.0,
-      "source": "tests_test_templating_rationale_547",
+      "source": "tests_test_templating_rationale_558",
       "target": "tests_test_templating_test_issue_yolo_forwards_history_tokens",
       "confidence_score": 1.0
     },
@@ -21796,9 +22080,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_templating.py",
-      "source_location": "L554",
+      "source_location": "L567",
       "weight": 1.0,
-      "source": "tests_test_templating_rationale_554",
+      "source": "tests_test_templating_rationale_567",
       "target": "tests_test_templating_test_issue_init_fetches_and_triages_comments",
       "confidence_score": 1.0
     },
@@ -21806,9 +22090,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_templating.py",
-      "source_location": "L574",
+      "source_location": "L587",
       "weight": 1.0,
-      "source": "tests_test_templating_rationale_574",
+      "source": "tests_test_templating_rationale_587",
       "target": "tests_test_templating_test_issue_init_documents_agent_efficiency",
       "confidence_score": 1.0
     },
@@ -21816,9 +22100,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_templating.py",
-      "source_location": "L593",
+      "source_location": "L606",
       "weight": 1.0,
-      "source": "tests_test_templating_rationale_593",
+      "source": "tests_test_templating_rationale_606",
       "target": "tests_test_templating_test_issue_init_skill_delegates_to_comments_skill",
       "confidence_score": 1.0
     },
@@ -21836,9 +22120,9 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_templating.py",
-      "source_location": "L603",
+      "source_location": "L616",
       "weight": 1.0,
-      "source": "tests_test_templating_rationale_603",
+      "source": "tests_test_templating_rationale_616",
       "target": "tests_test_templating_test_issue_comments_skill_documents_triage_rules",
       "confidence_score": 1.0
     },
@@ -21918,9 +22202,9 @@
       "source_file": "tests/test_update.py",
       "source_location": "L71",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_update",
-      "target": "tests_test_update_test_update_prunes_empty_cursor_commands_dir",
-      "confidence_score": 1.0
+      "target": "tests_test_update_test_update_prunes_empty_cursor_commands_dir"
     },
     {
       "relation": "contains",
@@ -21928,9 +22212,9 @@
       "source_file": "tests/test_update.py",
       "source_location": "L53",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_update",
-      "target": "tests_test_update_test_update_prunes_generated_cursor_commands_but_keeps_user_commands",
-      "confidence_score": 1.0
+      "target": "tests_test_update_test_update_prunes_generated_cursor_commands_but_keeps_user_commands"
     },
     {
       "relation": "contains",
@@ -21938,9 +22222,9 @@
       "source_file": "tests/test_update.py",
       "source_location": "L83",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_update",
-      "target": "tests_test_update_test_update_prunes_old_iflow_iflow_skill_folder",
-      "confidence_score": 1.0
+      "target": "tests_test_update_test_update_prunes_old_iflow_iflow_skill_folder"
     },
     {
       "relation": "contains",
@@ -22018,9 +22302,9 @@
       "source_file": "tests/test_update.py",
       "source_location": "L56",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_update_rationale_56",
-      "target": "tests_test_update_test_update_prunes_generated_cursor_commands_but_keeps_user_commands",
-      "confidence_score": 1.0
+      "target": "tests_test_update_test_update_prunes_generated_cursor_commands_but_keeps_user_commands"
     },
     {
       "relation": "rationale_for",
@@ -22028,9 +22312,9 @@
       "source_file": "tests/test_update.py",
       "source_location": "L72",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_update_rationale_72",
-      "target": "tests_test_update_test_update_prunes_empty_cursor_commands_dir",
-      "confidence_score": 1.0
+      "target": "tests_test_update_test_update_prunes_empty_cursor_commands_dir"
     },
     {
       "relation": "rationale_for",
@@ -22038,9 +22322,9 @@
       "source_file": "tests/test_update.py",
       "source_location": "L84",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_update_rationale_84",
-      "target": "tests_test_update_test_update_prunes_old_iflow_iflow_skill_folder",
-      "confidence_score": 1.0
+      "target": "tests_test_update_test_update_prunes_old_iflow_iflow_skill_folder"
     },
     {
       "relation": "rationale_for",
@@ -22048,9 +22332,9 @@
       "source_file": "tests/test_update.py",
       "source_location": "L97",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_update_rationale_97",
-      "target": "tests_test_update_test_update_recreates_removed_subdir",
-      "confidence_score": 1.0
+      "target": "tests_test_update_test_update_recreates_removed_subdir"
     },
     {
       "relation": "rationale_for",
@@ -22058,9 +22342,9 @@
       "source_file": "tests/test_update.py",
       "source_location": "L111",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_update_rationale_111",
-      "target": "tests_test_update_test_update_preserves_designs_folder_contents",
-      "confidence_score": 1.0
+      "target": "tests_test_update_test_update_preserves_designs_folder_contents"
     },
     {
       "relation": "rationale_for",
@@ -22068,9 +22352,9 @@
       "source_file": "tests/test_update.py",
       "source_location": "L125",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_update_rationale_125",
-      "target": "tests_test_update_test_update_creates_project_brief_when_missing",
-      "confidence_score": 1.0
+      "target": "tests_test_update_test_update_creates_project_brief_when_missing"
     },
     {
       "relation": "rationale_for",
@@ -22078,9 +22362,9 @@
       "source_file": "tests/test_update.py",
       "source_location": "L139",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_update_rationale_139",
-      "target": "tests_test_update_test_update_preserves_project_brief",
-      "confidence_score": 1.0
+      "target": "tests_test_update_test_update_preserves_project_brief"
     },
     {
       "relation": "rationale_for",
@@ -22088,9 +22372,9 @@
       "source_file": "tests/test_update.py",
       "source_location": "L157",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_update_rationale_157",
-      "target": "tests_test_update_test_update_refreshes_agents_md_block_preserving_user_content",
-      "confidence_score": 1.0
+      "target": "tests_test_update_test_update_refreshes_agents_md_block_preserving_user_content"
     },
     {
       "relation": "rationale_for",
@@ -22098,9 +22382,9 @@
       "source_file": "tests/test_update.py",
       "source_location": "L178",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_update_rationale_178",
-      "target": "tests_test_update_test_update_claude_editor_refreshes_claude_md",
-      "confidence_score": 1.0
+      "target": "tests_test_update_test_update_claude_editor_refreshes_claude_md"
     },
     {
       "relation": "rationale_for",
@@ -22108,9 +22392,9 @@
       "source_file": "tests/test_update.py",
       "source_location": "L192",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "tests_test_update_rationale_192",
-      "target": "tests_test_update_test_update_recreates_removed_designs_folder",
-      "confidence_score": 1.0
+      "target": "tests_test_update_test_update_recreates_removed_designs_folder"
     },
     {
       "relation": "contains",
@@ -22161,6 +22445,16 @@
       "confidence_score": 1.0,
       "source": "iflow_close_skill",
       "target": "iflow_close_skill_issue_flow_issue_close_iflow_close"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".cursor/skills/iflow-close/SKILL.md",
+      "source_location": "L36",
+      "weight": 1.0,
+      "source": "iflow_close_skill_issue_flow_issue_close_iflow_close",
+      "target": "iflow_close_skill_branch_switch_tokens_command_input",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -22908,9 +23202,9 @@
       "source_file": ".cursor/skills/iflow/SKILL.md",
       "source_location": "L12",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "iflow_skill",
-      "target": "iflow_skill_issue_flow_iflow_smart_dispatcher_iflow",
-      "confidence_score": 1.0
+      "target": "iflow_skill_issue_flow_iflow_smart_dispatcher_iflow"
     },
     {
       "relation": "contains",
@@ -22918,9 +23212,9 @@
       "source_file": ".cursor/skills/iflow/SKILL.md",
       "source_location": "L50",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "iflow_skill_issue_flow_iflow_smart_dispatcher_iflow",
-      "target": "iflow_skill_constraints",
-      "confidence_score": 1.0
+      "target": "iflow_skill_constraints"
     },
     {
       "relation": "contains",
@@ -22928,9 +23222,9 @@
       "source_file": ".cursor/skills/iflow/SKILL.md",
       "source_location": "L23",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "iflow_skill_issue_flow_iflow_smart_dispatcher_iflow",
-      "target": "iflow_skill_instructions",
-      "confidence_score": 1.0
+      "target": "iflow_skill_instructions"
     },
     {
       "relation": "contains",
@@ -22938,188 +23232,148 @@
       "source_file": ".cursor/skills/iflow/SKILL.md",
       "source_location": "L16",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "iflow_skill_issue_flow_iflow_smart_dispatcher_iflow",
-      "target": "iflow_skill_when_to_use",
-      "confidence_score": 1.0
+      "target": "iflow_skill_when_to_use"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": ".issueflows/01-current-issues/issue79_original.md",
-      "source_location": "L86",
-      "weight": 1.0,
-      "source": "01_current_issues_issue79_original",
-      "target": "01_current_issues_issue79_original_after_cursor_skills_commit_skill_md",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": ".issueflows/01-current-issues/issue79_original.md",
-      "source_location": "L66",
-      "weight": 1.0,
-      "source": "01_current_issues_issue79_original",
-      "target": "01_current_issues_issue79_original_after_cursor_skills_my_rule_skill_md",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": ".issueflows/01-current-issues/issue79_original.md",
-      "source_location": "L80",
-      "weight": 1.0,
-      "source": "01_current_issues_issue79_original",
-      "target": "01_current_issues_issue79_original_before_cursor_commands_commit_md",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": ".issueflows/01-current-issues/issue79_original.md",
-      "source_location": "L55",
-      "weight": 1.0,
-      "source": "01_current_issues_issue79_original",
-      "target": "01_current_issues_issue79_original_before_cursor_rules_my_rule_mdc",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": ".issueflows/01-current-issues/issue79_original.md",
-      "source_location": "L81",
-      "weight": 1.0,
-      "source": "01_current_issues_issue79_original",
-      "target": "01_current_issues_issue79_original_commit_current_work",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": ".issueflows/01-current-issues/issue79_original.md",
-      "source_location": "L92",
-      "weight": 1.0,
-      "source": "01_current_issues_issue79_original",
-      "target": "01_current_issues_issue79_original_commit_current_work_92",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": ".issueflows/01-current-issues/issue79_original.md",
+      "source_file": ".issueflows/01-current-issues/issue82_original.md",
       "source_location": "L1",
       "weight": 1.0,
-      "source": "01_current_issues_issue79_original",
-      "target": "01_current_issues_issue79_original_issue_79_new_cursor_conventions",
+      "source": "01_current_issues_issue82_original",
+      "target": "01_current_issues_issue82_original_issue_82_switch_back_to_main_if_clean",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": ".issueflows/01-current-issues/issue79_original.md",
-      "source_location": "L61",
-      "weight": 1.0,
-      "source": "01_current_issues_issue79_original",
-      "target": "01_current_issues_issue79_original_title",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": ".issueflows/01-current-issues/issue79_original.md",
-      "source_location": "L71",
-      "weight": 1.0,
-      "source": "01_current_issues_issue79_original",
-      "target": "01_current_issues_issue79_original_title_71",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": ".issueflows/01-current-issues/issue79_original.md",
+      "source_file": ".issueflows/01-current-issues/issue82_original.md",
       "source_location": "L5",
       "weight": 1.0,
-      "source": "01_current_issues_issue79_original_issue_79_new_cursor_conventions",
-      "target": "01_current_issues_issue79_original_original_issue_text",
+      "source": "01_current_issues_issue82_original_issue_82_switch_back_to_main_if_clean",
+      "target": "01_current_issues_issue82_original_original_issue_text",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": ".issueflows/01-current-issues/issue79_plan.md",
+      "source_file": ".issueflows/01-current-issues/issue82_plan.md",
       "source_location": "L1",
       "weight": 1.0,
-      "source": "01_current_issues_issue79_plan",
-      "target": "01_current_issues_issue79_plan_issue_79_plan_new_cursor_conventions",
+      "source": "01_current_issues_issue82_plan",
+      "target": "01_current_issues_issue82_plan_plan_for_issue_82_switch_back_to_main_if_clean",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": ".issueflows/01-current-issues/issue79_plan.md",
-      "source_location": "L24",
+      "source_file": ".issueflows/01-current-issues/issue82_plan.md",
+      "source_location": "L23",
       "weight": 1.0,
-      "source": "01_current_issues_issue79_plan_issue_79_plan_new_cursor_conventions",
-      "target": "01_current_issues_issue79_plan_approach",
+      "source": "01_current_issues_issue82_plan_plan_for_issue_82_switch_back_to_main_if_clean",
+      "target": "01_current_issues_issue82_plan_approach",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": ".issueflows/01-current-issues/issue79_plan.md",
+      "source_file": ".issueflows/01-current-issues/issue82_plan.md",
       "source_location": "L7",
       "weight": 1.0,
-      "source": "01_current_issues_issue79_plan_issue_79_plan_new_cursor_conventions",
-      "target": "01_current_issues_issue79_plan_constraints",
+      "source": "01_current_issues_issue82_plan_plan_for_issue_82_switch_back_to_main_if_clean",
+      "target": "01_current_issues_issue82_plan_constraints",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": ".issueflows/01-current-issues/issue79_plan.md",
-      "source_location": "L32",
+      "source_file": ".issueflows/01-current-issues/issue82_plan.md",
+      "source_location": "L41",
       "weight": 1.0,
-      "source": "01_current_issues_issue79_plan_issue_79_plan_new_cursor_conventions",
-      "target": "01_current_issues_issue79_plan_files_to_touch",
+      "source": "01_current_issues_issue82_plan_plan_for_issue_82_switch_back_to_main_if_clean",
+      "target": "01_current_issues_issue82_plan_files_to_touch",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": ".issueflows/01-current-issues/issue79_plan.md",
+      "source_file": ".issueflows/01-current-issues/issue82_plan.md",
       "source_location": "L3",
       "weight": 1.0,
-      "source": "01_current_issues_issue79_plan_issue_79_plan_new_cursor_conventions",
-      "target": "01_current_issues_issue79_plan_goal",
+      "source": "01_current_issues_issue82_plan_plan_for_issue_82_switch_back_to_main_if_clean",
+      "target": "01_current_issues_issue82_plan_goal",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": ".issueflows/01-current-issues/issue79_plan.md",
-      "source_location": "L50",
+      "source_file": ".issueflows/01-current-issues/issue82_plan.md",
+      "source_location": "L58",
       "weight": 1.0,
-      "source": "01_current_issues_issue79_plan_issue_79_plan_new_cursor_conventions",
-      "target": "01_current_issues_issue79_plan_open_questions",
+      "source": "01_current_issues_issue82_plan_plan_for_issue_82_switch_back_to_main_if_clean",
+      "target": "01_current_issues_issue82_plan_open_questions",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": ".issueflows/01-current-issues/issue79_plan.md",
-      "source_location": "L43",
+      "source_file": ".issueflows/01-current-issues/issue82_plan.md",
+      "source_location": "L51",
       "weight": 1.0,
-      "source": "01_current_issues_issue79_plan_issue_79_plan_new_cursor_conventions",
-      "target": "01_current_issues_issue79_plan_test_strategy",
+      "source": "01_current_issues_issue82_plan_plan_for_issue_82_switch_back_to_main_if_clean",
+      "target": "01_current_issues_issue82_plan_test_strategy",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": ".issueflows/01-current-issues/issue79_plan.md",
+      "source_file": ".issueflows/01-current-issues/issue82_plan.md",
       "source_location": "L14",
       "weight": 1.0,
-      "source": "01_current_issues_issue79_plan_constraints",
-      "target": "01_current_issues_issue79_plan_prior_art",
+      "source": "01_current_issues_issue82_plan_constraints",
+      "target": "01_current_issues_issue82_plan_prior_art",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".issueflows/01-current-issues/issue82_status.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "01_current_issues_issue82_status",
+      "target": "01_current_issues_issue82_status_status_for_issue_82_switch_back_to_main_if_clean",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".issueflows/01-current-issues/issue82_status.md",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "01_current_issues_issue82_status_status_for_issue_82_switch_back_to_main_if_clean",
+      "target": "01_current_issues_issue82_status_done_so_far",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".issueflows/01-current-issues/issue82_status.md",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "01_current_issues_issue82_status_status_for_issue_82_switch_back_to_main_if_clean",
+      "target": "01_current_issues_issue82_status_remaining_work",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".issueflows/01-current-issues/issue82_status.md",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "01_current_issues_issue82_status_status_for_issue_82_switch_back_to_main_if_clean",
+      "target": "01_current_issues_issue82_status_status",
       "confidence_score": 1.0
     },
     {
@@ -24828,9 +25082,9 @@
       "source_file": ".issueflows/03-solved-issues/issue53_original.md",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "03_solved_issues_issue53_original",
-      "target": "03_solved_issues_issue53_original_issue_53_add_a_project_summary_doc_this_project_md_generated_maintained_by_issue_flow",
-      "confidence_score": 1.0
+      "target": "03_solved_issues_issue53_original_issue_53_add_a_project_summary_doc_this_project_md_generated_maintained_by_issue_flow"
     },
     {
       "relation": "contains",
@@ -24838,9 +25092,9 @@
       "source_file": ".issueflows/03-solved-issues/issue53_original.md",
       "source_location": "L60",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "03_solved_issues_issue53_original_issue_53_add_a_project_summary_doc_this_project_md_generated_maintained_by_issue_flow",
-      "target": "03_solved_issues_issue53_original_acceptance_criteria",
-      "confidence_score": 1.0
+      "target": "03_solved_issues_issue53_original_acceptance_criteria"
     },
     {
       "relation": "contains",
@@ -24848,9 +25102,9 @@
       "source_file": ".issueflows/03-solved-issues/issue53_original.md",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "03_solved_issues_issue53_original_issue_53_add_a_project_summary_doc_this_project_md_generated_maintained_by_issue_flow",
-      "target": "03_solved_issues_issue53_original_background",
-      "confidence_score": 1.0
+      "target": "03_solved_issues_issue53_original_background"
     },
     {
       "relation": "contains",
@@ -24858,9 +25112,9 @@
       "source_file": ".issueflows/03-solved-issues/issue53_original.md",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "03_solved_issues_issue53_original_issue_53_add_a_project_summary_doc_this_project_md_generated_maintained_by_issue_flow",
-      "target": "03_solved_issues_issue53_original_original_issue_text",
-      "confidence_score": 1.0
+      "target": "03_solved_issues_issue53_original_original_issue_text"
     },
     {
       "relation": "contains",
@@ -24868,9 +25122,9 @@
       "source_file": ".issueflows/03-solved-issues/issue53_original.md",
       "source_location": "L55",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "03_solved_issues_issue53_original_issue_53_add_a_project_summary_doc_this_project_md_generated_maintained_by_issue_flow",
-      "target": "03_solved_issues_issue53_original_out_of_scope",
-      "confidence_score": 1.0
+      "target": "03_solved_issues_issue53_original_out_of_scope"
     },
     {
       "relation": "contains",
@@ -24878,9 +25132,9 @@
       "source_file": ".issueflows/03-solved-issues/issue53_original.md",
       "source_location": "L19",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "03_solved_issues_issue53_original_issue_53_add_a_project_summary_doc_this_project_md_generated_maintained_by_issue_flow",
-      "target": "03_solved_issues_issue53_original_sketch_of_the_design",
-      "confidence_score": 1.0
+      "target": "03_solved_issues_issue53_original_sketch_of_the_design"
     },
     {
       "relation": "contains",
@@ -24888,9 +25142,9 @@
       "source_file": ".issueflows/03-solved-issues/issue53_original.md",
       "source_location": "L27",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "03_solved_issues_issue53_original_sketch_of_the_design",
-      "target": "03_solved_issues_issue53_original_contents_suggested_skeleton",
-      "confidence_score": 1.0
+      "target": "03_solved_issues_issue53_original_contents_suggested_skeleton"
     },
     {
       "relation": "contains",
@@ -24898,9 +25152,9 @@
       "source_file": ".issueflows/03-solved-issues/issue53_original.md",
       "source_location": "L38",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "03_solved_issues_issue53_original_sketch_of_the_design",
-      "target": "03_solved_issues_issue53_original_generation_behavior",
-      "confidence_score": 1.0
+      "target": "03_solved_issues_issue53_original_generation_behavior"
     },
     {
       "relation": "contains",
@@ -24908,9 +25162,9 @@
       "source_file": ".issueflows/03-solved-issues/issue53_original.md",
       "source_location": "L44",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "03_solved_issues_issue53_original_sketch_of_the_design",
-      "target": "03_solved_issues_issue53_original_integration_with_skills_rules",
-      "confidence_score": 1.0
+      "target": "03_solved_issues_issue53_original_integration_with_skills_rules"
     },
     {
       "relation": "contains",
@@ -24918,9 +25172,9 @@
       "source_file": ".issueflows/03-solved-issues/issue53_original.md",
       "source_location": "L21",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "03_solved_issues_issue53_original_sketch_of_the_design",
-      "target": "03_solved_issues_issue53_original_location",
-      "confidence_score": 1.0
+      "target": "03_solved_issues_issue53_original_location"
     },
     {
       "relation": "contains",
@@ -24928,9 +25182,9 @@
       "source_file": ".issueflows/03-solved-issues/issue53_original.md",
       "source_location": "L49",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "03_solved_issues_issue53_original_sketch_of_the_design",
-      "target": "03_solved_issues_issue53_original_open_questions",
-      "confidence_score": 1.0
+      "target": "03_solved_issues_issue53_original_open_questions"
     },
     {
       "relation": "contains",
@@ -24938,9 +25192,9 @@
       "source_file": ".issueflows/03-solved-issues/issue53_plan.md",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "03_solved_issues_issue53_plan",
-      "target": "03_solved_issues_issue53_plan_plan_for_issue_53_add_a_project_summary_doc_this_project_md_generated_maintained_by_issue_flow",
-      "confidence_score": 1.0
+      "target": "03_solved_issues_issue53_plan_plan_for_issue_53_add_a_project_summary_doc_this_project_md_generated_maintained_by_issue_flow"
     },
     {
       "relation": "contains",
@@ -24948,9 +25202,9 @@
       "source_file": ".issueflows/03-solved-issues/issue53_plan.md",
       "source_location": "L26",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "03_solved_issues_issue53_plan_plan_for_issue_53_add_a_project_summary_doc_this_project_md_generated_maintained_by_issue_flow",
-      "target": "03_solved_issues_issue53_plan_approach",
-      "confidence_score": 1.0
+      "target": "03_solved_issues_issue53_plan_approach"
     },
     {
       "relation": "contains",
@@ -24958,9 +25212,9 @@
       "source_file": ".issueflows/03-solved-issues/issue53_plan.md",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "03_solved_issues_issue53_plan_plan_for_issue_53_add_a_project_summary_doc_this_project_md_generated_maintained_by_issue_flow",
-      "target": "03_solved_issues_issue53_plan_constraints",
-      "confidence_score": 1.0
+      "target": "03_solved_issues_issue53_plan_constraints"
     },
     {
       "relation": "contains",
@@ -24968,9 +25222,9 @@
       "source_file": ".issueflows/03-solved-issues/issue53_plan.md",
       "source_location": "L54",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "03_solved_issues_issue53_plan_plan_for_issue_53_add_a_project_summary_doc_this_project_md_generated_maintained_by_issue_flow",
-      "target": "03_solved_issues_issue53_plan_files_to_touch",
-      "confidence_score": 1.0
+      "target": "03_solved_issues_issue53_plan_files_to_touch"
     },
     {
       "relation": "contains",
@@ -24978,9 +25232,9 @@
       "source_file": ".issueflows/03-solved-issues/issue53_plan.md",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "03_solved_issues_issue53_plan_plan_for_issue_53_add_a_project_summary_doc_this_project_md_generated_maintained_by_issue_flow",
-      "target": "03_solved_issues_issue53_plan_goal",
-      "confidence_score": 1.0
+      "target": "03_solved_issues_issue53_plan_goal"
     },
     {
       "relation": "contains",
@@ -24988,9 +25242,9 @@
       "source_file": ".issueflows/03-solved-issues/issue53_plan.md",
       "source_location": "L77",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "03_solved_issues_issue53_plan_plan_for_issue_53_add_a_project_summary_doc_this_project_md_generated_maintained_by_issue_flow",
-      "target": "03_solved_issues_issue53_plan_open_questions",
-      "confidence_score": 1.0
+      "target": "03_solved_issues_issue53_plan_open_questions"
     },
     {
       "relation": "contains",
@@ -24998,9 +25252,9 @@
       "source_file": ".issueflows/03-solved-issues/issue53_plan.md",
       "source_location": "L70",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "03_solved_issues_issue53_plan_plan_for_issue_53_add_a_project_summary_doc_this_project_md_generated_maintained_by_issue_flow",
-      "target": "03_solved_issues_issue53_plan_test_strategy",
-      "confidence_score": 1.0
+      "target": "03_solved_issues_issue53_plan_test_strategy"
     },
     {
       "relation": "contains",
@@ -25008,9 +25262,9 @@
       "source_file": ".issueflows/03-solved-issues/issue53_plan.md",
       "source_location": "L17",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "03_solved_issues_issue53_plan_constraints",
-      "target": "03_solved_issues_issue53_plan_prior_art",
-      "confidence_score": 1.0
+      "target": "03_solved_issues_issue53_plan_prior_art"
     },
     {
       "relation": "contains",
@@ -25018,9 +25272,9 @@
       "source_file": ".issueflows/03-solved-issues/issue53_status.md",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "03_solved_issues_issue53_status",
-      "target": "03_solved_issues_issue53_status_issue_53_status",
-      "confidence_score": 1.0
+      "target": "03_solved_issues_issue53_status_issue_53_status"
     },
     {
       "relation": "contains",
@@ -25028,9 +25282,9 @@
       "source_file": ".issueflows/03-solved-issues/issue53_status.md",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "03_solved_issues_issue53_status_issue_53_status",
-      "target": "03_solved_issues_issue53_status_done_so_far",
-      "confidence_score": 1.0
+      "target": "03_solved_issues_issue53_status_done_so_far"
     },
     {
       "relation": "contains",
@@ -25038,9 +25292,9 @@
       "source_file": ".issueflows/03-solved-issues/issue53_status.md",
       "source_location": "L17",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "03_solved_issues_issue53_status_issue_53_status",
-      "target": "03_solved_issues_issue53_status_remaining_work",
-      "confidence_score": 1.0
+      "target": "03_solved_issues_issue53_status_remaining_work"
     },
     {
       "relation": "contains",
@@ -26795,6 +27049,226 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": ".issueflows/03-solved-issues/issue79_original.md",
+      "source_location": "L86",
+      "weight": 1.0,
+      "source": "03_solved_issues_issue79_original",
+      "target": "03_solved_issues_issue79_original_after_cursor_skills_commit_skill_md",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".issueflows/03-solved-issues/issue79_original.md",
+      "source_location": "L66",
+      "weight": 1.0,
+      "source": "03_solved_issues_issue79_original",
+      "target": "03_solved_issues_issue79_original_after_cursor_skills_my_rule_skill_md",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".issueflows/03-solved-issues/issue79_original.md",
+      "source_location": "L80",
+      "weight": 1.0,
+      "source": "03_solved_issues_issue79_original",
+      "target": "03_solved_issues_issue79_original_before_cursor_commands_commit_md",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".issueflows/03-solved-issues/issue79_original.md",
+      "source_location": "L55",
+      "weight": 1.0,
+      "source": "03_solved_issues_issue79_original",
+      "target": "03_solved_issues_issue79_original_before_cursor_rules_my_rule_mdc",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".issueflows/03-solved-issues/issue79_original.md",
+      "source_location": "L81",
+      "weight": 1.0,
+      "source": "03_solved_issues_issue79_original",
+      "target": "03_solved_issues_issue79_original_commit_current_work",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".issueflows/03-solved-issues/issue79_original.md",
+      "source_location": "L92",
+      "weight": 1.0,
+      "source": "03_solved_issues_issue79_original",
+      "target": "03_solved_issues_issue79_original_commit_current_work_92",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".issueflows/03-solved-issues/issue79_original.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "03_solved_issues_issue79_original",
+      "target": "03_solved_issues_issue79_original_issue_79_new_cursor_conventions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".issueflows/03-solved-issues/issue79_original.md",
+      "source_location": "L61",
+      "weight": 1.0,
+      "source": "03_solved_issues_issue79_original",
+      "target": "03_solved_issues_issue79_original_title",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".issueflows/03-solved-issues/issue79_original.md",
+      "source_location": "L71",
+      "weight": 1.0,
+      "source": "03_solved_issues_issue79_original",
+      "target": "03_solved_issues_issue79_original_title_71",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".issueflows/03-solved-issues/issue79_original.md",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "03_solved_issues_issue79_original_issue_79_new_cursor_conventions",
+      "target": "03_solved_issues_issue79_original_original_issue_text",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".issueflows/03-solved-issues/issue79_plan.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "03_solved_issues_issue79_plan",
+      "target": "03_solved_issues_issue79_plan_issue_79_plan_new_cursor_conventions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".issueflows/03-solved-issues/issue79_plan.md",
+      "source_location": "L24",
+      "weight": 1.0,
+      "source": "03_solved_issues_issue79_plan_issue_79_plan_new_cursor_conventions",
+      "target": "03_solved_issues_issue79_plan_approach",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".issueflows/03-solved-issues/issue79_plan.md",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "03_solved_issues_issue79_plan_issue_79_plan_new_cursor_conventions",
+      "target": "03_solved_issues_issue79_plan_constraints",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".issueflows/03-solved-issues/issue79_plan.md",
+      "source_location": "L32",
+      "weight": 1.0,
+      "source": "03_solved_issues_issue79_plan_issue_79_plan_new_cursor_conventions",
+      "target": "03_solved_issues_issue79_plan_files_to_touch",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".issueflows/03-solved-issues/issue79_plan.md",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "03_solved_issues_issue79_plan_issue_79_plan_new_cursor_conventions",
+      "target": "03_solved_issues_issue79_plan_goal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".issueflows/03-solved-issues/issue79_plan.md",
+      "source_location": "L50",
+      "weight": 1.0,
+      "source": "03_solved_issues_issue79_plan_issue_79_plan_new_cursor_conventions",
+      "target": "03_solved_issues_issue79_plan_open_questions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".issueflows/03-solved-issues/issue79_plan.md",
+      "source_location": "L43",
+      "weight": 1.0,
+      "source": "03_solved_issues_issue79_plan_issue_79_plan_new_cursor_conventions",
+      "target": "03_solved_issues_issue79_plan_test_strategy",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".issueflows/03-solved-issues/issue79_plan.md",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "03_solved_issues_issue79_plan_constraints",
+      "target": "03_solved_issues_issue79_plan_prior_art",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".issueflows/03-solved-issues/issue79_status.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "03_solved_issues_issue79_status",
+      "target": "03_solved_issues_issue79_status_status_for_issue_79_new_cursor_conventions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".issueflows/03-solved-issues/issue79_status.md",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "03_solved_issues_issue79_status_status_for_issue_79_new_cursor_conventions",
+      "target": "03_solved_issues_issue79_status_done_checklist",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".issueflows/03-solved-issues/issue79_status.md",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "03_solved_issues_issue79_status_status_for_issue_79_new_cursor_conventions",
+      "target": "03_solved_issues_issue79_status_verification",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".issueflows/03-solved-issues/issue79_status.md",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "03_solved_issues_issue79_status_status_for_issue_79_new_cursor_conventions",
+      "target": "03_solved_issues_issue79_status_what_changed",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": ".issueflows/03-solved-issues/issue7_original.md",
       "source_location": "L1",
       "weight": 1.0,
@@ -27288,9 +27762,9 @@
       "source_file": "AGENTS.md",
       "source_location": "L109",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "agents_agents_md",
-      "target": "agents_cursor_cloud_specific_instructions",
-      "confidence_score": 1.0
+      "target": "agents_cursor_cloud_specific_instructions"
     },
     {
       "relation": "contains",
@@ -28408,9 +28882,9 @@
       "source_file": "docs/issue-workflow.md",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_issue_workflow",
-      "target": "docs_issue_workflow_cursor_issue_workflow_agent_skills",
-      "confidence_score": 1.0
+      "target": "docs_issue_workflow_cursor_issue_workflow_agent_skills"
     },
     {
       "relation": "contains",
@@ -28418,9 +28892,9 @@
       "source_file": "docs/issue-workflow.md",
       "source_location": "L84",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_issue_workflow_cursor_issue_workflow_agent_skills",
-      "target": "docs_issue_workflow_0_iflow_smart_dispatcher_quick_start",
-      "confidence_score": 1.0
+      "target": "docs_issue_workflow_0_iflow_smart_dispatcher_quick_start"
     },
     {
       "relation": "contains",
@@ -28428,9 +28902,9 @@
       "source_file": "docs/issue-workflow.md",
       "source_location": "L64",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_issue_workflow_cursor_issue_workflow_agent_skills",
-      "target": "docs_issue_workflow_0a_iflow_pick_choose_the_next_issue_front_door",
-      "confidence_score": 1.0
+      "target": "docs_issue_workflow_0a_iflow_pick_choose_the_next_issue_front_door"
     },
     {
       "relation": "contains",
@@ -28438,9 +28912,9 @@
       "source_file": "docs/issue-workflow.md",
       "source_location": "L286",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_issue_workflow_cursor_issue_workflow_agent_skills",
-      "target": "docs_issue_workflow_10_iflow_status_status_overview_of_all_issues_read_only",
-      "confidence_score": 1.0
+      "target": "docs_issue_workflow_10_iflow_status_status_overview_of_all_issues_read_only"
     },
     {
       "relation": "contains",
@@ -28448,9 +28922,9 @@
       "source_file": "docs/issue-workflow.md",
       "source_location": "L107",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_issue_workflow_cursor_issue_workflow_agent_skills",
-      "target": "docs_issue_workflow_1_iflow_init_capture_the_issue_locally",
-      "confidence_score": 1.0
+      "target": "docs_issue_workflow_1_iflow_init_capture_the_issue_locally"
     },
     {
       "relation": "contains",
@@ -28458,9 +28932,9 @@
       "source_file": "docs/issue-workflow.md",
       "source_location": "L124",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_issue_workflow_cursor_issue_workflow_agent_skills",
-      "target": "docs_issue_workflow_2_iflow_plan_design_the_approach",
-      "confidence_score": 1.0
+      "target": "docs_issue_workflow_2_iflow_plan_design_the_approach"
     },
     {
       "relation": "contains",
@@ -28468,9 +28942,9 @@
       "source_file": "docs/issue-workflow.md",
       "source_location": "L144",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_issue_workflow_cursor_issue_workflow_agent_skills",
-      "target": "docs_issue_workflow_3_iflow_start_implement_the_plan",
-      "confidence_score": 1.0
+      "target": "docs_issue_workflow_3_iflow_start_implement_the_plan"
     },
     {
       "relation": "contains",
@@ -28478,9 +28952,9 @@
       "source_file": "docs/issue-workflow.md",
       "source_location": "L162",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_issue_workflow_cursor_issue_workflow_agent_skills",
-      "target": "docs_issue_workflow_4_iflow_pause_park_work_safely",
-      "confidence_score": 1.0
+      "target": "docs_issue_workflow_4_iflow_pause_park_work_safely"
     },
     {
       "relation": "contains",
@@ -28488,9 +28962,9 @@
       "source_file": "docs/issue-workflow.md",
       "source_location": "L178",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_issue_workflow_cursor_issue_workflow_agent_skills",
-      "target": "docs_issue_workflow_5_iflow_close_land_the_work",
-      "confidence_score": 1.0
+      "target": "docs_issue_workflow_5_iflow_close_land_the_work"
     },
     {
       "relation": "contains",
@@ -28498,9 +28972,9 @@
       "source_file": "docs/issue-workflow.md",
       "source_location": "L208",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_issue_workflow_cursor_issue_workflow_agent_skills",
-      "target": "docs_issue_workflow_6_iflow_cleanup_post_merge_branch_hygiene",
-      "confidence_score": 1.0
+      "target": "docs_issue_workflow_6_iflow_cleanup_post_merge_branch_hygiene"
     },
     {
       "relation": "contains",
@@ -28508,9 +28982,9 @@
       "source_file": "docs/issue-workflow.md",
       "source_location": "L226",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_issue_workflow_cursor_issue_workflow_agent_skills",
-      "target": "docs_issue_workflow_7_iflow_graphify_rebuild_the_knowledge_graph_optional",
-      "confidence_score": 1.0
+      "target": "docs_issue_workflow_7_iflow_graphify_rebuild_the_knowledge_graph_optional"
     },
     {
       "relation": "contains",
@@ -28518,9 +28992,9 @@
       "source_file": "docs/issue-workflow.md",
       "source_location": "L249",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_issue_workflow_cursor_issue_workflow_agent_skills",
-      "target": "docs_issue_workflow_8_iflow_yolo_all_in_one_for_small_issues",
-      "confidence_score": 1.0
+      "target": "docs_issue_workflow_8_iflow_yolo_all_in_one_for_small_issues"
     },
     {
       "relation": "contains",
@@ -28528,9 +29002,9 @@
       "source_file": "docs/issue-workflow.md",
       "source_location": "L266",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_issue_workflow_cursor_issue_workflow_agent_skills",
-      "target": "docs_issue_workflow_9_iflow_fix_interactive_iterative_fixes_session",
-      "confidence_score": 1.0
+      "target": "docs_issue_workflow_9_iflow_fix_interactive_iterative_fixes_session"
     },
     {
       "relation": "contains",
@@ -28538,9 +29012,9 @@
       "source_file": "docs/issue-workflow.md",
       "source_location": "L28",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_issue_workflow_cursor_issue_workflow_agent_skills",
-      "target": "docs_issue_workflow_agent_skills",
-      "confidence_score": 1.0
+      "target": "docs_issue_workflow_agent_skills"
     },
     {
       "relation": "contains",
@@ -28548,9 +29022,9 @@
       "source_file": "docs/issue-workflow.md",
       "source_location": "L53",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_issue_workflow_cursor_issue_workflow_agent_skills",
-      "target": "docs_issue_workflow_branch_and_folder_hygiene",
-      "confidence_score": 1.0
+      "target": "docs_issue_workflow_branch_and_folder_hygiene"
     },
     {
       "relation": "contains",
@@ -28558,9 +29032,9 @@
       "source_file": "docs/issue-workflow.md",
       "source_location": "L307",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_issue_workflow_cursor_issue_workflow_agent_skills",
-      "target": "docs_issue_workflow_end_to_end_flow",
-      "confidence_score": 1.0
+      "target": "docs_issue_workflow_end_to_end_flow"
     },
     {
       "relation": "contains",
@@ -28914,5 +29388,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "740afe0d04fd457a5211ce4c83c9155eaa423b41"
+  "built_at_commit": "d78a35c52ec45a3fdb303ad3224bce918898a7ad"
 }

@@ -1,16 +1,16 @@
-# Graph Report - workspace  (2026-06-25)
+# Graph Report - workspace  (2026-06-28)
 
 ## Corpus Check
-- 122 files · ~63,787 words
+- 126 files · ~65,138 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1224 nodes · 1629 edges · 142 communities (113 shown, 29 thin omitted)
+- 1247 nodes · 1653 edges · 147 communities (117 shown, 30 thin omitted)
 - Extraction: 90% EXTRACTED · 10% INFERRED · 0% AMBIGUOUS · INFERRED: 162 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `740afe0d`
+- Built from commit: `d78a35c5`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -146,17 +146,22 @@
 - [[_COMMUNITY_Community 129|Community 129]]
 - [[_COMMUNITY_Community 130|Community 130]]
 - [[_COMMUNITY_Community 131|Community 131]]
+- [[_COMMUNITY_Community 132|Community 132]]
 - [[_COMMUNITY_Community 133|Community 133]]
 - [[_COMMUNITY_Community 134|Community 134]]
+- [[_COMMUNITY_Community 135|Community 135]]
 - [[_COMMUNITY_Community 136|Community 136]]
 - [[_COMMUNITY_Community 137|Community 137]]
 - [[_COMMUNITY_Community 140|Community 140]]
+- [[_COMMUNITY_Community 144|Community 144]]
+- [[_COMMUNITY_Community 145|Community 145]]
+- [[_COMMUNITY_Community 146|Community 146]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `run_init()` - 71 edges
-2. `render_template()` - 39 edges
-3. `run_update()` - 31 edges
-4. `_default_context()` - 31 edges
+2. `render_template()` - 40 edges
+3. `_default_context()` - 32 edges
+4. `run_update()` - 31 edges
 5. `_fake_console()` - 29 edges
 6. `run_build()` - 20 edges
 7. `get_profile()` - 19 edges
@@ -179,19 +184,19 @@
 ## Import Cycles
 - None detected.
 
-## Communities (142 total, 29 thin omitted)
+## Communities (147 total, 30 thin omitted)
 
 ### Community 0 - "Community 0"
-Cohesion: 0.08
-Nodes (36): Render a single template by name and return the result string., render_template(), _default_context(), /issue-plan must produce a plan file and require confirmation., /issue-pause moves the issue group to the partly-solved folder., /iflow-plan must produce a plan file and require confirmation., /iflow-plan must document graceful graphify + grep prior-art checklist., Rules, plan, start, and docs should tell agents about this-project.md. (+28 more)
+Cohesion: 0.12
+Nodes (17): _default_context(), /iflow-plan must document graceful graphify + grep prior-art checklist., The issue-fix skill must carry the same session flow and frontmatter., /iflow must describe the four-state dispatch and name its downstream targets., The workspace rules must describe branch and folder hygiene expectations., The history-update skill must describe append-and-promote, plus the missing-file, /iflow-init must fetch comments and call the comments-triage skill., The issue-init skill must fetch comments and point at the comments skill. (+9 more)
 
 ### Community 1 - "Community 1"
 Cohesion: 0.14
 Nodes (20): Run ``graphify <subcommand> <path> [extra_args...]`` and return its exit code., run_build(), Tests for issue_flow.graphify (graphify CLI integration helpers)., `issue-flow graphify` with no args must invoke `graphify update <root>`.      gr, A leading build subcommand picks the action; trailing flags forward verbatim., `issue-flow graphify update` → `graphify update <project_root>`., If the user supplies both subcommand and path, do not double-add., `issue-flow graphify ./docs` → `graphify update ./docs` (no double path). (+12 more)
 
 ### Community 2 - "Community 2"
-Cohesion: 0.09
-Nodes (30): Refresh packaged scaffold files (commands, rule, skills, workflow doc).      O, Refresh packaged scaffold files (commands, rule, skills, workflow doc).      Ove, run_update(), Tests for issue_flow.init.run_update., update must not touch user content inside 04-designs-and-guides/., update should overwrite manifest files even when customized., update should recreate the starter project brief if it is missing., update must not overwrite the user-owned project brief. (+22 more)
+Cohesion: 0.08
+Nodes (32): Refresh packaged editor commands, rules, and workflow doc from this package., update(), Refresh packaged scaffold files (commands, rule, skills, workflow doc).      O, Refresh packaged scaffold files (commands, rule, skills, workflow doc).      Ove, run_update(), Tests for issue_flow.init.run_update., update must not touch user content inside 04-designs-and-guides/., update should overwrite manifest files even when customized. (+24 more)
 
 ### Community 3 - "Community 3"
 Cohesion: 0.16
@@ -238,8 +243,8 @@ Cohesion: 0.14
 Nodes (15): Prerequisites, code:text (your-project/), code:bash (uv tool install graphifyy   # recommended), code:bash (cd your-project), code:bash (issue-flow init                          # Cursor (default)), Changelog, Configuration, Editor support (+7 more)
 
 ### Community 14 - "Community 14"
-Cohesion: 0.08
-Nodes (25): init(), Scaffold issue-flow directories and editor config files in a project., Refresh packaged editor commands, rules, and workflow doc from this package., update(), Path, Re-running init should not overwrite the hand-editable project brief., Running init should create bundled Agent Skills under .cursor/skills/., init should create .env with commented ISSUEFLOW_* defaults when absent. (+17 more)
+Cohesion: 0.18
+Nodes (10): After: .cursor/skills/commit/SKILL.md, After: .cursor/skills/my-rule/SKILL.md, Before: .cursor/commands/commit.md, Before: .cursor/rules/my-rule.mdc, Commit current work, Commit current work, Issue #79: new cursor conventions, Original issue text (+2 more)
 
 ### Community 15 - "Community 15"
 Cohesion: 0.14
@@ -250,12 +255,12 @@ Cohesion: 0.18
 Nodes (11): 1. Make sure tests pass, 2. Bump the version, 3. Commit and push, 4. Create a release, code:bash (git add pyproject.toml uv.lock), code:bash (release), code:bash (gh release create v0.2.0 --generate-notes), code:bash (alias release='gh release create "v$(python -c "import tomll) (+3 more)
 
 ### Community 17 - "Community 17"
-Cohesion: 0.18
-Nodes (10): After: .cursor/skills/commit/SKILL.md, After: .cursor/skills/my-rule/SKILL.md, Before: .cursor/commands/commit.md, Before: .cursor/rules/my-rule.mdc, Commit current work, Commit current work, Issue #79: new cursor conventions, Original issue text (+2 more)
+Cohesion: 0.22
+Nodes (8): Approach, Constraints, Files to touch, Goal, Open questions, Plan for issue #82: switch back to main if clean, Prior art, Test strategy
 
 ### Community 18 - "Community 18"
 Cohesion: 0.05
-Nodes (58): Scaffold .issueflows/ directories and editor config (commands, rules, skills)., run_init(), Tests for issue_flow.init (the init command)., init should create the durable project brief when missing., Even init --force should not clobber the user-owned project brief., Running init should create Cursor skills, not Cursor command files., issue-close.md should describe the HISTORY.md update step and opt-out token., Running init with force=True should overwrite existing files. (+50 more)
+Nodes (78): init(), Scaffold issue-flow directories and editor config files in a project., Scaffold .issueflows/ directories and editor config (commands, rules, skills)., run_init(), Path, Tests for issue_flow.init (the init command)., init should create the durable project brief when missing., Re-running init should not overwrite the hand-editable project brief. (+70 more)
 
 ### Community 19 - "Community 19"
 Cohesion: 0.29
@@ -290,28 +295,28 @@ Cohesion: 0.67
 Nodes (3): issue-close.md should describe optional uv semver bump before commit/PR., iflow-close skill should describe optional uv semver bump before commit/PR., test_init_issue_close_documents_version_bump()
 
 ### Community 27 - "Community 27"
-Cohesion: 0.10
-Nodes (23): _already_initialized(), True if the tree looks like issue-flow was set up here for any profile., build_manifest(), Return the ``(template, output_path_template)`` entries for ``profile``., Return the ``(template, output_path_template)`` entries for ``profile``.      Sk, Resolve a path template like '{agent_dir}/commands/foo.md' into a Path., resolve_output_path(), The default TEMPLATE_MANIFEST is the cursor profile manifest. (+15 more)
+Cohesion: 0.11
+Nodes (21): build_manifest(), Return the ``(template, output_path_template)`` entries for ``profile``., Return the ``(template, output_path_template)`` entries for ``profile``.      Sk, Resolve a path template like '{agent_dir}/commands/foo.md' into a Path., resolve_output_path(), The default TEMPLATE_MANIFEST is the cursor profile manifest., Cursor now uses Agent Skills as the primary slash-menu surface., Codex: skills (15) + docs (1), no slash commands and no rules extra. (+13 more)
 
 ### Community 28 - "Community 28"
-Cohesion: 0.67
-Nodes (3): issue-close.md should flag unrelated uncommitted changes and warn about the issu, iflow-close skill should flag unrelated uncommitted changes and warn about the i, test_init_issue_close_documents_uncommitted_and_branch_reminder()
-
-### Community 29 - "Community 29"
-Cohesion: 0.09
-Nodes (27): _create_issueflow_dirs(), _dependency_gate(), _dotenv_documents_key(), _ensure_agents_md(), _ensure_dotenv_file(), _ensure_project_brief(), _graphify_postinstall(), _prune_command_files() (+19 more)
-
-### Community 30 - "Community 30"
 Cohesion: 0.22
 Nodes (8): Approach, Constraints, Files to touch, Goal, Issue #79 plan: new Cursor conventions, Open questions, Prior art, Test strategy
+
+### Community 29 - "Community 29"
+Cohesion: 0.08
+Nodes (29): _already_initialized(), _create_issueflow_dirs(), _dependency_gate(), _dotenv_documents_key(), _ensure_agents_md(), _ensure_dotenv_file(), _ensure_project_brief(), _graphify_postinstall() (+21 more)
+
+### Community 30 - "Community 30"
+Cohesion: 0.40
+Nodes (4): Done so far, Remaining work, Status, Status for issue #82: switch back to main if clean
 
 ### Community 31 - "Community 31"
 Cohesion: 0.12
 Nodes (16): 1. Editor profiles (`src/issue_flow/editors.py`, new), 2. Config (`config.py`), 3. Manifest (`templating.py`), 4. Templates (`src/issue_flow/templates/`), 5. Init/update (`init.py`), 6. CLI (`cli.py`), 7. README, Approach (+8 more)
 
 ### Community 32 - "Community 32"
-Cohesion: 0.12
-Nodes (14): Tests for issue_flow.templating., Every template in the manifest should render with default context values., Every expected skill has a default Cursor manifest entry., /iflow and its skill must list /issue-fix among the explicit-only commands., /iflow and its skill must list /iflow-fix among the explicit-only commands., /iflow must describe the four-state dispatch and name its downstream targets., /iflow's step 0 must treat a branch-derived N as authoritative.      The branch-, The issue-pick skill must carry the same front-door flow and frontmatter. (+6 more)
+Cohesion: 0.14
+Nodes (12): Tests for issue_flow.templating., Every template in the manifest should render with default context values., Every expected skill has a default Cursor manifest entry., /issue-close must describe the HISTORY.md update step and its input tokens., /iflow's step 0 must treat a branch-derived N as authoritative.      The branch-, The issue-pick skill must carry the same front-door flow and frontmatter., /iflow-close must describe the HISTORY.md update step and its input tokens., test_all_templates_render_without_error() (+4 more)
 
 ### Community 33 - "Community 33"
 Cohesion: 0.15
@@ -338,8 +343,8 @@ Cohesion: 0.17
 Nodes (11): 1. New off-path command, mirroring the existing command/skill pattern, 2. Always create a GitHub issue (`gh`); no local-only mode in v1, 3. Per-fix log lives in `issue<N>_status.md`, 4. Coexist with `/issue-pick fix` (do not merge), 5. Delegate, don't duplicate, 6. `/iflow` interaction: document only, Consequences, Context (+3 more)
 
 ### Community 40 - "Community 40"
-Cohesion: 0.67
-Nodes (3): /issue-yolo must advertise the up-front safeguards before chaining., /iflow-yolo must advertise the up-front safeguards before chaining., test_issue_yolo_has_safeguards()
+Cohesion: 0.12
+Nodes (17): Render a single template by name and return the result string., render_template(), /issue-plan must produce a plan file and require confirmation., /issue-yolo must advertise the up-front safeguards before chaining., /iflow-plan must produce a plan file and require confirmation., /iflow-yolo must advertise the up-front safeguards before chaining., /iflow must list /issue-pick among the explicit-only, never-auto-dispatched comm, Template variables should be replaced in the rendered output. (+9 more)
 
 ### Community 41 - "Community 41"
 Cohesion: 0.18
@@ -378,8 +383,8 @@ Cohesion: 0.67
 Nodes (3): CaptureFixture, With all deps present the check should not prompt or abort., test_init_proceeds_silently_when_all_dependencies_present()
 
 ### Community 50 - "Community 50"
-Cohesion: 0.67
-Nodes (3): The /issue-cleanup command owns the post-merge branch cleanup logic., The /iflow-cleanup command owns the post-merge branch cleanup logic., test_issue_cleanup_describes_post_merge_branch_cleanup()
+Cohesion: 0.40
+Nodes (5): The /issue-cleanup command owns the post-merge branch cleanup logic., /iflow-close should switch back to default after PR when the tree is clean., The /iflow-cleanup command owns the post-merge branch cleanup logic., test_issue_cleanup_describes_post_merge_branch_cleanup(), test_issue_close_switches_to_default_when_clean_unless_stay()
 
 ### Community 51 - "Community 51"
 Cohesion: 0.20
@@ -470,12 +475,12 @@ Cohesion: 0.29
 Nodes (6): Decisions, Files to touch, Goal, Issue #56 plan — rename `build` → `graphify`, Prior art, Test strategy
 
 ### Community 73 - "Community 73"
-Cohesion: 0.67
-Nodes (3): The new issueflow-issue-comments skill must describe triage rules and buckets., The new iflow-comments skill must describe triage rules and buckets., test_issue_comments_skill_documents_triage_rules()
+Cohesion: 0.50
+Nodes (4): Regression for issue #58: the shared rules body must defer to the     project's, The new iflow-comments skill must describe triage rules and buckets., test_issue_comments_skill_documents_triage_rules(), test_rules_body_defers_to_project_toolchain_and_covers_conda()
 
 ### Community 74 - "Community 74"
-Cohesion: 0.29
-Nodes (6): Changelog update tokens (command input), Constraints, Instructions, issue-flow — issue close (`/iflow-close`), Optional version bump (command input), When to use
+Cohesion: 0.25
+Nodes (7): Branch switch tokens (command input), Changelog update tokens (command input), Constraints, Instructions, issue-flow — issue close (`/iflow-close`), Optional version bump (command input), When to use
 
 ### Community 75 - "Community 75"
 Cohesion: 0.29
@@ -597,37 +602,53 @@ Nodes (3): code:bash (uv tool install issue-flow), code:bash (uv add --dev issue
 Cohesion: 0.40
 Nodes (5): /issue-close no longer deletes branches; it points at /issue-cleanup instead., /iflow-close no longer deletes branches; it points at /iflow-cleanup instead., /iflow-start should remind the agent to read ### Prior art from the plan., test_issue_close_delegates_post_merge_cleanup_to_issue_cleanup(), test_issue_start_reads_prior_art_from_plan()
 
-### Community 133 - "Community 133"
-Cohesion: 0.67
-Nodes (3): /issue-pick must describe its three phases, ranking inputs, and the `fix` shortc, /iflow-pick must describe its three phases, ranking inputs, and the `fix` shortc, test_issue_pick_documents_three_phases_and_fix_shortcut()
+### Community 132 - "Community 132"
+Cohesion: 0.40
+Nodes (4): Done checklist, Status for issue #79: new Cursor conventions, Verification, What changed
 
-### Community 134 - "Community 134"
+### Community 133 - "Community 133"
+Cohesion: 0.50
+Nodes (4): Rules, plan, start, and docs should tell agents about this-project.md., /iflow-pick must describe its three phases, ranking inputs, and the `fix` shortc, test_issue_pick_documents_three_phases_and_fix_shortcut(), test_templates_reference_project_brief()
+
+### Community 135 - "Community 135"
 Cohesion: 0.67
-Nodes (3): /iflow must list /issue-pick among the explicit-only, never-auto-dispatched comm, /iflow must list /iflow-pick among the explicit-only, never-auto-dispatched comm, test_iflow_does_not_auto_dispatch_issue_pick()
+Nodes (3): /issue-plan, /issue-start, and /issue-close should reference the designs folder., /iflow-plan, /iflow-start, and /iflow-close skills should reference the designs, test_init_commands_reference_designs_folder()
 
 ### Community 136 - "Community 136"
 Cohesion: 0.67
 Nodes (3): /issue-yolo must forward the new history-related tokens to /issue-close., /iflow-yolo must forward the new history-related tokens to /iflow-close., test_issue_yolo_forwards_history_tokens()
 
+### Community 144 - "Community 144"
+Cohesion: 0.67
+Nodes (3): issue-init.md should describe resolving an issue from the current branch when no, iflow-init skill should describe resolving an issue from the current branch when, test_init_issue_init_documents_branch_inference()
+
+### Community 145 - "Community 145"
+Cohesion: 0.67
+Nodes (3): /issue-pause moves the issue group to the partly-solved folder., /iflow-pause moves the issue group to the partly-solved folder., test_issue_pause_moves_to_partly_solved()
+
+### Community 146 - "Community 146"
+Cohesion: 0.67
+Nodes (3): /iflow and its skill must list /issue-fix among the explicit-only commands., /iflow and its skill must list /iflow-fix among the explicit-only commands., test_iflow_lists_issue_fix_as_off_path()
+
 ## Knowledge Gaps
-- **479 isolated node(s):** `issue-flow`, `When to use`, `Instructions`, `Constraints`, `When to use` (+474 more)
+- **493 isolated node(s):** `issue-flow`, `When to use`, `Instructions`, `Constraints`, `When to use` (+488 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **29 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **30 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `render_template()` connect `Community 0` to `Community 32`, `Community 131`, `Community 67`, `Community 68`, `Community 134`, `Community 133`, `Community 136`, `Community 73`, `Community 40`, `Community 46`, `Community 48`, `Community 50`, `Community 53`, `Community 27`, `Community 29`?**
+- **Why does `render_template()` connect `Community 40` to `Community 32`, `Community 0`, `Community 131`, `Community 67`, `Community 68`, `Community 133`, `Community 136`, `Community 73`, `Community 46`, `Community 48`, `Community 145`, `Community 146`, `Community 50`, `Community 53`, `Community 27`, `Community 29`?**
   _High betweenness centrality (0.028) - this node is a cross-community bridge._
-- **Why does `run_init()` connect `Community 18` to `Community 2`, `Community 5`, `Community 14`, `Community 49`, `Community 26`, `Community 27`, `Community 28`, `Community 29`?**
-  _High betweenness centrality (0.026) - this node is a cross-community bridge._
-- **Why does `run_update()` connect `Community 2` to `Community 5`, `Community 7`, `Community 14`, `Community 27`, `Community 29`?**
-  _High betweenness centrality (0.014) - this node is a cross-community bridge._
+- **Why does `run_init()` connect `Community 18` to `Community 2`, `Community 5`, `Community 135`, `Community 144`, `Community 49`, `Community 26`, `Community 27`, `Community 29`?**
+  _High betweenness centrality (0.027) - this node is a cross-community bridge._
+- **Why does `_ensure_agents_md()` connect `Community 29` to `Community 40`, `Community 18`, `Community 2`?**
+  _High betweenness centrality (0.013) - this node is a cross-community bridge._
 - **Are the 46 inferred relationships involving `run_init()` (e.g. with `init()` and `Settings`) actually correct?**
   _`run_init()` has 46 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 33 inferred relationships involving `render_template()` (e.g. with `_ensure_agents_md()` and `_ensure_project_brief()`) actually correct?**
   _`render_template()` has 33 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 13 inferred relationships involving `run_update()` (e.g. with `main()` and `update()`) actually correct?**
-  _`run_update()` has 13 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `issue-flow`, `Refresh this repository's issue-flow scaffold from packaged templates.  Equivale`, `Implementation of the `issue-flow init` and `issue-flow update` commands.` to the rest of the system?**
-  _689 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _699 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `Community 0` be split into smaller, more focused modules?**
+  _Cohesion score 0.11764705882352941 - nodes in this community are weakly interconnected._

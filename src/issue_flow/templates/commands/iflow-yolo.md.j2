@@ -13,6 +13,7 @@ Same as `/iflow-init` (issue number, URL, or empty to infer from the branch). Op
 - `bump` / `patch` / `minor` / `major` — forwarded to `/iflow-close` for the version bump.
 - `nohistory` / `skip history` — forwarded to `/iflow-close` to skip the `{{ history_file }}` update step.
 - `log "..."` / `note "..."` — forwarded to `/iflow-close` as the `{{ history_file }}` bullet summary.
+- `stay` / `stay on branch` / `don't switch` / `dont switch to main` — forwarded to `/iflow-close` to stay on the issue branch after the PR step.
 - `draft` — open a draft PR in `/iflow-close`.
 - Free-form notes — used as the plan/commit context.
 
@@ -58,7 +59,7 @@ Once the preflight has passed and the user confirmed:
 
 ## Post-run
 
-- Leave the user on the issue branch with the PR URL.
+- Report the PR URL and final branch. By default `/iflow-close` switches back to the default branch when the tree is clean; forwarded `stay` text leaves the user on the issue branch instead.
 - Remind them to re-run `/iflow-cleanup` once the PR is merged.
 
 ## Output

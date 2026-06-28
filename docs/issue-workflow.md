@@ -14,7 +14,7 @@ This repo uses Cursor **Agent Skills** under `.cursor/skills/` that line up with
 | `/iflow-plan` | `iflow-plan/SKILL.md` | Write a structured `issue<N>_plan.md` and get explicit user confirmation before any code is touched. |
 | `/iflow-start` | `iflow-start/SKILL.md` | Implement the confirmed plan (no planning step of its own any more). |
 | `/iflow-pause` | `iflow-pause/SKILL.md` | Park work safely: update status, move the issue group to `02-partly-solved-issues/`, optional WIP commit and branch switch. |
-| `/iflow-close` | `iflow-close/SKILL.md` | Finish: tests, optional semver bump (`uv version --bump …`), `HISTORY.md` update, issue-folder housekeeping, commit, push, PR. |
+| `/iflow-close` | `iflow-close/SKILL.md` | Finish: tests, optional semver bump (`uv version --bump …`), `HISTORY.md` update, issue-folder housekeeping, commit, push, PR, and switch back to default when clean unless `stay` is passed. |
 | `/iflow-cleanup` | `iflow-cleanup/SKILL.md` | Post-merge hygiene: switch to default, `git pull --ff-only`, `git fetch --prune`, delete merged local branches (single consolidated confirm). |
 | `/iflow-yolo` | `iflow-yolo/SKILL.md` | All-in-one for small, low-risk issues: chains `init → plan → start → close` with up-front safeguards and a single confirmation. |
 | `/iflow-fix` | `iflow-fix/SKILL.md` | **Off-path.** Interactive iterative-fixes session: create one issue + long-lived branch, then loop over many small fixes (short plan each, recorded in `issue<N>_status.md`), ending with `/iflow-close`. |
@@ -37,7 +37,7 @@ This repo uses Cursor **Agent Skills** under `.cursor/skills/` that line up with
 | `iflow-plan` | `/iflow-plan` | Same flow as `/iflow-plan` (write & confirm plan). |
 | `iflow-start` | `/iflow-start` | Read the plan, implement from `.issueflows/01-current-issues/`. |
 | `iflow-pause` | `/iflow-pause` | Update status, move issue group to `02-partly-solved-issues/`, optional WIP commit + branch switch. |
-| `iflow-close` | `/iflow-close` | Tests, optional bump, status checkboxes, move issue docs, commit, push, PR. |
+| `iflow-close` | `/iflow-close` | Tests, optional bump, status checkboxes, move issue docs, commit, push, PR, and safe default-branch switch. |
 | `iflow-cleanup` | `/iflow-cleanup` | Post-merge cleanup (single consolidated confirm, never `-D`). |
 | `iflow-yolo` | `/iflow-yolo` | Chain `init → plan → start → close` with safeguards. |
 | `iflow-fix` | `/iflow-fix` | Same flow as `/iflow-fix`: set up an interactive iterative-fixes session, loop over small fixes, finish with `/iflow-close`. Off-path. |
@@ -54,7 +54,7 @@ Each skill sets `disable-model-invocation: true` so it is included when you **ex
 
 Two recurring pain points the workflows actively help with:
 
-- **Stale local branches that look "several commits ahead of main" after a squash-merged PR.** `/iflow-cleanup` detects merge status via `gh pr view`, and once the PR is merged it offers (with one consolidated confirm) to switch back to the default branch, `git pull --ff-only`, `git fetch --prune`, and run `git branch -d` on every local branch whose commits are already in the default branch (including squash-merged ones). Destructive flags like `-D` are never used automatically. `/iflow-close` no longer performs this step itself.
+- **Stale local branches that look "several commits ahead of main" after a squash-merged PR.** `/iflow-close` switches back to the default branch after opening or updating the PR when the tree is clean, unless you pass `stay` / `don't switch`. `/iflow-cleanup` detects merge status after the PR is merged and offers (with one consolidated confirm) to `git fetch --prune` and run `git branch -d` on every local branch whose commits are already in the default branch (including squash-merges). Destructive flags like `-D` are never used automatically.
 - **Left-overs in `.issueflows/01-current-issues/`.** Both `/iflow-init` (when a new issue is captured) and `/iflow-start` (before implementation begins) sweep that folder: every `issue<n>_*` group **other than the focus issue** is moved automatically to `.issueflows/03-solved-issues/` if a status file contains `- [x] Done`, otherwise to `.issueflows/02-partly-solved-issues/`.
 
 All workflows that touch git also run a short **branch-status preflight**: `git fetch --prune`, current branch, ahead/behind vs the default branch, and a warning when the current branch's leading digits refer to an issue already archived in `02-`/`03-`.
@@ -187,6 +187,7 @@ All workflows that touch git also run a short **branch-status preflight**: `git 
 - Free text that clearly describes the bump level — the assistant infers patch vs minor vs major.
 - `/iflow-close nohistory` (or `skip history`) — skip the `HISTORY.md` update step for this run.
 - `/iflow-close log "one-line summary"` (or `note "..."`) — override the `HISTORY.md` bullet summary instead of using the GitHub issue title.
+- `/iflow-close stay` (or `stay on branch`, `don't switch`, `dont switch to main`) — skip the safe default-branch switch after the PR step.
 
 The bump runs **after** tests and **before** issue-folder moves and **before** commit / push / PR so the PR includes the new version. If `pyproject.toml` has no bumpable version, the assistant skips the bump and continues.
 
@@ -199,9 +200,10 @@ The bump runs **after** tests and **before** issue-folder moves and **before** c
 5. **Commit** — focused staging and a clear message (include `pyproject.toml` / `uv.lock` if the bump changed them, and `HISTORY.md` when step 3 updated it). Sync with the default branch using `git pull --ff-only`.
 6. **Push** — to your usual remote (e.g. `origin`).
 7. **Pull request** — open against the default branch; link the GitHub issue (`Closes #n` / `Refs #n`).
-8. **After review** — remind you the working copy is still on the issue branch; once the PR merges, run `/iflow-cleanup` for the post-merge tidy-up.
+8. **Switch back when safe** — unless `stay` / `don't switch` was passed, run `git status --porcelain`; if clean, `git switch <default>` and `git pull --ff-only`; if dirty, stay put and report why switching is unsafe.
+9. **After review** — if switched back, return to the PR branch before review fixes; once the PR merges, run `/iflow-cleanup` for the post-merge tidy-up.
 
-**Result:** Commit, push, PR link. No branches are deleted from `/iflow-close` itself.
+**Result:** Commit, push, PR link, and either a clean switch back to the default branch or a clear reason for staying on the issue branch. No branches are deleted from `/iflow-close` itself.
 
 ---
 
@@ -257,9 +259,9 @@ The bump runs **after** tests and **before** issue-folder moves and **before** c
 - Runs `uv run pytest` up front; refuses if anything fails.
 - **Single consolidated confirmation** listing the full planned chain (issue, branch, repo, downstream flags).
 
-**Chain:** `/iflow-init` → `/iflow-plan` (auto-confirmed short plan; aborts if the scope check reveals the change isn't actually small) → `/iflow-start` → `uv run pytest` again → `/iflow-close` (with any forwarded `bump`/`patch`/`minor`/`major`/`draft`). Does **not** run `/iflow-cleanup` — the PR hasn't merged yet.
+**Chain:** `/iflow-init` → `/iflow-plan` (auto-confirmed short plan; aborts if the scope check reveals the change isn't actually small) → `/iflow-start` → `uv run pytest` again → `/iflow-close` (with any forwarded `bump`/`patch`/`minor`/`major`/`draft`/`stay`). Does **not** run `/iflow-cleanup` — the PR hasn't merged yet.
 
-**Result:** A commit, push, and PR ready for review — or an abort at the first ambiguity.
+**Result:** A commit, push, and PR ready for review, with the final branch reported — or an abort at the first ambiguity.
 
 ---
 

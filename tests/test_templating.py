@@ -257,6 +257,17 @@ def test_issue_close_delegates_post_merge_cleanup_to_issue_cleanup() -> None:
     assert "git branch -d" not in rendered
 
 
+def test_issue_close_switches_to_default_when_clean_unless_stay() -> None:
+    """/iflow-close should switch back to default after PR when the tree is clean."""
+    rendered = render_template("commands/iflow-close.md.j2", _default_context())
+    assert "stay on branch" in rendered
+    assert "don't switch" in rendered
+    assert "dont switch to main" in rendered
+    assert "git status --porcelain" in rendered
+    assert "git switch <default>" in rendered
+    assert "A clean tree here means" in rendered
+
+
 def test_issue_cleanup_describes_post_merge_branch_cleanup() -> None:
     """The /iflow-cleanup command owns the post-merge branch cleanup logic."""
     rendered = render_template("commands/iflow-cleanup.md.j2", _default_context())
@@ -548,6 +559,8 @@ def test_issue_yolo_forwards_history_tokens() -> None:
     rendered = render_template("commands/iflow-yolo.md.j2", _default_context())
     assert "nohistory" in rendered
     assert "log " in rendered  # `log "..."` bullet-summary override
+    assert "stay" in rendered
+    assert "don't switch" in rendered
 
 
 def test_issue_init_fetches_and_triages_comments() -> None:
