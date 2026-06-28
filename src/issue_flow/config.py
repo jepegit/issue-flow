@@ -105,6 +105,22 @@ class Settings:
             self.config_path(project_root),
         )
 
+    def resolve_caveman_default(self, project_root: Path) -> bool:
+        """Resolve whether the caveman style is on by default for ``project_root``.
+
+        Order: persisted ``.issueflows/config.toml [issueflow].caveman_default`` >
+        ``ISSUEFLOW_CAVEMAN_DEFAULT`` env/``.env`` > ``False``. As with the active
+        mode, the persisted value deliberately beats the environment so a stray
+        env var cannot silently flip the behavior on ``update``.
+
+        Only meaningful when the ``caveman`` skill is part of the active mode; the
+        rule template gates the always-on pointer on skill membership too.
+        """
+        persisted = modes_module.read_caveman_default(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        return _env_flag("ISSUEFLOW_CAVEMAN_DEFAULT")
+
     def template_context(
         self,
         project_root: Path,
@@ -145,7 +161,16 @@ class Settings:
             "mode_name": mode.name,
             "included_skills": sorted(mode.skills),
             "included_commands": sorted(mode.commands),
+            "caveman_default": self.resolve_caveman_default(project_root),
         }
+
+
+def _env_flag(name: str) -> bool:
+    """Interpret an environment variable as a boolean flag (default ``False``)."""
+    value = os.getenv(name)
+    if value is None:
+        return False
+    return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
 def _detect_project_name(project_root: Path) -> str:

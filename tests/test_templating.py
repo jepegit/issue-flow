@@ -21,6 +21,7 @@ _MODE_CONTEXT = {
     "mode_name": "Standard",
     "included_skills": _ALL_SKILLS,
     "included_commands": _ALL_COMMANDS,
+    "caveman_default": False,
 }
 
 
@@ -693,6 +694,23 @@ def test_rules_body_caveman_pointer_is_membership_gated() -> None:
     ]
     rendered_off = render_template("rules/AGENTS.md.j2", without_caveman)
     assert "Optional response styles" not in rendered_off
+
+
+def test_rules_body_caveman_default_switches_pointer_wording() -> None:
+    """caveman_default flips the pointer between off-by-default and always-on."""
+    off = _default_context()
+    off["caveman_default"] = False
+    rendered_off = render_template("rules/AGENTS.md.j2", off)
+    assert "off by default" in rendered_off
+    assert "on by default for this project" not in rendered_off
+
+    on = _default_context()
+    on["caveman_default"] = True
+    rendered_on = render_template("rules/AGENTS.md.j2", on)
+    assert "on by default for this project" in rendered_on
+    assert "caveman_default = true" in rendered_on
+    # The always-on pointer must still preserve the normal-prose carve-outs.
+    assert "never caveman" in rendered_on
 
 
 def test_issue_comments_skill_documents_triage_rules() -> None:
