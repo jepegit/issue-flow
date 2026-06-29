@@ -5,6 +5,14 @@ from __future__ import annotations
 from pathlib import Path
 
 from issue_flow.init import run_init
+from issue_flow.modes import DEFAULT_SKILL_LEVEL, SKILL_LEVELS
+
+
+def test_skill_level_constants() -> None:
+    """The skill-level contract: default is 'standard', set is ordered low->high."""
+    assert DEFAULT_SKILL_LEVEL == "standard"
+    assert SKILL_LEVELS == ("basic", "standard", "advanced")
+    assert DEFAULT_SKILL_LEVEL in SKILL_LEVELS
 
 
 def test_init_advanced_skill_level_creates_quality_doc(tmp_path: Path) -> None:

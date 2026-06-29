@@ -31,6 +31,11 @@ from issue_flow.templating import COMMAND_NAMES, SKILL_DIRS
 
 DEFAULT_MODE = "standard"
 
+# Skill levels gate complexity-based scaffolding (e.g. quality-tooling docs).
+# Ordered low → high. ``advanced`` adds opinionated quality-tooling guidance.
+SKILL_LEVELS: tuple[str, ...] = ("basic", "standard", "advanced")
+DEFAULT_SKILL_LEVEL = "standard"
+
 # Packaged data file holding the built-in modes (sibling of this module).
 _MODES_RESOURCE = "modes.toml"
 # Per-project config file (relative to the issueflows dir).

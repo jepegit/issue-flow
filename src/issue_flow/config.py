@@ -10,7 +10,7 @@ import os
 
 from issue_flow import modes as modes_module
 from issue_flow.editors import DEFAULT_EDITOR, EditorProfile, get_profile
-from issue_flow.modes import DEFAULT_MODE, Mode
+from issue_flow.modes import DEFAULT_MODE, DEFAULT_SKILL_LEVEL, Mode
 
 
 # Load .env from the current working directory (the user's project root).
@@ -141,10 +141,10 @@ class Settings:
         """Resolve the skill level for ``project_root``.
 
         Order: persisted ``.issueflows/config.toml [issueflow].skill_level`` >
-        ``ISSUEFLOW_SKILL_LEVEL`` env/``.env`` > ``"standard"``. The persisted value
-        deliberately beats the environment so a stray env var cannot silently change
-        the level on ``update`` — switching skill levels is an ``init --skill-level``
-        action.
+        ``ISSUEFLOW_SKILL_LEVEL`` env/``.env`` > :data:`DEFAULT_SKILL_LEVEL`. The
+        persisted value deliberately beats the environment so a stray env var cannot
+        silently change the level on ``update`` — switching skill levels is an
+        ``init --skill-level`` action.
         """
         persisted = modes_module.read_skill_level(self.config_path(project_root))
         if persisted:
@@ -152,7 +152,7 @@ class Settings:
         env = os.getenv("ISSUEFLOW_SKILL_LEVEL")
         if env and env.strip():
             return env.strip()
-        return "standard"
+        return DEFAULT_SKILL_LEVEL
 
     def seed_config_values(self) -> dict[str, object]:
         """Values for a freshly created ``config.toml``: env/``.env`` else defaults.
@@ -168,7 +168,11 @@ class Settings:
         skill_level = os.getenv("ISSUEFLOW_SKILL_LEVEL")
         return {
             "mode": mode.strip() if mode and mode.strip() else DEFAULT_MODE,
-            "skill_level": skill_level.strip() if skill_level and skill_level.strip() else "standard",
+            "skill_level": (
+                skill_level.strip()
+                if skill_level and skill_level.strip()
+                else DEFAULT_SKILL_LEVEL
+            ),
             "caveman_default": _env_flag("ISSUEFLOW_CAVEMAN_DEFAULT"),
             "grill_me_default": _env_flag("ISSUEFLOW_GRILL_ME_DEFAULT"),
         }

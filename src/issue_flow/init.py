@@ -331,11 +331,10 @@ def run_init(
     skill_level_id = (
         skill_level if explicit_skill_level else settings.resolve_skill_level(project_root)
     )
-    valid_skill_levels = {"basic", "standard", "advanced"}
-    if skill_level_id not in valid_skill_levels:
+    if skill_level_id not in modes_module.SKILL_LEVELS:
         console.print(
             f"[red]error[/red]  Invalid skill level '{skill_level_id}'. "
-            f"Choose from: {', '.join(sorted(valid_skill_levels))}"
+            f"Choose from: {', '.join(modes_module.SKILL_LEVELS)}"
         )
         raise typer.Exit(code=2)
 
