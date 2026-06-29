@@ -51,6 +51,7 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "included_commands",
         "caveman_default",
         "grill_me_default",
+        "skill_level",
     }
     assert set(context.keys()) == expected_keys
 

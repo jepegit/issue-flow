@@ -10,7 +10,7 @@ import os
 
 from issue_flow import modes as modes_module
 from issue_flow.editors import DEFAULT_EDITOR, EditorProfile, get_profile
-from issue_flow.modes import DEFAULT_MODE, Mode
+from issue_flow.modes import DEFAULT_MODE, DEFAULT_SKILL_LEVEL, Mode
 
 
 # Load .env from the current working directory (the user's project root).
@@ -137,18 +137,42 @@ class Settings:
             return persisted
         return _env_flag("ISSUEFLOW_GRILL_ME_DEFAULT")
 
+    def resolve_skill_level(self, project_root: Path) -> str:
+        """Resolve the skill level for ``project_root``.
+
+        Order: persisted ``.issueflows/config.toml [issueflow].skill_level`` >
+        ``ISSUEFLOW_SKILL_LEVEL`` env/``.env`` > :data:`DEFAULT_SKILL_LEVEL`. The
+        persisted value deliberately beats the environment so a stray env var cannot
+        silently change the level on ``update`` — switching skill levels is an
+        ``init --skill-level`` action.
+        """
+        persisted = modes_module.read_skill_level(self.config_path(project_root))
+        if persisted:
+            return persisted
+        env = os.getenv("ISSUEFLOW_SKILL_LEVEL")
+        if env and env.strip():
+            return env.strip()
+        return DEFAULT_SKILL_LEVEL
+
     def seed_config_values(self) -> dict[str, object]:
         """Values for a freshly created ``config.toml``: env/``.env`` else defaults.
 
-        Returns the three ``[issueflow]`` keys issue-flow reads from
-        ``config.toml`` — ``mode``, ``caveman_default``, ``grill_me_default`` —
-        taking each from its ``ISSUEFLOW_*`` env var (loaded from ``.env`` at
-        import) when set, otherwise the issue-flow default. Deliberately ignores
-        any existing ``config.toml`` since that is the layer being written.
+        Returns the four ``[issueflow]`` keys issue-flow reads from
+        ``config.toml`` — ``mode``, ``skill_level``, ``caveman_default``,
+        ``grill_me_default`` — taking each from its ``ISSUEFLOW_*`` env var
+        (loaded from ``.env`` at import) when set, otherwise the issue-flow
+        default. Deliberately ignores any existing ``config.toml`` since that is
+        the layer being written.
         """
         mode = os.getenv("ISSUEFLOW_MODE")
+        skill_level = os.getenv("ISSUEFLOW_SKILL_LEVEL")
         return {
             "mode": mode.strip() if mode and mode.strip() else DEFAULT_MODE,
+            "skill_level": (
+                skill_level.strip()
+                if skill_level and skill_level.strip()
+                else DEFAULT_SKILL_LEVEL
+            ),
             "caveman_default": _env_flag("ISSUEFLOW_CAVEMAN_DEFAULT"),
             "grill_me_default": _env_flag("ISSUEFLOW_GRILL_ME_DEFAULT"),
         }
@@ -158,20 +182,24 @@ class Settings:
         project_root: Path,
         profile: EditorProfile | None = None,
         mode: Mode | None = None,
+        skill_level: str | None = None,
     ) -> dict[str, object]:
         """Build the Jinja2 template context dictionary for ``profile``.
 
         When ``profile`` is omitted, the context targets the editor configured
         via ``ISSUEFLOW_EDITOR`` (default ``cursor``). When ``mode`` is omitted,
-        the active mode is resolved from env / persisted config / default.
+        the active mode is resolved from env / persisted config / default. When
+        ``skill_level`` is omitted, the active level is resolved.
 
         Templates can branch on the resolved mode via ``mode`` / ``mode_name``
         and, more robustly, on surface membership via ``included_skills`` /
         ``included_commands`` (so new modes and surfaces need no per-mode
-        conditionals).
+        conditionals). Templates can also branch on ``skill_level`` for
+        complexity-gated guidance.
         """
         profile = profile or get_profile(self.editor)
         mode = mode or self.resolve_mode(project_root)
+        skill_level = skill_level or self.resolve_skill_level(project_root)
         project_name = _detect_project_name(project_root)
         return {
             "issueflows_dir": self.issueflows_dir,
@@ -195,6 +223,7 @@ class Settings:
             "included_commands": sorted(mode.commands),
             "caveman_default": self.resolve_caveman_default(project_root),
             "grill_me_default": self.resolve_grill_me_default(project_root),
+            "skill_level": skill_level,
         }
 
 

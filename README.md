@@ -184,7 +184,7 @@ That's it. Open the project in Cursor and start with `/iflow` (or step through `
 ## Usage
 
 ```
-issue-flow init [PROJECT_DIR] [--force] [--skip-dep-check] [--editor EDITOR] [--mode MODE]
+issue-flow init [PROJECT_DIR] [--force] [--skip-dep-check] [--editor EDITOR] [--mode MODE] [--skill-level LEVEL]
 issue-flow update [PROJECT_DIR] [--skip-dep-check] [--editor EDITOR]
 issue-flow graphify [-C PROJECT_DIR] [...graphify subcommand + args]
 issue-flow status [PROJECT_DIR] [--local] [--json]
@@ -204,6 +204,7 @@ issue-flow agent capture N [-C PROJECT_DIR] [--repo OWNER/REPO] [--force] [--jso
 | `--skip-dep-check` | Skip the external-CLI dependency check (`git`, `gh`) and the confirmation prompt that follows if anything is missing. Useful in automation.                                |
 | `--editor`, `-e`   | AI coding tool(s) to scaffold for: `cursor` (default), `claude`, `opencode`, `codex`, or `all`. Repeatable (`-e cursor -e claude`). See [Editor support](#editor-support). |
 | `--mode`, `-m`     | Scaffolding mode — which workflow surfaces to install: `standard` (default, full workflow) or `simple` (markdown-only lifecycle). Persisted to `.issueflows/config.toml`; `update` honours it. See [Modes](#modes). |
+| `--skill-level`    | Skill level — controls quality-tooling recommendations: `basic` (minimal), `standard` (default), `advanced` (opinionated type checking / linting / pre-commit guidance). Persisted to `.issueflows/config.toml`; `update` honours it. See [Skill levels](#skill-levels). |
 
 
 Running `init` again without `--force` is safe: generated scaffold files that already exist are skipped, and **issue markdown under `.issueflows/` is never touched** by `init` or `update`. The project brief at `.issueflows/04-designs-and-guides/this-project.md` is also user-owned: `init` creates it only when missing, even with `--force`. When the CLI detects an existing scaffold, it reminds you about `update` and `--force`.
@@ -423,6 +424,7 @@ issue-flow reads a `.env` file from the project root (.via python-dotenv). `issu
 | `ISSUEFLOW_DOCS_DIR`     | `docs`         | Where to write the workflow documentation file.                                                                                               |
 | `ISSUEFLOW_HISTORY_FILE` | `HISTORY.md`   | Changelog file that `/iflow-close` updates (set to e.g. `CHANGELOG.md` for different conventions).                                            |
 | `ISSUEFLOW_MODE`         | `standard`     | Fallback [scaffolding mode](#modes) when none is persisted in `.issueflows/config.toml`. The canonical store is `config.toml` (written by `init --mode`), which **takes precedence over this env var**. Full order: `--mode` (CLI) > `config.toml` > `ISSUEFLOW_MODE` > `standard`. |
+| `ISSUEFLOW_SKILL_LEVEL`  | `standard`     | Fallback [skill level](#skill-levels) when none is persisted in `.issueflows/config.toml`. The canonical store is `config.toml` (written by `init --skill-level`), which **takes precedence over this env var**. Full order: `--skill-level` (CLI) > `config.toml` > `ISSUEFLOW_SKILL_LEVEL` > `standard`. |
 | `ISSUEFLOW_CAVEMAN_DEFAULT` | `false`     | Fallback for the [always-on caveman](#modes) toggle when `[issueflow].caveman_default` is not persisted in `.issueflows/config.toml`. The persisted value takes precedence. Full order: `config.toml` > `ISSUEFLOW_CAVEMAN_DEFAULT` > `false`. Only honored when the `caveman` skill is in the active mode. |
 | `ISSUEFLOW_GRILL_ME_DEFAULT` | `false`    | Fallback for the [grill-me-during-planning](#modes) toggle when `[issueflow].grill_me_default` is not persisted in `.issueflows/config.toml`. The persisted value takes precedence. Full order: `config.toml` > `ISSUEFLOW_GRILL_ME_DEFAULT` > `false`. Only honored when the `grill_me` skill is in the active mode. |
 

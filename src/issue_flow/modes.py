@@ -31,6 +31,11 @@ from issue_flow.templating import COMMAND_NAMES, SKILL_DIRS
 
 DEFAULT_MODE = "standard"
 
+# Skill levels gate complexity-based scaffolding (e.g. quality-tooling docs).
+# Ordered low → high. ``advanced`` adds opinionated quality-tooling guidance.
+SKILL_LEVELS: tuple[str, ...] = ("basic", "standard", "advanced")
+DEFAULT_SKILL_LEVEL = "standard"
+
 # Packaged data file holding the built-in modes (sibling of this module).
 _MODES_RESOURCE = "modes.toml"
 # Per-project config file (relative to the issueflows dir).
@@ -267,6 +272,19 @@ def read_grill_me_default(cfg_path: Path) -> bool | None:
     return None
 
 
+def read_skill_level(cfg_path: Path) -> str | None:
+    """Return the persisted ``[issueflow].skill_level`` value, or ``None`` if unset."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict):
+        value = section.get("skill_level")
+        if value:
+            return str(value)
+    return None
+
+
 def write_active_mode(cfg_path: Path, mode_id: str) -> None:
     """Persist ``[issueflow].mode = mode_id`` while preserving other content.
 
@@ -294,26 +312,54 @@ def write_active_mode(cfg_path: Path, mode_id: str) -> None:
     cfg_path.write_text(tomlkit.dumps(doc), encoding="utf-8")
 
 
+def write_skill_level(cfg_path: Path, skill_level: str) -> None:
+    """Persist ``[issueflow].skill_level`` while preserving other content.
+
+    Creates ``config.toml`` (and parent dirs) when missing; otherwise updates
+    only the ``[issueflow].skill_level`` key, leaving user comments and
+    formatting intact.
+    """
+    cfg_path.parent.mkdir(parents=True, exist_ok=True)
+    if cfg_path.is_file():
+        doc = tomlkit.parse(cfg_path.read_text(encoding="utf-8"))
+    else:
+        doc = tomlkit.document()
+        doc.add(
+            tomlkit.comment(
+                "issue-flow project config. 'mode' is managed by 'issue-flow init'."
+            )
+        )
+
+    section = doc.get("issueflow")
+    if not isinstance(section, dict):
+        section = tomlkit.table()
+        doc["issueflow"] = section
+    section["skill_level"] = skill_level
+
+    cfg_path.write_text(tomlkit.dumps(doc), encoding="utf-8")
+
+
 def write_default_config(
     cfg_path: Path,
     *,
     mode: str,
+    skill_level: str,
     caveman_default: bool,
     grill_me_default: bool,
     overwrite: bool = False,
 ) -> bool:
     """Create (or, with ``overwrite``, refresh) the project's ``config.toml``.
 
-    Writes the three ``[issueflow]`` keys issue-flow actually reads from
-    ``config.toml`` — ``mode``, ``caveman_default``, ``grill_me_default`` — using
-    the supplied values. Other ``ISSUEFLOW_*`` settings are env-only and are
-    deliberately not written here.
+    Writes the four ``[issueflow]`` keys issue-flow actually reads from
+    ``config.toml`` — ``mode``, ``skill_level``, ``caveman_default``,
+    ``grill_me_default`` — using the supplied values. Other ``ISSUEFLOW_*``
+    settings are env-only and are deliberately not written here.
 
     Behaviour:
 
     - File missing → create it with a commented ``[issueflow]`` table.
     - File present and ``overwrite`` is ``False`` → write nothing, return ``False``.
-    - File present and ``overwrite`` is ``True`` → upsert the three keys via
+    - File present and ``overwrite`` is ``True`` → upsert the four keys via
       tomlkit, leaving user comments, ``[modes.*]`` tables, and formatting intact.
 
     Returns ``True`` when the file was written, ``False`` when it already existed
@@ -331,6 +377,7 @@ def write_default_config(
             section = tomlkit.table()
             doc["issueflow"] = section
         section["mode"] = mode
+        section["skill_level"] = skill_level
         section["caveman_default"] = caveman_default
         section["grill_me_default"] = grill_me_default
     else:
@@ -347,7 +394,7 @@ def write_default_config(
             )
         )
         doc["issueflow"] = _commented_issueflow_table(
-            mode, caveman_default, grill_me_default
+            mode, skill_level, caveman_default, grill_me_default
         )
 
     cfg_path.write_text(tomlkit.dumps(doc), encoding="utf-8")
@@ -355,7 +402,7 @@ def write_default_config(
 
 
 def _commented_issueflow_table(
-    mode: str, caveman_default: bool, grill_me_default: bool
+    mode: str, skill_level: str, caveman_default: bool, grill_me_default: bool
 ) -> tomlkit.items.Table:
     """Build a fresh ``[issueflow]`` table with explanatory comments per key."""
     table = tomlkit.table()
@@ -366,6 +413,14 @@ def _commented_issueflow_table(
         )
     )
     table["mode"] = mode
+    table.add(tomlkit.nl())
+    table.add(
+        tomlkit.comment(
+            "Skill level: 'basic' (minimal), 'standard', 'advanced' (opinionated "
+            "quality tooling). Switch by re-running 'issue-flow init --skill-level <id>'."
+        )
+    )
+    table["skill_level"] = skill_level
     table.add(tomlkit.nl())
     table.add(
         tomlkit.comment(
