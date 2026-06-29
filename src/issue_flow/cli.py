@@ -53,6 +53,13 @@ _MODE_HELP = (
     "(or 'standard')."
 )
 
+_SKILL_LEVEL_HELP = (
+    "Scaffolding skill level (controls quality-tooling recommendations). "
+    "Options: 'basic' (minimal), 'standard' (default), 'advanced' (opinionated "
+    "type checking / linting / pre-commit guidance). The choice is persisted; "
+    "change it by re-running init. Defaults to the persisted level (or 'standard')."
+)
+
 
 @app.callback()
 def _callback() -> None:
@@ -94,6 +101,11 @@ def init(
         "-m",
         help=_MODE_HELP,
     ),
+    skill_level: str | None = typer.Option(
+        None,
+        "--skill-level",
+        help=_SKILL_LEVEL_HELP,
+    ),
 ) -> None:
     """Scaffold issue-flow directories and editor config files in a project."""
     from issue_flow.init import run_init
@@ -104,6 +116,7 @@ def init(
         skip_dep_check=skip_dep_check,
         editors=editor,
         mode=mode,
+        skill_level=skill_level,
     )
 
 

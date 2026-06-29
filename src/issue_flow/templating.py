@@ -168,7 +168,7 @@ DOCS_ENTRY: tuple[str, str] = (
 
 
 def build_manifest(
-    profile: EditorProfile, mode: Mode | None = None
+    profile: EditorProfile, mode: Mode | None = None, skill_level: str | None = None
 ) -> list[tuple[str, str]]:
     """Return the ``(template, output_path_template)`` entries for ``profile``.
 
@@ -176,6 +176,9 @@ def build_manifest(
     are emitted (its ``commands`` / ``skills`` stem sets). ``mode=None`` keeps the
     full set (the back-compat ``standard`` behaviour), so existing call sites and
     tests are unaffected.
+
+    When ``skill_level`` is ``"advanced"``, additional design docs (e.g.
+    quality-tooling recommendations) are added to the manifest.
 
     The per-editor rules extra (``.mdc`` / ``CLAUDE.md``) and the workflow doc are
     always emitted regardless of mode; their *content* adapts via the
@@ -211,6 +214,15 @@ def build_manifest(
         entries.append(profile.rules_extra)
 
     entries.append(DOCS_ENTRY)
+
+    if skill_level == "advanced":
+        entries.append(
+            (
+                "designs/python-quality-tools.md.j2",
+                "{issueflows_dir}/{designs_folder}/python-quality-tools.md",
+            )
+        )
+
     return entries
 
 

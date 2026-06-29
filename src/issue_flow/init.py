@@ -39,6 +39,7 @@ _DOTENV_KEYS: tuple[tuple[str, str], ...] = (
     ("ISSUEFLOW_DOCS_DIR", "docs"),
     ("ISSUEFLOW_HISTORY_FILE", "HISTORY.md"),
     ("ISSUEFLOW_MODE", "standard"),
+    ("ISSUEFLOW_SKILL_LEVEL", "standard"),
     ("ISSUEFLOW_CAVEMAN_DEFAULT", "false"),
     ("ISSUEFLOW_GRILL_ME_DEFAULT", "false"),
 )
@@ -273,6 +274,7 @@ def run_init(
     skip_dep_check: bool = False,
     editors: list[str] | None = None,
     mode: str | None = None,
+    skill_level: str | None = None,
 ) -> None:
     """Scaffold .issueflows/ directories and editor config (commands, rules, skills).
 
@@ -304,6 +306,10 @@ def run_init(
             validated and persisted to ``.issueflows/config.toml`` so later
             ``update`` runs honour it. When omitted, the persisted/active mode is
             used (default ``standard``), and the persisted value is left as-is.
+        skill_level: Skill level id (``"basic"``, ``"standard"``, ``"advanced"``).
+            When given it is validated and persisted to ``.issueflows/config.toml``
+            so later ``update`` runs honour it. When omitted, the persisted/active
+            level is used (default ``"standard"``).
     """
     settings = Settings()
     try:
@@ -321,13 +327,26 @@ def run_init(
         console.print(f"[red]error[/red]  {exc}")
         raise typer.Exit(code=2) from None
 
+    explicit_skill_level = skill_level is not None
+    skill_level_id = (
+        skill_level if explicit_skill_level else settings.resolve_skill_level(project_root)
+    )
+    valid_skill_levels = {"basic", "standard", "advanced"}
+    if skill_level_id not in valid_skill_levels:
+        console.print(
+            f"[red]error[/red]  Invalid skill level '{skill_level_id}'. "
+            f"Choose from: {', '.join(sorted(valid_skill_levels))}"
+        )
+        raise typer.Exit(code=2)
+
     console.print(
         f"\n[bold]Initializing issue-flow in [cyan]{project_root}[/cyan][/bold]"
     )
     console.print(
         f"[dim]Editors: {', '.join(p.id for p in profiles)}[/dim]"
     )
-    console.print(f"[dim]Mode: {mode_obj.id}[/dim]\n")
+    console.print(f"[dim]Mode: {mode_obj.id}[/dim]")
+    console.print(f"[dim]Skill level: {skill_level_id}[/dim]\n")
 
     if not _dependency_gate(skip_dep_check):
         raise typer.Exit(code=1)
@@ -342,21 +361,24 @@ def run_init(
         )
 
     _create_issueflow_dirs(project_root, settings)
-    if explicit_mode:
-        modes_module.write_active_mode(cfg_path, mode_obj.id)
+    if explicit_mode or explicit_skill_level:
+        if explicit_mode:
+            modes_module.write_active_mode(cfg_path, mode_obj.id)
+        if explicit_skill_level:
+            modes_module.write_skill_level(cfg_path, skill_level_id)
         console.print(
             f"  [green]write[/green] {cfg_path.relative_to(project_root).as_posix()}  "
-            f"(mode = {mode_obj.id})"
+            f"(mode = {mode_obj.id}, skill_level = {skill_level_id})"
         )
     _ensure_project_brief(
         project_root,
         settings,
-        settings.template_context(project_root, profiles[0], mode=mode_obj),
+        settings.template_context(project_root, profiles[0], mode=mode_obj, skill_level=skill_level_id),
     )
     _ensure_tools_readme(
         project_root,
         settings,
-        settings.template_context(project_root, profiles[0], mode=mode_obj),
+        settings.template_context(project_root, profiles[0], mode=mode_obj, skill_level=skill_level_id),
     )
 
     written_files: list[Path] = []
@@ -364,9 +386,9 @@ def run_init(
     pruned_count = 0
     for profile in profiles:
         console.print(f"\n[bold]{profile.name}[/bold] ([cyan]{profile.agent_dir}[/cyan])")
-        context = settings.template_context(project_root, profile, mode=mode_obj)
+        context = settings.template_context(project_root, profile, mode=mode_obj, skill_level=skill_level_id)
         written, skipped = _write_manifest_files(
-            project_root, build_manifest(profile, mode_obj), context, force=force
+            project_root, build_manifest(profile, mode_obj, skill_level=skill_level_id), context, force=force
         )
         _ensure_agents_md(project_root, context)
         pruned_count += _prune_retired_files(project_root, profile)
@@ -445,13 +467,15 @@ def run_update(
         console.print(f"[red]error[/red]  {exc}")
         raise typer.Exit(code=2) from None
 
+    skill_level_id = settings.resolve_skill_level(project_root)
     console.print(
         f"\n[bold]Updating issue-flow scaffold in [cyan]{project_root}[/cyan][/bold]"
     )
     console.print(
         f"[dim]Editors: {', '.join(p.id for p in profiles)}[/dim]"
     )
-    console.print(f"[dim]Mode: {mode_obj.id}[/dim]\n")
+    console.print(f"[dim]Mode: {mode_obj.id}[/dim]")
+    console.print(f"[dim]Skill level: {skill_level_id}[/dim]\n")
 
     if not _dependency_gate(skip_dep_check):
         raise typer.Exit(code=1)
@@ -460,21 +484,21 @@ def run_update(
     _ensure_project_brief(
         project_root,
         settings,
-        settings.template_context(project_root, profiles[0], mode=mode_obj),
+        settings.template_context(project_root, profiles[0], mode=mode_obj, skill_level=skill_level_id),
     )
     _ensure_tools_readme(
         project_root,
         settings,
-        settings.template_context(project_root, profiles[0], mode=mode_obj),
+        settings.template_context(project_root, profiles[0], mode=mode_obj, skill_level=skill_level_id),
     )
 
     written_files: list[Path] = []
     pruned_count = 0
     for profile in profiles:
         console.print(f"\n[bold]{profile.name}[/bold] ([cyan]{profile.agent_dir}[/cyan])")
-        context = settings.template_context(project_root, profile, mode=mode_obj)
+        context = settings.template_context(project_root, profile, mode=mode_obj, skill_level=skill_level_id)
         written, _skipped = _write_manifest_files(
-            project_root, build_manifest(profile, mode_obj), context, force=True
+            project_root, build_manifest(profile, mode_obj, skill_level=skill_level_id), context, force=True
         )
         _ensure_agents_md(project_root, context)
         pruned_count += _prune_retired_files(project_root, profile)
