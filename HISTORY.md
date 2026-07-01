@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- Align issues with plan. (#85)
+
 ## [0.4.1b3] - 2026-06-28
 
 - **New `issue-flow config add` command (#96).** Adds a `config` CLI sub-app whose `add` command materializes `.issueflows/config.toml` on demand instead of relying on `init --mode` to create it. It writes the three keys issue-flow actually reads from `config.toml` — `mode`, `caveman_default`, `grill_me_default` — seeding each from its `ISSUEFLOW_*` env var / `.env` when set, otherwise the issue-flow default (`standard`, `false`, `false`), into a commented `[issueflow]` table, then prints a short guide for hand-editing it later. The other `ISSUEFLOW_*` settings are environment-only and are deliberately not written there (they would have no effect in `config.toml`). An existing file is left untouched unless `--force`, which upserts the three keys via `tomlkit` while preserving user comments and `[modes.*]` tables; `--json` emits a machine-readable result. Backed by `modes.write_default_config()` and `Settings.seed_config_values()`, documented in the README Configuration section.
