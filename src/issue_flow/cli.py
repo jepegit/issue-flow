@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from importlib.metadata import version as _package_version
 from pathlib import Path
 
 import typer
@@ -61,8 +62,22 @@ _SKILL_LEVEL_HELP = (
 )
 
 
+def _version_callback(value: bool) -> None:
+    if value:
+        _console.print(f"issue-flow {_package_version('issue-flow')}")
+        raise typer.Exit()
+
+
 @app.callback()
-def _callback() -> None:
+def _callback(
+    version: bool = typer.Option(
+        False,
+        "--version",
+        callback=_version_callback,
+        is_eager=True,
+        help="Show the issue-flow version and exit.",
+    ),
+) -> None:
     """Agents should behave. Let them follow the issue flow."""
 
 
