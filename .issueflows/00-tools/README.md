@@ -26,4 +26,4 @@ to grow over time.
 
 | Tool | What it does | When to use |
 | --- | --- | --- |
-| _(none yet)_ | | |
+| `verify_scaffold.py` | Scaffolds a throwaway project (`git init` + `issue-flow init` for cursor + claude), asserts the rendered surfaces carry expected markers (label-driven yolo routing, hands-off close), then flips `label_flows` / `yolo_label` in the throwaway's `config.toml`, re-runs `update`, and re-checks. `--keep` preserves the temp project. | Before merging template/config changes, to verify end-to-end rendering without hand-scaffolding. Run from repo root: `uv run .issueflows/00-tools/verify_scaffold.py` |
