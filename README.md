@@ -373,6 +373,26 @@ resolves in the order `config.toml` > `ISSUEFLOW_GRILL_ME_DEFAULT` (env) >
 `false`; the persisted value beats the env var so a stray env can't flip it on
 `update`.
 
+**Label-driven flows.** Issue labels can select the flow: when an issue picked
+via `/iflow-pick` carries the **`yolo`** label, it is routed through the
+hands-off `/iflow-yolo` chain (one combined confirmation covering the branch and
+the whole `init → plan → start → close yolo` run, which merges the PR and pulls
+the default branch at the end). This is **on by default** and controlled by two
+keys under `[issueflow]` in `.issueflows/config.toml`:
+
+```toml
+[issueflow]
+label_flows = true    # allow labels to select the flow (default: true)
+yolo_label = "yolo"   # the label that triggers the yolo flow (default: "yolo")
+```
+
+Set `label_flows = false` to opt out, or change `yolo_label` to use a different
+trigger label; re-run `issue-flow update` after changing either so the commands
+re-render. Each resolves in the order `config.toml` > env
+(`ISSUEFLOW_LABEL_FLOWS` / `ISSUEFLOW_YOLO_LABEL`) > default (`true` / `"yolo"`);
+persisted values beat the env vars. Only honored when the `iflow-pick` and
+`iflow-yolo` commands are part of the active mode.
+
 
 ## Editor support
 
@@ -427,6 +447,8 @@ issue-flow reads a `.env` file from the project root (.via python-dotenv). `issu
 | `ISSUEFLOW_SKILL_LEVEL`  | `standard`     | Fallback [skill level](#skill-levels) when none is persisted in `.issueflows/config.toml`. The canonical store is `config.toml` (written by `init --skill-level`), which **takes precedence over this env var**. Full order: `--skill-level` (CLI) > `config.toml` > `ISSUEFLOW_SKILL_LEVEL` > `standard`. |
 | `ISSUEFLOW_CAVEMAN_DEFAULT` | `false`     | Fallback for the [always-on caveman](#modes) toggle when `[issueflow].caveman_default` is not persisted in `.issueflows/config.toml`. The persisted value takes precedence. Full order: `config.toml` > `ISSUEFLOW_CAVEMAN_DEFAULT` > `false`. Only honored when the `caveman` skill is in the active mode. |
 | `ISSUEFLOW_GRILL_ME_DEFAULT` | `false`    | Fallback for the [grill-me-during-planning](#modes) toggle when `[issueflow].grill_me_default` is not persisted in `.issueflows/config.toml`. The persisted value takes precedence. Full order: `config.toml` > `ISSUEFLOW_GRILL_ME_DEFAULT` > `false`. Only honored when the `grill_me` skill is in the active mode. |
+| `ISSUEFLOW_LABEL_FLOWS`  | `true`         | Fallback for the [label-driven flows](#modes) toggle when `[issueflow].label_flows` is not persisted in `.issueflows/config.toml`. The persisted value takes precedence. Full order: `config.toml` > `ISSUEFLOW_LABEL_FLOWS` > `true`. Only honored when the `iflow-pick` and `iflow-yolo` commands are in the active mode. |
+| `ISSUEFLOW_YOLO_LABEL`   | `yolo`         | Fallback for the [yolo trigger label](#modes) when `[issueflow].yolo_label` is not persisted in `.issueflows/config.toml`. The persisted value takes precedence. Full order: `config.toml` > `ISSUEFLOW_YOLO_LABEL` > `yolo`. |
 
 Beyond the `ISSUEFLOW_*` settings above, `issue-flow graphify` also reads an LLM
 API key from `.env` when present (`GEMINI_API_KEY`, `ANTHROPIC_API_KEY`,
@@ -444,16 +466,17 @@ issue-flow config add            # create .issueflows/config.toml if missing
 issue-flow config add --force    # regenerate its [issueflow] keys in place
 ```
 
-It writes the three keys issue-flow actually reads from `config.toml` — `mode`,
-`caveman_default`, `grill_me_default` — taking each value from its `ISSUEFLOW_*`
-env var / `.env` when set, otherwise the issue-flow default (`standard`,
-`false`, `false`). The other `ISSUEFLOW_*` settings are **environment-only** and
+It writes the six keys issue-flow actually reads from `config.toml` — `mode`,
+`skill_level`, `caveman_default`, `grill_me_default`, `label_flows`,
+`yolo_label` — taking each value from its `ISSUEFLOW_*` env var / `.env` when
+set, otherwise the issue-flow default (`standard`, `standard`, `false`, `false`,
+`true`, `"yolo"`). The other `ISSUEFLOW_*` settings are **environment-only** and
 are deliberately *not* written to `config.toml` (putting them there would have no
 effect). An existing file is left untouched unless `--force` is passed, in which
-case the three keys are upserted while your comments and `[modes.*]` tables are
-preserved. After changing `caveman_default` / `grill_me_default`, re-run
-`issue-flow update` so the always-on rule re-renders. Pass `--json` for a
-machine-readable result.
+case the six keys are upserted while your comments and `[modes.*]` tables are
+preserved. After changing `caveman_default` / `grill_me_default` /
+`label_flows` / `yolo_label`, re-run `issue-flow update` so the rule and
+commands re-render. Pass `--json` for a machine-readable result.
 
 
 ## Development

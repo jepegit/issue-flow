@@ -31,9 +31,9 @@ Same as `/iflow-init` (issue number, URL, or empty to infer from the branch). Op
    /iflow-yolo will run, without further prompts:
 
      1. /iflow-init 123
-     2. /iflow-plan         (auto-confirmed, short plan)
-     3. /iflow-start        (implement directly)
-     4. /iflow-close patch  (tests, bump, commit, push, PR)
+     2. /iflow-plan              (auto-confirmed, short plan)
+     3. /iflow-start             (implement directly)
+     4. /iflow-close yolo patch  (tests, bump, commit, push, PR, merge, pull)
 
    Target branch: 123-fix-typo
    Repo: owner/repo
@@ -41,7 +41,7 @@ Same as `/iflow-init` (issue number, URL, or empty to infer from the branch). Op
    Proceed? [y/N]
    ```
 
-   Require an explicit yes. Any other input aborts.
+   Require an explicit yes. Any other input aborts. (When `/iflow-pick` routed here via the yolo issue label, its combined confirmation already covered this — do not ask twice.)
 
 ## Chain
 
@@ -55,12 +55,12 @@ Once the preflight has passed and the user confirmed:
 
 4. **Tests again.** Re-run `uv run pytest`. If anything fails, **stop**. Do not commit, push, or open a PR. Tell the user what failed and point at the work in progress.
 
-5. **`/iflow-close`** — run the full close flow (optional version bump if the user passed `bump`/`patch`/`minor`/`major`, issue-folder update, commit, push, PR). Do **not** chain `/iflow-cleanup` automatically — the PR has not merged yet.
+5. **`/iflow-close yolo`** — run the close flow with the `yolo` token (plus any forwarded `bump`/`patch`/`minor`/`major`, `log`, `nohistory`, `draft`, `stay` tokens). The `yolo` token makes close hands-off: it writes the `{{ history_file }}` bullet without a confirm prompt, **merges the PR** with `gh pr merge --squash` (falling back to `--squash --auto` when branch protection or pending checks block an immediate merge), and then switches back to the default branch and runs `git pull --ff-only` so the merged commit lands locally. Do **not** chain `/iflow-cleanup` automatically — local branch deletion stays a user decision. Note: `draft` conflicts with the auto-merge; when the user passed `draft`, skip the merge step and say so.
 
 ## Post-run
 
-- Report the PR URL and final branch. By default `/iflow-close` switches back to the default branch when the tree is clean; forwarded `stay` text leaves the user on the issue branch instead.
-- Remind them to re-run `/iflow-cleanup` once the PR is merged.
+- Report the PR URL, the merge result (merged, or queued via `--auto`), and the final branch. By default `/iflow-close yolo` merges the PR and switches back to the default branch with a pull; forwarded `stay` text leaves the user on the issue branch instead.
+- Remind them that `/iflow-cleanup` will delete the now-merged local branch when they are ready.
 
 ## Output
 

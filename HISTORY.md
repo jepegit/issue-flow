@@ -10,6 +10,7 @@ than the GitHub release notes they link to.
 ## [Unreleased]
 
 - Align issues with plan. (#85)
+- **Label-driven yolo flow (#106).** Issue labels can now select the flow: when `/iflow-pick` picks an issue carrying the (configurable) yolo label, it routes it through `/iflow-yolo` with one combined confirmation. Controlled by two new `[issueflow]` keys in `.issueflows/config.toml` — `label_flows` (default `true`) and `yolo_label` (default `"yolo"`), with `ISSUEFLOW_LABEL_FLOWS` / `ISSUEFLOW_YOLO_LABEL` env fallbacks; `issue-flow config add` now writes all six keys. The yolo chain also closes the loop: a new `yolo` token on `/iflow-close` writes the changelog bullet without a confirm prompt, merges the PR via `gh pr merge --squash` (`--squash --auto` fallback when blocked), then switches back to the default branch and pulls. Branch deletion still belongs to `/iflow-cleanup`.
 - **New `--version` flag (#104).** `issue-flow --version` prints the installed package version (read from package metadata) and exits, implemented as an eager option on the root Typer callback. Landed via an interactive `/iflow-fix` session.
 
 ## [0.4.1b3] - 2026-06-28

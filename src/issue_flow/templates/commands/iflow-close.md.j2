@@ -13,6 +13,7 @@ Optional text after the command (same line). Examples:
 - **`nohistory`** or **`skip history`** — skip the `{{ history_file }}` update step (step 3) for this run.
 - **`log "..."`** or **`note "..."`** — use the quoted text verbatim as the `{{ history_file }}` bullet summary (otherwise the GitHub issue title is used).
 - **`stay`**, **`stay on branch`**, **`don't switch`**, or **`dont switch to main`** — after the PR step, stay on the issue branch instead of switching back to the default branch.
+- **`yolo`** — hands-off close (used by `/iflow-yolo`): decide the `{{ history_file }}` update yourself without a confirm prompt (step 3), **merge the PR** after opening it (step 7a), then switch back to the default branch and pull (step 8). See the per-step notes below.
 
 Other optional notes still apply: branch name, PR title, draft PR, skip issue doc update, commit all changes, etc.
 
@@ -37,6 +38,7 @@ Other optional notes still apply: branch name, PR title, draft PR, skip issue do
    - If step 2 **did** bump the version, promote `## [Unreleased]` to `## [<new_version>] - <YYYY-MM-DD>`, prepend a fresh empty `## [Unreleased]` above it, and put the new bullet inside the just-closed release section.
    - If `{{ history_file }}` does not exist at the project root, skip this step with a short note and continue. Never create it here.
    - Show the proposed diff and confirm once before writing. If declined, leave `{{ history_file }}` untouched and move on.
+   - **`yolo` input:** do not ask — decide yourself and write the bullet (issue title, or the `log "..."` text) directly. `nohistory` still skips the step entirely.
 
 4. **Issue tracking in the repo** (see project rules under `{{ issueflows_dir }}/{{ current_issues_folder }}`)
    - Update the status file for this issue: clear checklist, remaining work, and use `- [x] Done` only when fully resolved.
@@ -55,18 +57,26 @@ Other optional notes still apply: branch name, PR title, draft PR, skip issue do
    - Open a PR against the default branch (e.g. `main`).
    - Describe the change, how to test it, and link the GitHub issue (e.g. `Closes #123` or `Refs #123` in the PR body).
 
+7a. **Merge the PR (`yolo` input only)**
+   - Merge immediately with `gh pr merge <number> --squash` (squash matches the project's assume-squash-merge convention). Never pass `--delete-branch` — branch deletion stays in `/iflow-cleanup`.
+   - If GitHub refuses (branch protection, required checks still running), fall back to `gh pr merge <number> --squash --auto` and report that the merge is queued behind the checks.
+   - If even `--auto` fails, stop the hands-off behaviour there: report the error and leave the PR open for the user.
+   - Without the `yolo` input, skip this step — merging stays a user decision (step 9).
+
 8. **Switch back when safe**
    - Detect the default branch: prefer `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`, else `git symbolic-ref --quiet --short refs/remotes/origin/HEAD | sed 's|^origin/||'`, else `main`.
    - If the input included `stay`, `stay on branch`, `don't switch`, or `dont switch to main`, stay on the issue branch and report that the user opted out.
    - Otherwise run `git status --porcelain` after the PR is open or updated. If it is clean, switch back with `git switch <default>` and then run `git pull --ff-only`. A clean tree here means the branch work has been committed and pushed to the PR branch.
+   - **`yolo` input:** this step is mandatory (unless `stay` was also passed) and runs **after** the merge from step 7a, so the pull brings the just-merged squash commit into the local default branch. If step 7a only queued an auto-merge, still switch and pull, and note that the merge commit will arrive once checks pass.
    - If the working tree is dirty, stay on the current branch, list the uncommitted paths, and explain that switching is unsafe until those changes are committed, stashed, or discarded by the user.
    - This step never deletes the issue branch. Branch deletion remains in `/iflow-cleanup`.
 
 9. **After review**
+   - With the `yolo` input the PR was already merged in step 7a — skip to the `/iflow-cleanup` reminder below.
    - Address feedback, push updates, and merge when approved and CI is green.
    - If step 8 switched back to the default branch, switch to the PR branch again before making review fixes.
    - Once the PR is merged, run **`/iflow-cleanup`** to switch back to the default branch, `git pull --ff-only`, `git fetch --prune`, and delete local branches whose commits are already in the default branch (single consolidated confirm). `/iflow-close` no longer does post-merge cleanup itself.
 
 ## Output
 
-Summarize what was committed, pushed, the PR URL (or next step if blocked), and whether the working copy switched back to the default branch or stayed on the issue branch. Remind the user to run `/iflow-cleanup` after the PR merges.
+Summarize what was committed, pushed, the PR URL (or next step if blocked), and whether the working copy switched back to the default branch or stayed on the issue branch. With the `yolo` input, also report the merge result (merged, or queued via `--auto`). Remind the user to run `/iflow-cleanup` after the PR merges (or right away when yolo already merged it).

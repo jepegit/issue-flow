@@ -8,14 +8,19 @@ import pytest
 
 from issue_flow import modes
 from issue_flow.modes import (
+    DEFAULT_LABEL_FLOWS,
     DEFAULT_MODE,
+    DEFAULT_YOLO_LABEL,
     available_modes,
     config_path,
     read_active_mode,
     read_caveman_default,
     read_grill_me_default,
+    read_label_flows,
+    read_yolo_label,
     resolve_mode,
     write_active_mode,
+    write_default_config,
 )
 from issue_flow.templating import COMMAND_NAMES, SKILL_DIRS
 
@@ -211,6 +216,78 @@ def test_read_grill_me_default_true_and_false(tmp_path: Path) -> None:
     assert read_grill_me_default(cfg_true) is True
     cfg_false = _write_config(tmp_path, "[issueflow]\ngrill_me_default = false\n")
     assert read_grill_me_default(cfg_false) is False
+
+
+def test_read_label_flows_missing_returns_none(tmp_path: Path) -> None:
+    """No config file -> label_flows is unset (None), not a boolean."""
+    assert read_label_flows(config_path(tmp_path, ".issueflows")) is None
+
+
+def test_read_label_flows_unset_key_returns_none(tmp_path: Path) -> None:
+    """A config without the key -> unset (None), so env/default can apply."""
+    cfg = _write_config(tmp_path, '[issueflow]\nmode = "standard"\n')
+    assert read_label_flows(cfg) is None
+
+
+def test_read_label_flows_true_and_false(tmp_path: Path) -> None:
+    """An explicit boolean is read back as that boolean."""
+    cfg_true = _write_config(tmp_path, "[issueflow]\nlabel_flows = true\n")
+    assert read_label_flows(cfg_true) is True
+    cfg_false = _write_config(tmp_path, "[issueflow]\nlabel_flows = false\n")
+    assert read_label_flows(cfg_false) is False
+
+
+def test_read_yolo_label_missing_returns_none(tmp_path: Path) -> None:
+    """No config file -> yolo_label is unset (None)."""
+    assert read_yolo_label(config_path(tmp_path, ".issueflows")) is None
+
+
+def test_read_yolo_label_unset_key_returns_none(tmp_path: Path) -> None:
+    """A config without the key -> unset (None), so env/default can apply."""
+    cfg = _write_config(tmp_path, '[issueflow]\nmode = "standard"\n')
+    assert read_yolo_label(cfg) is None
+
+
+def test_read_yolo_label_value(tmp_path: Path) -> None:
+    """An explicit label is read back verbatim."""
+    cfg = _write_config(tmp_path, '[issueflow]\nyolo_label = "fast-track"\n')
+    assert read_yolo_label(cfg) == "fast-track"
+
+
+def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
+    """A freshly written config.toml carries label_flows and yolo_label."""
+    cfg = config_path(tmp_path, ".issueflows")
+    assert write_default_config(
+        cfg,
+        mode="standard",
+        skill_level="standard",
+        caveman_default=False,
+        grill_me_default=False,
+    )
+    assert read_label_flows(cfg) is DEFAULT_LABEL_FLOWS
+    assert read_yolo_label(cfg) == DEFAULT_YOLO_LABEL
+
+
+def test_write_default_config_upserts_label_flow_keys(tmp_path: Path) -> None:
+    """Overwrite upserts the label-flow keys while preserving user content."""
+    cfg = _write_config(
+        tmp_path,
+        '# keep me\n[issueflow]\nmode = "simple"\nlabel_flows = false\n',
+    )
+    assert write_default_config(
+        cfg,
+        mode="standard",
+        skill_level="standard",
+        caveman_default=False,
+        grill_me_default=False,
+        label_flows=True,
+        yolo_label="speedy",
+        overwrite=True,
+    )
+    text = cfg.read_text(encoding="utf-8")
+    assert "# keep me" in text
+    assert read_label_flows(cfg) is True
+    assert read_yolo_label(cfg) == "speedy"
 
 
 def test_resolve_mode_module_alias() -> None:

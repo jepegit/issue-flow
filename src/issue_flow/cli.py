@@ -336,11 +336,11 @@ def config_add(
 ) -> None:
     """Create .issueflows/config.toml, seeded from .env (or issue-flow defaults).
 
-    Writes the three keys issue-flow reads from config.toml — ``mode``,
-    ``caveman_default``, ``grill_me_default`` — taking each from its
-    ``ISSUEFLOW_*`` env var when set, else the default. Other ``ISSUEFLOW_*``
-    settings are environment-only and are not written here. Existing files are
-    left untouched unless ``--force`` is passed.
+    Writes the six keys issue-flow reads from config.toml — ``mode``,
+    ``skill_level``, ``caveman_default``, ``grill_me_default``, ``label_flows``,
+    ``yolo_label`` — taking each from its ``ISSUEFLOW_*`` env var when set, else
+    the default. Other ``ISSUEFLOW_*`` settings are environment-only and are not
+    written here. Existing files are left untouched unless ``--force`` is passed.
     """
     from issue_flow.agent import run_config_add
 

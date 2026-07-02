@@ -36,6 +36,10 @@ DEFAULT_MODE = "standard"
 SKILL_LEVELS: tuple[str, ...] = ("basic", "standard", "advanced")
 DEFAULT_SKILL_LEVEL = "standard"
 
+# Label-driven flow selection: allowed by default, "yolo" label triggers yolo.
+DEFAULT_LABEL_FLOWS = True
+DEFAULT_YOLO_LABEL = "yolo"
+
 # Packaged data file holding the built-in modes (sibling of this module).
 _MODES_RESOURCE = "modes.toml"
 # Per-project config file (relative to the issueflows dir).
@@ -272,6 +276,35 @@ def read_grill_me_default(cfg_path: Path) -> bool | None:
     return None
 
 
+def read_label_flows(cfg_path: Path) -> bool | None:
+    """Return the persisted ``[issueflow].label_flows`` flag.
+
+    Returns ``None`` when the file is missing or the key is unset, so callers can
+    distinguish "not configured" (fall through to env / default) from an explicit
+    ``false``.
+    """
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "label_flows" in section:
+        return bool(section.get("label_flows"))
+    return None
+
+
+def read_yolo_label(cfg_path: Path) -> str | None:
+    """Return the persisted ``[issueflow].yolo_label`` value, or ``None`` if unset."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict):
+        value = section.get("yolo_label")
+        if value:
+            return str(value)
+    return None
+
+
 def read_skill_level(cfg_path: Path) -> str | None:
     """Return the persisted ``[issueflow].skill_level`` value, or ``None`` if unset."""
     if not cfg_path.is_file():
@@ -346,20 +379,23 @@ def write_default_config(
     skill_level: str,
     caveman_default: bool,
     grill_me_default: bool,
+    label_flows: bool = DEFAULT_LABEL_FLOWS,
+    yolo_label: str = DEFAULT_YOLO_LABEL,
     overwrite: bool = False,
 ) -> bool:
     """Create (or, with ``overwrite``, refresh) the project's ``config.toml``.
 
-    Writes the four ``[issueflow]`` keys issue-flow actually reads from
+    Writes the six ``[issueflow]`` keys issue-flow actually reads from
     ``config.toml`` — ``mode``, ``skill_level``, ``caveman_default``,
-    ``grill_me_default`` — using the supplied values. Other ``ISSUEFLOW_*``
-    settings are env-only and are deliberately not written here.
+    ``grill_me_default``, ``label_flows``, ``yolo_label`` — using the supplied
+    values. Other ``ISSUEFLOW_*`` settings are env-only and are deliberately not
+    written here.
 
     Behaviour:
 
     - File missing → create it with a commented ``[issueflow]`` table.
     - File present and ``overwrite`` is ``False`` → write nothing, return ``False``.
-    - File present and ``overwrite`` is ``True`` → upsert the four keys via
+    - File present and ``overwrite`` is ``True`` → upsert the six keys via
       tomlkit, leaving user comments, ``[modes.*]`` tables, and formatting intact.
 
     Returns ``True`` when the file was written, ``False`` when it already existed
@@ -380,6 +416,8 @@ def write_default_config(
         section["skill_level"] = skill_level
         section["caveman_default"] = caveman_default
         section["grill_me_default"] = grill_me_default
+        section["label_flows"] = label_flows
+        section["yolo_label"] = yolo_label
     else:
         doc = tomlkit.document()
         doc.add(
@@ -394,7 +432,8 @@ def write_default_config(
             )
         )
         doc["issueflow"] = _commented_issueflow_table(
-            mode, skill_level, caveman_default, grill_me_default
+            mode, skill_level, caveman_default, grill_me_default,
+            label_flows, yolo_label,
         )
 
     cfg_path.write_text(tomlkit.dumps(doc), encoding="utf-8")
@@ -402,7 +441,12 @@ def write_default_config(
 
 
 def _commented_issueflow_table(
-    mode: str, skill_level: str, caveman_default: bool, grill_me_default: bool
+    mode: str,
+    skill_level: str,
+    caveman_default: bool,
+    grill_me_default: bool,
+    label_flows: bool,
+    yolo_label: str,
 ) -> tomlkit.items.Table:
     """Build a fresh ``[issueflow]`` table with explanatory comments per key."""
     table = tomlkit.table()
@@ -437,4 +481,19 @@ def _commented_issueflow_table(
         )
     )
     table["grill_me_default"] = grill_me_default
+    table.add(tomlkit.nl())
+    table.add(
+        tomlkit.comment(
+            "Let issue labels select the flow (true/false): an issue carrying "
+            "the yolo label is run through /iflow-yolo when picked. Re-run "
+            "'issue-flow update' after changing so the commands re-render."
+        )
+    )
+    table["label_flows"] = label_flows
+    table.add(
+        tomlkit.comment(
+            "The GitHub label that triggers the yolo flow."
+        )
+    )
+    table["yolo_label"] = yolo_label
     return table
