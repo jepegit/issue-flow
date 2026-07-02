@@ -30,6 +30,15 @@ def runner() -> CliRunner:
     return CliRunner()
 
 
+def test_cli_version_option(runner: CliRunner) -> None:
+    """`issue-flow --version` must print the package version and exit 0."""
+    from importlib.metadata import version
+
+    result = runner.invoke(app, ["--version"])
+    assert result.exit_code == 0
+    assert version("issue-flow") in result.stdout
+
+
 def test_cli_lists_graphify_command(runner: CliRunner) -> None:
     """`issue-flow --help` must mention the `graphify` command."""
     result = runner.invoke(app, ["--help"])

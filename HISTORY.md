@@ -10,6 +10,7 @@ than the GitHub release notes they link to.
 ## [Unreleased]
 
 - Align issues with plan. (#85)
+- **New `--version` flag (#104).** `issue-flow --version` prints the installed package version (read from package metadata) and exits, implemented as an eager option on the root Typer callback. Landed via an interactive `/iflow-fix` session.
 
 ## [0.4.1b3] - 2026-06-28
 
