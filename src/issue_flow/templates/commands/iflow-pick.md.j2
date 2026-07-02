@@ -36,6 +36,13 @@ Optional free-form text after the command:
 4. **Create a `fix` issue (only when requested).** When the user passed `fix` (or explicitly asks for a general-fixes bucket): create a **new** GitHub issue with `gh issue create` (e.g. title `chore: general fixes`, body noting it is a catch-all for small fixes/typos/chores). Confirm the title/body with the user first. Record the returned issue number and use it as the chosen issue. A fresh issue is created each time — existing open general-fixes issues are **not** reused.
 
 5. **Over-large issue (note only).** If the chosen issue looks too involved to land in one PR, **mention** that it could be broken into sub-issues and that automated breakdown is planned as a follow-up (Phase B of issue #63). Do **not** auto-create sub-issues in this version — either proceed with the whole issue or let the user pick a smaller one.
+{% if label_flows and "iflow-yolo" in included_commands %}
+6. **Label-driven yolo flow.** If the chosen issue carries the **`{{ yolo_label }}`** label (case-insensitive; check the `labels` field from `gh issue list`, or `gh issue view <n> --json labels` when the issue was given directly), the issue is marked for the hands-off `/iflow-yolo` chain:
+   - Announce it: "issue #<N> has the `{{ yolo_label }}` label → running it through `/iflow-yolo`".
+   - Fold `/iflow-yolo`'s single consolidated confirm into the pick confirmation — one prompt total, listing the branch to create and the full chain (`init → plan → start → close yolo`). Require an explicit yes; any other answer falls back to the normal (non-yolo) flow or aborts, per the user's answer.
+   - On yes: run Phase 2 (create the branch) as usual, then follow `{{ agent_dir }}/commands/iflow-yolo.md` **instead of** the plain Phase 3 handoff. The yolo preflight (clean tree, passing tests) still runs and can still abort; do not re-ask its consolidated confirm — the combined prompt above already covered it.
+   - This routing is configurable: `label_flows = false` under `[issueflow]` in `{{ issueflows_dir }}/config.toml` turns it off, and `yolo_label` renames the trigger label (re-run `issue-flow update` after changing either).
+{% endif %}
 
 ### Phase 2 — create the branch
 
@@ -48,6 +55,9 @@ Optional free-form text after the command:
 ### Phase 3 — hand off to the standard flow
 
 1. The issue is now captured on a fresh branch. **Ask the user whether to continue with `/iflow-plan`** next (the usual next step). Do **not** auto-run it — make the handoff explicit so the user stays in control.
+{% if label_flows and "iflow-yolo" in included_commands %}
+2. **Exception:** when Phase 1 step 6 confirmed the `{{ yolo_label }}`-label yolo routing, skip this handoff — the `/iflow-yolo` chain (which includes its own `/iflow-init`) takes over after the branch is created.
+{% endif %}
 
 ## Constraints
 
@@ -64,6 +74,9 @@ Report:
 - the chosen issue number and title (and, for `fix`, that a new general-fixes issue was created)
 - the branch created (`<N>-<slug>`) and that `/iflow-init` ran (file path written)
 - the handoff prompt result (whether the user wants `/iflow-plan` next)
+{% if label_flows and "iflow-yolo" in included_commands %}
+- whether the `{{ yolo_label }}` label routed the issue into `/iflow-yolo` (and, if so, defer the rest of the report to that command's output)
+{% endif %}
 
 ## Example invocations
 

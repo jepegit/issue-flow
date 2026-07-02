@@ -118,7 +118,11 @@ The full slash-command lifecycle is:
 5. **`/iflow-close`** — tests, optional `uv version --bump`, status update, commit, push, PR. Does not delete branches.
 6. **`/iflow-cleanup`** — post-merge: switch to default, `git pull --ff-only`, `git fetch --prune`, `git branch -d` on merged local branches under a single consolidated confirm. Never `-D`.
 
-`/iflow-yolo` chains `init → plan → start → close` for small, low-risk issues with up-front safeguards (clean tree, passing tests, single consolidated confirm).
+`/iflow-yolo` chains `init → plan → start → close yolo` for small, low-risk issues with up-front safeguards (clean tree, passing tests, single consolidated confirm). Its close step is hands-off: changelog decided without a prompt, PR merged (`gh pr merge --squash`, `--auto` fallback), then default-branch switch + pull.
+
+
+Issue labels can select the flow: when an issue picked via `/iflow-pick` carries the **`yolo`** label, it is routed through `/iflow-yolo` (one combined confirmation). Controlled by `label_flows` (default `true`) and `yolo_label` (default `"yolo"`) under `[issueflow]` in `.issueflows/config.toml`; re-run `issue-flow update` after changing them.
+
 
 `/iflow-fix` opens an interactive iterative-fixes session: it creates one GitHub issue + long-lived branch, then loops over many small fixes (each gets a short plan and is implemented only on confirmation, recorded as a dated bullet in `issue<N>_status.md`), and ends with `/iflow-close`. It is off-path (never auto-dispatched); while a session is active, drive it with `/iflow-fix` + `/iflow-close`, not `/iflow`.
 

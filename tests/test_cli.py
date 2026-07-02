@@ -402,6 +402,8 @@ def _clear_issueflow_env(monkeypatch: pytest.MonkeyPatch) -> None:
         "ISSUEFLOW_MODE",
         "ISSUEFLOW_CAVEMAN_DEFAULT",
         "ISSUEFLOW_GRILL_ME_DEFAULT",
+        "ISSUEFLOW_LABEL_FLOWS",
+        "ISSUEFLOW_YOLO_LABEL",
     ):
         monkeypatch.delenv(var, raising=False)
 
@@ -430,6 +432,8 @@ def test_config_add_creates_defaults(
     assert payload["mode"] == "standard"
     assert payload["caveman_default"] is False
     assert payload["grill_me_default"] is False
+    assert payload["label_flows"] is True
+    assert payload["yolo_label"] == "yolo"
 
     cfg = tmp_path / ".issueflows" / "config.toml"
     assert cfg.is_file()
@@ -437,6 +441,8 @@ def test_config_add_creates_defaults(
     assert data["issueflow"]["mode"] == "standard"
     assert data["issueflow"]["caveman_default"] is False
     assert data["issueflow"]["grill_me_default"] is False
+    assert data["issueflow"]["label_flows"] is True
+    assert data["issueflow"]["yolo_label"] == "yolo"
 
 
 def test_config_add_reads_env(
@@ -447,6 +453,8 @@ def test_config_add_reads_env(
     monkeypatch.setenv("ISSUEFLOW_MODE", "simple")
     monkeypatch.setenv("ISSUEFLOW_CAVEMAN_DEFAULT", "true")
     monkeypatch.delenv("ISSUEFLOW_GRILL_ME_DEFAULT", raising=False)
+    monkeypatch.setenv("ISSUEFLOW_LABEL_FLOWS", "false")
+    monkeypatch.setenv("ISSUEFLOW_YOLO_LABEL", "fast-track")
 
     result = runner.invoke(app, ["config", "add", "-C", str(tmp_path), "--json"])
 
@@ -456,6 +464,8 @@ def test_config_add_reads_env(
     assert data["issueflow"]["mode"] == "simple"
     assert data["issueflow"]["caveman_default"] is True
     assert data["issueflow"]["grill_me_default"] is False
+    assert data["issueflow"]["label_flows"] is False
+    assert data["issueflow"]["yolo_label"] == "fast-track"
 
 
 def test_config_add_does_not_clobber_without_force(
@@ -511,10 +521,12 @@ def test_config_add_force_upserts_and_preserves(
 
     text = cfg.read_text(encoding="utf-8")
     data = tomllib.loads(text)
-    # Three keys upserted to env/defaults.
+    # The [issueflow] keys are upserted to env/defaults.
     assert data["issueflow"]["mode"] == "standard"
     assert data["issueflow"]["caveman_default"] is False
     assert data["issueflow"]["grill_me_default"] is False
+    assert data["issueflow"]["label_flows"] is True
+    assert data["issueflow"]["yolo_label"] == "yolo"
     # User content preserved.
     assert "# keep me" in text
     assert data["modes"]["mine"]["extends"] == "simple"

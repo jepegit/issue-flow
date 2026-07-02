@@ -23,6 +23,8 @@ _MODE_CONTEXT = {
     "included_commands": _ALL_COMMANDS,
     "caveman_default": False,
     "grill_me_default": False,
+    "label_flows": True,
+    "yolo_label": "yolo",
 }
 
 
@@ -398,6 +400,56 @@ def test_issue_yolo_has_safeguards() -> None:
     assert "default branch" in rendered.lower()
     # Must not chain cleanup automatically.
     assert "/iflow-cleanup" in rendered
+
+
+def test_issue_yolo_chains_hands_off_close() -> None:
+    """/iflow-yolo must forward the yolo token so close merges and pulls itself."""
+    for template_name in (
+        "commands/iflow-yolo.md.j2",
+        "skills/iflow_yolo/SKILL.md.j2",
+    ):
+        rendered = render_template(template_name, _default_context())
+        assert "/iflow-close yolo" in rendered, template_name
+        assert "gh pr merge --squash" in rendered, template_name
+
+
+def test_issue_close_yolo_token_merges_and_pulls() -> None:
+    """/iflow-close must document the hands-off `yolo` token behaviour."""
+    for template_name in (
+        "commands/iflow-close.md.j2",
+        "skills/iflow_close/SKILL.md.j2",
+    ):
+        rendered = render_template(template_name, _default_context())
+        assert "`yolo`" in rendered, template_name
+        assert "gh pr merge" in rendered, template_name
+        assert "--squash --auto" in rendered, template_name
+        # Branch deletion still belongs to /iflow-cleanup, never to close.
+        assert "branch deletion stays in `/iflow-cleanup`" in rendered.lower(), (
+            template_name
+        )
+
+
+def test_issue_pick_routes_yolo_label_when_label_flows_on() -> None:
+    """/iflow-pick surfaces the label-driven yolo routing when label_flows is on."""
+    context = {**_default_context(), "label_flows": True, "yolo_label": "fast-track"}
+    for template_name in (
+        "commands/iflow-pick.md.j2",
+        "skills/iflow_pick/SKILL.md.j2",
+    ):
+        rendered = render_template(template_name, context)
+        assert "fast-track" in rendered, template_name
+        assert "iflow-yolo" in rendered, template_name
+
+
+def test_issue_pick_omits_label_routing_when_label_flows_off() -> None:
+    """With label_flows off, /iflow-pick renders no label-driven routing text."""
+    context = {**_default_context(), "label_flows": False, "yolo_label": "yolo"}
+    for template_name in (
+        "commands/iflow-pick.md.j2",
+        "skills/iflow_pick/SKILL.md.j2",
+    ):
+        rendered = render_template(template_name, context)
+        assert "Label-driven yolo flow" not in rendered, template_name
 
 
 def test_issue_fix_describes_interactive_session() -> None:

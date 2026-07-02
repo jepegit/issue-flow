@@ -348,6 +348,11 @@ def _print_config_guide(console: Console, cfg_path: Path) -> None:
         "true/false; re-run 'issue-flow update' so the rule re-renders.[/dim]"
     )
     console.print(
+        "  [dim]- [bold]label_flows[/bold] / [bold]yolo_label[/bold]: let issue "
+        "labels pick the flow (e.g. a 'yolo' label runs /iflow-yolo); re-run "
+        "'issue-flow update' so the commands re-render.[/dim]"
+    )
+    console.print(
         "  [dim]Other ISSUEFLOW_* settings are environment-only (set them in "
         ".env), not in config.toml.[/dim]"
     )
@@ -358,7 +363,7 @@ def run_config_add(
 ) -> int:
     """Create ``.issueflows/config.toml`` seeded from ``.env`` or defaults.
 
-    Writes the three ``[issueflow]`` keys issue-flow reads from ``config.toml``.
+    Writes the six ``[issueflow]`` keys issue-flow reads from ``config.toml``.
     Refuses to clobber an existing file unless ``force`` is set (which upserts
     those keys while preserving other content).
     """

@@ -10,7 +10,13 @@ import os
 
 from issue_flow import modes as modes_module
 from issue_flow.editors import DEFAULT_EDITOR, EditorProfile, get_profile
-from issue_flow.modes import DEFAULT_MODE, DEFAULT_SKILL_LEVEL, Mode
+from issue_flow.modes import (
+    DEFAULT_LABEL_FLOWS,
+    DEFAULT_MODE,
+    DEFAULT_SKILL_LEVEL,
+    DEFAULT_YOLO_LABEL,
+    Mode,
+)
 
 
 # Load .env from the current working directory (the user's project root).
@@ -137,6 +143,33 @@ class Settings:
             return persisted
         return _env_flag("ISSUEFLOW_GRILL_ME_DEFAULT")
 
+    def resolve_label_flows(self, project_root: Path) -> bool:
+        """Resolve whether label-driven flow selection is allowed for ``project_root``.
+
+        Order: persisted ``.issueflows/config.toml [issueflow].label_flows`` >
+        ``ISSUEFLOW_LABEL_FLOWS`` env/``.env`` > ``True``. As with the active
+        mode, the persisted value deliberately beats the environment so a stray
+        env var cannot silently flip the behavior on ``update``.
+        """
+        persisted = modes_module.read_label_flows(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        return _env_flag("ISSUEFLOW_LABEL_FLOWS", default=DEFAULT_LABEL_FLOWS)
+
+    def resolve_yolo_label(self, project_root: Path) -> str:
+        """Resolve the GitHub label that triggers the yolo flow for ``project_root``.
+
+        Order: persisted ``.issueflows/config.toml [issueflow].yolo_label`` >
+        ``ISSUEFLOW_YOLO_LABEL`` env/``.env`` > ``"yolo"``.
+        """
+        persisted = modes_module.read_yolo_label(self.config_path(project_root))
+        if persisted:
+            return persisted
+        env = os.getenv("ISSUEFLOW_YOLO_LABEL")
+        if env and env.strip():
+            return env.strip()
+        return DEFAULT_YOLO_LABEL
+
     def resolve_skill_level(self, project_root: Path) -> str:
         """Resolve the skill level for ``project_root``.
 
@@ -157,15 +190,16 @@ class Settings:
     def seed_config_values(self) -> dict[str, object]:
         """Values for a freshly created ``config.toml``: env/``.env`` else defaults.
 
-        Returns the four ``[issueflow]`` keys issue-flow reads from
+        Returns the six ``[issueflow]`` keys issue-flow reads from
         ``config.toml`` — ``mode``, ``skill_level``, ``caveman_default``,
-        ``grill_me_default`` — taking each from its ``ISSUEFLOW_*`` env var
-        (loaded from ``.env`` at import) when set, otherwise the issue-flow
-        default. Deliberately ignores any existing ``config.toml`` since that is
-        the layer being written.
+        ``grill_me_default``, ``label_flows``, ``yolo_label`` — taking each from
+        its ``ISSUEFLOW_*`` env var (loaded from ``.env`` at import) when set,
+        otherwise the issue-flow default. Deliberately ignores any existing
+        ``config.toml`` since that is the layer being written.
         """
         mode = os.getenv("ISSUEFLOW_MODE")
         skill_level = os.getenv("ISSUEFLOW_SKILL_LEVEL")
+        yolo_label = os.getenv("ISSUEFLOW_YOLO_LABEL")
         return {
             "mode": mode.strip() if mode and mode.strip() else DEFAULT_MODE,
             "skill_level": (
@@ -175,6 +209,14 @@ class Settings:
             ),
             "caveman_default": _env_flag("ISSUEFLOW_CAVEMAN_DEFAULT"),
             "grill_me_default": _env_flag("ISSUEFLOW_GRILL_ME_DEFAULT"),
+            "label_flows": _env_flag(
+                "ISSUEFLOW_LABEL_FLOWS", default=DEFAULT_LABEL_FLOWS
+            ),
+            "yolo_label": (
+                yolo_label.strip()
+                if yolo_label and yolo_label.strip()
+                else DEFAULT_YOLO_LABEL
+            ),
         }
 
     def template_context(
@@ -223,15 +265,17 @@ class Settings:
             "included_commands": sorted(mode.commands),
             "caveman_default": self.resolve_caveman_default(project_root),
             "grill_me_default": self.resolve_grill_me_default(project_root),
+            "label_flows": self.resolve_label_flows(project_root),
+            "yolo_label": self.resolve_yolo_label(project_root),
             "skill_level": skill_level,
         }
 
 
-def _env_flag(name: str) -> bool:
-    """Interpret an environment variable as a boolean flag (default ``False``)."""
+def _env_flag(name: str, default: bool = False) -> bool:
+    """Interpret an environment variable as a boolean flag (``default`` when unset)."""
     value = os.getenv(name)
-    if value is None:
-        return False
+    if value is None or not value.strip():
+        return default
     return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
