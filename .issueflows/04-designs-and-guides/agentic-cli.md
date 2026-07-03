@@ -1,6 +1,6 @@
 # Agent-facing CLI commands
 
-_Issue: #88. Status: implemented._
+_Issue: #88. Status: implemented. Extended by #84 (`agent archive`)._
 
 ## Context
 
@@ -50,3 +50,15 @@ Two new core modules back them:
   grouped under `agent`.
 - **A git-hook/daemon to move issue files** — out of scope; `agent sweep` keeps
   it explicit and previewable (`--dry-run`).
+
+## Follow-up: `agent archive` (#84)
+
+`issue-flow agent archive <N> ...` follows the same pattern for
+`/iflow-archive`: only the **mechanical half** (deleting solved
+`issue<N>_*` files, reporting the pre-archive HEAD sha) is promoted;
+the per-issue summarisation into the dated
+`YYYY-MM-DD_archived_issues.md` file stays agent-side. It refuses the
+whole run (exit 1, nothing deleted) when any requested issue has no
+group in the solved folder, so a typo never archives less than the
+user confirmed. Recovery contract: the summary file records the
+pre-archive sha; originals come back via `git show <sha>:<path>`.
