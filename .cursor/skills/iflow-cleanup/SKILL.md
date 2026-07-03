@@ -16,6 +16,20 @@ Follow this skill when the user wants to **run post-merge branch hygiene** after
 - The user runs `/iflow-cleanup`, mentions **issue-cleanup**, or asks you to delete local branches whose PRs have merged.
 - The PR opened by `/iflow-close` just merged and the user wants the standard post-merge tidy-up.
 
+
+### MODEL & EXECUTION DIRECTIVE
+
+
+**Profile: economy** — Prioritize speed and token economy over deep reasoning.
+
+In Cursor: use **Auto** or a fast model before invoking this step.
+
+
+
+Keep scope tight to what this step requires.
+
+
+
 ## Instructions
 
 1. **Detect the default branch.** Prefer `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`, else `git symbolic-ref --quiet --short refs/remotes/origin/HEAD`, else `main`.

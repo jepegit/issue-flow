@@ -59,7 +59,10 @@ It also seeds `{{ issueflows_dir }}/{{ tools_folder }}/README.md` — the index 
 | `iflow-history-update` | `@iflow-history-update` (used from `/iflow-close`) | Append an entry to `## [Unreleased]` in `{{ history_file }}`, or promote it to a new `## [x.y.z] - YYYY-MM-DD` release section when a version bump happened. |
 | `iflow-graphify` | `/iflow-graphify` | Same flow as `/iflow-graphify`: rebuild the graphify knowledge graph for the project. Off-path; never auto-dispatched. |
 
-Each skill sets `disable-model-invocation: true` so it is included when you **explicitly** invoke it, not on every chat.{% if editor == "cursor" %} See [Agent Skills](https://cursor.com/help/customization/skills) in the Cursor docs.{% endif %}
+Each skill sets `disable-model-invocation: true` so it is included when you **explicitly** invoke it, not on every chat.{% if editor == "cursor" %} See [Agent Skills](https://cursor.com/help/customization/skills) in the Cursor docs.{% endif %}{% if step_directives %}
+
+Lifecycle skills also carry a **`### MODEL & EXECUTION DIRECTIVE`** — **economy** (speed/token savings) or **reasoning** (design depth) — baked at `issue-flow update` from `[issueflow]` / `[issueflow.step_profiles]` in `{{ issueflows_dir }}/config.toml`. `/iflow-pick` can announce label-based session overrides when `model_label_flows` is enabled (`deep_model_label` / `fast_model_label`).
+{% endif %}
 
 ---
 

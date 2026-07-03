@@ -40,7 +40,13 @@ def test_simple_is_strict_subset() -> None:
     assert simple.skills < frozenset(SKILL_DIRS)
     assert simple.commands < frozenset(COMMAND_NAMES)
     # Core markdown lifecycle is present.
-    for stem in ("iflow_iflow", "iflow_init", "iflow_plan", "iflow_start", "iflow_pause"):
+    for stem in (
+        "iflow_iflow",
+        "iflow_init",
+        "iflow_plan",
+        "iflow_start",
+        "iflow_pause",
+    ):
         assert stem in simple.skills
     # Heavy git/PR automation is excluded.
     for stem in ("iflow_close", "iflow_yolo", "iflow_fix", "iflow_graphify"):
@@ -76,8 +82,8 @@ def test_project_config_can_define_custom_mode_via_extends_add(tmp_path: Path) -
     """Scenario 3: a project defines a custom mode that adds a packaged skill."""
     cfg = _write_config(
         tmp_path,
-        "[issueflow]\nmode = \"mine\"\n\n"
-        "[modes.mine]\nname = \"Mine\"\nextends = \"simple\"\n"
+        '[issueflow]\nmode = "mine"\n\n'
+        '[modes.mine]\nname = "Mine"\nextends = "simple"\n'
         'add = ["iflow_graphify"]\n',
     )
     mine = resolve_mode("mine", cfg)
@@ -89,7 +95,7 @@ def test_project_config_can_define_custom_mode_via_extends_add(tmp_path: Path) -
 def test_custom_mode_unknown_stem_raises(tmp_path: Path) -> None:
     cfg = _write_config(
         tmp_path,
-        "[modes.broken]\nextends = \"standard\"\nadd = [\"does_not_exist\"]\n",
+        '[modes.broken]\nextends = "standard"\nadd = ["does_not_exist"]\n',
     )
     with pytest.raises(ValueError) as exc:
         resolve_mode("broken", cfg)
@@ -142,8 +148,8 @@ def test_write_active_mode_preserves_user_modes_and_comments(tmp_path: Path) -> 
     """Round-trip: updating the active mode keeps [modes.*] and comments intact."""
     cfg = _write_config(
         tmp_path,
-        "# my project config\n\n[issueflow]\nmode = \"simple\"\n\n"
-        "[modes.mine]\nextends = \"standard\"\nadd = [\"iflow_graphify\"]\n",
+        '# my project config\n\n[issueflow]\nmode = "simple"\n\n'
+        '[modes.mine]\nextends = "standard"\nadd = ["iflow_graphify"]\n',
     )
     write_active_mode(cfg, "standard")
     text = cfg.read_text(encoding="utf-8")

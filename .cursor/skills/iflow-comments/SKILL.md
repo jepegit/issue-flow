@@ -20,6 +20,20 @@ It is the playbook that `/iflow-init` (and the `iflow-init` skill) delegate to f
 - You are re-running triage on an already-captured issue because new comments have arrived (the issue body text must stay unchanged; only the curated section is rewritten).
 - Any workflow that needs to understand "what does the comment thread actually ask us to do?" without pasting the raw thread into a file.
 
+
+### MODEL & EXECUTION DIRECTIVE
+
+
+**Profile: economy** — Prioritize speed and token economy over deep reasoning.
+
+In Cursor: use **Auto** or a fast model before invoking this step.
+
+
+
+Keep scope tight to what this step requires.
+
+
+
 ## Inputs
 
 A JSON array of comments as returned by:

@@ -20,6 +20,20 @@ rather than acting on the single focus issue.
 
 Do **not** use this skill to *change* anything. It is read-only and off-path; for acting on the focus issue use `/iflow`, and to choose the next issue use `/iflow-pick`.
 
+
+### MODEL & EXECUTION DIRECTIVE
+
+
+**Profile: economy** — Prioritize speed and token economy over deep reasoning.
+
+In Cursor: use **Auto** or a fast model before invoking this step.
+
+
+
+Keep scope tight to what this step requires.
+
+
+
 ## Instructions
 
 > **CLI fast path (optional).** If the `issue-flow` CLI is on `PATH`, run

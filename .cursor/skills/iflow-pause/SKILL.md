@@ -16,6 +16,20 @@ Follow this skill when the user wants to **park work on the current issue** with
 - The user runs `/iflow-pause`, mentions **issue-pause**, or asks to park / stash / shelve work on an issue to switch context.
 - The issue is **not** done — this is not `/iflow-close`.
 
+
+### MODEL & EXECUTION DIRECTIVE
+
+
+**Profile: economy** — Prioritize speed and token economy over deep reasoning.
+
+In Cursor: use **Auto** or a fast model before invoking this step.
+
+
+
+Keep scope tight to what this step requires.
+
+
+
 ## Instructions
 
 1. **Find the focus issue.** In `.issueflows/01-current-issues/`, identify the `issue<N>_*` group. If multiple groups exist and the focus is ambiguous, ask. If none exist, **stop** and say there is nothing to pause.

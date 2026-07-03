@@ -4,6 +4,8 @@
 
 This is an **off-path** command — the lifecycle dispatcher (`/iflow`) never auto-runs it. Invoke it explicitly when the project's structure has changed enough that the existing graph is stale (new modules, large refactors, new docs/papers added).
 
+{% include "skills/_model_directive.md.j2" %}
+
 ## Input
 
 Optional free-form text after the command. The first word, if it is a recognized graphify build subcommand, picks the action; otherwise the default is `update`. Trailing tokens forward verbatim. Common combinations:

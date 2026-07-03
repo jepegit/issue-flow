@@ -19,6 +19,20 @@ Use only for minor fixes, doc tweaks, and similar low-risk changes. Anything non
 - The user runs `/iflow-yolo`, `/issue-fast`, mentions **issue-yolo**, or asks to "just do it" for a small issue.
 - The task is obviously small and the user has accepted that there will be no mid-run confirmation checkpoints.
 
+
+### MODEL & EXECUTION DIRECTIVE
+
+
+**Profile: reasoning** — Prioritize deep thinking and careful trade-offs over speed or token economy.
+
+In Cursor: switch to a thinking-capable model before invoking this step (not Auto-only).
+
+
+
+Keep scope tight to what this step requires.
+
+
+
 ## Preflight (abort on any failure)
 
 1. **Refuse on default branch.** If the current branch is `main` / `master` / the detected default, **stop** and tell the user to create or switch to an issue branch first. Do not silently create one from yolo.

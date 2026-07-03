@@ -16,6 +16,7 @@ Use this skill to update the project's changelog file (default **`{{ history_fil
 - `/iflow-close` is landing an issue and the project has a changelog file in the repo root.
 - The user did **not** pass `nohistory` / `skip history` on the command line.
 
+{% include "skills/_model_directive.md.j2" %}
 ## Preconditions
 
 1. The changelog file (`{{ history_file }}`) exists at the **project root**. If it does not, **skip** this step, print "no `{{ history_file }}` — skipping changelog update" and continue the rest of `/iflow-close`. Never create the file from this skill.

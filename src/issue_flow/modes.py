@@ -40,6 +40,12 @@ DEFAULT_SKILL_LEVEL = "standard"
 DEFAULT_LABEL_FLOWS = True
 DEFAULT_YOLO_LABEL = "yolo"
 
+# Step model/execution directives baked into lifecycle skills at render time.
+DEFAULT_STEP_DIRECTIVES = True
+DEFAULT_MODEL_LABEL_FLOWS = False
+DEFAULT_DEEP_MODEL_LABEL = "deep"
+DEFAULT_FAST_MODEL_LABEL = "fast"
+
 # Packaged data file holding the built-in modes (sibling of this module).
 _MODES_RESOURCE = "modes.toml"
 # Per-project config file (relative to the issueflows dir).
@@ -121,9 +127,7 @@ def _expand(value: object, universe: frozenset[str]) -> set[str]:
         return set(universe)
     if isinstance(value, list):
         return {str(item) for item in value}
-    raise ValueError(
-        f"mode field must be \"all\" or a list of stems, got {value!r}"
-    )
+    raise ValueError(f'mode field must be "all" or a list of stems, got {value!r}')
 
 
 def _route(stems: object) -> tuple[set[str], set[str]]:
@@ -305,6 +309,54 @@ def read_yolo_label(cfg_path: Path) -> str | None:
     return None
 
 
+def read_step_directives(cfg_path: Path) -> bool | None:
+    """Return the persisted ``[issueflow].step_directives`` flag."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "step_directives" in section:
+        return bool(section.get("step_directives"))
+    return None
+
+
+def read_model_label_flows(cfg_path: Path) -> bool | None:
+    """Return the persisted ``[issueflow].model_label_flows`` flag."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "model_label_flows" in section:
+        return bool(section.get("model_label_flows"))
+    return None
+
+
+def read_deep_model_label(cfg_path: Path) -> str | None:
+    """Return the persisted ``[issueflow].deep_model_label`` value."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict):
+        value = section.get("deep_model_label")
+        if value:
+            return str(value)
+    return None
+
+
+def read_fast_model_label(cfg_path: Path) -> str | None:
+    """Return the persisted ``[issueflow].fast_model_label`` value."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict):
+        value = section.get("fast_model_label")
+        if value:
+            return str(value)
+    return None
+
+
 def read_skill_level(cfg_path: Path) -> str | None:
     """Return the persisted ``[issueflow].skill_level`` value, or ``None`` if unset."""
     if not cfg_path.is_file():
@@ -381,22 +433,25 @@ def write_default_config(
     grill_me_default: bool,
     label_flows: bool = DEFAULT_LABEL_FLOWS,
     yolo_label: str = DEFAULT_YOLO_LABEL,
+    step_directives: bool = DEFAULT_STEP_DIRECTIVES,
+    model_label_flows: bool = DEFAULT_MODEL_LABEL_FLOWS,
+    deep_model_label: str = DEFAULT_DEEP_MODEL_LABEL,
+    fast_model_label: str = DEFAULT_FAST_MODEL_LABEL,
     overwrite: bool = False,
 ) -> bool:
     """Create (or, with ``overwrite``, refresh) the project's ``config.toml``.
 
-    Writes the six ``[issueflow]`` keys issue-flow actually reads from
-    ``config.toml`` — ``mode``, ``skill_level``, ``caveman_default``,
-    ``grill_me_default``, ``label_flows``, ``yolo_label`` — using the supplied
-    values. Other ``ISSUEFLOW_*`` settings are env-only and are deliberately not
-    written here.
+    Writes the ``[issueflow]`` keys issue-flow reads from ``config.toml`` using
+    the supplied values. Other ``ISSUEFLOW_*`` settings are env-only and are
+    deliberately not written here.
 
     Behaviour:
 
     - File missing → create it with a commented ``[issueflow]`` table.
     - File present and ``overwrite`` is ``False`` → write nothing, return ``False``.
-    - File present and ``overwrite`` is ``True`` → upsert the six keys via
-      tomlkit, leaving user comments, ``[modes.*]`` tables, and formatting intact.
+    - File present and ``overwrite`` is ``True`` → upsert the keys via tomlkit,
+      leaving user comments, ``[modes.*]`` / ``[issueflow.step_profiles]``
+      tables, and formatting intact.
 
     Returns ``True`` when the file was written, ``False`` when it already existed
     and ``overwrite`` was not set.
@@ -418,6 +473,10 @@ def write_default_config(
         section["grill_me_default"] = grill_me_default
         section["label_flows"] = label_flows
         section["yolo_label"] = yolo_label
+        section["step_directives"] = step_directives
+        section["model_label_flows"] = model_label_flows
+        section["deep_model_label"] = deep_model_label
+        section["fast_model_label"] = fast_model_label
     else:
         doc = tomlkit.document()
         doc.add(
@@ -432,8 +491,16 @@ def write_default_config(
             )
         )
         doc["issueflow"] = _commented_issueflow_table(
-            mode, skill_level, caveman_default, grill_me_default,
-            label_flows, yolo_label,
+            mode,
+            skill_level,
+            caveman_default,
+            grill_me_default,
+            label_flows,
+            yolo_label,
+            step_directives,
+            model_label_flows,
+            deep_model_label,
+            fast_model_label,
         )
 
     cfg_path.write_text(tomlkit.dumps(doc), encoding="utf-8")
@@ -447,6 +514,10 @@ def _commented_issueflow_table(
     grill_me_default: bool,
     label_flows: bool,
     yolo_label: str,
+    step_directives: bool,
+    model_label_flows: bool,
+    deep_model_label: str,
+    fast_model_label: str,
 ) -> tomlkit.items.Table:
     """Build a fresh ``[issueflow]`` table with explanatory comments per key."""
     table = tomlkit.table()
@@ -490,10 +561,29 @@ def _commented_issueflow_table(
         )
     )
     table["label_flows"] = label_flows
+    table.add(tomlkit.comment("The GitHub label that triggers the yolo flow."))
+    table["yolo_label"] = yolo_label
+    table.add(tomlkit.nl())
     table.add(
         tomlkit.comment(
-            "The GitHub label that triggers the yolo flow."
+            "Bake MODEL & EXECUTION DIRECTIVE sections into lifecycle skills "
+            "(true/false). Re-run 'issue-flow update' after changing."
         )
     )
-    table["yolo_label"] = yolo_label
+    table["step_directives"] = step_directives
+    table.add(tomlkit.nl())
+    table.add(
+        tomlkit.comment(
+            "Let issue labels hint the session profile during /iflow-pick "
+            "(true/false). Uses deep_model_label / fast_model_label below."
+        )
+    )
+    table["model_label_flows"] = model_label_flows
+    table.add(
+        tomlkit.comment(
+            "GitHub labels that bump the session toward reasoning or economy."
+        )
+    )
+    table["deep_model_label"] = deep_model_label
+    table["fast_model_label"] = fast_model_label
     return table

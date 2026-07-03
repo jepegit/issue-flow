@@ -28,6 +28,20 @@ It **coexists** with `/iflow-pick fix`: that command is a one-shot setup back in
 - **(nothing)** — default the slug to `iterative-small-fixes` (made unique via the new issue number).
 - **a description** during an active session — run the next fix in the loop.
 
+
+### MODEL & EXECUTION DIRECTIVE
+
+
+**Profile: reasoning** — Prioritize deep thinking and careful trade-offs over speed or token economy.
+
+In Cursor: switch to a thinking-capable model before invoking this step (not Auto-only).
+
+
+
+Keep scope tight to what this step requires.
+
+
+
 ## Instructions
 
 ### Phase 1 — set up the session (once)

@@ -1,0 +1,22 @@
+{% if step_directives %}
+### MODEL & EXECUTION DIRECTIVE
+
+{% if step_profile == "reasoning" %}
+**Profile: reasoning** — Prioritize deep thinking and careful trade-offs over speed or token economy.
+{% if editor == "cursor" %}
+In Cursor: switch to a thinking-capable model before invoking this step (not Auto-only).
+{% else %}
+Choose a reasoning-capable model where your editor allows manual selection.
+{% endif %}
+{% else %}
+**Profile: economy** — Prioritize speed and token economy over deep reasoning.
+{% if editor == "cursor" %}
+In Cursor: use **Auto** or a fast model before invoking this step.
+{% else %}
+Choose a faster or cheaper model where your editor allows manual selection.
+{% endif %}
+{% endif %}
+
+Keep scope tight to what this step requires.
+
+{% endif %}

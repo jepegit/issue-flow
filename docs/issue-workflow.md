@@ -53,6 +53,9 @@ It also seeds `.issueflows/00-tools/README.md` — the index of the project's **
 
 Each skill sets `disable-model-invocation: true` so it is included when you **explicitly** invoke it, not on every chat. See [Agent Skills](https://cursor.com/help/customization/skills) in the Cursor docs.
 
+Lifecycle skills also carry a **`### MODEL & EXECUTION DIRECTIVE`** — **economy** (speed/token savings) or **reasoning** (design depth) — baked at `issue-flow update` from `[issueflow]` / `[issueflow.step_profiles]` in `.issueflows/config.toml`. `/iflow-pick` can announce label-based session overrides when `model_label_flows` is enabled (`deep_model_label` / `fast_model_label`).
+
+
 ---
 
 ## Branch and folder hygiene

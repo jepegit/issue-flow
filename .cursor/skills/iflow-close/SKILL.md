@@ -42,6 +42,20 @@ When a bump applies: read `.cursor/skills/iflow-version-bump/SKILL.md`, run the 
 
 - **`yolo`** (used by `/iflow-yolo`) → close the loop without user input: write the `HISTORY.md` bullet without a confirm prompt (step 3), **merge the PR** right after opening it (step 8a), then switch back to the default branch and `git pull --ff-only` (step 9, unless `stay` was also passed).
 
+
+### MODEL & EXECUTION DIRECTIVE
+
+
+**Profile: economy** — Prioritize speed and token economy over deep reasoning.
+
+In Cursor: use **Auto** or a fast model before invoking this step.
+
+
+
+Keep scope tight to what this step requires.
+
+
+
 ## Instructions
 
 1. **Sanity check** — Run the project test suite (e.g. `uv run pytest`) and any checks the repo relies on. **Ruff (when present):** if the project uses ruff (`[tool.ruff]` in `pyproject.toml`, ruff in dev dependencies, or `.issueflows/04-designs-and-guides/python-quality-tools.md` exists), run auto-fix lint through the documented Python runner before committing — e.g. `uv run ruff check --fix …` then `uv run ruff format …` (match paths to what the project documents). Skim the diff; avoid bundling unrelated changes. Confirm that any design decisions or good practices that emerged from this issue are captured under `.issueflows/04-designs-and-guides/` before committing.

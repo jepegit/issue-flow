@@ -11,12 +11,17 @@ import os
 from issue_flow import modes as modes_module
 from issue_flow.editors import DEFAULT_EDITOR, EditorProfile, get_profile
 from issue_flow.modes import (
+    DEFAULT_DEEP_MODEL_LABEL,
+    DEFAULT_FAST_MODEL_LABEL,
     DEFAULT_LABEL_FLOWS,
     DEFAULT_MODE,
+    DEFAULT_MODEL_LABEL_FLOWS,
     DEFAULT_SKILL_LEVEL,
+    DEFAULT_STEP_DIRECTIVES,
     DEFAULT_YOLO_LABEL,
     Mode,
 )
+from issue_flow import step_profiles as step_profiles_module
 
 
 # Load .env from the current working directory (the user's project root).
@@ -52,7 +57,9 @@ class Settings:
 
     # Give a deprecation warning if the user is using the old ISSUEFLOW_CURSOR_DIR environment variable
     if os.getenv("ISSUEFLOW_CURSOR_DIR"):
-        print("WARNING: The ISSUEFLOW_CURSOR_DIR environment variable is deprecated (replaced by ISSUEFLOW_AGENT_DIR).")
+        print(
+            "WARNING: The ISSUEFLOW_CURSOR_DIR environment variable is deprecated (replaced by ISSUEFLOW_AGENT_DIR)."
+        )
 
     # Subdirectory names inside .issueflows/
     tools_folder: str = "00-tools"
@@ -170,6 +177,42 @@ class Settings:
             return env.strip()
         return DEFAULT_YOLO_LABEL
 
+    def resolve_step_directives(self, project_root: Path) -> bool:
+        """Resolve whether step model directives are baked into lifecycle skills."""
+        persisted = modes_module.read_step_directives(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        return _env_flag("ISSUEFLOW_STEP_DIRECTIVES", default=DEFAULT_STEP_DIRECTIVES)
+
+    def resolve_model_label_flows(self, project_root: Path) -> bool:
+        """Resolve whether /iflow-pick announces label-driven profile overrides."""
+        persisted = modes_module.read_model_label_flows(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        return _env_flag(
+            "ISSUEFLOW_MODEL_LABEL_FLOWS", default=DEFAULT_MODEL_LABEL_FLOWS
+        )
+
+    def resolve_deep_model_label(self, project_root: Path) -> str:
+        """Resolve the GitHub label that hints a reasoning session profile."""
+        persisted = modes_module.read_deep_model_label(self.config_path(project_root))
+        if persisted:
+            return persisted
+        env = os.getenv("ISSUEFLOW_DEEP_MODEL_LABEL")
+        if env and env.strip():
+            return env.strip()
+        return DEFAULT_DEEP_MODEL_LABEL
+
+    def resolve_fast_model_label(self, project_root: Path) -> str:
+        """Resolve the GitHub label that hints an economy session profile."""
+        persisted = modes_module.read_fast_model_label(self.config_path(project_root))
+        if persisted:
+            return persisted
+        env = os.getenv("ISSUEFLOW_FAST_MODEL_LABEL")
+        if env and env.strip():
+            return env.strip()
+        return DEFAULT_FAST_MODEL_LABEL
+
     def resolve_skill_level(self, project_root: Path) -> str:
         """Resolve the skill level for ``project_root``.
 
@@ -190,16 +233,16 @@ class Settings:
     def seed_config_values(self) -> dict[str, object]:
         """Values for a freshly created ``config.toml``: env/``.env`` else defaults.
 
-        Returns the six ``[issueflow]`` keys issue-flow reads from
-        ``config.toml`` — ``mode``, ``skill_level``, ``caveman_default``,
-        ``grill_me_default``, ``label_flows``, ``yolo_label`` — taking each from
-        its ``ISSUEFLOW_*`` env var (loaded from ``.env`` at import) when set,
-        otherwise the issue-flow default. Deliberately ignores any existing
-        ``config.toml`` since that is the layer being written.
+        Returns the ``[issueflow]`` keys issue-flow reads from ``config.toml``,
+        taking each from its ``ISSUEFLOW_*`` env var (loaded from ``.env`` at
+        import) when set, otherwise the issue-flow default. Deliberately ignores
+        any existing ``config.toml`` since that is the layer being written.
         """
         mode = os.getenv("ISSUEFLOW_MODE")
         skill_level = os.getenv("ISSUEFLOW_SKILL_LEVEL")
         yolo_label = os.getenv("ISSUEFLOW_YOLO_LABEL")
+        deep_model_label = os.getenv("ISSUEFLOW_DEEP_MODEL_LABEL")
+        fast_model_label = os.getenv("ISSUEFLOW_FAST_MODEL_LABEL")
         return {
             "mode": mode.strip() if mode and mode.strip() else DEFAULT_MODE,
             "skill_level": (
@@ -216,6 +259,22 @@ class Settings:
                 yolo_label.strip()
                 if yolo_label and yolo_label.strip()
                 else DEFAULT_YOLO_LABEL
+            ),
+            "step_directives": _env_flag(
+                "ISSUEFLOW_STEP_DIRECTIVES", default=DEFAULT_STEP_DIRECTIVES
+            ),
+            "model_label_flows": _env_flag(
+                "ISSUEFLOW_MODEL_LABEL_FLOWS", default=DEFAULT_MODEL_LABEL_FLOWS
+            ),
+            "deep_model_label": (
+                deep_model_label.strip()
+                if deep_model_label and deep_model_label.strip()
+                else DEFAULT_DEEP_MODEL_LABEL
+            ),
+            "fast_model_label": (
+                fast_model_label.strip()
+                if fast_model_label and fast_model_label.strip()
+                else DEFAULT_FAST_MODEL_LABEL
             ),
         }
 
@@ -267,6 +326,13 @@ class Settings:
             "grill_me_default": self.resolve_grill_me_default(project_root),
             "label_flows": self.resolve_label_flows(project_root),
             "yolo_label": self.resolve_yolo_label(project_root),
+            "step_directives": self.resolve_step_directives(project_root),
+            "model_label_flows": self.resolve_model_label_flows(project_root),
+            "deep_model_label": self.resolve_deep_model_label(project_root),
+            "fast_model_label": self.resolve_fast_model_label(project_root),
+            "step_profiles": step_profiles_module.resolve_all(
+                self.config_path(project_root)
+            ),
             "skill_level": skill_level,
         }
 

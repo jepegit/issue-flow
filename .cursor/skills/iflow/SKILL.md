@@ -20,6 +20,20 @@ Follow this skill when the user wants to run **the right next step** in the issu
 
 Do **not** use this skill for `/iflow-pick`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, or `/iflow-fix`. Those are explicit-only commands. (`/iflow-pick` is the front door *before* `/iflow-init`, for when no issue has been chosen yet. `/iflow-fix` runs an interactive iterative-fixes session, driven by `/iflow-fix` + `/iflow-close`.)
 
+
+### MODEL & EXECUTION DIRECTIVE
+
+
+**Profile: economy** — Prioritize speed and token economy over deep reasoning.
+
+In Cursor: use **Auto** or a fast model before invoking this step.
+
+
+
+Keep scope tight to what this step requires.
+
+
+
 ## Instructions
 
 > **CLI fast path (optional).** If the `issue-flow` CLI is on `PATH`, run

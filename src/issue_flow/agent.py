@@ -299,8 +299,7 @@ def run_archive(
     for m in moves:
         title = f" — {escape(m.title)}" if m.title else ""
         console.print(
-            f"  {verb} #{m.number}{title}: "
-            f"{', '.join(p.name for p in m.files)}"
+            f"  {verb} #{m.number}{title}: {', '.join(p.name for p in m.files)}"
         )
     if not dry_run:
         console.print(
@@ -373,9 +372,7 @@ def run_capture(
     if target.exists() and not force:
         msg = f"{target} already exists; pass --force to overwrite."
         if as_json:
-            _emit_json(
-                console, {"written": False, "path": str(target), "error": msg}
-            )
+            _emit_json(console, {"written": False, "path": str(target), "error": msg})
         else:
             console.print(f"[yellow]exists[/yellow]  {msg}")
         return 1
@@ -437,6 +434,11 @@ def _print_config_guide(console: Console, cfg_path: Path) -> None:
         "'issue-flow update' so the commands re-render.[/dim]"
     )
     console.print(
+        "  [dim]- [bold]step_directives[/bold] / [bold]model_label_flows[/bold]: "
+        "bake MODEL & EXECUTION DIRECTIVE sections into lifecycle skills; optional "
+        "label hints during /iflow-pick; re-run 'issue-flow update' after changing.[/dim]"
+    )
+    console.print(
         "  [dim]Other ISSUEFLOW_* settings are environment-only (set them in "
         ".env), not in config.toml.[/dim]"
     )
@@ -447,7 +449,7 @@ def run_config_add(
 ) -> int:
     """Create ``.issueflows/config.toml`` seeded from ``.env`` or defaults.
 
-    Writes the six ``[issueflow]`` keys issue-flow reads from ``config.toml``.
+    Writes the ``[issueflow]`` keys issue-flow reads from ``config.toml``.
     Refuses to clobber an existing file unless ``force`` is set (which upserts
     those keys while preserving other content).
     """
@@ -494,9 +496,7 @@ def run_config_add(
 # ---------------------------------------------------------------------------
 
 
-def run_status(
-    project_root: Path, console: Console, local: bool, as_json: bool
-) -> int:
+def run_status(project_root: Path, console: Console, local: bool, as_json: bool) -> int:
     """Read-only overview: focus stage, parked, solved, optional GitHub cross-ref."""
     settings = Settings()
     folders = _folders(project_root, settings)
@@ -516,8 +516,7 @@ def run_status(
 
     parked_groups = tracking.group_issue_files(folders["partly"])
     parked = [
-        {"number": n, "title": g.title()}
-        for n, g in sorted(parked_groups.items())
+        {"number": n, "title": g.title()} for n, g in sorted(parked_groups.items())
     ]
     solved_numbers = sorted(tracking.group_issue_files(folders["solved"]))
 
@@ -543,9 +542,7 @@ def run_status(
     return 0
 
 
-def _github_section(
-    project_root: Path, folders: dict[str, Path]
-) -> dict[str, Any]:
+def _github_section(project_root: Path, folders: dict[str, Path]) -> dict[str, Any]:
     """Cross-reference open GitHub issues against local tracking folders."""
     if not gitutils.gh_available():
         return {"available": False, "reason": "gh not on PATH"}
@@ -618,9 +615,7 @@ def _render_status_text(
     if github is None:
         pass
     elif not github.get("available"):
-        console.print(
-            f"[bold]GitHub[/bold]: unavailable ({github.get('reason')})"
-        )
+        console.print(f"[bold]GitHub[/bold]: unavailable ({github.get('reason')})")
     else:
         console.print(
             f"[bold]GitHub[/bold]: {github['open_count']} open "

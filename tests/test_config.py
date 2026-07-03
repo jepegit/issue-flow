@@ -53,6 +53,11 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "grill_me_default",
         "label_flows",
         "yolo_label",
+        "step_directives",
+        "model_label_flows",
+        "deep_model_label",
+        "fast_model_label",
+        "step_profiles",
         "skill_level",
     }
     assert set(context.keys()) == expected_keys
@@ -90,7 +95,8 @@ def _write_config(tmp_path: Path, body: str) -> None:
 
 
 def test_caveman_default_off_by_default(
-    tmp_path: Path, monkeypatch: "pytest.MonkeyPatch"  # noqa: F821
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
 ) -> None:
     """With no config and no env, caveman is not on by default."""
     monkeypatch.delenv("ISSUEFLOW_CAVEMAN_DEFAULT", raising=False)
@@ -108,7 +114,8 @@ def test_caveman_default_from_config(tmp_path: Path) -> None:
 
 
 def test_caveman_default_from_env(
-    tmp_path: Path, monkeypatch: "pytest.MonkeyPatch"  # noqa: F821
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
 ) -> None:
     """ISSUEFLOW_CAVEMAN_DEFAULT is used when config does not set the key."""
     monkeypatch.setenv("ISSUEFLOW_CAVEMAN_DEFAULT", "true")
@@ -117,7 +124,8 @@ def test_caveman_default_from_env(
 
 
 def test_caveman_default_config_beats_env(
-    tmp_path: Path, monkeypatch: "pytest.MonkeyPatch"  # noqa: F821
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
 ) -> None:
     """The persisted config value wins over a conflicting env var."""
     _write_config(tmp_path, "[issueflow]\ncaveman_default = false\n")
@@ -127,7 +135,8 @@ def test_caveman_default_config_beats_env(
 
 
 def test_grill_me_default_off_by_default(
-    tmp_path: Path, monkeypatch: "pytest.MonkeyPatch"  # noqa: F821
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
 ) -> None:
     """With no config and no env, grill-me is not on by default."""
     monkeypatch.delenv("ISSUEFLOW_GRILL_ME_DEFAULT", raising=False)
@@ -145,7 +154,8 @@ def test_grill_me_default_from_config(tmp_path: Path) -> None:
 
 
 def test_grill_me_default_from_env(
-    tmp_path: Path, monkeypatch: "pytest.MonkeyPatch"  # noqa: F821
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
 ) -> None:
     """ISSUEFLOW_GRILL_ME_DEFAULT is used when config does not set the key."""
     monkeypatch.setenv("ISSUEFLOW_GRILL_ME_DEFAULT", "true")
@@ -154,7 +164,8 @@ def test_grill_me_default_from_env(
 
 
 def test_grill_me_default_config_beats_env(
-    tmp_path: Path, monkeypatch: "pytest.MonkeyPatch"  # noqa: F821
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
 ) -> None:
     """The persisted config value wins over a conflicting env var."""
     _write_config(tmp_path, "[issueflow]\ngrill_me_default = false\n")
@@ -164,7 +175,8 @@ def test_grill_me_default_config_beats_env(
 
 
 def test_label_flows_on_by_default(
-    tmp_path: Path, monkeypatch: "pytest.MonkeyPatch"  # noqa: F821
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
 ) -> None:
     """With no config and no env, label-driven flows are allowed (default True)."""
     monkeypatch.delenv("ISSUEFLOW_LABEL_FLOWS", raising=False)
@@ -182,7 +194,8 @@ def test_label_flows_from_config(tmp_path: Path) -> None:
 
 
 def test_label_flows_from_env(
-    tmp_path: Path, monkeypatch: "pytest.MonkeyPatch"  # noqa: F821
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
 ) -> None:
     """ISSUEFLOW_LABEL_FLOWS is used when config does not set the key."""
     monkeypatch.setenv("ISSUEFLOW_LABEL_FLOWS", "false")
@@ -191,7 +204,8 @@ def test_label_flows_from_env(
 
 
 def test_label_flows_config_beats_env(
-    tmp_path: Path, monkeypatch: "pytest.MonkeyPatch"  # noqa: F821
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
 ) -> None:
     """The persisted config value wins over a conflicting env var."""
     _write_config(tmp_path, "[issueflow]\nlabel_flows = true\n")
@@ -201,7 +215,8 @@ def test_label_flows_config_beats_env(
 
 
 def test_yolo_label_default(
-    tmp_path: Path, monkeypatch: "pytest.MonkeyPatch"  # noqa: F821
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
 ) -> None:
     """With no config and no env, the yolo trigger label is 'yolo'."""
     monkeypatch.delenv("ISSUEFLOW_YOLO_LABEL", raising=False)
@@ -219,7 +234,8 @@ def test_yolo_label_from_config(tmp_path: Path) -> None:
 
 
 def test_yolo_label_from_env(
-    tmp_path: Path, monkeypatch: "pytest.MonkeyPatch"  # noqa: F821
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
 ) -> None:
     """ISSUEFLOW_YOLO_LABEL is used when config does not set the key."""
     monkeypatch.setenv("ISSUEFLOW_YOLO_LABEL", "speedy")
@@ -228,10 +244,46 @@ def test_yolo_label_from_env(
 
 
 def test_yolo_label_config_beats_env(
-    tmp_path: Path, monkeypatch: "pytest.MonkeyPatch"  # noqa: F821
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
 ) -> None:
     """The persisted config value wins over a conflicting env var."""
     _write_config(tmp_path, '[issueflow]\nyolo_label = "fast-track"\n')
     monkeypatch.setenv("ISSUEFLOW_YOLO_LABEL", "speedy")
     settings = Settings()
     assert settings.resolve_yolo_label(tmp_path) == "fast-track"
+
+
+def test_step_directives_on_by_default(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    monkeypatch.delenv("ISSUEFLOW_STEP_DIRECTIVES", raising=False)
+    settings = Settings()
+    assert settings.resolve_step_directives(tmp_path) is True
+
+
+def test_step_directives_from_config(tmp_path: Path) -> None:
+    _write_config(tmp_path, "[issueflow]\nstep_directives = false\n")
+    settings = Settings()
+    assert settings.resolve_step_directives(tmp_path) is False
+
+
+def test_model_label_flows_off_by_default(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    monkeypatch.delenv("ISSUEFLOW_MODEL_LABEL_FLOWS", raising=False)
+    settings = Settings()
+    assert settings.resolve_model_label_flows(tmp_path) is False
+
+
+def test_step_profiles_override_in_context(tmp_path: Path) -> None:
+    _write_config(
+        tmp_path,
+        '[issueflow]\n\n[issueflow.step_profiles]\niflow_init = "reasoning"\n',
+    )
+    settings = Settings()
+    profiles = settings.template_context(tmp_path)["step_profiles"]
+    assert profiles["iflow_init"] == "reasoning"
+    assert profiles["iflow_plan"] == "reasoning"

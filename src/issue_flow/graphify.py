@@ -57,9 +57,7 @@ _GRAPHIFY_BUILD_SUBCOMMANDS: frozenset[str] = frozenset(
 _DEFAULT_BUILD_SUBCOMMAND: str = "update"
 
 
-def _build_graphify_argv(
-    project_root: Path, extra_args: Sequence[str]
-) -> list[str]:
+def _build_graphify_argv(project_root: Path, extra_args: Sequence[str]) -> list[str]:
     """Translate ``issue-flow graphify`` arguments into a ``graphify`` argv.
 
     ``graphify`` is subcommand-based — there is no top-level "scan this
@@ -122,8 +120,7 @@ def _graphify_dependency():
         if dep.command == GRAPHIFY_COMMAND:
             return dep
     raise RuntimeError(
-        "graphify is missing from RECOMMENDED_DEPENDENCIES; "
-        "this should never happen."
+        "graphify is missing from RECOMMENDED_DEPENDENCIES; this should never happen."
     )
 
 
@@ -245,9 +242,7 @@ def register_with_editor(
         _print_install_hints(console)
         return False
 
-    console.print(
-        f"  [green]run[/green]   {GRAPHIFY_COMMAND} {installer} install"
-    )
+    console.print(f"  [green]run[/green]   {GRAPHIFY_COMMAND} {installer} install")
     try:
         result = subprocess.run(
             [GRAPHIFY_COMMAND, installer, "install"],
@@ -275,9 +270,7 @@ def register_with_editor(
                 console.print(f"    [dim]{line}[/dim]")
         return False
 
-    console.print(
-        f"  [green]ok[/green]    graphify {installer} skill registered"
-    )
+    console.print(f"  [green]ok[/green]    graphify {installer} skill registered")
     return True
 
 
@@ -315,11 +308,7 @@ def run_build(
 
     cmd = _build_graphify_argv(project_root, extra_args)
 
-    console.print(
-        "[dim]running:[/dim] [bold]"
-        + " ".join(cmd)
-        + "[/bold]\n"
-    )
+    console.print("[dim]running:[/dim] [bold]" + " ".join(cmd) + "[/bold]\n")
     try:
         result = subprocess.run(cmd, cwd=project_root, check=False)
     except OSError as exc:

@@ -95,8 +95,15 @@ def default_branch(cwd: Path) -> str:
     slash commands describe.
     """
     gh_default = _stdout(
-        [GH, "repo", "view", "--json", "defaultBranchRef", "-q",
-         ".defaultBranchRef.name"],
+        [
+            GH,
+            "repo",
+            "view",
+            "--json",
+            "defaultBranchRef",
+            "-q",
+            ".defaultBranchRef.name",
+        ],
         cwd,
     )
     if gh_default:
@@ -173,8 +180,12 @@ def gh_issue_view(
     Returns ``None`` if ``gh`` is missing, unauthenticated, or the call fails.
     """
     argv = [
-        GH, "issue", "view", str(number),
-        "--json", "title,body,url,number,comments",
+        GH,
+        "issue",
+        "view",
+        str(number),
+        "--json",
+        "title,body,url,number,comments",
     ]
     if repo:
         argv += ["--repo", repo]
@@ -192,8 +203,15 @@ def gh_issue_list(
 ) -> list[dict[str, Any]] | None:
     """List open GitHub issues as dicts, or ``None`` when unavailable."""
     argv = [
-        GH, "issue", "list", "--state", "open", "--limit", str(limit),
-        "--json", "number,title,labels,milestone,updatedAt",
+        GH,
+        "issue",
+        "list",
+        "--state",
+        "open",
+        "--limit",
+        str(limit),
+        "--json",
+        "number,title,labels,milestone,updatedAt",
     ]
     if repo:
         argv += ["--repo", repo]

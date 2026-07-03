@@ -297,7 +297,17 @@ def test_init_version_bump_skill_documents_all_levels_and_default(
     content = (
         tmp_path / ".cursor" / "skills" / "iflow-version-bump" / "SKILL.md"
     ).read_text(encoding="utf-8")
-    for level in ("major", "minor", "patch", "stable", "alpha", "beta", "rc", "post", "dev"):
+    for level in (
+        "major",
+        "minor",
+        "patch",
+        "stable",
+        "alpha",
+        "beta",
+        "rc",
+        "post",
+        "dev",
+    ):
         assert level in content, f"version-bump skill should mention {level}"
     # Pre-release-aware default when no level is given.
     assert "pre-release-aware default" in content
@@ -380,7 +390,9 @@ def test_init_proceeds_silently_when_all_dependencies_present(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     """With all deps present the check should not prompt or abort."""
-    monkeypatch.setattr(init_module, "check_dependencies", lambda: list(REQUIRED_DEPENDENCIES[:0]))
+    monkeypatch.setattr(
+        init_module, "check_dependencies", lambda: list(REQUIRED_DEPENDENCIES[:0])
+    )
 
     def fail_confirm(*_a: object, **_kw: object) -> bool:
         raise AssertionError("typer.confirm should not be called when all deps present")
@@ -453,7 +465,11 @@ def test_init_calls_graphify_register_when_available(
     """When graphify is on PATH, run_init must call register_with_cursor."""
     from issue_flow import graphify as graphify_module
 
-    monkeypatch.setattr(graphify_module.shutil, "which", lambda cmd: "/usr/bin/graphify" if cmd == "graphify" else None)
+    monkeypatch.setattr(
+        graphify_module.shutil,
+        "which",
+        lambda cmd: "/usr/bin/graphify" if cmd == "graphify" else None,
+    )
 
     calls: list[Path] = []
 
@@ -481,7 +497,9 @@ def test_init_skips_graphify_when_unavailable(
     monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: None)
 
     def fail_run(*_a: object, **_kw: object) -> object:
-        raise AssertionError("subprocess.run must not be called when graphify is missing")
+        raise AssertionError(
+            "subprocess.run must not be called when graphify is missing"
+        )
 
     monkeypatch.setattr(graphify_module.subprocess, "run", fail_run)
 
@@ -494,9 +512,7 @@ def test_init_creates_graphify_skill(tmp_path: Path) -> None:
     """The /graphify skill must be scaffolded for Cursor."""
     run_init(tmp_path)
 
-    graphify_skill = (
-        tmp_path / ".cursor" / "skills" / "iflow-graphify" / "SKILL.md"
-    )
+    graphify_skill = tmp_path / ".cursor" / "skills" / "iflow-graphify" / "SKILL.md"
     assert not (tmp_path / ".cursor" / "commands").exists()
     assert graphify_skill.is_file()
 
@@ -511,9 +527,7 @@ def test_init_creates_status_skill(tmp_path: Path) -> None:
     """The /iflow-status skill must be scaffolded for Cursor."""
     run_init(tmp_path)
 
-    status_skill = (
-        tmp_path / ".cursor" / "skills" / "iflow-status" / "SKILL.md"
-    )
+    status_skill = tmp_path / ".cursor" / "skills" / "iflow-status" / "SKILL.md"
     assert status_skill.is_file()
 
     skill_content = status_skill.read_text(encoding="utf-8")
@@ -528,9 +542,7 @@ def test_init_creates_issue_pick_skill(tmp_path: Path) -> None:
     """The /iflow-pick front-door skill must be scaffolded for Cursor."""
     run_init(tmp_path)
 
-    pick_skill = (
-        tmp_path / ".cursor" / "skills" / "iflow-pick" / "SKILL.md"
-    )
+    pick_skill = tmp_path / ".cursor" / "skills" / "iflow-pick" / "SKILL.md"
     assert pick_skill.is_file()
 
     skill_content = pick_skill.read_text(encoding="utf-8")
@@ -667,9 +679,23 @@ def test_init_mode_simple_scaffolds_subset(tmp_path: Path) -> None:
     run_init(tmp_path, mode="simple")
 
     skills = tmp_path / ".cursor" / "skills"
-    for present in ("iflow", "iflow-init", "iflow-plan", "iflow-start", "iflow-pause", "iflow-status"):
+    for present in (
+        "iflow",
+        "iflow-init",
+        "iflow-plan",
+        "iflow-start",
+        "iflow-pause",
+        "iflow-status",
+    ):
         assert (skills / present / "SKILL.md").is_file(), present
-    for absent in ("iflow-close", "iflow-cleanup", "iflow-yolo", "iflow-fix", "iflow-graphify", "iflow-pick"):
+    for absent in (
+        "iflow-close",
+        "iflow-cleanup",
+        "iflow-yolo",
+        "iflow-fix",
+        "iflow-graphify",
+        "iflow-pick",
+    ):
         assert not (skills / absent).exists(), absent
 
     config = tmp_path / ".issueflows" / "config.toml"
@@ -699,9 +725,9 @@ def test_init_unknown_mode_aborts_without_scaffold(tmp_path: Path) -> None:
 def test_init_simple_mode_dispatcher_has_no_close_target(tmp_path: Path) -> None:
     """The /iflow dispatcher's done-state must not route to /iflow-close in simple mode."""
     run_init(tmp_path, mode="simple")
-    dispatcher = (
-        tmp_path / ".cursor" / "skills" / "iflow" / "SKILL.md"
-    ).read_text(encoding="utf-8")
+    dispatcher = (tmp_path / ".cursor" / "skills" / "iflow" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
     # The close-dispatch reason line is gated out; the markdown-only fallback is in.
     assert "status marks the issue" not in dispatcher
     assert "03-solved-issues" in dispatcher
@@ -710,9 +736,9 @@ def test_init_simple_mode_dispatcher_has_no_close_target(tmp_path: Path) -> None
 def test_init_standard_mode_dispatcher_routes_to_close(tmp_path: Path) -> None:
     """Standard mode keeps the /iflow-close dispatch in the done state."""
     run_init(tmp_path)
-    dispatcher = (
-        tmp_path / ".cursor" / "skills" / "iflow" / "SKILL.md"
-    ).read_text(encoding="utf-8")
+    dispatcher = (tmp_path / ".cursor" / "skills" / "iflow" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
     assert "status marks the issue" in dispatcher
 
 

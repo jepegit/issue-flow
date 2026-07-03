@@ -17,6 +17,20 @@ Follow this skill when the user wants to **design the approach** for an issue be
 - The user runs `/iflow-plan`, mentions **issue-plan**, or asks you to design the approach / write a plan for the current issue.
 - You want a clear, confirmed plan before `/iflow-start` begins editing code.
 
+
+### MODEL & EXECUTION DIRECTIVE
+
+
+**Profile: reasoning** — Prioritize deep thinking and careful trade-offs over speed or token economy.
+
+In Cursor: switch to a thinking-capable model before invoking this step (not Auto-only).
+
+
+
+Keep scope tight to what this step requires.
+
+
+
 ## Instructions
 
 > **CLI fast path (optional).** If the `issue-flow` CLI is on `PATH`, run

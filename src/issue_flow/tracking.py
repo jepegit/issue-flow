@@ -194,9 +194,7 @@ def resolve_focus(current_dir: Path, branch: str | None) -> FocusResolution:
         return FocusResolution(number=numbers[0], resolved_via="single-group")
     if not numbers:
         return FocusResolution(number=None, resolved_via="none")
-    return FocusResolution(
-        number=None, resolved_via="ambiguous", candidates=numbers
-    )
+    return FocusResolution(number=None, resolved_via="ambiguous", candidates=numbers)
 
 
 @dataclass

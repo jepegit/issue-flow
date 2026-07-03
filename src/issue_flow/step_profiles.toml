@@ -1,0 +1,22 @@
+# Packaged step execution profiles for issue-flow lifecycle skills.
+# Values: "economy" (speed/token economy) or "reasoning" (deep thinking).
+# Projects may override per stem in .issueflows/config.toml under
+# [issueflow.step_profiles].
+
+[defaults]
+iflow_iflow = "economy"
+iflow_pick = "reasoning"
+iflow_init = "economy"
+iflow_comments = "economy"
+iflow_plan = "reasoning"
+iflow_start = "reasoning"
+iflow_pause = "economy"
+iflow_close = "economy"
+iflow_cleanup = "economy"
+iflow_yolo = "reasoning"
+iflow_fix = "reasoning"
+iflow_status = "economy"
+iflow_archive = "reasoning"
+iflow_version_bump = "economy"
+iflow_history_update = "economy"
+iflow_graphify = "economy"
