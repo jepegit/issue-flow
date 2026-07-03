@@ -95,8 +95,8 @@ def test_resolve_output_path() -> None:
 
 
 def test_manifest_entry_count() -> None:
-    # Cursor is skills-first: 1 rule + 1 doc + 17 skills = 19
-    assert len(TEMPLATE_MANIFEST) == 19
+    # Cursor is skills-first: 1 rule + 1 doc + 18 skills = 20
+    assert len(TEMPLATE_MANIFEST) == 20
 
 
 def _resolved_paths(profile_id: str) -> set[str]:
@@ -116,7 +116,7 @@ def _resolved_paths(profile_id: str) -> set[str]:
 def test_build_manifest_cursor_matches_default() -> None:
     """The default TEMPLATE_MANIFEST is the cursor profile manifest."""
     assert build_manifest(EDITORS["cursor"]) == TEMPLATE_MANIFEST
-    assert len(build_manifest(EDITORS["cursor"])) == 19
+    assert len(build_manifest(EDITORS["cursor"])) == 20
 
 
 def test_build_manifest_cursor_has_skills_and_rules_but_no_commands() -> None:
@@ -131,15 +131,15 @@ def test_build_manifest_cursor_has_skills_and_rules_but_no_commands() -> None:
 
 
 def test_build_manifest_codex_has_skills_and_docs_but_no_commands() -> None:
-    """Codex: skills (17) + docs (1), no slash commands and no rules extra."""
+    """Codex: skills (18) + docs (1), no slash commands and no rules extra."""
     manifest = build_manifest(get_profile("codex"))
     template_names = [name for name, _ in manifest]
     assert not any(name.startswith("commands/") for name in template_names)
-    assert sum(name.startswith("skills/") for name in template_names) == 17
+    assert sum(name.startswith("skills/") for name in template_names) == 18
     assert "docs/issue-workflow.md.j2" in template_names
     # No .mdc / CLAUDE.md rules extra for Codex.
     assert not any(name.startswith("rules/") for name in template_names)
-    assert len(manifest) == 18
+    assert len(manifest) == 19
 
 
 def test_build_manifest_opencode_uses_singular_command_dir() -> None:
@@ -211,6 +211,7 @@ def test_manifest_has_expected_skills() -> None:
         "iflow_yolo",
         "iflow_fix",
         "iflow_status",
+        "iflow_archive",
         "iflow_version_bump",
         "iflow_history_update",
         "iflow_graphify",
@@ -233,6 +234,7 @@ def test_claude_manifest_has_expected_commands() -> None:
         "iflow-yolo",
         "iflow-fix",
         "iflow-status",
+        "iflow-archive",
         "iflow-graphify",
     ):
         assert f"commands/{command}.md.j2" in template_names
@@ -278,6 +280,8 @@ _CLI_FASTPATH_SURFACES = {
     "skills/iflow_init/SKILL.md.j2": "issue-flow agent capture",
     "skills/iflow_start/SKILL.md.j2": "issue-flow agent preflight",
     "skills/iflow_plan/SKILL.md.j2": "issue-flow agent preflight",
+    "commands/iflow-archive.md.j2": "issue-flow agent archive",
+    "skills/iflow_archive/SKILL.md.j2": "issue-flow agent archive",
 }
 
 
@@ -482,6 +486,53 @@ def test_issue_fix_skill_mirrors_command() -> None:
     assert "Iterative fixes log" in rendered
     assert "/iflow-init" in rendered
     assert "/iflow-close" in rendered
+
+
+def test_iflow_archive_command_documents_gated_deletion() -> None:
+    """/iflow-archive must describe the summary file, recovery ref, and gating."""
+    rendered = render_template("commands/iflow-archive.md.j2", _default_context())
+    # Dated summary file in the solved folder.
+    assert "_archived_issues.md" in rendered
+    assert "03-solved-issues" in rendered
+    # Recovery relies on the recorded pre-archive git ref.
+    assert "git rev-parse HEAD" in rendered
+    assert "git show <ref>:<path>" in rendered
+    # Destructive and gated: clean tree + one consolidated confirm.
+    assert "clean working tree" in rendered
+    assert "Consolidated confirm" in rendered
+    # Off-path: never auto-dispatched.
+    assert "off-path" in rendered.lower()
+    # Selection inputs.
+    assert "keep <K>" in rendered
+    assert "all" in rendered
+
+
+def test_iflow_archive_skill_mirrors_command() -> None:
+    """The iflow-archive skill must carry the same flow and frontmatter."""
+    rendered = render_template(
+        "skills/iflow_archive/SKILL.md.j2", _default_context()
+    )
+    assert "name: iflow-archive" in rendered
+    assert "disable-model-invocation: true" in rendered
+    assert "_archived_issues.md" in rendered
+    assert "git rev-parse HEAD" in rendered
+    assert "Consolidated confirm" in rendered
+    # Only the solved folder is ever touched.
+    assert "03-solved-issues" in rendered
+
+
+def test_iflow_does_not_auto_dispatch_archive() -> None:
+    """/iflow must list /iflow-archive among the explicit-only commands."""
+    cmd = render_template("commands/iflow.md.j2", _default_context())
+    assert "/iflow-archive" in cmd
+
+
+def test_rules_body_mentions_archive() -> None:
+    """The shared rules body must describe /iflow-archive as off-path + gated."""
+    rendered = render_template("rules/AGENTS.md.j2", _default_context())
+    assert "/iflow-archive" in rendered
+    assert "_archived_issues.md" in rendered
+    assert "pre-archive git ref" in rendered
 
 
 def test_iflow_lists_issue_fix_as_off_path() -> None:

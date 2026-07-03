@@ -199,3 +199,81 @@ def test_plan_sweep_excepts_focus(tmp_path: Path) -> None:
     _write(cur / "issue5_original.md")
     moves = tracking.plan_sweep(cur, partly, solved, except_number=5)
     assert moves == []
+
+
+# ---------------------------------------------------------------------------
+# archive
+# ---------------------------------------------------------------------------
+
+
+def test_plan_archive_collects_groups_and_titles(tmp_path: Path) -> None:
+    solved = _solved(tmp_path)
+    _write(solved / "issue1_original.md", "# Issue #1: First thing\n")
+    _write(solved / "issue1_status.md", "- [x] Done\n")
+    _write(solved / "issue2_original.md", "# Issue #2: Second thing\n")
+
+    moves, missing = tracking.plan_archive(solved, [1, 2])
+
+    assert missing == []
+    by_number = {m.number: m for m in moves}
+    assert set(by_number) == {1, 2}
+    assert by_number[1].title == "First thing"
+    assert len(by_number[1].files) == 2
+
+
+def test_plan_archive_reports_missing(tmp_path: Path) -> None:
+    solved = _solved(tmp_path)
+    _write(solved / "issue1_original.md")
+
+    moves, missing = tracking.plan_archive(solved, [1, 99])
+
+    assert [m.number for m in moves] == [1]
+    assert missing == [99]
+
+
+def test_plan_archive_deduplicates_requests(tmp_path: Path) -> None:
+    solved = _solved(tmp_path)
+    _write(solved / "issue1_original.md")
+
+    moves, missing = tracking.plan_archive(solved, [1, 1, 1])
+
+    assert [m.number for m in moves] == [1]
+    assert missing == []
+
+
+def test_apply_archive_deletes_files(tmp_path: Path) -> None:
+    solved = _solved(tmp_path)
+    _write(solved / "issue1_original.md")
+    _write(solved / "issue1_status.md", "- [x] Done\n")
+    _write(solved / "issue2_original.md")  # not archived
+
+    moves, _ = tracking.plan_archive(solved, [1])
+    removed = tracking.apply_archive(moves)
+
+    assert sorted(p.name for p in removed) == [
+        "issue1_original.md",
+        "issue1_status.md",
+    ]
+    assert not (solved / "issue1_original.md").exists()
+    assert not (solved / "issue1_status.md").exists()
+    assert (solved / "issue2_original.md").exists()
+
+
+def test_apply_archive_skips_already_gone(tmp_path: Path) -> None:
+    solved = _solved(tmp_path)
+    _write(solved / "issue1_original.md")
+
+    moves, _ = tracking.plan_archive(solved, [1])
+    (solved / "issue1_original.md").unlink()
+    removed = tracking.apply_archive(moves)
+
+    assert removed == []
+
+
+def test_dated_archive_file_is_not_grouped(tmp_path: Path) -> None:
+    """The summary file's dated name must never join an issue group."""
+    solved = _solved(tmp_path)
+    _write(solved / "2026-07-03_archived_issues.md", "# Archived issues\n")
+    _write(solved / "issue1_original.md")
+
+    assert set(tracking.group_issue_files(solved)) == {1}

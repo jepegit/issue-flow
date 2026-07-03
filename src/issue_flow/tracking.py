@@ -263,3 +263,61 @@ def apply_sweep(
                 path.replace(dest_dir / path.name)
         applied.append(move)
     return applied
+
+
+@dataclass
+class ArchiveMove:
+    """A planned (or applied) removal of one solved issue group.
+
+    Archiving (``/iflow-archive``) condenses solved issue groups into a single
+    dated summary file and then deletes the original ``issue<N>_*`` files.
+    The files stay recoverable through git history, which is why the archive
+    workflow records the pre-archive HEAD sha alongside the summaries.
+    """
+
+    number: int
+    title: str | None
+    files: list[Path]
+
+
+def plan_archive(
+    solved_dir: Path, issues: list[int]
+) -> tuple[list[ArchiveMove], list[int]]:
+    """Plan the removal of the given solved issue groups.
+
+    Returns ``(moves, missing)`` where ``moves`` covers every requested issue
+    that has a group in ``solved_dir`` and ``missing`` lists requested numbers
+    with no group there. Callers should treat a non-empty ``missing`` as a
+    reason to refuse the whole archive rather than silently skipping.
+    """
+    groups = group_issue_files(solved_dir)
+    moves: list[ArchiveMove] = []
+    missing: list[int] = []
+    for number in sorted(set(issues)):
+        group = groups.get(number)
+        if group is None:
+            missing.append(number)
+            continue
+        moves.append(
+            ArchiveMove(
+                number=number,
+                title=group.title(),
+                files=list(group.files),
+            )
+        )
+    return moves, missing
+
+
+def apply_archive(moves: list[ArchiveMove]) -> list[Path]:
+    """Delete the files of the planned archive moves.
+
+    Returns the paths that were actually removed. Files already gone are
+    skipped silently (the plan may be stale).
+    """
+    removed: list[Path] = []
+    for move in moves:
+        for path in move.files:
+            if path.exists():
+                path.unlink()
+                removed.append(path)
+    return removed

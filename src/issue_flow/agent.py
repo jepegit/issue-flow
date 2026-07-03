@@ -227,6 +227,90 @@ def run_sweep(
 
 
 # ---------------------------------------------------------------------------
+# agent archive
+# ---------------------------------------------------------------------------
+
+
+def run_archive(
+    project_root: Path,
+    console: Console,
+    issues: list[int],
+    dry_run: bool,
+    as_json: bool,
+) -> int:
+    """Delete the named solved issue groups (the mechanical half of archiving).
+
+    Summarising the issues into the dated archive file is interpretive and
+    stays agent-side; this command only removes the ``issue<N>_*`` files from
+    the solved folder and reports the pre-archive HEAD sha so the summaries
+    can record a recovery point. Refuses (exit 1) when any requested issue has
+    no group in the solved folder, so a typo never silently archives less
+    than the user confirmed.
+    """
+    settings = Settings()
+    folders = _folders(project_root, settings)
+
+    moves, missing = tracking.plan_archive(folders["solved"], issues)
+    sha = gitutils.head_sha(project_root)
+
+    if missing:
+        msg = (
+            "no files found in "
+            f"{settings.solved_folder} for issue(s) "
+            f"{', '.join(f'#{n}' for n in missing)}; nothing was archived."
+        )
+        if as_json:
+            _emit_json(
+                console,
+                {"archived": False, "missing": missing, "error": msg},
+            )
+        else:
+            console.print(f"[red]error[/red]  {msg}")
+        return 1
+
+    removed: list[Path] = []
+    if not dry_run and moves:
+        removed = tracking.apply_archive(moves)
+
+    payload = {
+        "dry_run": dry_run,
+        "head_sha": sha,
+        "issues": [
+            {
+                "issue": m.number,
+                "title": m.title,
+                "files": [p.name for p in m.files],
+            }
+            for m in moves
+        ],
+        "removed": [p.name for p in removed],
+    }
+
+    if as_json:
+        _emit_json(console, payload)
+        return 0
+
+    if not moves:
+        console.print("[dim]Nothing to archive.[/dim]")
+        return 0
+    if sha:
+        console.print(f"Pre-archive HEAD: [bold]{sha}[/bold]")
+    verb = "Would remove" if dry_run else "Removed"
+    for m in moves:
+        title = f" — {escape(m.title)}" if m.title else ""
+        console.print(
+            f"  {verb} #{m.number}{title}: "
+            f"{', '.join(p.name for p in m.files)}"
+        )
+    if not dry_run:
+        console.print(
+            "  [dim]Write the summaries into the dated archive file and "
+            "commit so the pre-archive sha stays meaningful.[/dim]"
+        )
+    return 0
+
+
+# ---------------------------------------------------------------------------
 # agent capture
 # ---------------------------------------------------------------------------
 
