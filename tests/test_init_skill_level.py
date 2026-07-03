@@ -24,6 +24,7 @@ def test_init_advanced_skill_level_creates_quality_doc(tmp_path: Path) -> None:
     text = doc.read_text(encoding="utf-8")
     assert "mypy" in text
     assert "ruff" in text
+    assert "ruff check --fix" in text
     assert "pre-commit" in text
     assert "pytest" in text
     assert "Type checking" in text
@@ -75,6 +76,7 @@ def test_init_update_honours_persisted_skill_level(tmp_path: Path) -> None:
     assert not doc.exists()
 
     from issue_flow.init import run_update
+
     run_update(tmp_path)
 
     assert doc.is_file()

@@ -30,6 +30,7 @@ your-project/
       iflow-yolo/SKILL.md
       iflow-fix/SKILL.md
       iflow-status/SKILL.md
+      iflow-archive/SKILL.md
       iflow-version-bump/SKILL.md
       iflow-history-update/SKILL.md
       iflow-graphify/SKILL.md
@@ -58,8 +59,9 @@ Plus a few off-path commands:
 - `/iflow-yolo` — all-in-one chain (`init → plan → start → close`) for small, low-risk issues, with up-front safeguards (refuses on the default branch, refuses with dirty unrelated changes, requires passing tests, single consolidated confirm).
 - `/iflow-fix` — interactive iterative-fixes session: creates one GitHub issue + long-lived branch, then loops over many small fixes (each gets a short plan, implemented only on confirmation and recorded in `issue<N>_status.md`), ending with `/iflow-close`. Coexists with `/iflow-pick fix` (the one-shot setup). Off-path; never auto-dispatched.
 - `/iflow-status` — **read-only** overview of where every issue stands: the local tracking state (focus / parked / solved) plus open GitHub issues cross-referenced against it. Pass `local` to skip the GitHub query. Changes nothing; off-path; never auto-dispatched.
+- `/iflow-archive` — **condense the solved archive (destructive, gated)**: summarises selected `issue<N>_*` groups under `03-solved-issues/` into a dated `YYYY-MM-DD_archived_issues.md` file. The summary records the pre-archive git ref so every original file stays recoverable (`git show <ref>:<path>`). Deletes the source files only after one consolidated confirm. Default: archive all but the **5 most recent** solved groups; pass `keep <K>`, an explicit list of issue numbers, or `all`. Requires a **clean working tree**. Off-path; never auto-dispatched.
 
-The **Agent Skills** under `.cursor/skills/` carry the workflows for on-demand use with `/iflow-pick`, `/iflow`, `/iflow-init`, `/iflow-plan`, `/iflow-start`, `/iflow-pause`, `/iflow-close`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-status`, `@iflow-version-bump` when you need only the bump steps, or `@iflow-history-update` when you need only the changelog update (see [Cursor Agent Skills](https://cursor.com/help/customization/skills)).
+The **Agent Skills** under `.cursor/skills/` carry the workflows for on-demand use with `/iflow-pick`, `/iflow`, `/iflow-init`, `/iflow-plan`, `/iflow-start`, `/iflow-pause`, `/iflow-close`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-status`, `/iflow-archive`, `@iflow-version-bump` when you need only the bump steps, or `@iflow-history-update` when you need only the changelog update (see [Cursor Agent Skills](https://cursor.com/help/customization/skills)).
 
 ## Prerequisites
 
@@ -191,6 +193,7 @@ issue-flow status [PROJECT_DIR] [--local] [--json]
 issue-flow agent state [PROJECT_DIR] [--json]
 issue-flow agent preflight [PROJECT_DIR] [--json]
 issue-flow agent sweep [PROJECT_DIR] [--except N] [--dry-run] [--json]
+issue-flow agent archive N [N ...] [-C PROJECT_DIR] [--dry-run] [--json]
 issue-flow agent capture N [-C PROJECT_DIR] [--repo OWNER/REPO] [--force] [--json]
 ```
 
@@ -266,13 +269,15 @@ project never installs `issue-flow`.
 | `agent state`            | Resolve the focus issue (branch-derived number wins, else the single current group), its lifecycle stage (`init`/`plan`/`start`/`close`), and the suggested next command. |
 | `agent preflight`        | Branch hygiene report: default branch, clean/dirty working tree, ahead/behind vs `origin/<default>`, and a stale-branch flag when the issue is already archived. Runs `git fetch --prune` first. |
 | `agent sweep`            | Archive `issue<N>_*` groups out of `01-current-issues/` to `03-solved-issues/` (Done) or `02-partly-solved-issues/` (not Done). Use `--except N` to keep the focus issue and `--dry-run` to preview. |
+| `agent archive`          | Mechanical deletion half of `/iflow-archive`: remove the chosen groups' files from `03-solved-issues/` and report the pre-archive HEAD sha (for the recovery ref in the summary file). Summarising into `YYYY-MM-DD_archived_issues.md` stays agent-side. Refuses when a requested issue has no solved group. `--dry-run` to preview. |
 | `agent capture N`        | Fetch GitHub issue `N` with `gh` and write `issue<N>_original.md` (the `## Original issue text` body). Prints the comments payload so the agent can triage them; comment triage stays agent-side. Use `--repo`, `--force`, `-C`. |
 
 
 All `agent` commands accept `--json` and degrade gracefully: read-only commands
 never hard-fail when `git`/`gh` is missing (they return partial data with a
 note), while `agent capture` needs `gh` and exits non-zero with a hint when it
-is unavailable or the fetch fails.
+is unavailable or the fetch fails. `agent archive` needs a clean working tree
+and refuses when any requested issue has no files under `03-solved-issues/`.
 
 ### When to use which
 
@@ -285,6 +290,7 @@ is unavailable or the fetch fails.
 | Rebuild the graphify knowledge graph                                 | `issue-flow graphify`     |
 | See where every issue stands (focus / parked / solved / GitHub)      | `issue-flow status`       |
 | Let an agent resolve lifecycle state / sweep / capture deterministically | `issue-flow agent ...`    |
+| Condense old solved issues into a dated summary (recoverable via git) | `/iflow-archive` (summary is agent-written; `issue-flow agent archive …` for the delete step) |
 
 
 ## Modes
@@ -296,7 +302,7 @@ than you need. Two modes ship built in:
 | Mode | What you get |
 | --- | --- |
 | `standard` (default) | The full workflow: planning, PRs, history, cleanup, graphify, and all helpers. |
-| `simple` | A markdown-only lifecycle (capture, plan, implement, park, status). No PR/cleanup/yolo/fix/graphify automation. |
+| `simple` | A markdown-only lifecycle (capture, plan, implement, park, status, archive). No PR/cleanup/yolo/fix/graphify automation. Includes `/iflow-archive` for condensing a large `03-solved-issues/` folder. |
 
 ```bash
 issue-flow init --mode simple
