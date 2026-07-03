@@ -1,0 +1,61 @@
+# Archive solved issues (`/iflow-archive`)
+
+`/iflow-archive` condenses old solved issue groups under
+`{{ issueflows_dir }}/{{ solved_folder }}/` into a **single dated summary file**
+(`YYYY-MM-DD_archived_issues.md`) and then **deletes** the original
+`issue<N>_*` files. The originals stay recoverable through git history: the
+summary file records the pre-archive git ref, so any file can be dug out later
+with `git show <ref>:<path>`.
+
+This is an **off-path**, destructive command — the lifecycle dispatcher
+(`/iflow`) never auto-runs it, and nothing is deleted before one consolidated
+confirmation.
+
+## Input
+
+Optional free-form text after the command:
+
+- **No extra text** — smart default: archive every solved group **except the 5 most recent** (highest issue numbers).
+- **`keep <K>`** — keep the `<K>` most recent groups instead of 5.
+- **A list of issue numbers** (e.g. `12 13 24`) — archive exactly those.
+- **`all`** — archive every solved group.
+
+## Steps
+
+> **CLI fast path (optional).** If the `issue-flow` CLI is on `PATH`, run
+> `issue-flow agent archive <N> [<N> ...]` for the mechanical deletion step
+> (add `--dry-run` to preview, `--json` for a machine-readable object). It
+> removes the chosen groups' files and reports the pre-archive HEAD sha — the
+> assistant still selects candidates, confirms with you, and writes the
+> summary file itself. The CLI is optional: if it is missing or errors,
+> fall back to the manual steps below. (`issue-flow` is only present when the
+> user installed it, e.g. `uv tool install issue-flow`.)
+
+1. **Preflight.** Require a **clean working tree** (`git status --porcelain`); if dirty, stop and ask you to commit or stash first — the recovery ref is only meaningful when the deletion lands as its own commit. Capture the pre-archive ref with `git rev-parse HEAD`.
+
+2. **Select candidates.** List every `issue<N>_*` group in `{{ issueflows_dir }}/{{ solved_folder }}/` (number + title from the `# Issue #N: <title>` heading), apply the input rule, and show the candidate list so you can add or remove issues before anything happens.
+
+3. **Consolidated confirm** (destructive). One prompt covering exactly which issues get summarised, that their files will be **deleted**, and that recovery relies on git history via the recorded ref. Nothing proceeds without a clear yes.
+
+4. **Summarise before deleting.** Append to `{{ issueflows_dir }}/{{ solved_folder }}/YYYY-MM-DD_archived_issues.md` (created if missing): a header with the date and the pre-archive ref plus the recovery recipe, then one `## Issue #<N>: <title>` section per archived issue — source URL, archived file names, and a 2–4 sentence summary distilled from the original / plan / status files. Same-day reruns append a `---` separator, a fresh pre-archive ref line, and the new sections. The dated filename deliberately does not match `issue<N>_*`, so it never interferes with issue grouping.
+
+5. **Delete.** Remove the archived groups' files (`issue-flow agent archive ...`, or `git rm {{ issueflows_dir }}/{{ solved_folder }}/issue<N>_*` per issue).
+
+6. **Commit offer.** Propose a single commit, e.g. `chore(iflow): archive <count> solved issues (pre-archive ref <short-sha>)`. The assistant asks before committing and never pushes from this command.
+
+7. **Report.** How many issues were archived, the dated file path, the pre-archive ref, and the recovery recipe.
+
+## Constraints
+
+- **Off-path.** Never auto-dispatched by `/iflow`, `/iflow-start`, or `/iflow-close`.
+- **Destructive, so gated.** Nothing is deleted before the consolidated confirm, and nothing is deleted that was not summarised first.
+- Only `{{ issueflows_dir }}/{{ solved_folder }}/` is touched — never the current, partly-solved, tools, or designs folders.
+- Requires a clean working tree so the deletion can land as its own commit and `git show <ref>:<path>` recovery always works.
+- Summaries are written by the assistant (interpretive); the CLI only performs the mechanical deletion.
+
+## Example invocations
+
+- `/iflow-archive` — archive everything except the 5 most recent solved issues.
+- `/iflow-archive keep 10` — keep the 10 most recent, archive the rest.
+- `/iflow-archive 12 13 24` — archive exactly issues #12, #13, and #24.
+- `/iflow-archive all` — archive every solved group.

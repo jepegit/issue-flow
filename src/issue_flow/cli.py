@@ -281,6 +281,42 @@ def agent_sweep(
     )
 
 
+@agent_app.command("archive")
+def agent_archive(
+    issues: list[int] = typer.Argument(
+        ...,
+        help="Solved issue number(s) whose files should be removed.",
+    ),
+    project_dir: Path = typer.Option(
+        Path("."),
+        "--project-dir",
+        "-C",
+        help="Project root directory (defaults to current directory).",
+        exists=True,
+        file_okay=False,
+        resolve_path=True,
+    ),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Show planned removals without touching files."
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Remove solved issue<N>_* files (the mechanical half of /iflow-archive).
+
+    Reports the pre-archive HEAD sha so the agent-written summary file can
+    record a recovery point (``git show <sha>:<path>``). Summarising the
+    issues into the dated archive file is left to the agent. Refuses when a
+    requested issue has no files in the solved folder.
+    """
+    from issue_flow.agent import run_archive
+
+    raise typer.Exit(
+        code=run_archive(project_dir, _console, issues, dry_run, json_output)
+    )
+
+
 @agent_app.command("capture")
 def agent_capture(
     number: int = typer.Argument(..., help="GitHub issue number to capture."),

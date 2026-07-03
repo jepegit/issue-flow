@@ -35,6 +35,7 @@ skills = [
     "iflow_start",
     "iflow_pause",
     "iflow_status",
+    "iflow_archive",
 ]
 commands = [
     "iflow",
@@ -43,4 +44,5 @@ commands = [
     "iflow-start",
     "iflow-pause",
     "iflow-status",
+    "iflow-archive",
 ]

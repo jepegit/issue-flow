@@ -112,6 +112,11 @@ def default_branch(cwd: Path) -> str:
     return "main"
 
 
+def head_sha(cwd: Path) -> str | None:
+    """Full sha of HEAD, or ``None`` (no commits / not a repo / no git)."""
+    return _stdout([GIT, "rev-parse", "HEAD"], cwd)
+
+
 def working_tree_clean(cwd: Path) -> bool | None:
     """True for a clean tree, False if dirty, ``None`` if git is unavailable."""
     result = _run([GIT, "status", "--porcelain"], cwd)

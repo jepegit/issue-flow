@@ -100,6 +100,33 @@ def test_ahead_behind_none_on_bad_output(
 
 
 # ---------------------------------------------------------------------------
+# head sha
+# ---------------------------------------------------------------------------
+
+
+def test_head_sha_returns_sha(
+    monkeypatch: pytest.MonkeyPatch, all_tools_present: None
+) -> None:
+    monkeypatch.setattr(
+        gitutils.subprocess,
+        "run",
+        _fake_runner({("git", "rev-parse"): _FakeProc(stdout="abc123\n")}),
+    )
+    assert gitutils.head_sha(Path(".")) == "abc123"
+
+
+def test_head_sha_none_on_failure(
+    monkeypatch: pytest.MonkeyPatch, all_tools_present: None
+) -> None:
+    monkeypatch.setattr(
+        gitutils.subprocess,
+        "run",
+        _fake_runner({("git", "rev-parse"): _FakeProc(returncode=128)}),
+    )
+    assert gitutils.head_sha(Path(".")) is None
+
+
+# ---------------------------------------------------------------------------
 # default branch detection + fallbacks
 # ---------------------------------------------------------------------------
 

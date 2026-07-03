@@ -258,7 +258,7 @@ def test_agent_help_lists_subcommands(runner: CliRunner) -> None:
     result = runner.invoke(app, ["agent", "--help"])
     assert result.exit_code == 0
     plain = _plain(result.stdout)
-    for sub in ("state", "preflight", "sweep", "capture"):
+    for sub in ("state", "preflight", "sweep", "capture", "archive"):
         assert sub in plain
 
 
@@ -338,6 +338,85 @@ def test_agent_preflight_json_handles_missing_git(
     assert result.exit_code == 0, result.output
     payload = _json(result.stdout)
     assert payload["git_available"] is False
+
+
+def _seed_solved_issue(tmp_path: Path, number: int, *, title: str = "Title") -> None:
+    solved = tmp_path / ".issueflows" / "03-solved-issues"
+    solved.mkdir(parents=True, exist_ok=True)
+    (solved / f"issue{number}_original.md").write_text(
+        f"# Issue #{number}: {title}\n\nbody\n", encoding="utf-8"
+    )
+    (solved / f"issue{number}_status.md").write_text(
+        "- [x] Done\n", encoding="utf-8"
+    )
+
+
+def test_agent_archive_dry_run_does_not_delete(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from issue_flow import gitutils as gitutils_module
+
+    monkeypatch.setattr(gitutils_module, "head_sha", lambda _cwd: "abc123")
+    _seed_solved_issue(tmp_path, 1, title="Old one")
+
+    result = runner.invoke(
+        app, ["agent", "archive", "1", "-C", str(tmp_path), "--dry-run", "--json"]
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["dry_run"] is True
+    assert payload["head_sha"] == "abc123"
+    assert payload["issues"][0]["issue"] == 1
+    assert payload["issues"][0]["title"] == "Old one"
+    assert payload["removed"] == []
+    solved = tmp_path / ".issueflows" / "03-solved-issues"
+    assert (solved / "issue1_original.md").exists()
+
+
+def test_agent_archive_deletes_files(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from issue_flow import gitutils as gitutils_module
+
+    monkeypatch.setattr(gitutils_module, "head_sha", lambda _cwd: "abc123")
+    _seed_solved_issue(tmp_path, 1)
+    _seed_solved_issue(tmp_path, 2)  # kept
+
+    result = runner.invoke(
+        app, ["agent", "archive", "1", "-C", str(tmp_path), "--json"]
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert sorted(payload["removed"]) == [
+        "issue1_original.md",
+        "issue1_status.md",
+    ]
+    solved = tmp_path / ".issueflows" / "03-solved-issues"
+    assert not (solved / "issue1_original.md").exists()
+    assert (solved / "issue2_original.md").exists()
+
+
+def test_agent_archive_refuses_missing_issue(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from issue_flow import gitutils as gitutils_module
+
+    monkeypatch.setattr(gitutils_module, "head_sha", lambda _cwd: "abc123")
+    _seed_solved_issue(tmp_path, 1)
+
+    result = runner.invoke(
+        app, ["agent", "archive", "1", "99", "-C", str(tmp_path), "--json"]
+    )
+
+    assert result.exit_code == 1
+    payload = _json(result.stdout)
+    assert payload["archived"] is False
+    assert payload["missing"] == [99]
+    # Nothing was deleted, not even the issue that does exist.
+    solved = tmp_path / ".issueflows" / "03-solved-issues"
+    assert (solved / "issue1_original.md").exists()
 
 
 def test_agent_capture_errors_without_gh(
