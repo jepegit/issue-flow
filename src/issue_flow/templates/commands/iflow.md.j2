@@ -6,6 +6,8 @@ Off-path commands (`/iflow-pick`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo
 
 Long-lived design docs, design decisions, and project good-practices live under `{{ issueflows_dir }}/{{ designs_folder }}/`. The downstream commands (`/iflow-plan`, `/iflow-start`, `/iflow-close`) read from and add to that folder as they run; `/iflow` itself does not touch it.
 
+{% include "skills/_model_directive.md.j2" %}
+
 ## Input
 
 Optional free-form text after the command. `/iflow` forwards the raw trailing text to whichever command it dispatches to. Examples:

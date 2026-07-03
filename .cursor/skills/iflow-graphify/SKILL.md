@@ -20,6 +20,20 @@ Follow this skill when the user wants to refresh the project's [graphify](https:
 
 Do **not** use this skill from `/iflow-start`, `/iflow-close`, or `/iflow`. `/iflow-graphify` is opt-in only.
 
+
+### MODEL & EXECUTION DIRECTIVE
+
+
+**Profile: economy** — Prioritize speed and token economy over deep reasoning.
+
+In Cursor: use **Auto** or a fast model before invoking this step.
+
+
+
+Keep scope tight to what this step requires.
+
+
+
 ## Instructions
 
 1. **Prefer `issue-flow graphify`** from the project root:

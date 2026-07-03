@@ -130,9 +130,7 @@ def format_missing_report(
 
     count = len(missing)
     noun = "dependency" if count == 1 else "dependencies"
-    console.print(
-        f"[bold yellow]Missing {count} external {noun}:[/bold yellow]"
-    )
+    console.print(f"[bold yellow]Missing {count} external {noun}:[/bold yellow]")
     for dep in missing:
         console.print(
             f"\n  [bold]{dep.name}[/bold]  "
@@ -192,6 +190,4 @@ def prompt_or_skip(
     # that only need check_dependencies (e.g. tests or custom scripts).
     import typer
 
-    return typer.confirm(
-        "Continue with issue-flow setup anyway?", default=False
-    )
+    return typer.confirm("Continue with issue-flow setup anyway?", default=False)

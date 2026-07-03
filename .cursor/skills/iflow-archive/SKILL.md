@@ -28,6 +28,20 @@ stay recoverable through git history).
 - **an explicit list** (e.g. `12 13 24`) — archive exactly those issues.
 - **`all`** — archive every solved group.
 
+
+### MODEL & EXECUTION DIRECTIVE
+
+
+**Profile: reasoning** — Prioritize deep thinking and careful trade-offs over speed or token economy.
+
+In Cursor: switch to a thinking-capable model before invoking this step (not Auto-only).
+
+
+
+Keep scope tight to what this step requires.
+
+
+
 ## Instructions
 
 > **CLI fast path (optional).** If the `issue-flow` CLI is on `PATH`, the

@@ -9,6 +9,7 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- **Step model directives (#113).** Lifecycle skills and command twins now carry an advisory `### MODEL & EXECUTION DIRECTIVE` section (`economy` vs `reasoning`) baked at `issue-flow update`. Packaged defaults live in `step_profiles.toml`; projects override per stem via `[issueflow.step_profiles]` and toggle with `step_directives`, `model_label_flows`, `deep_model_label`, and `fast_model_label` under `[issueflow]` (with env fallbacks). `/iflow-pick` can announce label-based session profile hints when `model_label_flows` is enabled.
 - **Iterative `/iflow-fix` polish (#114).** `/iflow-start` and `/iflow-close` (plus the advanced `python-quality-tools.md` design doc) now nudge agents to run `ruff check --fix` and `ruff format` when ruff is already in the project. README also documents `/iflow-archive` and `issue-flow agent archive` (#84).
 - Added a README Acknowledgements row crediting [mattpocock/skills](https://github.com/mattpocock/skills) as the source of the bundled `grill-me` Agent Skill. (#108)
 - Align issues with plan. (#85)

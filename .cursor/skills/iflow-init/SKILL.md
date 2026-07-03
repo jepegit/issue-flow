@@ -18,6 +18,20 @@ Follow this skill when the user wants to **capture a GitHub issue locally**.
 - The user runs `/iflow-init`, mentions **issue-init**, or asks to pull an issue into `.issueflows/01-current-issues/`.
 - You need a repeatable checklist without opening the command file.
 
+
+### MODEL & EXECUTION DIRECTIVE
+
+
+**Profile: economy** — Prioritize speed and token economy over deep reasoning.
+
+In Cursor: use **Auto** or a fast model before invoking this step.
+
+
+
+Keep scope tight to what this step requires.
+
+
+
 ## Instructions
 
 > **CLI fast path (optional).** If the `issue-flow` CLI is on `PATH`, two

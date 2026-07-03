@@ -42,6 +42,7 @@ When a bump applies: read `{{ agent_dir }}/skills/iflow-version-bump/SKILL.md`, 
 
 - **`yolo`** (used by `/iflow-yolo`) → close the loop without user input: write the `{{ history_file }}` bullet without a confirm prompt (step 3), **merge the PR** right after opening it (step 8a), then switch back to the default branch and `git pull --ff-only` (step 9, unless `stay` was also passed).
 
+{% include "skills/_model_directive.md.j2" %}
 ## Instructions
 
 1. **Sanity check** — Run the project test suite (e.g. `uv run pytest`) and any checks the repo relies on. **Ruff (when present):** if the project uses ruff (`[tool.ruff]` in `pyproject.toml`, ruff in dev dependencies, or `{{ issueflows_dir }}/{{ designs_folder }}/python-quality-tools.md` exists), run auto-fix lint through the documented Python runner before committing — e.g. `uv run ruff check --fix …` then `uv run ruff format …` (match paths to what the project documents). Skim the diff; avoid bundling unrelated changes. Confirm that any design decisions or good practices that emerged from this issue are captured under `{{ issueflows_dir }}/{{ designs_folder }}/` before committing.

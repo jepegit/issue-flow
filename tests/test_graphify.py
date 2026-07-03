@@ -28,7 +28,11 @@ def _fake_console() -> tuple[Console, StringIO]:
 def test_is_available_returns_true_when_graphify_on_path(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(graphify_module.shutil, "which", lambda cmd: "/usr/bin/graphify" if cmd == GRAPHIFY_COMMAND else None)
+    monkeypatch.setattr(
+        graphify_module.shutil,
+        "which",
+        lambda cmd: "/usr/bin/graphify" if cmd == GRAPHIFY_COMMAND else None,
+    )
     assert is_available() is True
 
 
@@ -49,7 +53,9 @@ def test_register_with_editor_skips_when_graphify_missing(
     monkeypatch.setattr(graphify_module, "_candidate_install_locations", lambda: [])
 
     def fail_run(*_a: Any, **_kw: Any) -> Any:
-        raise AssertionError("subprocess.run must not be called when graphify is missing")
+        raise AssertionError(
+            "subprocess.run must not be called when graphify is missing"
+        )
 
     monkeypatch.setattr(graphify_module.subprocess, "run", fail_run)
     console, buffer = _fake_console()
@@ -66,7 +72,9 @@ def test_register_with_editor_runs_install_when_available(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr(
-        graphify_module.shutil, "which", lambda cmd: "/usr/bin/graphify" if cmd == GRAPHIFY_COMMAND else None
+        graphify_module.shutil,
+        "which",
+        lambda cmd: "/usr/bin/graphify" if cmd == GRAPHIFY_COMMAND else None,
     )
 
     captured: dict[str, Any] = {}
@@ -95,7 +103,9 @@ def test_register_with_editor_does_not_raise_on_nonzero_exit(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """A non-zero exit from `graphify cursor install` must not break init/update."""
-    monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
+    monkeypatch.setattr(
+        graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify"
+    )
 
     class _Result:
         returncode = 7
@@ -116,7 +126,9 @@ def test_register_with_editor_swallows_oserror(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """If subprocess raises OSError (e.g. binary unexpectedly missing), we recover."""
-    monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
+    monkeypatch.setattr(
+        graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify"
+    )
 
     def boom(*_a: Any, **_kw: Any) -> Any:
         raise OSError("permission denied")
@@ -137,7 +149,9 @@ def test_run_build_returns_2_and_prints_hints_when_missing(
     monkeypatch.setattr(graphify_module, "_candidate_install_locations", lambda: [])
 
     def fail_run(*_a: Any, **_kw: Any) -> Any:
-        raise AssertionError("subprocess.run must not be called when graphify is missing")
+        raise AssertionError(
+            "subprocess.run must not be called when graphify is missing"
+        )
 
     monkeypatch.setattr(graphify_module.subprocess, "run", fail_run)
     console, buffer = _fake_console()
@@ -161,7 +175,9 @@ def test_run_build_no_args_uses_default_update_subcommand(
     without configuration. Users opt into the semantic LLM pass via
     ``issue-flow graphify extract``.
     """
-    monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
+    monkeypatch.setattr(
+        graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify"
+    )
 
     captured: dict[str, Any] = {}
 
@@ -187,7 +203,9 @@ def test_run_build_respects_explicit_subcommand_and_forwards_flags(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """A leading build subcommand picks the action; trailing flags forward verbatim."""
-    monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
+    monkeypatch.setattr(
+        graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify"
+    )
 
     captured: dict[str, Any] = {}
 
@@ -201,9 +219,7 @@ def test_run_build_respects_explicit_subcommand_and_forwards_flags(
     monkeypatch.setattr(graphify_module.subprocess, "run", fake_run)
     console, _buffer = _fake_console()
 
-    exit_code = run_build(
-        tmp_path, ["cluster-only", "--no-viz"], console
-    )
+    exit_code = run_build(tmp_path, ["cluster-only", "--no-viz"], console)
 
     assert exit_code == 0
     # Project root must still be injected after the subcommand because
@@ -220,7 +236,9 @@ def test_run_build_update_subcommand_injects_project_root(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """`issue-flow graphify update` → `graphify update <project_root>`."""
-    monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
+    monkeypatch.setattr(
+        graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify"
+    )
 
     captured: dict[str, Any] = {}
 
@@ -243,7 +261,9 @@ def test_run_build_subcommand_with_explicit_path_is_trusted(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """If the user supplies both subcommand and path, do not double-add."""
-    monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
+    monkeypatch.setattr(
+        graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify"
+    )
 
     captured: dict[str, Any] = {}
 
@@ -271,7 +291,9 @@ def test_run_build_does_not_inject_path_when_user_supplied_one(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """`issue-flow graphify ./docs` → `graphify update ./docs` (no double path)."""
-    monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
+    monkeypatch.setattr(
+        graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify"
+    )
 
     captured: dict[str, Any] = {}
 
@@ -296,7 +318,9 @@ def test_run_build_leading_flag_falls_back_to_default_subcommand(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """A leading flag (no subcommand, no path) → `update <project_root> <flag>`."""
-    monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
+    monkeypatch.setattr(
+        graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify"
+    )
 
     captured: dict[str, Any] = {}
 
@@ -323,7 +347,9 @@ def test_run_build_leading_flag_falls_back_to_default_subcommand(
 def test_run_build_propagates_nonzero_exit_code(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
+    monkeypatch.setattr(
+        graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify"
+    )
 
     class _Result:
         returncode = 5
@@ -337,7 +363,9 @@ def test_run_build_propagates_nonzero_exit_code(
 def test_run_build_returns_1_on_oserror(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
+    monkeypatch.setattr(
+        graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify"
+    )
 
     def boom(*_a: Any, **_kw: Any) -> Any:
         raise OSError("exec format error")
@@ -360,7 +388,9 @@ def test_run_build_loads_project_dotenv_before_spawning(
     API key found" even with GEMINI_API_KEY in the project .env, because this
     code path never loaded .env into the environment the subprocess inherits.
     """
-    monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
+    monkeypatch.setattr(
+        graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify"
+    )
     (tmp_path / ".env").write_text("GEMINI_API_KEY=test-key\n", encoding="utf-8")
 
     calls: list[dict[str, Any]] = []
@@ -401,7 +431,9 @@ def test_run_build_skips_dotenv_when_absent(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """No .env at the project root → load_dotenv is not called (nothing to load)."""
-    monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
+    monkeypatch.setattr(
+        graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify"
+    )
 
     called = False
 
@@ -426,7 +458,9 @@ def test_find_orphan_install_returns_none_when_on_path(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """If graphify is already on PATH, the orphan question is moot."""
-    monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
+    monkeypatch.setattr(
+        graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify"
+    )
     assert find_orphan_install() is None
 
 

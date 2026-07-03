@@ -16,6 +16,7 @@ Follow this skill when the user wants to **park work on the current issue** with
 - The user runs `/iflow-pause`, mentions **issue-pause**, or asks to park / stash / shelve work on an issue to switch context.
 - The issue is **not** done — this is not `/iflow-close`.
 
+{% include "skills/_model_directive.md.j2" %}
 ## Instructions
 
 1. **Find the focus issue.** In `{{ issueflows_dir }}/{{ current_issues_folder }}/`, identify the `issue<N>_*` group. If multiple groups exist and the focus is ambiguous, ask. If none exist, **stop** and say there is nothing to pause.

@@ -162,9 +162,7 @@ def update(
     """Refresh packaged editor commands, rules, and workflow doc from this package."""
     from issue_flow.init import run_update
 
-    run_update(
-        project_root=project_dir, skip_dep_check=skip_dep_check, editors=editor
-    )
+    run_update(project_root=project_dir, skip_dep_check=skip_dep_check, editors=editor)
 
 
 @app.command(
@@ -372,11 +370,13 @@ def config_add(
 ) -> None:
     """Create .issueflows/config.toml, seeded from .env (or issue-flow defaults).
 
-    Writes the six keys issue-flow reads from config.toml — ``mode``,
-    ``skill_level``, ``caveman_default``, ``grill_me_default``, ``label_flows``,
-    ``yolo_label`` — taking each from its ``ISSUEFLOW_*`` env var when set, else
-    the default. Other ``ISSUEFLOW_*`` settings are environment-only and are not
-    written here. Existing files are left untouched unless ``--force`` is passed.
+    Writes the ``[issueflow]`` keys issue-flow reads from ``config.toml`` —
+    ``mode``, ``skill_level``, ``caveman_default``, ``grill_me_default``,
+    ``label_flows``, ``yolo_label``, ``step_directives``, ``model_label_flows``,
+    ``deep_model_label``, ``fast_model_label`` — taking each from its
+    ``ISSUEFLOW_*`` env var when set, else the default. Other ``ISSUEFLOW_*``
+    settings are environment-only and are not written here. Existing files are
+    left untouched unless ``--force`` is passed.
     """
     from issue_flow.agent import run_config_add
 

@@ -16,6 +16,20 @@ Use this skill to update the project's changelog file (default **`HISTORY.md`**,
 - `/iflow-close` is landing an issue and the project has a changelog file in the repo root.
 - The user did **not** pass `nohistory` / `skip history` on the command line.
 
+
+### MODEL & EXECUTION DIRECTIVE
+
+
+**Profile: economy** — Prioritize speed and token economy over deep reasoning.
+
+In Cursor: use **Auto** or a fast model before invoking this step.
+
+
+
+Keep scope tight to what this step requires.
+
+
+
 ## Preconditions
 
 1. The changelog file (`HISTORY.md`) exists at the **project root**. If it does not, **skip** this step, print "no `HISTORY.md` — skipping changelog update" and continue the rest of `/iflow-close`. Never create the file from this skill.

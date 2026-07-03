@@ -16,6 +16,20 @@ Use when the user wants to **bump the project version** with **uv** before landi
 - The user asks for a version bump — either a specific level, or just "bump" / "release" with no level (use the default rule below).
 - The repo is a **Python + uv** project whose `pyproject.toml` has a `[project]` `version` field (standard for packages using issue-flow).
 
+
+### MODEL & EXECUTION DIRECTIVE
+
+
+**Profile: economy** — Prioritize speed and token economy over deep reasoning.
+
+In Cursor: use **Auto** or a fast model before invoking this step.
+
+
+
+Keep scope tight to what this step requires.
+
+
+
 ## Preconditions
 
 1. Run from the **project root** (the directory that contains `pyproject.toml`).

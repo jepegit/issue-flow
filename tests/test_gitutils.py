@@ -162,7 +162,9 @@ def test_default_branch_final_fallback_main(
     monkeypatch: pytest.MonkeyPatch, all_tools_present: None
 ) -> None:
     monkeypatch.setattr(
-        gitutils.subprocess, "run", _fake_runner({})  # everything fails
+        gitutils.subprocess,
+        "run",
+        _fake_runner({}),  # everything fails
     )
     assert gitutils.default_branch(Path(".")) == "main"
 

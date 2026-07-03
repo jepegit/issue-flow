@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from issue_flow.editors import EDITORS, get_profile
+from issue_flow.step_profiles import PACKAGED_DEFAULTS, enrich_render_context
 from issue_flow.templating import (
     COMMAND_NAMES,
     SKILL_DIRS,
@@ -25,6 +26,11 @@ _MODE_CONTEXT = {
     "grill_me_default": False,
     "label_flows": True,
     "yolo_label": "yolo",
+    "step_directives": True,
+    "model_label_flows": False,
+    "deep_model_label": "deep",
+    "fast_model_label": "fast",
+    "step_profiles": dict(PACKAGED_DEFAULTS),
 }
 
 
@@ -49,7 +55,8 @@ def test_all_templates_render_without_error() -> None:
         **_MODE_CONTEXT,
     }
     for template_name, _ in TEMPLATE_MANIFEST:
-        result = render_template(template_name, context)
+        ctx = enrich_render_context(context, template_name)
+        result = render_template(template_name, ctx)
         assert isinstance(result, str)
         assert len(result) > 0, f"Template {template_name} rendered empty"
 
@@ -869,7 +876,8 @@ def test_rules_body_grill_me_default_switches_pointer_wording() -> None:
 
 def test_issue_comments_skill_documents_triage_rules() -> None:
     """The new iflow-comments skill must describe triage rules and buckets."""
-    rendered = render_template("skills/iflow_comments/SKILL.md.j2", _default_context())
+    ctx = enrich_render_context(_default_context(), "skills/iflow_comments/SKILL.md.j2")
+    rendered = render_template("skills/iflow_comments/SKILL.md.j2", ctx)
     # Frontmatter identity.
     assert "name: iflow-comments" in rendered
     assert "disable-model-invocation: true" in rendered
@@ -887,3 +895,33 @@ def test_issue_comments_skill_documents_triage_rules() -> None:
     assert "bot" in lowered
     # Zero-comment edge case is handled.
     assert "zero comments" in lowered or "skip the whole section" in lowered
+
+
+def test_iflow_plan_skill_includes_reasoning_directive() -> None:
+    ctx = enrich_render_context(_default_context(), "skills/iflow_plan/SKILL.md.j2")
+    rendered = render_template("skills/iflow_plan/SKILL.md.j2", ctx)
+    assert "### MODEL & EXECUTION DIRECTIVE" in rendered
+    assert "Profile: reasoning" in rendered
+
+
+def test_iflow_init_skill_includes_economy_directive() -> None:
+    ctx = enrich_render_context(_default_context(), "skills/iflow_init/SKILL.md.j2")
+    rendered = render_template("skills/iflow_init/SKILL.md.j2", ctx)
+    assert "### MODEL & EXECUTION DIRECTIVE" in rendered
+    assert "Profile: economy" in rendered
+
+
+def test_step_directives_off_omits_directive_block() -> None:
+    ctx = enrich_render_context(_default_context(), "skills/iflow_plan/SKILL.md.j2")
+    ctx["step_directives"] = False
+    rendered = render_template("skills/iflow_plan/SKILL.md.j2", ctx)
+    assert "MODEL & EXECUTION DIRECTIVE" not in rendered
+
+
+def test_iflow_pick_includes_model_label_block_when_enabled() -> None:
+    ctx = _default_context()
+    ctx["model_label_flows"] = True
+    ctx = enrich_render_context(ctx, "skills/iflow_pick/SKILL.md.j2")
+    rendered = render_template("skills/iflow_pick/SKILL.md.j2", ctx)
+    assert "Label-driven model profile" in rendered
+    assert "deep_model_label" in rendered

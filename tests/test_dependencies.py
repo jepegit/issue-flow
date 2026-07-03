@@ -31,7 +31,9 @@ def test_required_dependencies_are_git_and_gh() -> None:
     assert commands == {"git", "gh"}
 
 
-def test_check_dependencies_returns_empty_when_all_present(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_check_dependencies_returns_empty_when_all_present(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setattr(deps_module.shutil, "which", lambda _cmd: "/usr/bin/fake")
 
     assert check_dependencies() == []

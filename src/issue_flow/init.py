@@ -18,6 +18,7 @@ from issue_flow.dependencies import (
 from issue_flow.editors import EditorProfile, resolve_editors
 from issue_flow.graphify import register_with_editor as graphify_register_with_editor
 from issue_flow.modes import Mode
+from issue_flow.step_profiles import enrich_render_context
 from issue_flow.templating import (
     COMMAND_NAMES,
     RETIRED_COMMANDS,
@@ -89,7 +90,9 @@ def _ensure_dotenv_file(project_root: Path) -> None:
         return
 
     existing = env_path.read_text(encoding="utf-8")
-    missing = [(k, d) for k, d in _DOTENV_KEYS if not _dotenv_documents_key(existing, k)]
+    missing = [
+        (k, d) for k, d in _DOTENV_KEYS if not _dotenv_documents_key(existing, k)
+    ]
     if not missing:
         console.print(
             f"  [dim]skip[/dim]  {relative}  "
@@ -137,7 +140,8 @@ def _write_manifest_files(
             skipped_files.append(relative_path)
             continue
 
-        rendered = render_template(template_name, context)
+        render_context = enrich_render_context(context, template_name)
+        rendered = render_template(template_name, render_context)
         absolute_path.parent.mkdir(parents=True, exist_ok=True)
         absolute_path.write_text(rendered, encoding="utf-8")
         console.print(f"  [green]write[/green] {relative_path}")
@@ -211,9 +215,7 @@ def _ensure_project_brief(
     path = project_root / relative
 
     if path.exists():
-        console.print(
-            f"  [dim]skip[/dim]  {relative}  (project brief already exists)"
-        )
+        console.print(f"  [dim]skip[/dim]  {relative}  (project brief already exists)")
         return
 
     rendered = render_template("docs/this-project.md.j2", context)
@@ -237,9 +239,7 @@ def _ensure_tools_readme(
     path = project_root / relative
 
     if path.exists():
-        console.print(
-            f"  [dim]skip[/dim]  {relative}  (tools README already exists)"
-        )
+        console.print(f"  [dim]skip[/dim]  {relative}  (tools README already exists)")
         return
 
     rendered = render_template("tools/README.md.j2", context)
@@ -329,7 +329,9 @@ def run_init(
 
     explicit_skill_level = skill_level is not None
     skill_level_id = (
-        skill_level if explicit_skill_level else settings.resolve_skill_level(project_root)
+        skill_level
+        if explicit_skill_level
+        else settings.resolve_skill_level(project_root)
     )
     if skill_level_id not in modes_module.SKILL_LEVELS:
         console.print(
@@ -341,9 +343,7 @@ def run_init(
     console.print(
         f"\n[bold]Initializing issue-flow in [cyan]{project_root}[/cyan][/bold]"
     )
-    console.print(
-        f"[dim]Editors: {', '.join(p.id for p in profiles)}[/dim]"
-    )
+    console.print(f"[dim]Editors: {', '.join(p.id for p in profiles)}[/dim]")
     console.print(f"[dim]Mode: {mode_obj.id}[/dim]")
     console.print(f"[dim]Skill level: {skill_level_id}[/dim]\n")
 
@@ -372,22 +372,33 @@ def run_init(
     _ensure_project_brief(
         project_root,
         settings,
-        settings.template_context(project_root, profiles[0], mode=mode_obj, skill_level=skill_level_id),
+        settings.template_context(
+            project_root, profiles[0], mode=mode_obj, skill_level=skill_level_id
+        ),
     )
     _ensure_tools_readme(
         project_root,
         settings,
-        settings.template_context(project_root, profiles[0], mode=mode_obj, skill_level=skill_level_id),
+        settings.template_context(
+            project_root, profiles[0], mode=mode_obj, skill_level=skill_level_id
+        ),
     )
 
     written_files: list[Path] = []
     skipped_files: list[Path] = []
     pruned_count = 0
     for profile in profiles:
-        console.print(f"\n[bold]{profile.name}[/bold] ([cyan]{profile.agent_dir}[/cyan])")
-        context = settings.template_context(project_root, profile, mode=mode_obj, skill_level=skill_level_id)
+        console.print(
+            f"\n[bold]{profile.name}[/bold] ([cyan]{profile.agent_dir}[/cyan])"
+        )
+        context = settings.template_context(
+            project_root, profile, mode=mode_obj, skill_level=skill_level_id
+        )
         written, skipped = _write_manifest_files(
-            project_root, build_manifest(profile, mode_obj, skill_level=skill_level_id), context, force=force
+            project_root,
+            build_manifest(profile, mode_obj, skill_level=skill_level_id),
+            context,
+            force=force,
         )
         _ensure_agents_md(project_root, context)
         pruned_count += _prune_retired_files(project_root, profile)
@@ -470,9 +481,7 @@ def run_update(
     console.print(
         f"\n[bold]Updating issue-flow scaffold in [cyan]{project_root}[/cyan][/bold]"
     )
-    console.print(
-        f"[dim]Editors: {', '.join(p.id for p in profiles)}[/dim]"
-    )
+    console.print(f"[dim]Editors: {', '.join(p.id for p in profiles)}[/dim]")
     console.print(f"[dim]Mode: {mode_obj.id}[/dim]")
     console.print(f"[dim]Skill level: {skill_level_id}[/dim]\n")
 
@@ -483,21 +492,32 @@ def run_update(
     _ensure_project_brief(
         project_root,
         settings,
-        settings.template_context(project_root, profiles[0], mode=mode_obj, skill_level=skill_level_id),
+        settings.template_context(
+            project_root, profiles[0], mode=mode_obj, skill_level=skill_level_id
+        ),
     )
     _ensure_tools_readme(
         project_root,
         settings,
-        settings.template_context(project_root, profiles[0], mode=mode_obj, skill_level=skill_level_id),
+        settings.template_context(
+            project_root, profiles[0], mode=mode_obj, skill_level=skill_level_id
+        ),
     )
 
     written_files: list[Path] = []
     pruned_count = 0
     for profile in profiles:
-        console.print(f"\n[bold]{profile.name}[/bold] ([cyan]{profile.agent_dir}[/cyan])")
-        context = settings.template_context(project_root, profile, mode=mode_obj, skill_level=skill_level_id)
+        console.print(
+            f"\n[bold]{profile.name}[/bold] ([cyan]{profile.agent_dir}[/cyan])"
+        )
+        context = settings.template_context(
+            project_root, profile, mode=mode_obj, skill_level=skill_level_id
+        )
         written, _skipped = _write_manifest_files(
-            project_root, build_manifest(profile, mode_obj, skill_level=skill_level_id), context, force=True
+            project_root,
+            build_manifest(profile, mode_obj, skill_level=skill_level_id),
+            context,
+            force=True,
         )
         _ensure_agents_md(project_root, context)
         pruned_count += _prune_retired_files(project_root, profile)
@@ -650,9 +670,7 @@ def _prune_excluded_surfaces(
     return pruned_count
 
 
-def _graphify_postinstall(
-    project_root: Path, profiles: list[EditorProfile]
-) -> None:
+def _graphify_postinstall(project_root: Path, profiles: list[EditorProfile]) -> None:
     """Best-effort graphify integration step for ``run_init`` / ``run_update``.
 
     Auto-detects the ``graphify`` CLI (the user opts in by installing

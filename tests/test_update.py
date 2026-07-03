@@ -65,7 +65,9 @@ def test_update_prunes_generated_cursor_commands_but_keeps_user_commands(
 
     assert not (commands_dir / "iflow-init.md").exists()
     assert not (commands_dir / "iflow.md").exists()
-    assert (commands_dir / "my-command.md").read_text(encoding="utf-8") == "user command"
+    assert (commands_dir / "my-command.md").read_text(
+        encoding="utf-8"
+    ) == "user command"
 
 
 def test_update_prunes_empty_cursor_commands_dir(tmp_path: Path) -> None:

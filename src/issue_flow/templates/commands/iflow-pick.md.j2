@@ -4,6 +4,8 @@
 
 This is an **off-path** command — the lifecycle dispatcher (`/iflow`) never auto-runs it, because it is interactive and can create GitHub issues and branches. Invoke it explicitly.
 
+{% include "skills/_model_directive.md.j2" %}
+
 ## Input
 
 Optional free-form text after the command:
@@ -42,6 +44,9 @@ Optional free-form text after the command:
    - Fold `/iflow-yolo`'s single consolidated confirm into the pick confirmation — one prompt total, listing the branch to create and the full chain (`init → plan → start → close yolo`). Require an explicit yes; any other answer falls back to the normal (non-yolo) flow or aborts, per the user's answer.
    - On yes: run Phase 2 (create the branch) as usual, then follow `{{ agent_dir }}/commands/iflow-yolo.md` **instead of** the plain Phase 3 handoff. The yolo preflight (clean tree, passing tests) still runs and can still abort; do not re-ask its consolidated confirm — the combined prompt above already covered it.
    - This routing is configurable: `label_flows = false` under `[issueflow]` in `{{ issueflows_dir }}/config.toml` turns it off, and `yolo_label` renames the trigger label (re-run `issue-flow update` after changing either).
+{% endif %}
+{% if model_label_flows %}
+7. **Label-driven model profile.** If the chosen issue carries the **`{{ deep_model_label }}`** label (case-insensitive), announce that the session should use the **reasoning** profile for all steps. If it carries **`{{ fast_model_label }}`**, announce **economy**. When both match, **reasoning** wins. Configurable via `model_label_flows`, `deep_model_label`, and `fast_model_label` under `[issueflow]` in `{{ issueflows_dir }}/config.toml` (re-run `issue-flow update` after changing).
 {% endif %}
 
 ### Phase 2 — create the branch

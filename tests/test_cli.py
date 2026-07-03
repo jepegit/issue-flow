@@ -101,9 +101,7 @@ def test_init_mode_simple_scaffolds_subset_and_persists(
     assert 'mode = "simple"' in config.read_text(encoding="utf-8")
 
 
-def test_init_unknown_mode_exits_with_code_2(
-    runner: CliRunner, tmp_path: Path
-) -> None:
+def test_init_unknown_mode_exits_with_code_2(runner: CliRunner, tmp_path: Path) -> None:
     result = runner.invoke(app, ["init", str(tmp_path), "--mode", "bogus"])
     assert result.exit_code == 2
     assert not (tmp_path / ".cursor").exists()
@@ -128,7 +126,9 @@ def test_graphify_invokes_graphify_when_available(
     """`issue-flow graphify` should call subprocess.run with the graphify CLI."""
     from issue_flow import graphify as graphify_module
 
-    monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
+    monkeypatch.setattr(
+        graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify"
+    )
 
     captured: dict[str, Any] = {}
 
@@ -158,7 +158,9 @@ def test_graphify_forwards_extra_args(
     """A leading subcommand and trailing flags must reach `graphify` verbatim."""
     from issue_flow import graphify as graphify_module
 
-    monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
+    monkeypatch.setattr(
+        graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify"
+    )
 
     captured: dict[str, Any] = {}
 
@@ -197,7 +199,9 @@ def test_graphify_exits_nonzero_when_graphify_missing(
     monkeypatch.setattr(graphify_module, "_candidate_install_locations", lambda: [])
 
     def fail_run(*_a: Any, **_kw: Any) -> Any:
-        raise AssertionError("subprocess.run must not be called when graphify is missing")
+        raise AssertionError(
+            "subprocess.run must not be called when graphify is missing"
+        )
 
     monkeypatch.setattr(graphify_module.subprocess, "run", fail_run)
 
@@ -212,7 +216,9 @@ def test_graphify_propagates_graphify_exit_code(
 ) -> None:
     from issue_flow import graphify as graphify_module
 
-    monkeypatch.setattr(graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify")
+    monkeypatch.setattr(
+        graphify_module.shutil, "which", lambda _cmd: "/usr/bin/graphify"
+    )
 
     class _Result:
         returncode = 7
@@ -229,8 +235,14 @@ def test_graphify_propagates_graphify_exit_code(
 # ---------------------------------------------------------------------------
 
 
-def _seed_issue(tmp_path: Path, number: int, *, plan: bool = False,
-                status: str | None = None, title: str = "Title") -> None:
+def _seed_issue(
+    tmp_path: Path,
+    number: int,
+    *,
+    plan: bool = False,
+    status: str | None = None,
+    title: str = "Title",
+) -> None:
     cur = tmp_path / ".issueflows" / "01-current-issues"
     cur.mkdir(parents=True, exist_ok=True)
     (cur / f"issue{number}_original.md").write_text(
@@ -288,9 +300,7 @@ def test_agent_state_json_reports_stage(
     assert payload["next_command"] == "/iflow-start"
 
 
-def test_agent_sweep_dry_run_does_not_move(
-    runner: CliRunner, tmp_path: Path
-) -> None:
+def test_agent_sweep_dry_run_does_not_move(runner: CliRunner, tmp_path: Path) -> None:
     _seed_issue(tmp_path, 1, status="- [x] Done\n")
     _seed_issue(tmp_path, 2, status="- [ ] Done\n")
 
@@ -305,18 +315,16 @@ def test_agent_sweep_dry_run_does_not_move(
     assert set(moves) == {1}
     assert moves[1]["to"] == "03-solved-issues"
     # Dry run: nothing actually moved.
-    assert (tmp_path / ".issueflows" / "01-current-issues" / "issue1_original.md").exists()
+    assert (
+        tmp_path / ".issueflows" / "01-current-issues" / "issue1_original.md"
+    ).exists()
 
 
-def test_agent_sweep_applies_moves(
-    runner: CliRunner, tmp_path: Path
-) -> None:
+def test_agent_sweep_applies_moves(runner: CliRunner, tmp_path: Path) -> None:
     _seed_issue(tmp_path, 1, status="- [x] Done\n")
     _seed_issue(tmp_path, 9)  # focus, kept
 
-    result = runner.invoke(
-        app, ["agent", "sweep", str(tmp_path), "--except", "9"]
-    )
+    result = runner.invoke(app, ["agent", "sweep", str(tmp_path), "--except", "9"])
 
     assert result.exit_code == 0, result.output
     cur = tmp_path / ".issueflows" / "01-current-issues"
@@ -346,9 +354,7 @@ def _seed_solved_issue(tmp_path: Path, number: int, *, title: str = "Title") -> 
     (solved / f"issue{number}_original.md").write_text(
         f"# Issue #{number}: {title}\n\nbody\n", encoding="utf-8"
     )
-    (solved / f"issue{number}_status.md").write_text(
-        "- [x] Done\n", encoding="utf-8"
-    )
+    (solved / f"issue{number}_status.md").write_text("- [x] Done\n", encoding="utf-8")
 
 
 def test_agent_archive_dry_run_does_not_delete(
@@ -500,9 +506,7 @@ def test_config_add_creates_defaults(
 
     _clear_issueflow_env(monkeypatch)
 
-    result = runner.invoke(
-        app, ["config", "add", "-C", str(tmp_path), "--json"]
-    )
+    result = runner.invoke(app, ["config", "add", "-C", str(tmp_path), "--json"])
 
     assert result.exit_code == 0, result.output
     payload = _json(result.stdout)
@@ -581,11 +585,7 @@ def test_config_add_force_upserts_and_preserves(
     cfg = tmp_path / ".issueflows" / "config.toml"
     cfg.parent.mkdir(parents=True, exist_ok=True)
     cfg.write_text(
-        "[issueflow]\n"
-        'mode = "simple"\n\n'
-        "# keep me\n"
-        "[modes.mine]\n"
-        'extends = "simple"\n',
+        '[issueflow]\nmode = "simple"\n\n# keep me\n[modes.mine]\nextends = "simple"\n',
         encoding="utf-8",
     )
 
