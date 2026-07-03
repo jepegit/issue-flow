@@ -246,6 +246,8 @@ Issue labels can select the flow: when an issue picked via `/iflow-pick` carries
 
 `/iflow-status` prints a **read-only** overview of where every issue stands — the local tracking state under `.issueflows/` (focus / parked / solved) plus open GitHub issues cross-referenced against it. It is off-path (never auto-dispatched) and changes nothing.
 
+`/iflow-archive` condenses old solved issue groups under `.issueflows/03-solved-issues/` into a single dated `YYYY-MM-DD_archived_issues.md` summary file (recording the pre-archive git ref for recovery via `git show <ref>:<path>`), then deletes the original `issue<N>_*` files. It is off-path and destructive: nothing is deleted before one consolidated confirmation.
+
 > On tools without project slash commands (e.g. Codex CLI), invoke the mirrored Agent Skills instead (for example `iflow-init` in place of `/iflow-init`).
 
 ### When finishing an issue
