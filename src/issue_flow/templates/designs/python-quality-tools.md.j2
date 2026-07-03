@@ -56,7 +56,10 @@ ignore = []
 quote-style = "double"
 ```
 
-Run: `ruff check src/ tests/` and `ruff format src/ tests/`
+Run through the project's documented runner (e.g. `uv run …`):
+
+1. `ruff check --fix src/ tests/` — auto-fix lint issues
+2. `ruff format src/ tests/` — format
 
 Docs: https://docs.astral.sh/ruff/
 
@@ -115,3 +118,5 @@ Run: `pytest` (with coverage), `pytest --cov-report=html` (HTML report)
 **Before making code changes**, ask the user whether to add/configure these tools. **Never auto-install or auto-configure without confirmation.**
 
 When the user confirms, add dependencies, write config snippets to `pyproject.toml`, and create `.pre-commit-config.yaml` if requested.
+
+**During implementation and before `/iflow-close`**, when ruff is already in the project (`[tool.ruff]` in `pyproject.toml` or ruff in dev dependencies), run `ruff check --fix` and `ruff format` on the paths the project uses — through the documented Python runner, not bare `ruff`.

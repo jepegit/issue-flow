@@ -9,6 +9,7 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- **Iterative `/iflow-fix` polish (#114).** `/iflow-start` and `/iflow-close` (plus the advanced `python-quality-tools.md` design doc) now nudge agents to run `ruff check --fix` and `ruff format` when ruff is already in the project. README also documents `/iflow-archive` and `issue-flow agent archive` (#84).
 - Added a README Acknowledgements row crediting [mattpocock/skills](https://github.com/mattpocock/skills) as the source of the bundled `grill-me` Agent Skill. (#108)
 - Align issues with plan. (#85)
 - **Label-driven yolo flow (#106).** Issue labels can now select the flow: when `/iflow-pick` picks an issue carrying the (configurable) yolo label, it routes it through `/iflow-yolo` with one combined confirmation. Controlled by two new `[issueflow]` keys in `.issueflows/config.toml` — `label_flows` (default `true`) and `yolo_label` (default `"yolo"`), with `ISSUEFLOW_LABEL_FLOWS` / `ISSUEFLOW_YOLO_LABEL` env fallbacks; `issue-flow config add` now writes all six keys. The yolo chain also closes the loop: a new `yolo` token on `/iflow-close` writes the changelog bullet without a confirm prompt, merges the PR via `gh pr merge --squash` (`--squash --auto` fallback when blocked), then switches back to the default branch and pulls. Branch deletion still belongs to `/iflow-cleanup`.

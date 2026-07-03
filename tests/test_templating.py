@@ -329,7 +329,9 @@ def test_issue_cleanup_describes_post_merge_branch_cleanup() -> None:
     assert "git pull --ff-only" in rendered
     assert "gh pr view" in rendered
     # Never -D automatically.
-    assert "-D" not in rendered or "Never use `-D`" in rendered or "Never `-D`" in rendered
+    assert (
+        "-D" not in rendered or "Never use `-D`" in rendered or "Never `-D`" in rendered
+    )
 
 
 def test_issue_start_requires_or_offers_plan() -> None:
@@ -477,9 +479,7 @@ def test_issue_fix_describes_interactive_session() -> None:
 
 def test_issue_fix_skill_mirrors_command() -> None:
     """The issue-fix skill must carry the same session flow and frontmatter."""
-    rendered = render_template(
-        "skills/iflow_fix/SKILL.md.j2", _default_context()
-    )
+    rendered = render_template("skills/iflow_fix/SKILL.md.j2", _default_context())
     assert "name: iflow-fix" in rendered
     assert "disable-model-invocation: true" in rendered
     assert "gh issue create" in rendered
@@ -509,9 +509,7 @@ def test_iflow_archive_command_documents_gated_deletion() -> None:
 
 def test_iflow_archive_skill_mirrors_command() -> None:
     """The iflow-archive skill must carry the same flow and frontmatter."""
-    rendered = render_template(
-        "skills/iflow_archive/SKILL.md.j2", _default_context()
-    )
+    rendered = render_template("skills/iflow_archive/SKILL.md.j2", _default_context())
     assert "name: iflow-archive" in rendered
     assert "disable-model-invocation: true" in rendered
     assert "_archived_issues.md" in rendered
@@ -607,9 +605,7 @@ def test_issue_pick_documents_three_phases_and_fix_shortcut() -> None:
 
 def test_issue_pick_skill_mirrors_command() -> None:
     """The issue-pick skill must carry the same front-door flow and frontmatter."""
-    rendered = render_template(
-        "skills/iflow_pick/SKILL.md.j2", _default_context()
-    )
+    rendered = render_template("skills/iflow_pick/SKILL.md.j2", _default_context())
     assert "name: iflow-pick" in rendered
     assert "disable-model-invocation: true" in rendered
     assert "Phase 1" in rendered
@@ -678,6 +674,19 @@ def test_issue_close_describes_history_update_step() -> None:
     assert 'log "..."' in rendered or "log " in rendered
 
 
+def test_iflow_close_and_start_nudge_ruff_fix_when_present() -> None:
+    """Lifecycle commands should run ruff check --fix when ruff is in the project."""
+    for template_name in (
+        "commands/iflow-close.md.j2",
+        "commands/iflow-start.md.j2",
+        "skills/iflow_close/SKILL.md.j2",
+        "skills/iflow_start/SKILL.md.j2",
+    ):
+        rendered = render_template(template_name, _default_context())
+        assert "ruff check --fix" in rendered, template_name
+        assert "[tool.ruff]" in rendered, template_name
+
+
 def test_history_update_skill_documents_both_modes() -> None:
     """The history-update skill must describe append-and-promote, plus the missing-file fallback."""
     rendered = render_template(
@@ -697,9 +706,7 @@ def test_history_update_skill_respects_history_file_override() -> None:
     """The history-update skill should reference {{ history_file }} so custom filenames work."""
     context = _default_context()
     context["history_file"] = "CHANGELOG.md"
-    rendered = render_template(
-        "skills/iflow_history_update/SKILL.md.j2", context
-    )
+    rendered = render_template("skills/iflow_history_update/SKILL.md.j2", context)
     assert "CHANGELOG.md" in rendered
     # No leftover Jinja placeholder.
     assert "{{ history_file }}" not in rendered
@@ -747,17 +754,13 @@ def test_issue_init_documents_agent_efficiency() -> None:
     # The reconciled body contract no longer demands literal byte-for-byte equality.
     assert "byte-for-byte" not in rendered
     # The mirror skill should not re-introduce the stricter "byte-for-byte" wording.
-    skill = render_template(
-        "skills/iflow_init/SKILL.md.j2", _default_context()
-    )
+    skill = render_template("skills/iflow_init/SKILL.md.j2", _default_context())
     assert "byte-for-byte" not in skill
 
 
 def test_issue_init_skill_delegates_to_comments_skill() -> None:
     """The issue-init skill must fetch comments and point at the comments skill."""
-    rendered = render_template(
-        "skills/iflow_init/SKILL.md.j2", _default_context()
-    )
+    rendered = render_template("skills/iflow_init/SKILL.md.j2", _default_context())
     assert "title,body,url,number,comments" in rendered
     assert "iflow-comments" in rendered
     assert "## Comments (curated summary)" in rendered
@@ -793,9 +796,7 @@ def test_rules_body_caveman_pointer_is_membership_gated() -> None:
     assert "Optional response styles" in rendered_on
 
     without_caveman = _default_context()
-    without_caveman["included_skills"] = [
-        s for s in _ALL_SKILLS if s != "caveman"
-    ]
+    without_caveman["included_skills"] = [s for s in _ALL_SKILLS if s != "caveman"]
     rendered_off = render_template("rules/AGENTS.md.j2", without_caveman)
     assert "Optional response styles" not in rendered_off
 
@@ -846,9 +847,7 @@ def test_rules_body_grill_me_pointer_is_membership_gated() -> None:
     assert "Planning aids" in rendered_on
 
     without_grill = _default_context()
-    without_grill["included_skills"] = [
-        s for s in _ALL_SKILLS if s != "grill_me"
-    ]
+    without_grill["included_skills"] = [s for s in _ALL_SKILLS if s != "grill_me"]
     rendered_off = render_template("rules/AGENTS.md.j2", without_grill)
     assert "Planning aids" not in rendered_off
 
@@ -870,9 +869,7 @@ def test_rules_body_grill_me_default_switches_pointer_wording() -> None:
 
 def test_issue_comments_skill_documents_triage_rules() -> None:
     """The new iflow-comments skill must describe triage rules and buckets."""
-    rendered = render_template(
-        "skills/iflow_comments/SKILL.md.j2", _default_context()
-    )
+    rendered = render_template("skills/iflow_comments/SKILL.md.j2", _default_context())
     # Frontmatter identity.
     assert "name: iflow-comments" in rendered
     assert "disable-model-invocation: true" in rendered
