@@ -1,22 +1,13 @@
 ---
 name: iflow-status
 description: >-
-  Run the /iflow-status report: a read-only snapshot of where every issue stands
-  — local issue-flow tracking state under {{ issueflows_dir }}/ (focus / parked /
-  solved) plus open GitHub issues cross-referenced against the local folders.
-  Off-path: never auto-dispatched by /iflow. Writes nothing.
+  Read-only snapshot of where every issue stands, locally and on GitHub.
 disable-model-invocation: true
 ---
 
 # issue-flow — issue status overview (`/iflow-status`)
 
-Follow this skill when the user wants a bird's-eye view of every issue's status
-rather than acting on the single focus issue.{% if commands_supported %} Matches `{{ agent_dir }}/{{ commands_dir }}/iflow-status.md`.{% endif %}
-
-## When to use
-
-- The user runs `/iflow-status`, mentions "status of issues", "what's the state of all issues", "where do things stand", or asks for an issue overview / dashboard.
-- You want to see parked work, the focus issue's lifecycle stage, and open GitHub issues in one place.
+Follow this skill for a bird's-eye view of every issue's status — local tracking state (focus / parked / solved) plus open GitHub issues — rather than acting on the single focus issue.{% if commands_supported %} Matches `{{ agent_dir }}/{{ commands_dir }}/iflow-status.md`.{% endif %}
 
 Do **not** use this skill to *change* anything. It is read-only and off-path; for acting on the focus issue use `/iflow`, and to choose the next issue use `/iflow-pick`.
 

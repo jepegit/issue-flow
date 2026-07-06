@@ -1,22 +1,14 @@
 ---
 name: iflow-init
 description: >-
-  Run the /iflow-init workflow: resolve GitHub issue reference, fetch body
-  and comments with gh, triage the comments via the iflow-comments
-  skill, write issue<number>_original.md under
-  .issueflows/01-current-issues/, and archive other
-  current issues by done status.
+  Capture a GitHub issue locally as issue<number>_original.md and archive
+  other current issues by done status.
 disable-model-invocation: true
 ---
 
 # issue-flow — issue init (`/iflow-init`)
 
-Follow this skill when the user wants to **capture a GitHub issue locally**.
-
-## When to use
-
-- The user runs `/iflow-init`, mentions **issue-init**, or asks to pull an issue into `.issueflows/01-current-issues/`.
-- You need a repeatable checklist without opening the command file.
+Follow this skill to **capture a GitHub issue locally** under `.issueflows/01-current-issues/`.
 
 
 ### MODEL & EXECUTION DIRECTIVE
@@ -53,13 +45,7 @@ Keep scope tight to what this step requires.
 
 3. **Fetch** — `gh issue view <n> --repo owner/repo --json title,body,url,number,comments`. The `comments` field returns an array of `{author.login, body, createdAt, ...}` that step 3a consumes. On failure, report the error and suggest `gh auth login`. After confirming `owner/repo`, change the chat/agent tab title to reflect the issue topic on the form "Issue <issue number> <short description of issue>" (e.g. "Issue 74 cell info").
 
-3a. **Triage comments** (skip if `comments` is empty). Follow the [`iflow-comments`](../iflow-comments/SKILL.md) skill. Summary of rules:
-   - Process comments chronologically; **later comments win conflicts** with earlier ones.
-   - Sort points into three buckets: **Additional tasks**, **Clarifications / constraints**, **Superseded / retracted**.
-   - Collapse duplicates; drop chit-chat, emoji-only, "LGTM" and bot messages.
-   - Paraphrase — this section is an interpretive summary, not a verbatim dump.
-   - If all comments are noise, skip the curated section entirely.
-   - On open disagreement with no clear winner, log it under *Clarifications* rather than picking a side.
+3a. **Triage comments** (skip if `comments` is empty). Follow the [`iflow-comments`](../iflow-comments/SKILL.md) skill — it owns the triage rules (chronological precedence, three buckets, noise filtering) and the exact shape of the `## Comments (curated summary)` section.
 
 3.5 **Branch status preflight** (report only) — Run `git fetch --prune`. Report current branch, clean/dirty working tree, and ahead/behind counts vs `origin/<default>` (detect default via `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`, else `git symbolic-ref --quiet --short refs/remotes/origin/HEAD`, else `main`). If the current branch matches `^(\d+)-.+` and files for that issue already live in `.issueflows/02-partly-solved-issues/` or `.issueflows/03-solved-issues/`, note that the branch looks stale. Never delete or move anything at this step.
 
@@ -94,4 +80,3 @@ Keep scope tight to what this step requires.
 ## Constraints
 
 - Allowed file operations: create/update the target `*_original.md`, and move pre-existing issue groups per the archive rules. Do not modify unrelated project files.
-- Use UTF-8 for markdown output.

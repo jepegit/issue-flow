@@ -1,25 +1,19 @@
 ---
 name: iflow-archive
 description: >-
-  Run the /iflow-archive workflow: condense selected solved issue groups under
-  .issueflows/03-solved-issues/ into a single dated
-  YYYY-MM-DD_archived_issues.md summary file that records the pre-archive git
-  ref for recovery, then delete the original issue<N>_* files. Off-path:
-  never auto-dispatched; destructive, one consolidated confirm.
+  Condense old solved issue groups into one dated summary file, then delete
+  the originals. Destructive, one consolidated confirm.
 disable-model-invocation: true
 ---
 
 # issue-flow — archive solved issues (`/iflow-archive`)
 
-Follow this skill when the user wants to **shrink the solved-issues archive**:
+Follow this skill to **shrink the solved-issues archive**:
 old `issue<N>_*` groups under `.issueflows/03-solved-issues/` are
 summarised into one dated markdown file and the originals are deleted (they
 stay recoverable through git history).
 
-## When to use
-
-- The user runs `/iflow-archive`, mentions "archive solved issues", "condense the issue archive", or complains the solved folder has grown too big.
-- Do **not** use this to park or close an active issue — that is `/iflow-pause` / `/iflow-close`. This skill only touches `.issueflows/03-solved-issues/`.
+Do **not** use this to park or close an active issue — that is `/iflow-pause` / `/iflow-close`. This skill only touches `.issueflows/03-solved-issues/`.
 
 ## Input
 

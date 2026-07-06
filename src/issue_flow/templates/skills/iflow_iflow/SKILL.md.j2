@@ -1,22 +1,14 @@
 ---
 name: iflow
 description: >-
-  Run the /iflow smart dispatcher: detect where the focus issue stands in the
-  lifecycle (via files in {{ issueflows_dir }}/{{ current_issues_folder }}/ and
-  status markers) and dispatch to /iflow-init, /iflow-plan, /iflow-start, or
-  /iflow-close. Forwards trailing args verbatim. Never auto-dispatches to
-  /iflow-pause, /iflow-cleanup, or /iflow-yolo.
+  Smart dispatcher: detect where the focus issue stands and dispatch to
+  /iflow-init, /iflow-plan, /iflow-start, or /iflow-close.
 disable-model-invocation: true
 ---
 
 # issue-flow — iflow smart dispatcher (`/iflow`)
 
-Follow this skill when the user wants to run **the right next step** in the issue-flow lifecycle without remembering which specific command applies.{% if commands_supported %} Matches `{{ agent_dir }}/{{ commands_dir }}/iflow.md`.{% endif %}
-
-## When to use
-
-- The user runs `/iflow`, mentions **iflow**, or asks "what's the next step?" during an issue-flow lifecycle.
-- You want a single entry point that routes to `/iflow-init`, `/iflow-plan`, `/iflow-start`, or `/iflow-close` based on current state.
+Follow this skill to run **the right next step** in the issue-flow lifecycle: it detects state and routes to `/iflow-init`, `/iflow-plan`, `/iflow-start`, or `/iflow-close`, forwarding trailing args verbatim.{% if commands_supported %} Matches `{{ agent_dir }}/{{ commands_dir }}/iflow.md`.{% endif %}
 
 Do **not** use this skill for `/iflow-pick`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, or `/iflow-fix`. Those are explicit-only commands. (`/iflow-pick` is the front door *before* `/iflow-init`, for when no issue has been chosen yet. `/iflow-fix` runs an interactive iterative-fixes session, driven by `/iflow-fix` + `/iflow-close`.)
 

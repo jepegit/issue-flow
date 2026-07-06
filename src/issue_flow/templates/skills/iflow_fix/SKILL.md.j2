@@ -1,22 +1,14 @@
 ---
 name: iflow-fix
 description: >-
-  Run the /iflow-fix interactive session: set up one long-lived branch + GitHub
-  issue for a stream of small iterative fixes, then loop — each fix gets a short
-  plan, is implemented only on confirmation, and is recorded as a dated bullet in
-  issue<N>_status.md. Finish with /iflow-close. Off-path: never auto-dispatched by
-  /iflow. Always creates a GitHub issue (gh); GitLab is not supported.
+  Interactive session: one long-lived branch + GitHub issue for a stream of
+  small iterative fixes, landed together via /iflow-close.
 disable-model-invocation: true
 ---
 
 # issue-flow — interactive iterative-fix session (`/iflow-fix`)
 
-Follow this skill when the user wants an **ongoing working session** for many small fixes on one branch, rather than a single well-defined deliverable.{% if commands_supported %} Matches `{{ agent_dir }}/{{ commands_dir }}/iflow-fix.md`.{% endif %}
-
-## When to use
-
-- The user runs `/iflow-fix`, mentions "iterative fixes", "small fixes session", or "let's just fix things on a branch".
-- They have a bucket of little improvements (small bugs, typos, chores, polish) to knock out together and land via one PR.
+Follow this skill for an **ongoing working session** of many small fixes (small bugs, typos, chores, polish) on one branch, landed via one PR — rather than a single well-defined deliverable.{% if commands_supported %} Matches `{{ agent_dir }}/{{ commands_dir }}/iflow-fix.md`.{% endif %}
 
 Do **not** use this skill from `/iflow`, `/iflow-start`, or `/iflow-close`. `/iflow-fix` is explicit-only because it creates GitHub issues and branches and drives an open-ended loop. While a session is active, drive it with `/iflow-fix` + `/iflow-close`, not `/iflow`.
 
