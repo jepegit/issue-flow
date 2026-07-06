@@ -255,6 +255,36 @@ def agent_preflight(
     raise typer.Exit(code=run_preflight(project_dir, _console, json_output))
 
 
+@agent_app.command("resolve")
+def agent_resolve(
+    project_dir: Path = typer.Option(
+        Path("."),
+        "--project-dir",
+        "-C",
+        help="Directory to start the scaffold walk from (defaults to cwd).",
+        exists=True,
+        file_okay=True,
+        resolve_path=True,
+    ),
+    from_file: Path | None = typer.Option(
+        None,
+        "--from-file",
+        help="Start the walk from this file's directory (e.g. the active editor file).",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Resolve project root, owner/repo, branch, and sibling scaffolds."""
+    from issue_flow.agent import run_resolve
+
+    raise typer.Exit(code=run_resolve(project_dir, _console, from_file, json_output))
+
+
 @agent_app.command("sweep")
 def agent_sweep(
     project_dir: Path = _PROJECT_DIR_ARGUMENT,

@@ -270,7 +270,7 @@ def test_agent_help_lists_subcommands(runner: CliRunner) -> None:
     result = runner.invoke(app, ["agent", "--help"])
     assert result.exit_code == 0
     plain = _plain(result.stdout)
-    for sub in ("state", "preflight", "sweep", "capture", "archive"):
+    for sub in ("state", "preflight", "resolve", "sweep", "capture", "archive"):
         assert sub in plain
 
 
@@ -475,6 +475,54 @@ def test_agent_capture_writes_original(
     content = target.read_text(encoding="utf-8")
     assert "# Issue #12: Fix the thing" in content
     assert "Please fix it." in content
+
+
+def test_agent_resolve_json(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from issue_flow import gitutils as gitutils_module
+
+    workspace = tmp_path / "workspace"
+    repo = workspace / "alpha"
+    sibling = workspace / "beta"
+    repo.mkdir(parents=True)
+    sibling.mkdir()
+    (repo / ".issueflows" / "01-current-issues").mkdir(parents=True)
+    (sibling / ".issueflows").mkdir()
+
+    monkeypatch.setattr(
+        gitutils_module, "remote_owner_repo", lambda _cwd: ("octo", "repo")
+    )
+    monkeypatch.setattr(gitutils_module, "current_branch", lambda _cwd: "67-fix")
+    monkeypatch.setattr(gitutils_module, "default_branch", lambda _cwd: "main")
+    monkeypatch.setattr(gitutils_module, "git_available", lambda: True)
+
+    nested = repo / "src" / "mod.py"
+    nested.parent.mkdir(parents=True)
+    nested.write_text("x", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        ["agent", "resolve", "-C", str(repo), "--from-file", str(nested), "--json"],
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["project_root"] == str(repo.resolve())
+    assert payload["repo"] == "octo/repo"
+    assert payload["branch"] == "67-fix"
+    assert payload["default_branch"] == "main"
+    assert payload["issueflows_dir"] == ".issueflows"
+    assert payload["sibling_roots"] == [str(sibling.resolve())]
+
+
+def test_agent_resolve_fails_without_scaffold(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    result = runner.invoke(app, ["agent", "resolve", "-C", str(tmp_path), "--json"])
+    assert result.exit_code == 1
+    payload = _json(result.stdout)
+    assert payload["project_root"] is None
 
 
 # ---------------------------------------------------------------------------

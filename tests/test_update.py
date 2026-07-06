@@ -19,7 +19,8 @@ def test_update_overwrites_scaffold(tmp_path: Path) -> None:
 
     content = rule_file.read_text(encoding="utf-8")
     assert content != "custom content"
-    assert "alwaysApply: true" in content
+    assert "alwaysApply: false" in content
+    assert "**/*" in content
 
 
 def test_update_preserves_issue_markdown(tmp_path: Path) -> None:

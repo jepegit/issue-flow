@@ -11,6 +11,8 @@ disable-model-invocation: true
 Follow this skill to **park work on the current issue** without closing it. The issue is **not** done — this is not `/iflow-close`.{% if commands_supported %} Matches `{{ agent_dir }}/{{ commands_dir }}/iflow-pause.md`.{% endif %}
 
 {% include "skills/_model_directive.md.j2" %}
+
+{% include "skills/_resolve_project_root.md.j2" %}
 ## Instructions
 
 1. **Find the focus issue.** In `{{ issueflows_dir }}/{{ current_issues_folder }}/`, identify the `issue<N>_*` group. If multiple groups exist and the focus is ambiguous, ask. If none exist, **stop** and say there is nothing to pause.

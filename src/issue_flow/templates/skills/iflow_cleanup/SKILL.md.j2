@@ -11,9 +11,11 @@ disable-model-invocation: true
 Follow this skill to **run post-merge branch hygiene** after a PR has been merged (typically the PR opened by `/iflow-close`).{% if commands_supported %} Matches `{{ agent_dir }}/{{ commands_dir }}/iflow-cleanup.md`.{% endif %}
 
 {% include "skills/_model_directive.md.j2" %}
+
+{% include "skills/_resolve_project_root.md.j2" %}
 ## Instructions
 
-1. **Detect the default branch.** Prefer `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`, else `git symbolic-ref --quiet --short refs/remotes/origin/HEAD`, else `main`.
+1. **Detect the default branch.** Prefer `gh repo view --repo <owner/repo> --json defaultBranchRef -q .defaultBranchRef.name`, else `git -C <project_root> symbolic-ref --quiet --short refs/remotes/origin/HEAD`, else `main`.
 
 2. **Identify the target branch.** If the user named a branch after `/iflow-cleanup`, use it. Else use the current branch (`git branch --show-current`). If the current branch **is** the default, skip to step 4 (folder sweep only).
 
@@ -29,7 +31,7 @@ Follow this skill to **run post-merge branch hygiene** after a PR has been merge
 
 5. **Optional folder sweep** (safe; no destructive git). In `{{ issueflows_dir }}/{{ current_issues_folder }}/`, for each `issue<N>_*` group whose status file contains `- [x] Done` (case-insensitive on `done`), move the group to `{{ issueflows_dir }}/{{ solved_folder }}/`. Leave groups without a checked `Done` in place — routing them to `{{ issueflows_dir }}/{{ partly_solved_folder }}/` is `/iflow-pause`'s job.
 
-6. **Report.** Summarize: default branch, PR/merge status, commands run, branches deleted, branches skipped (with reason), folder sweep result.
+6. **Report.** Summarize: default branch, PR/merge status, commands run, branches deleted, branches skipped (with reason), folder sweep result. If `issue-flow agent resolve --json` reports `sibling_roots`, list them and remind the user that **each scaffolded repo needs its own `/iflow-cleanup`** — do not loop automatically in this step.
 
 ## Constraints
 
