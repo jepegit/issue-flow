@@ -306,6 +306,16 @@ Long-lived design docs, design decisions, and project "good practices" live unde
 - **Never overwritten by `issue-flow update`.** The folder is recreated if missing, but existing files are left alone.
 
 
+### Multi-root workspaces
+
+When an editor workspace contains **multiple sibling repositories**, each with its own `.issueflows/` scaffold:
+
+- **Resolve the target repo first** — explicit `root:` / `repo:` hints, then `issue-flow agent resolve`, then branch/single-scaffold heuristics; **ask** when ambiguous. Never let `git` or `gh` infer the repo from cwd alone.
+- **Scoped rules** — this repo's `issueflow-rules` apply under this project root only (path globs). Put **toolchain-specific** run/test commands in `.issueflows/04-designs-and-guides/this-project.md`, not in shared boilerplate that every repo merges.
+- **Per-repo lifecycle** — `/iflow-cleanup`, branch hygiene, and focus issue folders are **per repository**; repeat commands in each repo when needed.
+- **Design doc** — see `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` when present (issue #67).
+
+
 ### Branch hygiene
 
 - Do issue work on an **issue branch** named like `<N>-<short-slug>`, not on the default branch.

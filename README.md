@@ -100,6 +100,16 @@ with `issue-flow init --skip-dep-check` (the same flag is available on
 `issue-flow update`), and the prompt is also auto-skipped when stdin is not
 a TTY (e.g. CI pipelines).
 
+### Multi-root workspaces
+
+When one Cursor workspace contains **several sibling repositories** (each with its
+own `issue-flow init`), lifecycle commands must target the correct repo explicitly.
+Use slash hints (`root:<path>`, `repo:<folder-name>`, `repo:owner/name`), or run
+`issue-flow agent resolve [--from-file <active-file>] [--json]` before `git`/`gh`
+calls. See `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` in
+scaffolded projects (or run `issue-flow update` to refresh scoped
+`issueflow-rules.mdc` files).
+
 ### Optional: graphify integration
 
 issue-flow has a lightweight integration with [graphify](https://iflow-graphify.net)

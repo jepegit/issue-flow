@@ -643,6 +643,39 @@ def test_issueflow_rules_has_branch_hygiene_section() -> None:
     assert "Branch hygiene" in rendered
     assert "git branch -d" in rendered
     assert "Folder hygiene" in rendered
+    assert "alwaysApply: false" in rendered
+    assert '"**/*"' in rendered or "'**/*'" in rendered
+
+
+def test_lifecycle_skills_include_resolve_partial() -> None:
+    """Lifecycle skills must document multi-root project-root resolution."""
+    stems = (
+        "iflow_init",
+        "iflow_close",
+        "iflow_cleanup",
+        "iflow_pick",
+        "iflow_status",
+        "iflow_iflow",
+        "iflow_start",
+        "iflow_plan",
+        "iflow_pause",
+        "iflow_yolo",
+        "iflow_fix",
+    )
+    for stem in stems:
+        rendered = render_template(f"skills/{stem}/SKILL.md.j2", _default_context())
+        assert "issue-flow agent resolve" in rendered, stem
+        assert (
+            "Multi-root workspaces" in rendered or "multi-root" in rendered.lower()
+        ), stem
+
+
+def test_rules_body_mentions_multi_root_workspaces() -> None:
+    """The shared rules body must point agents at the multi-root contract."""
+    rendered = render_template("rules/_body.md.j2", _default_context())
+    assert "Multi-root workspaces" in rendered
+    assert "issue-flow agent resolve" in rendered
+    assert "multi-repo-workspaces.md" in rendered
 
 
 def test_rules_body_defers_to_project_toolchain_and_covers_conda() -> None:

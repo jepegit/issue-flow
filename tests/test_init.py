@@ -229,7 +229,8 @@ def test_init_creates_cursor_rule(tmp_path: Path) -> None:
     rule = tmp_path / ".cursor" / "rules" / "issueflow-rules.mdc"
     assert rule.is_file()
     content = rule.read_text(encoding="utf-8")
-    assert "alwaysApply: true" in content
+    assert "alwaysApply: false" in content
+    assert "**/*" in content
     assert ".issueflows" in content
 
 
@@ -266,7 +267,8 @@ def test_init_force_overwrites(tmp_path: Path) -> None:
 
     content = rule_file.read_text(encoding="utf-8")
     assert content != "custom content"
-    assert "alwaysApply: true" in content
+    assert "alwaysApply: false" in content
+    assert "**/*" in content
 
 
 def test_init_templates_reference_issueflows_dir(tmp_path: Path) -> None:
@@ -381,7 +383,7 @@ def test_init_issue_init_documents_branch_inference(tmp_path: Path) -> None:
     content = (tmp_path / ".cursor" / "skills" / "iflow-init" / "SKILL.md").read_text(
         encoding="utf-8"
     )
-    assert "git branch --show-current" in content
+    assert "git -C <project_root> branch --show-current" in content
     assert "You have not provided an issue reference" in content
     assert "issue-style branch" in content
 

@@ -49,6 +49,27 @@ Keep scope tight to what this step requires.
 
 
 
+
+### Resolve project root (multi-root workspaces)
+
+Before any `git`, `gh`, or `.issueflows/` path operation in this workflow:
+
+**Resolution order** (stop when unambiguous):
+
+1. **Explicit hints** in slash input — `root:<path>`, `repo:<folder-basename>` (directory name, e.g. `cellpy-core`), or `repo:owner/name`.
+2. **CLI fast path** — `issue-flow agent resolve [-C <start>] [--from-file <active-file>] [--json]`. Use the returned `project_root` and `repo`; pass `-C <project_root>` to other `issue-flow agent …` subcommands.
+3. **Branch context** — exactly one workspace repo whose branch matches `^\d+-` → that root.
+4. **Single scaffold** — exactly one `.issueflows/` tree visible in the workspace → that root.
+5. **Ambiguous** → **stop and ask**; never guess between sibling repos.
+
+After resolution, treat the result as `<project_root>` and `<owner/repo>`:
+
+- **Git:** `git -C <project_root> …` (or `issue-flow agent … -C <project_root>` for supported ops).
+- **GitHub:** always `gh … --repo <owner/repo>` — never rely on `gh`'s implicit cwd default.
+- **Paths:** all `.issueflows/…` paths are under `<project_root>`.
+
+When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read it for layout and cross-repo guidance.
+
 ## Instructions
 
 1. **Sanity check** — Run the project test suite (e.g. `uv run pytest`) and any checks the repo relies on. **Ruff (when present):** if the project uses ruff (`[tool.ruff]` in `pyproject.toml`, ruff in dev dependencies, or `.issueflows/04-designs-and-guides/python-quality-tools.md` exists), run auto-fix lint through the documented Python runner before committing — e.g. `uv run ruff check --fix …` then `uv run ruff format …` (match paths to what the project documents). Skim the diff; avoid bundling unrelated changes. Confirm that any design decisions or good practices that emerged from this issue are captured under `.issueflows/04-designs-and-guides/` before committing.

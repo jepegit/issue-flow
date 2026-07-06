@@ -8,6 +8,8 @@ This repo uses Cursor **Agent Skills** under `.cursor/skills/` that line up with
 
 It also seeds `.issueflows/00-tools/README.md` — the index of the project's **shared toolbox**. Drop reusable helper scripts there during issue work and add a one-line index entry; check the folder before writing a new one-off helper. Like the project brief, this README is never overwritten by `issue-flow update`, so its index grows over time.
 
+**Multi-root workspaces:** when several sibling repos share one editor workspace, resolve the target repo first (`root:` / `repo:` hints, or `issue-flow agent resolve`). Never let `git` or `gh` infer the repository from cwd alone. See `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` when present.
+
 
 | Entry point | File | Role |
 |--------|------|------|
