@@ -1,20 +1,14 @@
 ---
 name: iflow-cleanup
 description: >-
-  Run the /iflow-cleanup workflow: detect merge status, switch to the default
-  branch, and — with a single consolidated confirm — delete every local branch
-  already reachable from origin/<default> (including squash-merges). Never -D.
+  Post-merge branch hygiene: switch to the default branch and delete merged
+  local branches under one consolidated confirm. Never -D.
 disable-model-invocation: true
 ---
 
 # issue-flow — issue cleanup (`/iflow-cleanup`)
 
-Follow this skill when the user wants to **run post-merge branch hygiene** after a PR has been merged.
-
-## When to use
-
-- The user runs `/iflow-cleanup`, mentions **issue-cleanup**, or asks you to delete local branches whose PRs have merged.
-- The PR opened by `/iflow-close` just merged and the user wants the standard post-merge tidy-up.
+Follow this skill to **run post-merge branch hygiene** after a PR has been merged (typically the PR opened by `/iflow-close`).
 
 
 ### MODEL & EXECUTION DIRECTIVE

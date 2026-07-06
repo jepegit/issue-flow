@@ -1,20 +1,14 @@
 ---
 name: iflow-start
 description: >-
-  Run the /iflow-start workflow: pick the current issue, read issue<N>_plan.md
-  (offer to run /iflow-plan if missing), then implement with the project's
-  documented conventions (e.g. uv run, or inside an activated conda env).
+  Implement the confirmed plan for the focus issue using the project's
+  documented conventions.
 disable-model-invocation: true
 ---
 
 # issue-flow — issue start (`/iflow-start`)
 
-Follow this skill when the user wants to **begin implementation** from issue notes and project rules. Planning itself lives in `/iflow-plan`; this skill is now implementation-only.
-
-## When to use
-
-- The user runs `/iflow-start`, mentions **issue-start**, or asks to implement from `.issueflows/01-current-issues/`.
-- Work should follow the issue-flow markdown workflow and stay aligned with `.cursor/rules/issueflow-rules.mdc` when present.
+Follow this skill to **begin implementation** from issue notes and project rules. Planning itself lives in `/iflow-plan`; this skill is implementation-only. Stay aligned with `.cursor/rules/issueflow-rules.mdc` when present.
 
 
 ### MODEL & EXECUTION DIRECTIVE

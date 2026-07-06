@@ -1,21 +1,14 @@
 ---
 name: iflow-plan
 description: >-
-  Run the /iflow-plan workflow: read the focus issue in
-  .issueflows/01-current-issues/, draft a structured plan
-  in issue<N>_plan.md, and get explicit user confirmation before any
-  implementation starts.
+  Draft a structured plan in issue<N>_plan.md and get explicit user
+  confirmation before any implementation starts.
 disable-model-invocation: true
 ---
 
 # issue-flow — issue plan (`/iflow-plan`)
 
-Follow this skill when the user wants to **design the approach** for an issue before touching code.
-
-## When to use
-
-- The user runs `/iflow-plan`, mentions **issue-plan**, or asks you to design the approach / write a plan for the current issue.
-- You want a clear, confirmed plan before `/iflow-start` begins editing code.
+Follow this skill to **design the approach** for the focus issue before touching code, and to get the plan confirmed ahead of `/iflow-start`.
 
 
 ### MODEL & EXECUTION DIRECTIVE

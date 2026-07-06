@@ -1,20 +1,14 @@
 ---
 name: iflow-pause
 description: >-
-  Run the /iflow-pause workflow: update the status file with remaining work,
-  move the issue group to .issueflows/02-partly-solved-issues/,
-  and optionally make a WIP commit and switch to the default branch.
+  Park work on the current issue without closing it: update status, move
+  the group to 02-partly-solved-issues/, optional WIP commit.
 disable-model-invocation: true
 ---
 
 # issue-flow — issue pause (`/iflow-pause`)
 
-Follow this skill when the user wants to **park work on the current issue** without closing it.
-
-## When to use
-
-- The user runs `/iflow-pause`, mentions **issue-pause**, or asks to park / stash / shelve work on an issue to switch context.
-- The issue is **not** done — this is not `/iflow-close`.
+Follow this skill to **park work on the current issue** without closing it. The issue is **not** done — this is not `/iflow-close`.
 
 
 ### MODEL & EXECUTION DIRECTIVE

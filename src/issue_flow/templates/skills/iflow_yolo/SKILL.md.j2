@@ -1,23 +1,16 @@
 ---
 name: iflow-yolo
 description: >-
-  Run the /iflow-yolo workflow: preflight (no default branch, clean tree,
-  passing tests), single consolidated confirm, then chain init → plan → start
-  → close yolo (hands-off close: auto changelog, PR merge, default-branch
-  pull) for small, low-risk issues. Stops on any ambiguity.
+  Chain init → plan → start → close yolo for a small, low-risk issue under
+  one consolidated confirm. Stops on any ambiguity.
 disable-model-invocation: true
 ---
 
 # issue-flow — issue yolo (`/iflow-yolo`)
 
-Follow this skill when the user wants to **blast through a small, low-risk issue** in one shot.{% if commands_supported %} Matches `{{ agent_dir }}/{{ commands_dir }}/iflow-yolo.md`.{% endif %}
+Follow this skill to **blast through a small, low-risk issue** in one shot, with no mid-run confirmation checkpoints beyond the single consolidated confirm.{% if commands_supported %} Matches `{{ agent_dir }}/{{ commands_dir }}/iflow-yolo.md`.{% endif %}
 
 Use only for minor fixes, doc tweaks, and similar low-risk changes. Anything non-trivial should go through the individual commands.
-
-## When to use
-
-- The user runs `/iflow-yolo`, `/issue-fast`, mentions **issue-yolo**, or asks to "just do it" for a small issue.
-- The task is obviously small and the user has accepted that there will be no mid-run confirmation checkpoints.
 
 {% include "skills/_model_directive.md.j2" %}
 ## Preflight (abort on any failure)

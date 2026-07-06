@@ -1,23 +1,14 @@
 ---
 name: iflow-pick
 description: >-
-  Run the /iflow-pick front door: help the user choose the next issue (parked
-  work in {{ partly_solved_folder }}/ first, else rank open GitHub issues by
-  milestone, labels, and topical similarity to recently solved work), optionally
-  create a new general-fixes issue on `fix`, create the issue branch, run
-  /iflow-init, then hand off to /iflow-plan. Off-path: never auto-dispatched by
-  /iflow. Does not auto-create sub-issues.
+  Front door: choose the next issue, create the issue branch, and run
+  /iflow-init.
 disable-model-invocation: true
 ---
 
 # issue-flow — pick next issue (`/iflow-pick`)
 
-Follow this skill when the user wants help **choosing what to work on next** and getting set up to start.{% if commands_supported %} Matches `{{ agent_dir }}/{{ commands_dir }}/iflow-pick.md`.{% endif %}
-
-## When to use
-
-- The user runs `/iflow-pick`, mentions "pick the next issue", "what should I work on next?", or "find me an issue".
-- The user is on the default branch with nothing in progress and wants a candidate plus a ready branch.
+Follow this skill to help the user **choose what to work on next** (parked work first, else ranked open GitHub issues) and get set up to start.{% if commands_supported %} Matches `{{ agent_dir }}/{{ commands_dir }}/iflow-pick.md`.{% endif %}
 
 Do **not** use this skill from `/iflow`, `/iflow-start`, or `/iflow-close`. `/iflow-pick` is explicit-only because it creates GitHub issues and branches.
 
@@ -46,6 +37,8 @@ Do **not** use this skill from `/iflow`, `/iflow-start`, or `/iflow-close`. `/if
 {% if model_label_flows %}
 8. **Label-driven model profile.** If the chosen issue carries the **`{{ deep_model_label }}`** label (case-insensitive), announce that the session should use the **reasoning** profile for all steps. If it carries **`{{ fast_model_label }}`**, announce **economy**. When both match, **reasoning** wins. Configurable via `model_label_flows`, `deep_model_label`, and `fast_model_label` under `[issueflow]` in `{{ issueflows_dir }}/config.toml` (re-run `issue-flow update` after changing).
 {% endif %}
+
+### Phase 2 — create the branch
 
 1. **Require a clean tree** (`git status --porcelain`). If dirty, **stop** and ask the user to commit/stash.
 2. **Branch off the default** — switch to default, fast-forward, then `git switch -c <N>-<short-slug>` (GitHub numeric convention). Confirm a non-obvious slug.
