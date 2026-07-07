@@ -12,6 +12,11 @@ issue-flow-version: 0.4.2a4
 Follow this skill to **capture a GitHub issue locally** under `.issueflows/01-current-issues/`.
 
 
+**Invoke:** type `iflow init` in chat, or `/iflow-init` from the slash menu (`iflow-init` also works).
+
+
+
+
 ### MODEL & EXECUTION DIRECTIVE
 
 

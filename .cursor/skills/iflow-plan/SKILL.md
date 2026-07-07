@@ -12,6 +12,11 @@ issue-flow-version: 0.4.2a4
 Follow this skill to **design the approach** for the focus issue before touching code, and to get the plan confirmed ahead of `/iflow-start`.
 
 
+**Invoke:** type `iflow plan` in chat, or `/iflow-plan` from the slash menu (`iflow-plan` also works).
+
+
+
+
 ### MODEL & EXECUTION DIRECTIVE
 
 

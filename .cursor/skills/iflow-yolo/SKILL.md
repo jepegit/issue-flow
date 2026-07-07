@@ -14,6 +14,11 @@ Follow this skill to **blast through a small, low-risk issue** in one shot, with
 Use only for minor fixes, doc tweaks, and similar low-risk changes. Anything non-trivial should go through the individual commands.
 
 
+**Invoke:** type `iflow yolo` in chat, or `/iflow-yolo` from the slash menu (`iflow-yolo` also works).
+
+
+
+
 ### MODEL & EXECUTION DIRECTIVE
 
 

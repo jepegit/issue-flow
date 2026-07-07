@@ -14,6 +14,11 @@ Follow this skill to refresh the project's [graphify](https://iflow-graphify.net
 Do **not** use this skill from `/iflow-start`, `/iflow-close`, or `/iflow`. `/iflow-graphify` is opt-in only.
 
 
+**Invoke:** type `iflow graphify` in chat, or `/iflow-graphify` from the slash menu (`iflow-graphify` also works).
+
+
+
+
 ### MODEL & EXECUTION DIRECTIVE
 
 

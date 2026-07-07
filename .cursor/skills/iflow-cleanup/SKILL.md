@@ -12,6 +12,11 @@ issue-flow-version: 0.4.2a4
 Follow this skill to **run post-merge branch hygiene** after a PR has been merged (typically the PR opened by `/iflow-close`).
 
 
+**Invoke:** type `iflow cleanup` in chat, or `/iflow-cleanup` from the slash menu (`iflow-cleanup` also works).
+
+
+
+
 ### MODEL & EXECUTION DIRECTIVE
 
 

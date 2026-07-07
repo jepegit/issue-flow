@@ -20,6 +20,11 @@ Do **not** use this skill from `/iflow`, `/iflow-start`, or `/iflow-close`. `/if
 - **a hint** (milestone / label / topic) — bias the candidate ranking.
 
 
+**Invoke:** type `iflow pick` in chat, or `/iflow-pick` from the slash menu (`iflow-pick` also works).
+
+
+
+
 ### MODEL & EXECUTION DIRECTIVE
 
 

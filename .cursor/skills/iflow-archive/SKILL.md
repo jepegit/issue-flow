@@ -24,6 +24,11 @@ Do **not** use this to park or close an active issue — that is `/iflow-pause` 
 - **`all`** — archive every solved group.
 
 
+**Invoke:** type `iflow archive` in chat, or `/iflow-archive` from the slash menu (`iflow-archive` also works).
+
+
+
+
 ### MODEL & EXECUTION DIRECTIVE
 
 

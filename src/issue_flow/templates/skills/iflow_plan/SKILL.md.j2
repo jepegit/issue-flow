@@ -10,6 +10,9 @@ disable-model-invocation: true
 
 Follow this skill to **design the approach** for the focus issue before touching code, and to get the plan confirmed ahead of `/iflow-start`.{% if commands_supported %} Matches `{{ agent_dir }}/{{ commands_dir }}/iflow-plan.md`.{% endif %}
 
+{% set iflow_step = "plan" %}
+{% include "skills/_invocation_forms.md.j2" %}
+
 {% include "skills/_model_directive.md.j2" %}
 
 {% include "skills/_resolve_project_root.md.j2" %}

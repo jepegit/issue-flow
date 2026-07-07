@@ -37,6 +37,11 @@ The exact semantics and the default rule live in `.cursor/skills/iflow-version-b
 - **`yolo`** (used by `/iflow-yolo`) → close the loop without user input: write the `HISTORY.md` bullet without a confirm prompt (step 3), **merge the PR** right after opening it (step 8a), then switch back to the default branch and `git pull --ff-only` (step 9, unless `stay` was also passed).
 
 
+**Invoke:** type `iflow close` in chat, or `/iflow-close` from the slash menu (`iflow-close` also works).
+
+
+
+
 ### MODEL & EXECUTION DIRECTIVE
 
 

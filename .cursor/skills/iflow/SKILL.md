@@ -14,6 +14,11 @@ Follow this skill to run **the right next step** in the issue-flow lifecycle: it
 Do **not** use this skill for `/iflow-pick`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, or `/iflow-fix`. Those are explicit-only commands. (`/iflow-pick` is the front door *before* `/iflow-init`, for when no issue has been chosen yet. `/iflow-fix` runs an interactive iterative-fixes session, driven by `/iflow-fix` + `/iflow-close`.)
 
 
+**Invoke:** type `iflow` in chat, or `/iflow` from the slash menu.
+
+
+
+
 ### MODEL & EXECUTION DIRECTIVE
 
 

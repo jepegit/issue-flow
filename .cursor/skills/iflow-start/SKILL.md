@@ -12,6 +12,11 @@ issue-flow-version: 0.4.2a4
 Follow this skill to **begin implementation** from issue notes and project rules. Planning itself lives in `/iflow-plan`; this skill is implementation-only. Stay aligned with `.cursor/rules/issueflow-rules.mdc` when present.
 
 
+**Invoke:** type `iflow start` in chat, or `/iflow-start` from the slash menu (`iflow-start` also works).
+
+
+
+
 ### MODEL & EXECUTION DIRECTIVE
 
 
