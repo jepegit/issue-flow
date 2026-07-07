@@ -682,6 +682,37 @@ def test_rules_body_mentions_multi_root_workspaces() -> None:
     assert "multi-repo-workspaces.md" in rendered
 
 
+def test_rules_body_documents_slashless_chat_invocation() -> None:
+    """Issue #118: agents must honor `iflow plan` as explicit invocation."""
+    rendered = render_template("rules/_body.md.j2", _default_context())
+    assert "Chat invocation (no slash)" in rendered
+    assert "`iflow plan`" in rendered
+    assert "`iflow pick`" in rendered or "`iflow {{ cmd[6:] }}`" in rendered
+    assert "starts with" in rendered.lower()
+    for template_name in ("rules/issueflow-rules.mdc.j2", "rules/AGENTS.md.j2"):
+        rules = render_template(template_name, _default_context())
+        assert "Chat invocation (no slash)" in rules
+        assert "`iflow plan`" in rules
+
+
+def test_iflow_plan_skill_documents_slashless_invoke_line() -> None:
+    """Lifecycle skills should recommend `iflow plan` before slash form."""
+    rendered = render_template("skills/iflow_plan/SKILL.md.j2", _default_context())
+    assert "**Invoke:**" in rendered
+    assert "type `iflow plan` in chat" in rendered
+    assert "/iflow-plan" in rendered
+
+
+def test_issue_workflow_doc_leads_with_slashless_chat() -> None:
+    """docs/issue-workflow should document space form before slash-only wording."""
+    rendered = render_template("docs/issue-workflow.md.j2", _default_context())
+    assert "Keyboard-friendly chat" in rendered
+    plan_idx = rendered.index("iflow plan")
+    slash_only = rendered.find("| `iflow-plan` | `iflow plan`")
+    assert slash_only == -1 or plan_idx < slash_only
+    assert "`iflow plan`, `iflow-plan`, `/iflow-plan`" in rendered
+
+
 def test_rules_body_defers_to_project_toolchain_and_covers_conda() -> None:
     """Regression for issue #58: the shared rules body must defer to the
     project's existing toolchain and cover conda, not hard-mandate uv."""

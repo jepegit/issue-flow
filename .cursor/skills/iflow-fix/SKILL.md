@@ -22,6 +22,11 @@ It **coexists** with `/iflow-pick fix`: that command is a one-shot setup back in
 - **a description** during an active session — run the next fix in the loop.
 
 
+**Invoke:** type `iflow fix` in chat, or `/iflow-fix` from the slash menu (`iflow-fix` also works).
+
+
+
+
 ### MODEL & EXECUTION DIRECTIVE
 
 

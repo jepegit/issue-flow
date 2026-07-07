@@ -84,17 +84,11 @@ def is_skill_template(template_name: str) -> bool:
 def stamp_skill_version(content: str, version: str) -> str:
     """Inject or refresh ``issue-flow-version`` in skill YAML frontmatter."""
     if not content.startswith("---\n"):
-        return (
-            content.rstrip()
-            + f"\n\n<!-- Scaffolded by issue-flow {version} -->\n"
-        )
+        return content.rstrip() + f"\n\n<!-- Scaffolded by issue-flow {version} -->\n"
 
     closing = content.find("\n---\n", 4)
     if closing == -1:
-        return (
-            content.rstrip()
-            + f"\n\n<!-- Scaffolded by issue-flow {version} -->\n"
-        )
+        return content.rstrip() + f"\n\n<!-- Scaffolded by issue-flow {version} -->\n"
 
     frontmatter = content[4:closing]
     rest = content[closing:]

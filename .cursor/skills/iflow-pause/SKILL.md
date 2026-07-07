@@ -12,6 +12,11 @@ issue-flow-version: 0.4.2a4
 Follow this skill to **park work on the current issue** without closing it. The issue is **not** done — this is not `/iflow-close`.
 
 
+**Invoke:** type `iflow pause` in chat, or `/iflow-pause` from the slash menu (`iflow-pause` also works).
+
+
+
+
 ### MODEL & EXECUTION DIRECTIVE
 
 

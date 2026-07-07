@@ -10,6 +10,9 @@ disable-model-invocation: true
 
 Follow this skill to **park work on the current issue** without closing it. The issue is **not** done — this is not `/iflow-close`.{% if commands_supported %} Matches `{{ agent_dir }}/{{ commands_dir }}/iflow-pause.md`.{% endif %}
 
+{% set iflow_step = "pause" %}
+{% include "skills/_invocation_forms.md.j2" %}
+
 {% include "skills/_model_directive.md.j2" %}
 
 {% include "skills/_resolve_project_root.md.j2" %}
