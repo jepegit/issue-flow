@@ -4,6 +4,7 @@ description: >-
   Front door: choose the next issue, create the issue branch, and run
   /iflow-init.
 disable-model-invocation: true
+issue-flow-version: 0.4.2a4
 ---
 
 # issue-flow — pick next issue (`/iflow-pick`)

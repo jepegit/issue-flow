@@ -4,6 +4,7 @@ description: >-
   Post-merge branch hygiene: switch to the default branch and delete merged
   local branches under one consolidated confirm. Never -D.
 disable-model-invocation: true
+issue-flow-version: 0.4.2a4
 ---
 
 # issue-flow — issue cleanup (`/iflow-cleanup`)

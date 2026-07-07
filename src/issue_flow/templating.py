@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from importlib import resources
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -12,6 +13,9 @@ from issue_flow.editors import EDITORS, EditorProfile
 
 if TYPE_CHECKING:
     from issue_flow.modes import Mode
+
+_ISSUE_FLOW_VERSION_KEY = "issue-flow-version"
+_SKILL_TEMPLATE_RE = re.compile(r"^skills/[^/]+/SKILL\.md\.j2$")
 
 
 # ---------------------------------------------------------------------------
@@ -64,7 +68,48 @@ def render_template(template_name: str, context: dict[str, object]) -> str:
     """Render a single template by name and return the result string."""
     env = get_environment()
     template = env.get_template(template_name)
-    return template.render(context)
+    rendered = template.render(context)
+    if is_skill_template(template_name):
+        version = context.get("issue_flow_version")
+        if isinstance(version, str) and version:
+            rendered = stamp_skill_version(rendered, version)
+    return rendered
+
+
+def is_skill_template(template_name: str) -> bool:
+    """Return True when ``template_name`` is a packaged skill SKILL.md.j2 path."""
+    return _SKILL_TEMPLATE_RE.match(template_name.replace("\\", "/")) is not None
+
+
+def stamp_skill_version(content: str, version: str) -> str:
+    """Inject or refresh ``issue-flow-version`` in skill YAML frontmatter."""
+    if not content.startswith("---\n"):
+        return (
+            content.rstrip()
+            + f"\n\n<!-- Scaffolded by issue-flow {version} -->\n"
+        )
+
+    closing = content.find("\n---\n", 4)
+    if closing == -1:
+        return (
+            content.rstrip()
+            + f"\n\n<!-- Scaffolded by issue-flow {version} -->\n"
+        )
+
+    frontmatter = content[4:closing]
+    rest = content[closing:]
+    lines = frontmatter.splitlines()
+    stamped = False
+    new_lines: list[str] = []
+    for line in lines:
+        if line.startswith(f"{_ISSUE_FLOW_VERSION_KEY}:"):
+            new_lines.append(f"{_ISSUE_FLOW_VERSION_KEY}: {version}")
+            stamped = True
+        else:
+            new_lines.append(line)
+    if not stamped:
+        new_lines.append(f"{_ISSUE_FLOW_VERSION_KEY}: {version}")
+    return "---\n" + "\n".join(new_lines) + rest
 
 
 # ---------------------------------------------------------------------------

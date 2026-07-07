@@ -5,6 +5,7 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
+from issue_flow import __version__ as ISSUE_FLOW_VERSION
 from issue_flow.init import run_init, run_update
 
 
@@ -49,6 +50,7 @@ def test_update_overwrites_skill_files(tmp_path: Path) -> None:
     content = skill.read_text(encoding="utf-8")
     assert content != "custom skill"
     assert "name: iflow-init" in content
+    assert f"issue-flow-version: {ISSUE_FLOW_VERSION}" in content
 
 
 def test_update_prunes_generated_cursor_commands_but_keeps_user_commands(
