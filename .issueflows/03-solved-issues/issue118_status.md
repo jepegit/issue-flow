@@ -1,6 +1,6 @@
 # Issue #118 status: slash-less iflow invocation
 
-- [ ] Done
+- [x] Done
 
 ## What's done
 
@@ -11,6 +11,7 @@
 - README quick-start mentions `iflow plan` / `iflow init`.
 - Tests: `test_rules_body_documents_slashless_chat_invocation`, skill + doc assertions.
 - Re-rendered via `issue-flow update`.
+- Draft PR #124 opened.
 
 ## Testing
 
@@ -20,4 +21,4 @@
 
 ## Remaining work
 
-- `/iflow-close` — commit, push, PR
+- None.
