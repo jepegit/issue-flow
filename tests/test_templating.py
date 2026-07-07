@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from issue_flow import __version__ as ISSUE_FLOW_VERSION
 from issue_flow.editors import EDITORS, get_profile
 from issue_flow.step_profiles import PACKAGED_DEFAULTS, enrich_render_context
 from issue_flow.templating import (
@@ -11,8 +12,10 @@ from issue_flow.templating import (
     SKILL_DIRS,
     TEMPLATE_MANIFEST,
     build_manifest,
+    is_skill_template,
     render_template,
     resolve_output_path,
+    stamp_skill_version,
 )
 
 _ALL_SKILLS = sorted(SKILL_DIRS)
@@ -249,6 +252,7 @@ def test_claude_manifest_has_expected_commands() -> None:
 
 def _default_context() -> dict[str, object]:
     return {
+        "issue_flow_version": ISSUE_FLOW_VERSION,
         "issueflows_dir": ".issueflows",
         "agent_dir": ".cursor",
         "docs_dir": "docs",
@@ -958,3 +962,35 @@ def test_iflow_pick_includes_model_label_block_when_enabled() -> None:
     rendered = render_template("skills/iflow_pick/SKILL.md.j2", ctx)
     assert "Label-driven model profile" in rendered
     assert "deep_model_label" in rendered
+
+
+def test_is_skill_template_matches_skill_manifest_paths() -> None:
+    assert is_skill_template("skills/iflow_init/SKILL.md.j2")
+    assert is_skill_template("skills/caveman/SKILL.md.j2")
+    assert not is_skill_template("commands/iflow-init.md.j2")
+    assert not is_skill_template("skills/_model_directive.md.j2")
+
+
+def test_stamp_skill_version_injects_frontmatter_key() -> None:
+    content = "---\nname: demo\ndescription: test\n---\n\n# Body\n"
+    stamped = stamp_skill_version(content, "1.2.3")
+    assert "issue-flow-version: 1.2.3" in stamped
+    assert stamped.startswith("---\nname: demo")
+
+
+def test_stamp_skill_version_refreshes_existing_key() -> None:
+    content = "---\nname: demo\nissue-flow-version: 0.1.0\n---\n\n# Body\n"
+    stamped = stamp_skill_version(content, "0.2.0")
+    assert stamped.count("issue-flow-version:") == 1
+    assert "issue-flow-version: 0.2.0" in stamped
+    assert "issue-flow-version: 0.1.0" not in stamped
+
+
+def test_render_template_stamps_skill_outputs() -> None:
+    rendered = render_template("skills/iflow_init/SKILL.md.j2", _default_context())
+    assert f"issue-flow-version: {ISSUE_FLOW_VERSION}" in rendered
+
+
+def test_render_template_does_not_stamp_commands() -> None:
+    rendered = render_template("commands/iflow-init.md.j2", _default_context())
+    assert "issue-flow-version:" not in rendered

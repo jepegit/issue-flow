@@ -4,6 +4,7 @@ description: >-
   Chain init → plan → start → close yolo for a small, low-risk issue under
   one consolidated confirm. Stops on any ambiguity.
 disable-model-invocation: true
+issue-flow-version: 0.4.2a4
 ---
 
 # issue-flow — issue yolo (`/iflow-yolo`)

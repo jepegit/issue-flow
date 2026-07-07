@@ -4,6 +4,7 @@ description: >-
   Condense old solved issue groups into one dated summary file, then delete
   the originals. Destructive, one consolidated confirm.
 disable-model-invocation: true
+issue-flow-version: 0.4.2a4
 ---
 
 # issue-flow — archive solved issues (`/iflow-archive`)

@@ -4,6 +4,7 @@ description: >-
   Interactive session: one long-lived branch + GitHub issue for a stream of
   small iterative fixes, landed together via /iflow-close.
 disable-model-invocation: true
+issue-flow-version: 0.4.2a4
 ---
 
 # issue-flow — interactive iterative-fix session (`/iflow-fix`)

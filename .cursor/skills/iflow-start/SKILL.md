@@ -4,6 +4,7 @@ description: >-
   Implement the confirmed plan for the focus issue using the project's
   documented conventions.
 disable-model-invocation: true
+issue-flow-version: 0.4.2a4
 ---
 
 # issue-flow — issue start (`/iflow-start`)

@@ -4,6 +4,7 @@ description: >-
   Rebuild the graphify knowledge graph (graphify-out/) by shelling out to
   `issue-flow graphify` or `graphify` directly.
 disable-model-invocation: true
+issue-flow-version: 0.4.2a4
 ---
 
 # issue-flow — graph rebuild (`/iflow-graphify`)

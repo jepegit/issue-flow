@@ -4,6 +4,7 @@ description: >-
   Capture a GitHub issue locally as issue<number>_original.md and archive
   other current issues by done status.
 disable-model-invocation: true
+issue-flow-version: 0.4.2a4
 ---
 
 # issue-flow — issue init (`/iflow-init`)

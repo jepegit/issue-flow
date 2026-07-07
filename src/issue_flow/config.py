@@ -301,8 +301,11 @@ class Settings:
         profile = profile or get_profile(self.editor)
         mode = mode or self.resolve_mode(project_root)
         skill_level = skill_level or self.resolve_skill_level(project_root)
+        from issue_flow import __version__ as issue_flow_version
+
         project_name = _detect_project_name(project_root)
         return {
+            "issue_flow_version": issue_flow_version,
             "issueflows_dir": self.issueflows_dir,
             "agent_dir": self.agent_dir_for(profile),
             "docs_dir": self.docs_dir,

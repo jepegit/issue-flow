@@ -4,6 +4,7 @@ description: >-
   Smart dispatcher: detect where the focus issue stands and dispatch to
   /iflow-init, /iflow-plan, /iflow-start, or /iflow-close.
 disable-model-invocation: true
+issue-flow-version: 0.4.2a4
 ---
 
 # issue-flow — iflow smart dispatcher (`/iflow`)
