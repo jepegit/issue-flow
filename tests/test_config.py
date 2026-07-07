@@ -30,6 +30,7 @@ def test_template_context_keys(tmp_path: Path) -> None:
     settings = Settings()
     context = settings.template_context(tmp_path)
     expected_keys = {
+        "issue_flow_version",
         "issueflows_dir",
         "agent_dir",
         "docs_dir",

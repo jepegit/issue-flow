@@ -4,6 +4,7 @@ description: >-
   Chain init → plan → start → close yolo for a small, low-risk issue under
   one consolidated confirm. Stops on any ambiguity.
 disable-model-invocation: true
+issue-flow-version: 0.4.2a4
 ---
 
 # issue-flow — issue yolo (`/iflow-yolo`)
@@ -11,6 +12,11 @@ disable-model-invocation: true
 Follow this skill to **blast through a small, low-risk issue** in one shot, with no mid-run confirmation checkpoints beyond the single consolidated confirm.
 
 Use only for minor fixes, doc tweaks, and similar low-risk changes. Anything non-trivial should go through the individual commands.
+
+
+**Invoke:** type `iflow yolo` in chat, or `/iflow-yolo` from the slash menu (`iflow-yolo` also works).
+
+
 
 
 ### MODEL & EXECUTION DIRECTIVE
@@ -25,6 +31,27 @@ In Cursor: switch to a thinking-capable model before invoking this step (not Aut
 Keep scope tight to what this step requires.
 
 
+
+
+### Resolve project root (multi-root workspaces)
+
+Before any `git`, `gh`, or `.issueflows/` path operation in this workflow:
+
+**Resolution order** (stop when unambiguous):
+
+1. **Explicit hints** in slash input — `root:<path>`, `repo:<folder-basename>` (directory name, e.g. `cellpy-core`), or `repo:owner/name`.
+2. **CLI fast path** — `issue-flow agent resolve [-C <start>] [--from-file <active-file>] [--json]`. Use the returned `project_root` and `repo`; pass `-C <project_root>` to other `issue-flow agent …` subcommands.
+3. **Branch context** — exactly one workspace repo whose branch matches `^\d+-` → that root.
+4. **Single scaffold** — exactly one `.issueflows/` tree visible in the workspace → that root.
+5. **Ambiguous** → **stop and ask**; never guess between sibling repos.
+
+After resolution, treat the result as `<project_root>` and `<owner/repo>`:
+
+- **Git:** `git -C <project_root> …` (or `issue-flow agent … -C <project_root>` for supported ops).
+- **GitHub:** always `gh … --repo <owner/repo>` — never rely on `gh`'s implicit cwd default.
+- **Paths:** all `.issueflows/…` paths are under `<project_root>`.
+
+When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read it for layout and cross-repo guidance.
 
 ## Preflight (abort on any failure)
 

@@ -4,6 +4,7 @@ description: >-
   Interactive session: one long-lived branch + GitHub issue for a stream of
   small iterative fixes, landed together via /iflow-close.
 disable-model-invocation: true
+issue-flow-version: 0.4.2a4
 ---
 
 # issue-flow — interactive iterative-fix session (`/iflow-fix`)
@@ -21,6 +22,11 @@ It **coexists** with `/iflow-pick fix`: that command is a one-shot setup back in
 - **a description** during an active session — run the next fix in the loop.
 
 
+**Invoke:** type `iflow fix` in chat, or `/iflow-fix` from the slash menu (`iflow-fix` also works).
+
+
+
+
 ### MODEL & EXECUTION DIRECTIVE
 
 
@@ -33,6 +39,27 @@ In Cursor: switch to a thinking-capable model before invoking this step (not Aut
 Keep scope tight to what this step requires.
 
 
+
+
+### Resolve project root (multi-root workspaces)
+
+Before any `git`, `gh`, or `.issueflows/` path operation in this workflow:
+
+**Resolution order** (stop when unambiguous):
+
+1. **Explicit hints** in slash input — `root:<path>`, `repo:<folder-basename>` (directory name, e.g. `cellpy-core`), or `repo:owner/name`.
+2. **CLI fast path** — `issue-flow agent resolve [-C <start>] [--from-file <active-file>] [--json]`. Use the returned `project_root` and `repo`; pass `-C <project_root>` to other `issue-flow agent …` subcommands.
+3. **Branch context** — exactly one workspace repo whose branch matches `^\d+-` → that root.
+4. **Single scaffold** — exactly one `.issueflows/` tree visible in the workspace → that root.
+5. **Ambiguous** → **stop and ask**; never guess between sibling repos.
+
+After resolution, treat the result as `<project_root>` and `<owner/repo>`:
+
+- **Git:** `git -C <project_root> …` (or `issue-flow agent … -C <project_root>` for supported ops).
+- **GitHub:** always `gh … --repo <owner/repo>` — never rely on `gh`'s implicit cwd default.
+- **Paths:** all `.issueflows/…` paths are under `<project_root>`.
+
+When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read it for layout and cross-repo guidance.
 
 ## Instructions
 

@@ -1,8 +1,8 @@
 """Orchestrators behind the agent-facing CLI surface.
 
 These functions back ``issue-flow status`` (human-facing, top-level) and the
-``issue-flow agent ...`` sub-commands (``state`` / ``preflight`` / ``sweep`` /
-``capture``) that exist so AI agents can ask the tool for a deterministic
+``issue-flow agent ...`` sub-commands (``state`` / ``preflight`` / ``resolve`` /
+``sweep`` / ``capture``) that exist so AI agents can ask the tool for a deterministic
 answer instead of re-deriving lifecycle state by hand on every run.
 
 Each ``run_*`` returns a process exit code and emits either a short human
@@ -21,7 +21,7 @@ from typing import Any
 from rich.console import Console
 from rich.markup import escape
 
-from issue_flow import gitutils, modes, tracking
+from issue_flow import gitutils, modes, project, tracking
 from issue_flow.config import Settings
 
 
@@ -170,6 +170,83 @@ def run_preflight(project_root: Path, console: Console, as_json: bool) -> int:
     )
     for note in notes:
         console.print(f"  [yellow]warn[/yellow]  {note}")
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# agent resolve
+# ---------------------------------------------------------------------------
+
+
+def run_resolve(
+    project_root: Path,
+    console: Console,
+    from_file: Path | None,
+    as_json: bool,
+) -> int:
+    """Resolve the issue-flow project root, GitHub repo slug, and branch context."""
+    settings = Settings()
+    start = from_file if from_file is not None else project_root
+    resolved = project.find_project_root(
+        start,
+        issueflows_dir=settings.issueflows_dir,
+        current_issues_folder=settings.current_issues_folder,
+    )
+    if resolved is None and from_file is not None:
+        resolved = project.find_project_root(
+            project_root,
+            issueflows_dir=settings.issueflows_dir,
+            current_issues_folder=settings.current_issues_folder,
+        )
+
+    repo: str | None = None
+    branch: str | None = None
+    default_branch: str | None = None
+    sibling_roots: list[str] = []
+
+    if resolved is not None:
+        owner_repo = gitutils.remote_owner_repo(resolved)
+        if owner_repo:
+            repo = f"{owner_repo[0]}/{owner_repo[1]}"
+        if gitutils.git_available():
+            branch = gitutils.current_branch(resolved)
+            default_branch = gitutils.default_branch(resolved)
+        sibling_roots = project.list_scaffolded_siblings(
+            resolved, issueflows_dir=settings.issueflows_dir
+        )
+
+    payload: dict[str, Any] = {
+        "project_root": str(resolved) if resolved else None,
+        "repo": repo,
+        "branch": branch,
+        "default_branch": default_branch,
+        "issueflows_dir": settings.issueflows_dir,
+        "sibling_roots": sibling_roots,
+    }
+
+    if as_json:
+        _emit_json(console, payload)
+        return 0 if resolved is not None else 1
+
+    if resolved is None:
+        console.print(
+            "[red]No issue-flow scaffold found[/red] walking up from "
+            f"{start.resolve()}."
+        )
+        return 1
+
+    console.print(f"[bold]Project root[/bold]: {resolved}")
+    if repo:
+        console.print(f"[bold]Repo[/bold]: {repo}")
+    if branch:
+        console.print(f"[bold]Branch[/bold]: {branch}")
+    if default_branch:
+        console.print(f"[bold]Default branch[/bold]: {default_branch}")
+    if sibling_roots:
+        console.print(
+            f"[bold]Sibling scaffolds[/bold]: {len(sibling_roots)} "
+            "(run lifecycle commands once per repo)"
+        )
     return 0
 
 

@@ -3,6 +3,7 @@ name: iflow-status
 description: >-
   Read-only snapshot of where every issue stands, locally and on GitHub.
 disable-model-invocation: true
+issue-flow-version: 0.4.2a4
 ---
 
 # issue-flow — issue status overview (`/iflow-status`)
@@ -10,6 +11,11 @@ disable-model-invocation: true
 Follow this skill for a bird's-eye view of every issue's status — local tracking state (focus / parked / solved) plus open GitHub issues — rather than acting on the single focus issue.
 
 Do **not** use this skill to *change* anything. It is read-only and off-path; for acting on the focus issue use `/iflow`, and to choose the next issue use `/iflow-pick`.
+
+
+**Invoke:** type `iflow status` in chat, or `/iflow-status` from the slash menu (`iflow-status` also works).
+
+
 
 
 ### MODEL & EXECUTION DIRECTIVE
@@ -24,6 +30,27 @@ In Cursor: use **Auto** or a fast model before invoking this step.
 Keep scope tight to what this step requires.
 
 
+
+
+### Resolve project root (multi-root workspaces)
+
+Before any `git`, `gh`, or `.issueflows/` path operation in this workflow:
+
+**Resolution order** (stop when unambiguous):
+
+1. **Explicit hints** in slash input — `root:<path>`, `repo:<folder-basename>` (directory name, e.g. `cellpy-core`), or `repo:owner/name`.
+2. **CLI fast path** — `issue-flow agent resolve [-C <start>] [--from-file <active-file>] [--json]`. Use the returned `project_root` and `repo`; pass `-C <project_root>` to other `issue-flow agent …` subcommands.
+3. **Branch context** — exactly one workspace repo whose branch matches `^\d+-` → that root.
+4. **Single scaffold** — exactly one `.issueflows/` tree visible in the workspace → that root.
+5. **Ambiguous** → **stop and ask**; never guess between sibling repos.
+
+After resolution, treat the result as `<project_root>` and `<owner/repo>`:
+
+- **Git:** `git -C <project_root> …` (or `issue-flow agent … -C <project_root>` for supported ops).
+- **GitHub:** always `gh … --repo <owner/repo>` — never rely on `gh`'s implicit cwd default.
+- **Paths:** all `.issueflows/…` paths are under `<project_root>`.
+
+When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read it for layout and cross-repo guidance.
 
 ## Instructions
 

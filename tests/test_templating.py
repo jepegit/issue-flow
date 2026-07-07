@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from issue_flow import __version__ as ISSUE_FLOW_VERSION
 from issue_flow.editors import EDITORS, get_profile
 from issue_flow.step_profiles import PACKAGED_DEFAULTS, enrich_render_context
 from issue_flow.templating import (
@@ -11,8 +12,10 @@ from issue_flow.templating import (
     SKILL_DIRS,
     TEMPLATE_MANIFEST,
     build_manifest,
+    is_skill_template,
     render_template,
     resolve_output_path,
+    stamp_skill_version,
 )
 
 _ALL_SKILLS = sorted(SKILL_DIRS)
@@ -249,6 +252,7 @@ def test_claude_manifest_has_expected_commands() -> None:
 
 def _default_context() -> dict[str, object]:
     return {
+        "issue_flow_version": ISSUE_FLOW_VERSION,
         "issueflows_dir": ".issueflows",
         "agent_dir": ".cursor",
         "docs_dir": "docs",
@@ -643,6 +647,70 @@ def test_issueflow_rules_has_branch_hygiene_section() -> None:
     assert "Branch hygiene" in rendered
     assert "git branch -d" in rendered
     assert "Folder hygiene" in rendered
+    assert "alwaysApply: false" in rendered
+    assert '"**/*"' in rendered or "'**/*'" in rendered
+
+
+def test_lifecycle_skills_include_resolve_partial() -> None:
+    """Lifecycle skills must document multi-root project-root resolution."""
+    stems = (
+        "iflow_init",
+        "iflow_close",
+        "iflow_cleanup",
+        "iflow_pick",
+        "iflow_status",
+        "iflow_iflow",
+        "iflow_start",
+        "iflow_plan",
+        "iflow_pause",
+        "iflow_yolo",
+        "iflow_fix",
+    )
+    for stem in stems:
+        rendered = render_template(f"skills/{stem}/SKILL.md.j2", _default_context())
+        assert "issue-flow agent resolve" in rendered, stem
+        assert (
+            "Multi-root workspaces" in rendered or "multi-root" in rendered.lower()
+        ), stem
+
+
+def test_rules_body_mentions_multi_root_workspaces() -> None:
+    """The shared rules body must point agents at the multi-root contract."""
+    rendered = render_template("rules/_body.md.j2", _default_context())
+    assert "Multi-root workspaces" in rendered
+    assert "issue-flow agent resolve" in rendered
+    assert "multi-repo-workspaces.md" in rendered
+
+
+def test_rules_body_documents_slashless_chat_invocation() -> None:
+    """Issue #118: agents must honor `iflow plan` as explicit invocation."""
+    rendered = render_template("rules/_body.md.j2", _default_context())
+    assert "Chat invocation (no slash)" in rendered
+    assert "`iflow plan`" in rendered
+    assert "`iflow pick`" in rendered or "`iflow {{ cmd[6:] }}`" in rendered
+    assert "starts with" in rendered.lower()
+    for template_name in ("rules/issueflow-rules.mdc.j2", "rules/AGENTS.md.j2"):
+        rules = render_template(template_name, _default_context())
+        assert "Chat invocation (no slash)" in rules
+        assert "`iflow plan`" in rules
+
+
+def test_iflow_plan_skill_documents_slashless_invoke_line() -> None:
+    """Lifecycle skills should recommend `iflow plan` before slash form."""
+    rendered = render_template("skills/iflow_plan/SKILL.md.j2", _default_context())
+    assert "**Invoke:**" in rendered
+    assert "type `iflow plan` in chat" in rendered
+    assert "/iflow-plan" in rendered
+
+
+def test_issue_workflow_doc_leads_with_slashless_chat() -> None:
+    """docs/issue-workflow should document space form before slash-only wording."""
+    rendered = render_template("docs/issue-workflow.md.j2", _default_context())
+    assert "Keyboard-friendly chat" in rendered
+    plan_idx = rendered.index("iflow plan")
+    slash_only = rendered.find("| `iflow-plan` | `iflow plan`")
+    assert slash_only == -1 or plan_idx < slash_only
+    assert "`iflow plan`, `iflow-plan`, `/iflow-plan`" in rendered
 
 
 def test_rules_body_defers_to_project_toolchain_and_covers_conda() -> None:
@@ -925,3 +993,35 @@ def test_iflow_pick_includes_model_label_block_when_enabled() -> None:
     rendered = render_template("skills/iflow_pick/SKILL.md.j2", ctx)
     assert "Label-driven model profile" in rendered
     assert "deep_model_label" in rendered
+
+
+def test_is_skill_template_matches_skill_manifest_paths() -> None:
+    assert is_skill_template("skills/iflow_init/SKILL.md.j2")
+    assert is_skill_template("skills/caveman/SKILL.md.j2")
+    assert not is_skill_template("commands/iflow-init.md.j2")
+    assert not is_skill_template("skills/_model_directive.md.j2")
+
+
+def test_stamp_skill_version_injects_frontmatter_key() -> None:
+    content = "---\nname: demo\ndescription: test\n---\n\n# Body\n"
+    stamped = stamp_skill_version(content, "1.2.3")
+    assert "issue-flow-version: 1.2.3" in stamped
+    assert stamped.startswith("---\nname: demo")
+
+
+def test_stamp_skill_version_refreshes_existing_key() -> None:
+    content = "---\nname: demo\nissue-flow-version: 0.1.0\n---\n\n# Body\n"
+    stamped = stamp_skill_version(content, "0.2.0")
+    assert stamped.count("issue-flow-version:") == 1
+    assert "issue-flow-version: 0.2.0" in stamped
+    assert "issue-flow-version: 0.1.0" not in stamped
+
+
+def test_render_template_stamps_skill_outputs() -> None:
+    rendered = render_template("skills/iflow_init/SKILL.md.j2", _default_context())
+    assert f"issue-flow-version: {ISSUE_FLOW_VERSION}" in rendered
+
+
+def test_render_template_does_not_stamp_commands() -> None:
+    rendered = render_template("commands/iflow-init.md.j2", _default_context())
+    assert "issue-flow-version:" not in rendered
