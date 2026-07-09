@@ -21,7 +21,8 @@ agent_app = typer.Typer(
     help=(
         "Agent-facing helpers that read the .issueflows/ tree and git/gh so "
         "AI agents get deterministic answers instead of re-deriving lifecycle "
-        "state by hand. All are read-only except `sweep` and `capture`."
+        "state by hand. All are read-only except `sweep`, `archive`, `capture`, "
+        "and `switchback`."
     ),
 )
 
@@ -253,6 +254,25 @@ def agent_preflight(
     from issue_flow.agent import run_preflight
 
     raise typer.Exit(code=run_preflight(project_dir, _console, json_output))
+
+
+@agent_app.command("switchback")
+def agent_switchback(
+    project_dir: Path = _PROJECT_DIR_ARGUMENT,
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Switch back to the default branch and fast-forward it, when safe.
+
+    The mechanical half of ``/iflow-close``'s post-PR step: refuses (exit 1)
+    while the working tree is dirty so no work is ever stranded, otherwise
+    runs ``git switch <default>`` and ``git pull --ff-only``. Never deletes
+    branches — that stays in ``/iflow-cleanup``.
+    """
+    from issue_flow.agent import run_switchback
+
+    raise typer.Exit(code=run_switchback(project_dir, _console, json_output))
 
 
 @agent_app.command("resolve")

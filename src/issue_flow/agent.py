@@ -1,9 +1,10 @@
 """Orchestrators behind the agent-facing CLI surface.
 
 These functions back ``issue-flow status`` (human-facing, top-level) and the
-``issue-flow agent ...`` sub-commands (``state`` / ``preflight`` / ``resolve`` /
-``sweep`` / ``capture``) that exist so AI agents can ask the tool for a deterministic
-answer instead of re-deriving lifecycle state by hand on every run.
+``issue-flow agent ...`` sub-commands (``state`` / ``preflight`` / ``switchback`` /
+``resolve`` / ``sweep`` / ``archive`` / ``capture``) that exist so AI agents can
+ask the tool for a deterministic answer instead of re-deriving lifecycle state
+by hand on every run.
 
 Each ``run_*`` returns a process exit code and emits either a short human
 report (via :class:`rich.console.Console`) or a stable JSON object on stdout
@@ -171,6 +172,100 @@ def run_preflight(project_root: Path, console: Console, as_json: bool) -> int:
     for note in notes:
         console.print(f"  [yellow]warn[/yellow]  {note}")
     return 0
+
+
+# ---------------------------------------------------------------------------
+# agent switchback
+# ---------------------------------------------------------------------------
+
+
+def run_switchback(project_root: Path, console: Console, as_json: bool) -> int:
+    """Return to the default branch and fast-forward it — the mechanical half
+    of ``/iflow-close``'s "switch back when safe" step.
+
+    Mirrors the manual instructions exactly: refuse (exit 1) while the working
+    tree is dirty so switching can never strand uncommitted work, otherwise
+    ``git switch <default>`` followed by ``git pull --ff-only``. A refused
+    fast-forward is surfaced, never forced. Branch deletion is deliberately
+    out of scope — that stays in ``/iflow-cleanup``.
+    """
+    notes: list[str] = []
+    payload: dict[str, Any] = {
+        "git_available": gitutils.git_available(),
+        "previous_branch": None,
+        "default_branch": None,
+        "switched": False,
+        "pulled": False,
+        "dirty_paths": [],
+        "notes": notes,
+    }
+
+    def emit(exit_code: int) -> int:
+        if as_json:
+            _emit_json(console, payload)
+        else:
+            _render_switchback_text(console, payload, exit_code)
+        return exit_code
+
+    if not payload["git_available"]:
+        notes.append("git is not on PATH")
+        return emit(1)
+
+    branch = gitutils.current_branch(project_root)
+    default = gitutils.default_branch(project_root)
+    dirty = gitutils.dirty_paths(project_root)
+    payload["previous_branch"] = branch
+    payload["default_branch"] = default
+
+    if dirty is None:
+        notes.append("could not read the working tree state (not a git repo?)")
+        return emit(1)
+    if dirty:
+        payload["dirty_paths"] = dirty
+        notes.append(
+            "working tree is dirty; switching is unsafe until these changes "
+            "are committed, stashed, or discarded."
+        )
+        return emit(1)
+
+    if branch == default:
+        notes.append(f"already on {default}")
+    else:
+        ok, error = gitutils.switch_branch(project_root, default)
+        if not ok:
+            notes.append(f"git switch {default} failed: {error}")
+            return emit(1)
+        payload["switched"] = True
+
+    ok, error = gitutils.pull_ff_only(project_root)
+    payload["pulled"] = ok
+    if not ok:
+        notes.append(
+            f"git pull --ff-only refused: {error} — reconcile manually before "
+            "continuing."
+        )
+        return emit(1)
+
+    return emit(0)
+
+
+def _render_switchback_text(
+    console: Console, payload: dict[str, Any], exit_code: int
+) -> None:
+    if exit_code == 0:
+        previous = payload["previous_branch"]
+        came_from = (
+            f" (from {escape(previous)})" if payload["switched"] and previous else ""
+        )
+        console.print(
+            f"[green]ok[/green]  on [bold]{escape(payload['default_branch'])}[/bold]"
+            f"{came_from}, fast-forwarded."
+        )
+    for path in payload["dirty_paths"]:
+        console.print(f"  [yellow]dirty[/yellow]  {escape(path)}")
+    for note in payload["notes"]:
+        style = "red" if exit_code != 0 else "dim"
+        console.print(f"  [{style}]{escape(note)}[/{style}]")
 
 
 # ---------------------------------------------------------------------------

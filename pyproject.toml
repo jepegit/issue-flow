@@ -8,13 +8,15 @@ license-files = ["LICENSE"]
 authors = [
     { name = "jepegit", email = "jepe@ife.no" }
 ]
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 keywords = ["cursor", "ai", "agents", "issue-tracking", "workflow"]
 classifiers = [
     "License :: OSI Approved :: MIT License",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Topic :: Software Development :: Build Tools",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
 ]
 dependencies = [

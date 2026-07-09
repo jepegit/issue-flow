@@ -138,6 +138,44 @@ def fetch_prune(cwd: Path) -> bool:
     return result is not None and result.returncode == 0
 
 
+def dirty_paths(cwd: Path) -> list[str] | None:
+    """Paths reported by ``git status --porcelain`` (empty list == clean).
+
+    Returns ``None`` when git is unavailable or the command fails, so callers
+    can distinguish "clean" from "unknown".
+    """
+    result = _run([GIT, "status", "--porcelain"], cwd)
+    if result is None or result.returncode != 0:
+        return None
+    return [line[3:].strip() for line in result.stdout.splitlines() if line.strip()]
+
+
+def switch_branch(cwd: Path, branch: str) -> tuple[bool, str | None]:
+    """Run ``git switch <branch>``. Returns ``(ok, error_message)``."""
+    result = _run([GIT, "switch", branch], cwd)
+    if result is None:
+        return False, "git is not on PATH"
+    if result.returncode != 0:
+        message = result.stderr.strip() or result.stdout.strip()
+        return False, message or f"git switch {branch} failed"
+    return True, None
+
+
+def pull_ff_only(cwd: Path) -> tuple[bool, str | None]:
+    """Run ``git pull --ff-only``. Returns ``(ok, error_message)``.
+
+    A refusal here usually means the local branch and its upstream diverged;
+    callers should surface the message and stop rather than force anything.
+    """
+    result = _run([GIT, "pull", "--ff-only"], cwd)
+    if result is None:
+        return False, "git is not on PATH"
+    if result.returncode != 0:
+        message = result.stderr.strip() or result.stdout.strip()
+        return False, message or "git pull --ff-only failed"
+    return True, None
+
+
 def ahead_behind(cwd: Path, default: str) -> tuple[int, int] | None:
     """Return ``(ahead, behind)`` of HEAD vs ``origin/<default>``.
 

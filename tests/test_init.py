@@ -356,6 +356,15 @@ def test_init_issue_close_documents_uncommitted_and_branch_reminder(
     assert "git status --porcelain" in content
 
 
+def test_init_close_skill_mentions_switchback_fast_path(tmp_path: Path) -> None:
+    """iflow-close skill should offer `issue-flow agent switchback` as fast path."""
+    run_init(tmp_path)
+    content = (tmp_path / ".cursor" / "skills" / "iflow-close" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    assert "issue-flow agent switchback" in content
+
+
 def test_init_rule_documents_designs_folder(tmp_path: Path) -> None:
     """The generated rule file should mention the designs-and-guides folder."""
     run_init(tmp_path)
