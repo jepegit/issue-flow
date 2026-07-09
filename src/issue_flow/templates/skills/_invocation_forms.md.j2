@@ -1,0 +1,5 @@
+{% if iflow_step == "dispatcher" -%}
+**Invoke:** type `iflow` in chat, or `/iflow` from the slash menu.
+{% else -%}
+**Invoke:** type `iflow {{ iflow_step }}` in chat, or `/iflow-{{ iflow_step }}` from the slash menu (`iflow-{{ iflow_step }}` also works).
+{% endif %}

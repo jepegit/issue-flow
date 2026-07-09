@@ -4,6 +4,7 @@ description: >-
   Interactive session: one long-lived branch + GitHub issue for a stream of
   small iterative fixes, landed together via /iflow-close.
 disable-model-invocation: true
+issue-flow-version: 0.4.2a4
 ---
 
 # issue-flow — interactive iterative-fix session (`/iflow-fix`)
@@ -19,6 +20,11 @@ It **coexists** with `/iflow-pick fix`: that command is a one-shot setup back in
 - **a name** (e.g. `polish-cli-output`) — used for the issue title and branch slug.
 - **(nothing)** — default the slug to `iterative-small-fixes` (made unique via the new issue number).
 - **a description** during an active session — run the next fix in the loop.
+
+
+**Invoke:** type `iflow fix` in chat, or `/iflow-fix` from the slash menu (`iflow-fix` also works).
+
+
 
 
 ### MODEL & EXECUTION DIRECTIVE

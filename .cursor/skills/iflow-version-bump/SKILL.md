@@ -4,6 +4,7 @@ description: >-
   Bump the project version in pyproject.toml using uv, with a
   pre-release-aware default when no level is given.
 disable-model-invocation: true
+issue-flow-version: 0.4.2a4
 ---
 
 # issue-flow — version bump

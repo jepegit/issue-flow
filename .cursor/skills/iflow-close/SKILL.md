@@ -4,6 +4,7 @@ description: >-
   Finish and land the focus issue: tests, optional version bump, status
   update, commit, push, and PR.
 disable-model-invocation: true
+issue-flow-version: 0.4.2a4
 ---
 
 # issue-flow — issue close (`/iflow-close`)
@@ -34,6 +35,11 @@ The exact semantics and the default rule live in `.cursor/skills/iflow-version-b
 ## Hands-off token (command input)
 
 - **`yolo`** (used by `/iflow-yolo`) → close the loop without user input: write the `HISTORY.md` bullet without a confirm prompt (step 3), **merge the PR** right after opening it (step 8a), then switch back to the default branch and `git pull --ff-only` (step 9, unless `stay` was also passed).
+
+
+**Invoke:** type `iflow close` in chat, or `/iflow-close` from the slash menu (`iflow-close` also works).
+
+
 
 
 ### MODEL & EXECUTION DIRECTIVE

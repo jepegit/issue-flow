@@ -4,11 +4,17 @@ description: >-
   Post-merge branch hygiene: switch to the default branch and delete merged
   local branches under one consolidated confirm. Never -D.
 disable-model-invocation: true
+issue-flow-version: 0.4.2a4
 ---
 
 # issue-flow — issue cleanup (`/iflow-cleanup`)
 
 Follow this skill to **run post-merge branch hygiene** after a PR has been merged (typically the PR opened by `/iflow-close`).
+
+
+**Invoke:** type `iflow cleanup` in chat, or `/iflow-cleanup` from the slash menu (`iflow-cleanup` also works).
+
+
 
 
 ### MODEL & EXECUTION DIRECTIVE

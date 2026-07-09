@@ -4,6 +4,7 @@ description: >-
   Front door: choose the next issue, create the issue branch, and run
   /iflow-init.
 disable-model-invocation: true
+issue-flow-version: 0.4.2a4
 ---
 
 # issue-flow — pick next issue (`/iflow-pick`)
@@ -17,6 +18,11 @@ Do **not** use this skill from `/iflow`, `/iflow-start`, or `/iflow-close`. `/if
 - **(nothing)** — survey candidates and ask which to pick.
 - **`fix`** — create a **new** general-fixes GitHub issue (a fresh one every time) and use it.
 - **a hint** (milestone / label / topic) — bias the candidate ranking.
+
+
+**Invoke:** type `iflow pick` in chat, or `/iflow-pick` from the slash menu (`iflow-pick` also works).
+
+
 
 
 ### MODEL & EXECUTION DIRECTIVE

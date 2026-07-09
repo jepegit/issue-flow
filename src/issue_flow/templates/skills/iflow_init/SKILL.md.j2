@@ -10,6 +10,9 @@ disable-model-invocation: true
 
 Follow this skill to **capture a GitHub issue locally** under `{{ issueflows_dir }}/{{ current_issues_folder }}/`.{% if commands_supported %} It uses the same rules as `{{ agent_dir }}/{{ commands_dir }}/iflow-init.md`.{% endif %}
 
+{% set iflow_step = "init" %}
+{% include "skills/_invocation_forms.md.j2" %}
+
 {% include "skills/_model_directive.md.j2" %}
 
 {% include "skills/_resolve_project_root.md.j2" %}

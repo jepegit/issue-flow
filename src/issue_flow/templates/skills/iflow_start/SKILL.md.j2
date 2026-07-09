@@ -10,6 +10,9 @@ disable-model-invocation: true
 
 Follow this skill to **begin implementation** from issue notes and project rules.{% if commands_supported %} Matches `{{ agent_dir }}/{{ commands_dir }}/iflow-start.md`.{% endif %} Planning itself lives in `/iflow-plan`; this skill is implementation-only. Stay aligned with `{{ agent_dir }}/rules/issueflow-rules.mdc` when present.
 
+{% set iflow_step = "start" %}
+{% include "skills/_invocation_forms.md.j2" %}
+
 {% include "skills/_model_directive.md.j2" %}
 
 {% include "skills/_resolve_project_root.md.j2" %}

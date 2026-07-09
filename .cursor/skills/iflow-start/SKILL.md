@@ -4,11 +4,17 @@ description: >-
   Implement the confirmed plan for the focus issue using the project's
   documented conventions.
 disable-model-invocation: true
+issue-flow-version: 0.4.2a4
 ---
 
 # issue-flow — issue start (`/iflow-start`)
 
 Follow this skill to **begin implementation** from issue notes and project rules. Planning itself lives in `/iflow-plan`; this skill is implementation-only. Stay aligned with `.cursor/rules/issueflow-rules.mdc` when present.
+
+
+**Invoke:** type `iflow start` in chat, or `/iflow-start` from the slash menu (`iflow-start` also works).
+
+
 
 
 ### MODEL & EXECUTION DIRECTIVE

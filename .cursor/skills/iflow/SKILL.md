@@ -4,6 +4,7 @@ description: >-
   Smart dispatcher: detect where the focus issue stands and dispatch to
   /iflow-init, /iflow-plan, /iflow-start, or /iflow-close.
 disable-model-invocation: true
+issue-flow-version: 0.4.2a4
 ---
 
 # issue-flow — iflow smart dispatcher (`/iflow`)
@@ -11,6 +12,11 @@ disable-model-invocation: true
 Follow this skill to run **the right next step** in the issue-flow lifecycle: it detects state and routes to `/iflow-init`, `/iflow-plan`, `/iflow-start`, or `/iflow-close`, forwarding trailing args verbatim.
 
 Do **not** use this skill for `/iflow-pick`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, or `/iflow-fix`. Those are explicit-only commands. (`/iflow-pick` is the front door *before* `/iflow-init`, for when no issue has been chosen yet. `/iflow-fix` runs an interactive iterative-fixes session, driven by `/iflow-fix` + `/iflow-close`.)
+
+
+**Invoke:** type `iflow` in chat, or `/iflow` from the slash menu.
+
+
 
 
 ### MODEL & EXECUTION DIRECTIVE

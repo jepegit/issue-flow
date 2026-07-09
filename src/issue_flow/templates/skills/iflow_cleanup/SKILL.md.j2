@@ -10,6 +10,9 @@ disable-model-invocation: true
 
 Follow this skill to **run post-merge branch hygiene** after a PR has been merged (typically the PR opened by `/iflow-close`).{% if commands_supported %} Matches `{{ agent_dir }}/{{ commands_dir }}/iflow-cleanup.md`.{% endif %}
 
+{% set iflow_step = "cleanup" %}
+{% include "skills/_invocation_forms.md.j2" %}
+
 {% include "skills/_model_directive.md.j2" %}
 
 {% include "skills/_resolve_project_root.md.j2" %}

@@ -3,6 +3,7 @@ name: iflow-status
 description: >-
   Read-only snapshot of where every issue stands, locally and on GitHub.
 disable-model-invocation: true
+issue-flow-version: 0.4.2a4
 ---
 
 # issue-flow — issue status overview (`/iflow-status`)
@@ -10,6 +11,11 @@ disable-model-invocation: true
 Follow this skill for a bird's-eye view of every issue's status — local tracking state (focus / parked / solved) plus open GitHub issues — rather than acting on the single focus issue.
 
 Do **not** use this skill to *change* anything. It is read-only and off-path; for acting on the focus issue use `/iflow`, and to choose the next issue use `/iflow-pick`.
+
+
+**Invoke:** type `iflow status` in chat, or `/iflow-status` from the slash menu (`iflow-status` also works).
+
+
 
 
 ### MODEL & EXECUTION DIRECTIVE

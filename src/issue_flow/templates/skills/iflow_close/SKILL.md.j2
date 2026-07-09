@@ -35,6 +35,9 @@ The exact semantics and the default rule live in `{{ agent_dir }}/skills/iflow-v
 
 - **`yolo`** (used by `/iflow-yolo`) → close the loop without user input: write the `{{ history_file }}` bullet without a confirm prompt (step 3), **merge the PR** right after opening it (step 8a), then switch back to the default branch and `git pull --ff-only` (step 9, unless `stay` was also passed).
 
+{% set iflow_step = "close" %}
+{% include "skills/_invocation_forms.md.j2" %}
+
 {% include "skills/_model_directive.md.j2" %}
 
 {% include "skills/_resolve_project_root.md.j2" %}
