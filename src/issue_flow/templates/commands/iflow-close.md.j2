@@ -69,11 +69,10 @@ Other optional notes still apply: branch name, PR title, draft PR, skip issue do
    - Without the `yolo` input, skip this step — merging stays a user decision (step 9).
 
 8. **Switch back when safe**
-   - Detect the default branch: prefer `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`, else `git symbolic-ref --quiet --short refs/remotes/origin/HEAD | sed 's|^origin/||'`, else `main`.
    - If the input included `stay`, `stay on branch`, `don't switch`, or `dont switch to main`, stay on the issue branch and report that the user opted out.
-   - Otherwise run `git status --porcelain` after the PR is open or updated. If it is clean, switch back with `git switch <default>` and then run `git pull --ff-only`. A clean tree here means the branch work has been committed and pushed to the PR branch.
+   - **CLI fast path (preferred).** If the `issue-flow` CLI is on `PATH`, run `issue-flow agent switchback --json` after the PR is open or updated. It performs this whole step deterministically: refuses while the working tree is dirty (listing the paths), else switches to the detected default branch and runs `git pull --ff-only`. On exit 1, report its `notes` to the user and stop — do not force anything.
+   - **Manual fallback.** Detect the default branch: prefer `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`, else `git symbolic-ref --quiet --short refs/remotes/origin/HEAD | sed 's|^origin/||'`, else `main`. Run `git status --porcelain`; if it is clean, switch back with `git switch <default>` and then run `git pull --ff-only`. A clean tree here means the branch work has been committed and pushed to the PR branch. If the working tree is dirty, stay on the current branch, list the uncommitted paths, and explain that switching is unsafe until those changes are committed, stashed, or discarded by the user.
    - **`yolo` input:** this step is mandatory (unless `stay` was also passed) and runs **after** the merge from step 7a, so the pull brings the just-merged squash commit into the local default branch. If step 7a only queued an auto-merge, still switch and pull, and note that the merge commit will arrive once checks pass.
-   - If the working tree is dirty, stay on the current branch, list the uncommitted paths, and explain that switching is unsafe until those changes are committed, stashed, or discarded by the user.
    - This step never deletes the issue branch. Branch deletion remains in `/iflow-cleanup`.
 
 9. **After review**

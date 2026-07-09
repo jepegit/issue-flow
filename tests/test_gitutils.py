@@ -225,6 +225,94 @@ def test_working_tree_clean_false_when_dirty(
     assert gitutils.working_tree_clean(Path(".")) is False
 
 
+# ---------------------------------------------------------------------------
+# switchback building blocks
+# ---------------------------------------------------------------------------
+
+
+def test_dirty_paths_lists_files(
+    monkeypatch: pytest.MonkeyPatch, all_tools_present: None
+) -> None:
+    monkeypatch.setattr(
+        gitutils.subprocess,
+        "run",
+        _fake_runner(
+            {("git", "status"): _FakeProc(stdout=" M src/a.py\n?? new.txt\n")}
+        ),
+    )
+    assert gitutils.dirty_paths(Path(".")) == ["src/a.py", "new.txt"]
+
+
+def test_dirty_paths_empty_when_clean(
+    monkeypatch: pytest.MonkeyPatch, all_tools_present: None
+) -> None:
+    monkeypatch.setattr(
+        gitutils.subprocess,
+        "run",
+        _fake_runner({("git", "status"): _FakeProc(stdout="")}),
+    )
+    assert gitutils.dirty_paths(Path(".")) == []
+
+
+def test_dirty_paths_none_when_git_missing(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(gitutils.shutil, "which", lambda _cmd: None)
+    assert gitutils.dirty_paths(Path(".")) is None
+
+
+def test_switch_branch_success(
+    monkeypatch: pytest.MonkeyPatch, all_tools_present: None
+) -> None:
+    monkeypatch.setattr(
+        gitutils.subprocess,
+        "run",
+        _fake_runner(
+            {("git", "switch"): _FakeProc(stdout="Switched to branch 'main'")}
+        ),
+    )
+    assert gitutils.switch_branch(Path("."), "main") == (True, None)
+
+
+def test_switch_branch_reports_error(
+    monkeypatch: pytest.MonkeyPatch, all_tools_present: None
+) -> None:
+    proc = _FakeProc(returncode=1)
+    proc.stderr = "error: pathspec 'nope' did not match"
+    monkeypatch.setattr(
+        gitutils.subprocess,
+        "run",
+        _fake_runner({("git", "switch"): proc}),
+    )
+    ok, message = gitutils.switch_branch(Path("."), "nope")
+    assert ok is False
+    assert message is not None and "pathspec" in message
+
+
+def test_pull_ff_only_success(
+    monkeypatch: pytest.MonkeyPatch, all_tools_present: None
+) -> None:
+    monkeypatch.setattr(
+        gitutils.subprocess,
+        "run",
+        _fake_runner({("git", "pull"): _FakeProc(stdout="Already up to date.")}),
+    )
+    assert gitutils.pull_ff_only(Path(".")) == (True, None)
+
+
+def test_pull_ff_only_reports_refusal(
+    monkeypatch: pytest.MonkeyPatch, all_tools_present: None
+) -> None:
+    proc = _FakeProc(returncode=128)
+    proc.stderr = "fatal: Not possible to fast-forward, aborting."
+    monkeypatch.setattr(
+        gitutils.subprocess,
+        "run",
+        _fake_runner({("git", "pull"): proc}),
+    )
+    ok, message = gitutils.pull_ff_only(Path("."))
+    assert ok is False
+    assert message is not None and "fast-forward" in message
+
+
 def test_subprocess_import_is_available() -> None:
     """Guard against accidentally dropping the subprocess import."""
     assert gitutils.subprocess is subprocess

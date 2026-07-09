@@ -14,7 +14,7 @@ This repo *is* the tool itself — not a project that has been scaffolded by it.
 
 - Package name: `issue-flow` (module `issue_flow`)
 - Entry point: `issue-flow = "issue_flow.cli:main"`
-- Requires Python 3.13+
+- Requires Python 3.11+ (development pin: 3.13 in `.python-version`)
 - Source of truth for scaffolded files: Jinja2 templates under
   `src/issue_flow/templates/`
 

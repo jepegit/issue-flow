@@ -1,0 +1,177 @@
+# Configuration
+
+issue-flow reads settings from two places:
+
+- **`.env`** (project root, via python-dotenv) — machine/user-level defaults.
+- **`.issueflows/config.toml`** — the project's persisted choices. Persisted
+  values deliberately **beat** the environment, so a stray env var can't
+  silently override your project's configuration on `update`.
+
+## Environment variables (`.env`)
+
+`issue-flow init` **creates a starter `.env` when one is missing** (all
+`ISSUEFLOW_*` lines written commented-out, so nothing is overridden until you
+uncomment). It never replaces an existing `.env` — not even with `--force`; on
+later runs it only *appends* commented hints for any `ISSUEFLOW_*` keys you
+don't already have. `issue-flow update` does not touch `.env` at all.
+
+| Variable                 | Default        | Description |
+| ------------------------ | -------------- | ----------- |
+| `ISSUEFLOW_DIR`          | `.issueflows`  | Name of the issue-tracking directory. |
+| `ISSUEFLOW_EDITOR`       | `cursor`       | Default editor profile when `--editor` is not passed (`cursor`, `claude`, `opencode`, `codex`). |
+| `ISSUEFLOW_AGENT_DIR`    | *(per editor)* | Override the agent/IDE config directory. When unset it is derived from the editor profile (e.g. `.cursor`, `.claude`, `.opencode`, `.codex`). |
+| `ISSUEFLOW_DOCS_DIR`     | `docs`         | Where to write the workflow documentation file. |
+| `ISSUEFLOW_HISTORY_FILE` | `HISTORY.md`   | Changelog file that `/iflow-close` updates (set to e.g. `CHANGELOG.md` for different conventions). |
+| `ISSUEFLOW_MODE`         | `standard`     | Fallback [scaffolding mode](#modes) when none is persisted in `config.toml`. Full order: `--mode` (CLI) > `config.toml` > `ISSUEFLOW_MODE` > `standard`. |
+| `ISSUEFLOW_SKILL_LEVEL`  | `standard`     | Fallback [skill level](#skill-levels) when none is persisted in `config.toml`. Full order: `--skill-level` (CLI) > `config.toml` > `ISSUEFLOW_SKILL_LEVEL` > `standard`. |
+| `ISSUEFLOW_CAVEMAN_DEFAULT` | `false`     | Fallback for the [always-on caveman](#caveman-skill) toggle. Full order: `config.toml` > `ISSUEFLOW_CAVEMAN_DEFAULT` > `false`. Only honored when the `caveman` skill is in the active mode. |
+| `ISSUEFLOW_GRILL_ME_DEFAULT` | `false`    | Fallback for the [grill-me-during-planning](#grill-me-skill) toggle. Full order: `config.toml` > `ISSUEFLOW_GRILL_ME_DEFAULT` > `false`. Only honored when the `grill_me` skill is in the active mode. |
+| `ISSUEFLOW_LABEL_FLOWS`  | `true`         | Fallback for the [label-driven flows](#label-driven-flows) toggle. Full order: `config.toml` > `ISSUEFLOW_LABEL_FLOWS` > `true`. Only honored when the `iflow-pick` and `iflow-yolo` commands are in the active mode. |
+| `ISSUEFLOW_YOLO_LABEL`   | `yolo`         | Fallback for the [yolo trigger label](#label-driven-flows). Full order: `config.toml` > `ISSUEFLOW_YOLO_LABEL` > `yolo`. |
+
+The optional [graphify integration](graphify.md) additionally reads an LLM API
+key (`GEMINI_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`,
+`MOONSHOT_API_KEY`) from `.env` for its semantic `extract` pass.
+
+## Creating `config.toml`
+
+`init --mode <id>` is the usual way `.issueflows/config.toml` first appears, but
+you can also materialize a fully-commented file on demand:
+
+```bash
+issue-flow config add            # create .issueflows/config.toml if missing
+issue-flow config add --force    # regenerate its [issueflow] keys in place
+```
+
+It writes the keys issue-flow actually reads from `config.toml` — `mode`,
+`skill_level`, `caveman_default`, `grill_me_default`, `label_flows`,
+`yolo_label`, `step_directives`, `model_label_flows`, `deep_model_label`,
+`fast_model_label` — taking each value from its `ISSUEFLOW_*` env var / `.env`
+when set, otherwise the issue-flow default. The other `ISSUEFLOW_*` settings
+are **environment-only** and are deliberately *not* written to `config.toml`
+(putting them there would have no effect). An existing file is left untouched
+unless `--force` is passed, in which case the keys are upserted while your
+comments and `[modes.*]` tables are preserved. After changing any of these
+keys, re-run `issue-flow update` so the rule and commands re-render. Pass
+`--json` for a machine-readable result.
+
+## Modes
+
+A **mode** selects which workflow surfaces (skills / slash commands) `init`
+installs, so you can scaffold a lighter workflow when the full lifecycle is more
+than you need. Two modes ship built in:
+
+| Mode | What you get |
+| --- | --- |
+| `standard` (default) | The full workflow: planning, PRs, history, cleanup, graphify, and all helpers. |
+| `simple` | A markdown-only lifecycle (capture, plan, implement, park, status, archive). No PR/cleanup/yolo/fix/graphify automation. Includes `/iflow-archive` for condensing a large `03-solved-issues/` folder. |
+
+```bash
+issue-flow init --mode simple
+```
+
+The chosen mode is **persisted** to `.issueflows/config.toml`
+(`[issueflow].mode`), so `issue-flow update` refreshes exactly that mode's
+surfaces. `update` never changes the mode — switch by re-running `init --mode
+<id>` (which also prunes the surfaces the new mode drops). The active mode
+resolves in this order: **`--mode` (CLI, on `init`)** > **`config.toml`**
+(the persisted choice) > **`ISSUEFLOW_MODE`** (env, a fallback for projects that
+haven't persisted a mode) > **`standard`**.
+
+### Custom modes
+
+A project can define its own modes in `.issueflows/config.toml` using
+`[modes.<id>]` tables — either explicit `skills`/`commands` lists or `extends`
++ `add`/`remove` to compose on top of a built-in mode (a mode may reference any
+surface issue-flow ships):
+
+```toml
+[issueflow]
+mode = "mine"
+
+[modes.mine]
+name = "Mine"
+extends = "simple"
+add = ["iflow_graphify"]
+```
+
+## Skill levels
+
+A **skill level** controls how opinionated the scaffolded quality-tooling
+guidance is. It is set with `init --skill-level <level>`, persisted to
+`.issueflows/config.toml` (`[issueflow].skill_level`), and honoured by
+`update`:
+
+| Level | What you get |
+| --- | --- |
+| `basic` | Minimal guidance; no extra tooling documents. |
+| `standard` (default) | The regular workflow guidance; no extra tooling documents. |
+| `advanced` | Additionally writes `.issueflows/04-designs-and-guides/python-quality-tools.md` — opinionated (and explicitly advisory) recommendations for type checking (mypy/pyright), linting and formatting (ruff), pre-commit hooks, and pytest coverage. Agents are instructed to **ask before** installing or configuring any of it, and to run `ruff check --fix` / `ruff format` before `/iflow-close` when the project already uses ruff. |
+
+Resolution order mirrors modes: `--skill-level` (CLI) > `config.toml` >
+`ISSUEFLOW_SKILL_LEVEL` (env) > `standard`.
+
+## Caveman skill
+
+The `standard` mode installs an optional `caveman` Agent Skill
+(`<agent_dir>/skills/caveman/`) — a terse, "token-greedy" response style
+that keeps technical substance but drops filler. It is off by default and only
+activates when you ask for it ("caveman" / "token greedy"); turn it off with
+"stop caveman" or "normal mode". The lightweight `simple` mode omits it.
+
+To make caveman **on by default for a project**, set `caveman_default = true`
+under `[issueflow]` in `.issueflows/config.toml` and re-run `issue-flow update`:
+
+```toml
+[issueflow]
+caveman_default = true
+```
+
+This renders an always-on caveman pointer into the managed rule body (so the
+always-applied rule re-arms it every session); you can still drop it for the rest
+of a session with "stop caveman" / "normal mode". The flag is only honored when
+the `caveman` skill is part of the active mode.
+
+## Grill-me skill
+
+The `standard` mode also installs a `grill-me` Agent Skill
+(`<agent_dir>/skills/grill-me/`) — a relentless planning interview that
+stress-tests a plan or design (one question at a time, each with a recommended
+answer) until every branch of the decision tree is resolved, then feeds the
+conclusions into `issue<N>_plan.md`. It is off by default and only activates when
+you ask for it ("grill me"); turn it off with "stop grilling" or "normal mode".
+The lightweight `simple` mode omits it.
+
+To make grilling **on by default during planning for a project**, set
+`grill_me_default = true` under `[issueflow]` in `.issueflows/config.toml` and
+re-run `issue-flow update`:
+
+```toml
+[issueflow]
+grill_me_default = true
+```
+
+This renders an always-on grill-me pointer into the managed rule body and the
+`/iflow-plan` skill, so planning starts with a grilling pass every session; you
+can still drop it for the rest of a session with "stop grilling" / "normal mode".
+The flag is only honored when the `grill_me` skill is part of the active mode.
+
+## Label-driven flows
+
+Issue labels can select the flow: when an issue picked via `/iflow-pick`
+carries the **`yolo`** label, it is routed through the hands-off `/iflow-yolo`
+chain (one combined confirmation covering the branch and the whole
+`init → plan → start → close yolo` run, which merges the PR and pulls the
+default branch at the end). This is **on by default** and controlled by two
+keys under `[issueflow]` in `.issueflows/config.toml`:
+
+```toml
+[issueflow]
+label_flows = true    # allow labels to select the flow (default: true)
+yolo_label = "yolo"   # the label that triggers the yolo flow (default: "yolo")
+```
+
+Set `label_flows = false` to opt out, or change `yolo_label` to use a different
+trigger label; re-run `issue-flow update` after changing either so the commands
+re-render. Only honored when the `iflow-pick` and `iflow-yolo` commands are part
+of the active mode.

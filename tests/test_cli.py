@@ -270,7 +270,15 @@ def test_agent_help_lists_subcommands(runner: CliRunner) -> None:
     result = runner.invoke(app, ["agent", "--help"])
     assert result.exit_code == 0
     plain = _plain(result.stdout)
-    for sub in ("state", "preflight", "resolve", "sweep", "capture", "archive"):
+    for sub in (
+        "state",
+        "preflight",
+        "switchback",
+        "resolve",
+        "sweep",
+        "capture",
+        "archive",
+    ):
         assert sub in plain
 
 
@@ -344,6 +352,132 @@ def test_agent_preflight_json_handles_missing_git(
     result = runner.invoke(app, ["agent", "preflight", str(tmp_path), "--json"])
 
     assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["git_available"] is False
+
+
+def test_agent_switchback_refuses_dirty_tree(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from issue_flow import gitutils as gitutils_module
+
+    monkeypatch.setattr(gitutils_module, "git_available", lambda: True)
+    monkeypatch.setattr(gitutils_module, "current_branch", lambda _cwd: "42-fix")
+    monkeypatch.setattr(gitutils_module, "default_branch", lambda _cwd: "main")
+    monkeypatch.setattr(
+        gitutils_module, "dirty_paths", lambda _cwd: ["src/wip.py", "notes.md"]
+    )
+
+    def explode(*_a: object, **_kw: object) -> object:
+        raise AssertionError("must not switch or pull while the tree is dirty")
+
+    monkeypatch.setattr(gitutils_module, "switch_branch", explode)
+    monkeypatch.setattr(gitutils_module, "pull_ff_only", explode)
+
+    result = runner.invoke(app, ["agent", "switchback", str(tmp_path), "--json"])
+
+    assert result.exit_code == 1, result.output
+    payload = _json(result.stdout)
+    assert payload["switched"] is False
+    assert payload["pulled"] is False
+    assert payload["dirty_paths"] == ["src/wip.py", "notes.md"]
+    assert any("dirty" in note for note in payload["notes"])
+
+
+def test_agent_switchback_switches_and_pulls_when_clean(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from issue_flow import gitutils as gitutils_module
+
+    calls: list[str] = []
+    monkeypatch.setattr(gitutils_module, "git_available", lambda: True)
+    monkeypatch.setattr(gitutils_module, "current_branch", lambda _cwd: "42-fix")
+    monkeypatch.setattr(gitutils_module, "default_branch", lambda _cwd: "main")
+    monkeypatch.setattr(gitutils_module, "dirty_paths", lambda _cwd: [])
+    monkeypatch.setattr(
+        gitutils_module,
+        "switch_branch",
+        lambda _cwd, branch: (calls.append(f"switch {branch}"), (True, None))[1],
+    )
+    monkeypatch.setattr(
+        gitutils_module,
+        "pull_ff_only",
+        lambda _cwd: (calls.append("pull"), (True, None))[1],
+    )
+
+    result = runner.invoke(app, ["agent", "switchback", str(tmp_path), "--json"])
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["previous_branch"] == "42-fix"
+    assert payload["default_branch"] == "main"
+    assert payload["switched"] is True
+    assert payload["pulled"] is True
+    assert calls == ["switch main", "pull"]
+
+
+def test_agent_switchback_already_on_default_still_pulls(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from issue_flow import gitutils as gitutils_module
+
+    monkeypatch.setattr(gitutils_module, "git_available", lambda: True)
+    monkeypatch.setattr(gitutils_module, "current_branch", lambda _cwd: "main")
+    monkeypatch.setattr(gitutils_module, "default_branch", lambda _cwd: "main")
+    monkeypatch.setattr(gitutils_module, "dirty_paths", lambda _cwd: [])
+
+    def explode(*_a: object, **_kw: object) -> object:
+        raise AssertionError("must not switch when already on the default branch")
+
+    monkeypatch.setattr(gitutils_module, "switch_branch", explode)
+    monkeypatch.setattr(gitutils_module, "pull_ff_only", lambda _cwd: (True, None))
+
+    result = runner.invoke(app, ["agent", "switchback", str(tmp_path), "--json"])
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["switched"] is False
+    assert payload["pulled"] is True
+    assert any("already on main" in note for note in payload["notes"])
+
+
+def test_agent_switchback_reports_ff_refusal(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from issue_flow import gitutils as gitutils_module
+
+    monkeypatch.setattr(gitutils_module, "git_available", lambda: True)
+    monkeypatch.setattr(gitutils_module, "current_branch", lambda _cwd: "42-fix")
+    monkeypatch.setattr(gitutils_module, "default_branch", lambda _cwd: "main")
+    monkeypatch.setattr(gitutils_module, "dirty_paths", lambda _cwd: [])
+    monkeypatch.setattr(
+        gitutils_module, "switch_branch", lambda _cwd, _branch: (True, None)
+    )
+    monkeypatch.setattr(
+        gitutils_module,
+        "pull_ff_only",
+        lambda _cwd: (False, "fatal: Not possible to fast-forward"),
+    )
+
+    result = runner.invoke(app, ["agent", "switchback", str(tmp_path), "--json"])
+
+    assert result.exit_code == 1, result.output
+    payload = _json(result.stdout)
+    assert payload["switched"] is True
+    assert payload["pulled"] is False
+    assert any("fast-forward" in note for note in payload["notes"])
+
+
+def test_agent_switchback_missing_git_exits_nonzero(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from issue_flow import gitutils as gitutils_module
+
+    monkeypatch.setattr(gitutils_module, "git_available", lambda: False)
+
+    result = runner.invoke(app, ["agent", "switchback", str(tmp_path), "--json"])
+
+    assert result.exit_code == 1, result.output
     payload = _json(result.stdout)
     assert payload["git_available"] is False
 
