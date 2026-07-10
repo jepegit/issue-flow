@@ -704,6 +704,179 @@ def test_agent_resolve_fails_without_scaffold(
     assert result.exit_code == 1
     payload = _json(result.stdout)
     assert payload["project_root"] is None
+    assert payload["workspace_root"] is None
+    assert payload["resolved_via_workspace_default"] is False
+
+
+# ---------------------------------------------------------------------------
+# workspace registry (issue #126)
+# ---------------------------------------------------------------------------
+
+
+def _seed_workspace(tmp_path: Path, *, default: str | None = "alpha") -> Path:
+    """Workspace dir with two scaffolded members and a registry file."""
+    workspace = tmp_path / "workspace"
+    for name in ("alpha", "beta"):
+        (workspace / name / ".issueflows" / "01-current-issues").mkdir(parents=True)
+    lines = ["[workspace]"]
+    if default is not None:
+        lines.append(f'default = "{default}"')
+    (workspace / "issueflow-workspace.toml").write_text(
+        "\n".join(lines) + "\n", encoding="utf-8"
+    )
+    return workspace
+
+
+def test_agent_resolve_falls_back_to_workspace_default(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """From the workspace root (no scaffold above), the default member wins."""
+    from issue_flow import gitutils as gitutils_module
+
+    monkeypatch.setattr(gitutils_module, "remote_owner_repo", lambda _cwd: None)
+    monkeypatch.setattr(gitutils_module, "git_available", lambda: False)
+
+    workspace = _seed_workspace(tmp_path, default="alpha")
+
+    result = runner.invoke(app, ["agent", "resolve", "-C", str(workspace), "--json"])
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["project_root"] == str((workspace / "alpha").resolve())
+    assert payload["resolved_via_workspace_default"] is True
+    assert payload["workspace_root"] == str(workspace.resolve())
+    assert payload["workspace_default"] == "alpha"
+    assert payload["workspace_members"] == [
+        str((workspace / "alpha").resolve()),
+        str((workspace / "beta").resolve()),
+    ]
+
+
+def test_agent_resolve_nearest_scaffold_beats_workspace_default(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Inside a member repo, that repo wins even when another is the default."""
+    from issue_flow import gitutils as gitutils_module
+
+    monkeypatch.setattr(gitutils_module, "remote_owner_repo", lambda _cwd: None)
+    monkeypatch.setattr(gitutils_module, "git_available", lambda: False)
+
+    workspace = _seed_workspace(tmp_path, default="alpha")
+
+    result = runner.invoke(
+        app, ["agent", "resolve", "-C", str(workspace / "beta"), "--json"]
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["project_root"] == str((workspace / "beta").resolve())
+    assert payload["resolved_via_workspace_default"] is False
+    # Workspace context is still reported for the agent's awareness.
+    assert payload["workspace_default"] == "alpha"
+
+
+def test_agent_resolve_no_default_still_fails_from_workspace_root(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Without a default, the registry adds context but resolution still asks."""
+    from issue_flow import gitutils as gitutils_module
+
+    monkeypatch.setattr(gitutils_module, "remote_owner_repo", lambda _cwd: None)
+    monkeypatch.setattr(gitutils_module, "git_available", lambda: False)
+
+    workspace = _seed_workspace(tmp_path, default=None)
+
+    result = runner.invoke(app, ["agent", "resolve", "-C", str(workspace), "--json"])
+
+    assert result.exit_code == 1
+    payload = _json(result.stdout)
+    assert payload["project_root"] is None
+    assert payload["workspace_root"] == str(workspace.resolve())
+    assert len(payload["workspace_members"]) == 2
+
+
+def test_workspace_init_creates_registry(runner: CliRunner, tmp_path: Path) -> None:
+    workspace = tmp_path / "workspace"
+    for name in ("alpha", "beta"):
+        (workspace / name / ".issueflows").mkdir(parents=True)
+    (workspace / "plain").mkdir()
+
+    result = runner.invoke(
+        app,
+        ["workspace", "init", str(workspace), "--default", "beta", "--json"],
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["written"] is True
+    assert payload["default"] == "beta"
+    assert payload["members"] == ["alpha", "beta"]
+    text = (workspace / "issueflow-workspace.toml").read_text(encoding="utf-8")
+    assert 'default = "beta"' in text
+    assert '"alpha"' in text
+    assert '"plain"' not in text
+
+
+def test_workspace_init_single_member_becomes_default(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    workspace = tmp_path / "workspace"
+    (workspace / "solo" / ".issueflows").mkdir(parents=True)
+
+    result = runner.invoke(app, ["workspace", "init", str(workspace), "--json"])
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["default"] == "solo"
+
+
+def test_workspace_init_refuses_unknown_default(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    workspace = tmp_path / "workspace"
+    (workspace / "alpha" / ".issueflows").mkdir(parents=True)
+
+    result = runner.invoke(
+        app, ["workspace", "init", str(workspace), "--default", "nope", "--json"]
+    )
+
+    assert result.exit_code == 1
+    payload = _json(result.stdout)
+    assert payload["written"] is False
+    assert "nope" in payload["error"]
+    assert not (workspace / "issueflow-workspace.toml").exists()
+
+
+def test_workspace_init_refuses_without_members(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    workspace = tmp_path / "workspace"
+    (workspace / "plain").mkdir(parents=True)
+
+    result = runner.invoke(app, ["workspace", "init", str(workspace), "--json"])
+
+    assert result.exit_code == 1
+    payload = _json(result.stdout)
+    assert payload["written"] is False
+
+
+def test_workspace_init_refuses_overwrite_without_force(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    workspace = tmp_path / "workspace"
+    (workspace / "alpha" / ".issueflows").mkdir(parents=True)
+    registry = workspace / "issueflow-workspace.toml"
+    registry.write_text("# hand-written\n[workspace]\n", encoding="utf-8")
+
+    result = runner.invoke(app, ["workspace", "init", str(workspace), "--json"])
+    assert result.exit_code == 1
+    assert "hand-written" in registry.read_text(encoding="utf-8")
+
+    result = runner.invoke(
+        app, ["workspace", "init", str(workspace), "--force", "--json"]
+    )
+    assert result.exit_code == 0, result.output
+    assert "hand-written" not in registry.read_text(encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------

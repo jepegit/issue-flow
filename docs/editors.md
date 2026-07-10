@@ -43,3 +43,27 @@ explicitly. Use slash hints (`root:<path>`, `repo:<folder-name>`,
 `git`/`gh` calls. See `.issueflows/04-designs-and-guides/multi-repo-workspaces.md`
 in scaffolded projects (or run `issue-flow update` to refresh scoped
 `issueflow-rules.mdc` files).
+
+### Workspace registry and default repo
+
+Run **`issue-flow workspace init [--default <member>]`** at the workspace root
+to create `issueflow-workspace.toml`:
+
+```toml
+[workspace]
+default = "cellpy"                   # the "parent repo"
+members = ["cellpy", "cellpy-core"]  # optional; auto-discovered when omitted
+```
+
+The `default` member is used when a command runs from **outside any single
+scaffold** (typically the workspace root itself) — it replaces the final
+"stop and ask" step of the resolution order, and nothing else: explicit
+hints, the nearest scaffold, and the issue-branch heuristic all still win.
+`issue-flow agent resolve --json` reports the workspace context
+(`workspace_root`, `workspace_default`, `workspace_members`) and flags when
+the default was used (`resolved_via_workspace_default: true`).
+
+A single **shared** `.issueflows/` folder for the whole workspace is
+deliberately not supported: GitHub issue numbers are a per-repo namespace,
+branches and PRs are per-repo regardless, and `/iflow-archive` recovery
+depends on tracking files being committed in the repo that owns them.

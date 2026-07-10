@@ -32,6 +32,16 @@ config_app = typer.Typer(
     help="Manage the project's .issueflows/config.toml.",
 )
 
+workspace_app = typer.Typer(
+    name="workspace",
+    add_completion=False,
+    help=(
+        "Manage the multi-repo workspace registry (issueflow-workspace.toml): "
+        "a workspace-root file naming the member repos and the default "
+        "('parent') repo that lifecycle commands fall back to."
+    ),
+)
+
 _console = Console()
 
 _PROJECT_DIR_ARGUMENT = typer.Argument(
@@ -433,8 +443,51 @@ def config_add(
     raise typer.Exit(code=run_config_add(project_dir, _console, force, json_output))
 
 
+@workspace_app.command("init")
+def workspace_init(
+    workspace_dir: Path = typer.Argument(
+        default=Path("."),
+        help=(
+            "Workspace root directory — the folder that contains the member "
+            "repos (defaults to current directory)."
+        ),
+        exists=True,
+        file_okay=False,
+        resolve_path=True,
+    ),
+    default: str | None = typer.Option(
+        None,
+        "--default",
+        help=(
+            "Member folder name that lifecycle commands default to (the "
+            "'parent repo'). Must be a scaffolded member. When omitted and "
+            "exactly one member exists, that member becomes the default."
+        ),
+    ),
+    force: bool = typer.Option(
+        False, "--force", "-f", help="Overwrite an existing registry file."
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Create issueflow-workspace.toml listing the scaffolded member repos.
+
+    The registry only ever fills the bottom of the resolution order: explicit
+    ``root:``/``repo:`` hints and the nearest scaffold always win; the
+    ``default`` member is used when a command runs from outside any scaffold
+    (typically the workspace root), replacing the "stop and ask" step.
+    """
+    from issue_flow.agent import run_workspace_init
+
+    raise typer.Exit(
+        code=run_workspace_init(workspace_dir, _console, default, force, json_output)
+    )
+
+
 app.add_typer(agent_app)
 app.add_typer(config_app)
+app.add_typer(workspace_app)
 
 
 def main() -> None:
