@@ -1,0 +1,112 @@
+# Zensical configuration for the issue-flow documentation site.
+#
+# Build locally with:   uv run zensical build     (output lands in site/)
+# Live preview with:    uv run zensical serve
+#
+# Read the Docs builds this via .readthedocs.yaml.
+# Reference: https://zensical.org/docs/setup/basics/
+
+[project]
+site_name = "issue-flow"
+site_description = "Scaffold a lightweight issue-tracking workflow so AI coding agents can pick up GitHub issues, plan work, and land PRs in a consistent way."
+site_author = "jepegit"
+
+# Canonical URL of the published docs. Adjust if the Read the Docs project
+# ends up under a different slug than "issue-flow".
+site_url = "https://issue-flow.readthedocs.io/"
+
+repo_url = "https://github.com/jepegit/issue-flow"
+repo_name = "jepegit/issue-flow"
+
+copyright = """
+Copyright &copy; 2026 jepegit — MIT License
+"""
+
+nav = [
+  { "Home" = "index.md" },
+  { "The workflow" = "issue-workflow.md" },
+  { "CLI reference" = "cli.md" },
+  { "Configuration" = "configuration.md" },
+  { "Editor support" = "editors.md" },
+  { "Graphify integration" = "graphify.md" },
+  { "Developing" = "developing.md" },
+  { "Changelog" = "changelog.md" },
+]
+
+[project.theme]
+language = "en"
+
+features = [
+    # Code blocks: copy button and annotations.
+    "content.code.annotate",
+    "content.code.copy",
+
+    # Footnotes and tooltips rendered inline.
+    "content.footnote.tooltips",
+    "content.tooltips",
+
+    # Navigation: footer prev/next, breadcrumbs, instant loading,
+    # back-to-top, and anchor tracking.
+    "navigation.footer",
+    "navigation.indexes",
+    "navigation.instant",
+    "navigation.instant.prefetch",
+    "navigation.path",
+    "navigation.sections",
+    "navigation.top",
+    "navigation.tracking",
+
+    # Highlight all occurrences after following a search result.
+    "search.highlight",
+]
+
+[[project.theme.palette]]
+scheme = "default"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+scheme = "slate"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to light mode"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/github"
+link = "https://github.com/jepegit/issue-flow"
+
+# ----------------------------------------------------------------------------
+# Markdown extensions (Zensical's recommended set, plus tables and snippets —
+# snippets lets changelog.md embed the repo-root HISTORY.md).
+# ----------------------------------------------------------------------------
+[project.markdown_extensions.abbr]
+[project.markdown_extensions.admonition]
+[project.markdown_extensions.attr_list]
+[project.markdown_extensions.def_list]
+[project.markdown_extensions.footnotes]
+[project.markdown_extensions.md_in_html]
+[project.markdown_extensions.tables]
+[project.markdown_extensions.toc]
+permalink = true
+[project.markdown_extensions.pymdownx.betterem]
+[project.markdown_extensions.pymdownx.caret]
+[project.markdown_extensions.pymdownx.details]
+[project.markdown_extensions.pymdownx.emoji]
+emoji_generator = "zensical.extensions.emoji.to_svg"
+emoji_index = "zensical.extensions.emoji.twemoji"
+[project.markdown_extensions.pymdownx.highlight]
+anchor_linenums = true
+line_spans = "__span"
+pygments_lang_class = true
+[project.markdown_extensions.pymdownx.inlinehilite]
+[project.markdown_extensions.pymdownx.keys]
+[project.markdown_extensions.pymdownx.mark]
+[project.markdown_extensions.pymdownx.smartsymbols]
+[project.markdown_extensions.pymdownx.snippets]
+base_path = ["."]
+[project.markdown_extensions.pymdownx.superfences]
+[project.markdown_extensions.pymdownx.tabbed]
+alternate_style = true
+combine_header_slug = true
+[project.markdown_extensions.pymdownx.tasklist]
+custom_checkbox = true
+[project.markdown_extensions.pymdownx.tilde]

@@ -4,6 +4,8 @@ Agents should behave. Let them follow the issue flow.
 
 **issue-flow** scaffolds a lightweight issue-tracking workflow into your project so that AI coding agents can pick up GitHub issues, plan work, and land PRs in a consistent way. It supports **Cursor, Claude Code, opencode, and Codex** via `--editor` (see [Editor support](https://github.com/jepegit/issue-flow/blob/main/docs/editors.md)); the examples below use the default, Cursor.
 
+**Full documentation:** <https://issue-flow.readthedocs.io/>
+
 ## What it does
 
 Running `issue-flow init` in your project root creates:
@@ -27,7 +29,7 @@ your-project/
     issue-workflow.md        # Human-readable overview of the workflow
 ```
 
-The exact `agent_dir` and the per-editor rules file depend on which editor(s) you scaffold for — see [Editor support](#editor-support). `AGENTS.md` (written as a non-destructive managed block), `.issueflows/04-designs-and-guides/this-project.md` (a hand-editable project brief created only when missing), and `docs/issue-workflow.md` are shared by every editor.
+The exact `agent_dir` and the per-editor rules file depend on which editor(s) you scaffold for — see [Editor support](https://github.com/jepegit/issue-flow/blob/main/docs/editors.md). `AGENTS.md` (written as a non-destructive managed block), `.issueflows/04-designs-and-guides/this-project.md` (a hand-editable project brief created only when missing), and `docs/issue-workflow.md` are shared by every editor.
 
 The Cursor Agent Skills give agents a repeatable flow and appear in the slash menu. In chat you can also type **`iflow plan`**, **`iflow pick`**, etc. (space-separated, no `/`) when your keyboard makes slash awkward — see `docs/issue-workflow.md`. The linear path is:
 
