@@ -16,7 +16,7 @@ It also seeds `.issueflows/00-tools/README.md` — the index of the project's **
 | Entry point | File | Role |
 |--------|------|------|
 | `/iflow-pick` | `iflow-pick/SKILL.md` | **Front door.** Help choose the next issue (parked work first, else ranked open GitHub issues), create the branch, and run `/iflow-init`. Off-path; never auto-dispatched. |
-| `/iflow` | `iflow/SKILL.md` | **Smart dispatcher.** Detect current state and run `/iflow-init`, `/iflow-plan`, `/iflow-start`, or `/iflow-close` automatically. Never auto-dispatches to pick / pause / cleanup / yolo / fix / status / graphify. |
+| `/iflow` | `iflow/SKILL.md` | **Smart dispatcher.** Detect current state and run `/iflow-init`, `/iflow-plan`, `/iflow-start`, or `/iflow-close` automatically. Never auto-dispatches to pick / pause / cleanup / yolo / fix / status / archive / epic / graphify. |
 | `/iflow-init` | `iflow-init/SKILL.md` | Pull an issue from GitHub into the repo as a local markdown file and tidy older current issues. |
 | `/iflow-plan` | `iflow-plan/SKILL.md` | Write a structured `issue<N>_plan.md` and get explicit user confirmation before any code is touched. |
 | `/iflow-start` | `iflow-start/SKILL.md` | Implement the confirmed plan (no planning step of its own any more). |
@@ -27,6 +27,7 @@ It also seeds `.issueflows/00-tools/README.md` — the index of the project's **
 | `/iflow-fix` | `iflow-fix/SKILL.md` | **Off-path.** Interactive iterative-fixes session: create one issue + long-lived branch, then loop over many small fixes (short plan each, recorded in `issue<N>_status.md`), ending with `/iflow-close`. |
 | `/iflow-status` | `iflow-status/SKILL.md` | **Off-path, read-only.** Snapshot of where every issue stands — local tracking state (focus / parked / solved) plus open GitHub issues cross-referenced against it. Changes nothing. |
 | `/iflow-archive` | `iflow-archive/SKILL.md` | **Off-path, destructive (gated).** Condense old solved issue groups into a dated `YYYY-MM-DD_archived_issues.md` summary (recording the pre-archive git ref for recovery), then delete the original files after one consolidated confirm. |
+| `/iflow-epic` | `iflow-epic/SKILL.md` | **Off-path, draft-only.** Plan a larger change as a staged epic: `05-epics/epic<N>_plan.md` divides the work into stages of manageable issue specs (dependencies + per-issue yolo judgment). Never creates GitHub issues — publishing is a separate confirmed step. |
 | `/iflow-graphify` | `iflow-graphify/SKILL.md` | **Off-path.** Rebuild the [graphify](https://iflow-graphify.net) knowledge graph (`graphify-out/graph.html`, `GRAPH_REPORT.md`, `graph.json`). Wraps `issue-flow graphify` / `graphify`. Optional: only meaningful when `graphifyy` is installed. |
 
 

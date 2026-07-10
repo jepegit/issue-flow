@@ -69,7 +69,7 @@ Optional free-form text after the command. `/iflow` forwards the raw trailing te
 ## Constraints
 
 - `/iflow` never skips a downstream command's own prompts. If the downstream step asks a question, surface it normally.
-- `/iflow` never auto-dispatches to `/iflow-pick`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-archive`, or `/iflow-graphify`. Those are explicit choices only.
+- `/iflow` never auto-dispatches to `/iflow-pick`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-archive`, `/iflow-epic`, or `/iflow-graphify`. Those are explicit choices only.
 - If the focus issue cannot be resolved (multiple active issues, branch ambiguous), stop and ask. Do not pick one silently.
 - Do not modify files beyond what the downstream command would normally modify. `/iflow` itself writes nothing.
 

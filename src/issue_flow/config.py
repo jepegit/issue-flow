@@ -67,6 +67,7 @@ class Settings:
     partly_solved_folder: str = "02-partly-solved-issues"
     solved_folder: str = "03-solved-issues"
     designs_folder: str = "04-designs-and-guides"
+    epics_folder: str = "05-epics"
 
     @property
     def issueflows_subdirs(self) -> list[str]:
@@ -76,6 +77,7 @@ class Settings:
             self.partly_solved_folder,
             self.solved_folder,
             self.designs_folder,
+            self.epics_folder,
         ]
 
     def agent_dir_for(self, profile: EditorProfile) -> str:
@@ -315,6 +317,7 @@ class Settings:
             "partly_solved_folder": self.partly_solved_folder,
             "solved_folder": self.solved_folder,
             "designs_folder": self.designs_folder,
+            "epics_folder": self.epics_folder,
             "project_name": project_name,
             "editor": profile.id,
             "editor_name": profile.name,

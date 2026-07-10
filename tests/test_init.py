@@ -71,7 +71,7 @@ def test_init_force_does_not_wipe_custom_dotenv(tmp_path: Path) -> None:
 
 
 def test_init_creates_directories(tmp_path: Path) -> None:
-    """Running init should create .issueflows/ with all five subdirectories."""
+    """Running init should create .issueflows/ with all six subdirectories."""
     run_init(tmp_path)
 
     issueflows = tmp_path / ".issueflows"
@@ -81,6 +81,7 @@ def test_init_creates_directories(tmp_path: Path) -> None:
     assert (issueflows / "02-partly-solved-issues").is_dir()
     assert (issueflows / "03-solved-issues").is_dir()
     assert (issueflows / "04-designs-and-guides").is_dir()
+    assert (issueflows / "05-epics").is_dir()
 
 
 def test_init_creates_gitkeep_files(tmp_path: Path) -> None:
@@ -94,6 +95,7 @@ def test_init_creates_gitkeep_files(tmp_path: Path) -> None:
         "02-partly-solved-issues",
         "03-solved-issues",
         "04-designs-and-guides",
+        "05-epics",
     ]:
         gitkeep = issueflows / subdir / ".gitkeep"
         assert gitkeep.is_file(), f"{subdir}/.gitkeep should exist"
@@ -373,6 +375,42 @@ def test_init_cleanup_skill_offers_planned_tag(tmp_path: Path) -> None:
     ).read_text(encoding="utf-8")
     assert "Planned release tag" in content
     assert "git tag -l" in content
+
+
+def test_init_epic_skill_is_draft_only_and_staged(tmp_path: Path) -> None:
+    """iflow-epic skill: staged plan structure, yolo judgments, draft-only."""
+    run_init(tmp_path)
+    content = (tmp_path / ".cursor" / "skills" / "iflow-epic" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    # Draft-only boundary: no GitHub writes from this surface.
+    assert "draft-only" in content.lower()
+    assert "never creates GitHub issues" in content
+    # The parseable plan structure the publish step depends on.
+    assert "epic<N>_plan.md" in content
+    assert "05-epics" in content
+    assert "### Issue:" in content
+    assert "Depends on:" in content
+    assert "yolo:" in content
+    assert "Status: draft" in content and "Status: confirmed" in content
+    # Sizing + off-path discipline.
+    assert "one issue = one branch = one PR" in content
+    assert "Off-path" in content
+
+
+def test_init_epic_surface_is_standard_mode_only(tmp_path: Path) -> None:
+    """Simple mode must not install the epic surface."""
+    run_init(tmp_path, mode="simple")
+    assert not (tmp_path / ".cursor" / "skills" / "iflow-epic").exists()
+
+
+def test_init_dispatcher_never_dispatches_to_epic(tmp_path: Path) -> None:
+    """/iflow's constraint list must include the epic surface."""
+    run_init(tmp_path)
+    content = (tmp_path / ".cursor" / "skills" / "iflow" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    assert "/iflow-epic" in content
 
 
 def test_init_close_skill_documents_prerelease_default(tmp_path: Path) -> None:
