@@ -319,6 +319,41 @@ def agent_version_plan(
     )
 
 
+@agent_app.command("epic-status")
+def agent_epic_status(
+    number: int = typer.Argument(..., help="Epic anchor issue number."),
+    project_dir: Path = typer.Option(
+        Path("."),
+        "--project-dir",
+        "-C",
+        help="Project root directory (defaults to current directory).",
+        exists=True,
+        file_okay=False,
+        resolve_path=True,
+    ),
+    local: bool = typer.Option(
+        False,
+        "--local",
+        help="Skip the GitHub state lookups; report only the local plan file.",
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Deterministic epic progress (read-only).
+
+    Parses ``.issueflows/05-epics/epic<N>_plan.md`` (the structure written by
+    the /iflow-epic skill) and cross-references published issue states via
+    ``gh``: stages with per-issue state and blockers, the current stage, and
+    the next open, unblocked candidates. Exit 1 when no plan file exists.
+    """
+    from issue_flow.agent import run_epic_status
+
+    raise typer.Exit(
+        code=run_epic_status(project_dir, _console, number, local, json_output)
+    )
+
+
 @agent_app.command("resolve")
 def agent_resolve(
     project_dir: Path = typer.Option(

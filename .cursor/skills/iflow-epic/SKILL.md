@@ -60,6 +60,13 @@ After resolution, treat the result as `<project_root>` and `<owner/repo>`:
 
 When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read it for layout and cross-repo guidance.
 
+> **CLI fast path (optional).** If the `issue-flow` CLI is on `PATH`, run
+> `issue-flow agent epic-status <N> --json` for a deterministic picture of an
+> existing epic: stages, per-issue state and blockers, the current stage, and
+> the next open, unblocked candidates. Use it before re-drafting a stage and
+> in the publish action's stage selection. Read-only; add `--local` to skip
+> the GitHub lookups.
+
 ## Instructions
 
 1. **Gather context (read-only).** Read the epic anchor (`gh issue view <N> --repo <owner/repo>`), skim `.issueflows/04-designs-and-guides/` for relevant design docs (cite them in the plan when they shape the approach), and — when `graphify-out/GRAPH_REPORT.md` exists — skim it before grepping.
