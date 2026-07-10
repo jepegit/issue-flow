@@ -316,6 +316,63 @@ def test_init_version_bump_skill_documents_all_levels_and_default(
     assert "alpha" in content and "beta" in content
 
 
+def test_init_version_bump_skill_documents_release_strategies(
+    tmp_path: Path,
+) -> None:
+    """version-bump skill resolves the release strategy: brief, detection, tag path."""
+    run_init(tmp_path)
+    content = (
+        tmp_path / ".cursor" / "skills" / "iflow-version-bump" / "SKILL.md"
+    ).read_text(encoding="utf-8")
+    # Resolution order: the project brief's release section wins...
+    assert "Release & version bump" in content
+    assert "this-project.md" in content
+    # ...then detection from pyproject.toml...
+    assert 'dynamic = ["version"]' in content
+    assert "setuptools_scm" in content
+    # ...and the tag-derived path defers tagging until after the merge.
+    assert "planned" in content.lower()
+    assert "git tag" in content
+    assert "gh release create" in content
+    assert "never tag an issue-branch commit" in content.lower()
+    # The static path is unchanged.
+    assert "uv version --bump" in content
+    # Self-healing: discovered strategies get recorded in the brief.
+    assert "Record what you learn" in content
+
+
+def test_init_project_brief_documents_release_section(tmp_path: Path) -> None:
+    """The starter project brief should carry a Release & version bump section."""
+    run_init(tmp_path)
+    brief = (
+        tmp_path / ".issueflows" / "04-designs-and-guides" / "this-project.md"
+    ).read_text(encoding="utf-8")
+    assert "## Release & version bump" in brief
+    assert "uv version --bump" in brief
+    assert "gh release create" in brief
+
+
+def test_init_close_skill_defers_tag_creation(tmp_path: Path) -> None:
+    """iflow-close should plan (not create) tags for tag-derived projects."""
+    run_init(tmp_path)
+    content = (tmp_path / ".cursor" / "skills" / "iflow-close" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    assert "release strategy" in content
+    assert "Git-tag derived" in content
+    assert "planned tag" in content
+
+
+def test_init_cleanup_skill_offers_planned_tag(tmp_path: Path) -> None:
+    """iflow-cleanup's consolidated confirm should cover the planned release tag."""
+    run_init(tmp_path)
+    content = (
+        tmp_path / ".cursor" / "skills" / "iflow-cleanup" / "SKILL.md"
+    ).read_text(encoding="utf-8")
+    assert "Planned release tag" in content
+    assert "git tag -l" in content
+
+
 def test_init_close_skill_documents_prerelease_default(tmp_path: Path) -> None:
     """iflow-close skill should describe the pre-release-aware default bump."""
     run_init(tmp_path)

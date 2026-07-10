@@ -39,6 +39,7 @@ Optional free-form text after the command. Examples:
    - `git pull --ff-only`
    - `git fetch --prune`
    - List **every** local branch whose tip is already reachable from `origin/<default>` (use `git for-each-ref --format='%(refname:short)' refs/heads/` combined with `git cherry origin/<default> <branch>` to catch squash-merges). Present the list explicitly and ask **once** before running `git branch -d <branch>` for each.
+   - **Planned release tag (tag-derived projects only).** When `/iflow-close` planned a tag it did not create — check the focus issue's status file and the newest `{{ history_file }}` release section for a version whose tag is missing from `git tag -l` — include creating it in the same confirm: `git tag <planned>` then `git push origin <planned>` (or `gh release create <planned> --generate-notes`). Run it **after** the pull so the tag lands on the merged squash commit.
    - Never use `-D` automatically. If `-d` refuses (unmerged changes), report that branch and leave it alone.
 
 5. **Optional folder sweep** (safe; no destructive git).
@@ -61,4 +62,4 @@ Report:
 - Never use `git branch -D` or `git push --force`.
 - Never delete the default branch.
 - If anything is ambiguous (detached HEAD, multiple remotes, missing tracking info), report and stop rather than guessing.
-- Do not open or update PRs. Do not bump versions. Those belong to `/iflow-close`.
+- Do not open or update PRs. Do not bump version fields — pyproject bumps belong to `/iflow-close`. The only version action allowed here is creating a release tag that `/iflow-close` **planned** (tag-derived strategy), inside the consolidated confirm.

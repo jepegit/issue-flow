@@ -82,6 +82,14 @@ Key behaviour:
   Project-level toggles live in `.issueflows/config.toml` under `[issueflow]`
   (e.g. `mode`, `caveman_default`, `grill_me_default`).
 
+## Release & version bump
+
+- **Static version (uv):** `[project] version` lives in `pyproject.toml`;
+  bump with `uv version --bump <level>` before the release commit (the
+  `/iflow-close` default). Versions are PEP 440 with alpha pre-releases
+  (`0.4.2a3`); a bare `bump` stays on the current pre-release channel.
+- Publishing to PyPI runs from `.github/workflows/publish.yml`.
+
 ## Entry points
 
 - **CLI:** `src/issue_flow/cli.py` (Typer) — `init` / `update` / `graphify`
