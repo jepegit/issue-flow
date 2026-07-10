@@ -31,6 +31,7 @@ nav = [
   { "Graphify integration" = "graphify.md" },
   { "Developing" = "developing.md" },
   { "Changelog" = "changelog.md" },
+  { "Acknowledgements" = "acknowledgements.md" },
 ]
 
 [project.theme]

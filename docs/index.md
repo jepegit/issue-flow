@@ -100,6 +100,8 @@ full lifecycle is described in [The workflow](issue-workflow.md).
   codebase that agents read instead of grepping.
 - **[Developing](developing.md)** — working on issue-flow itself.
 - **[Changelog](changelog.md)** — release notes.
+- **[Acknowledgements](acknowledgements.md)** — the open-source projects
+  issue-flow builds on.
 
 ## License
 
