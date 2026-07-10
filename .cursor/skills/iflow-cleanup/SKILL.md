@@ -67,6 +67,7 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
    - `git pull --ff-only`
    - `git fetch --prune`
    - Every local branch whose tip is already reachable from `origin/<default>` (include squash-merges via `git cherry`). List them explicitly before running `git branch -d <branch>` for each. Never use `-D`; if `-d` refuses, report the branch and move on.
+   - **Planned release tag (tag-derived projects only).** When `/iflow-close` planned a tag it did not create — check the focus issue's status file and the newest `HISTORY.md` release section for a version whose tag is missing from `git tag -l` — include creating it here: `git tag <planned>` then `git push origin <planned>` (or `gh release create <planned> --generate-notes`). Run it **after** the pull so the tag lands on the merged squash commit.
 
 5. **Optional folder sweep** (safe; no destructive git). In `.issueflows/01-current-issues/`, for each `issue<N>_*` group whose status file contains `- [x] Done` (case-insensitive on `done`), move the group to `.issueflows/03-solved-issues/`. Leave groups without a checked `Done` in place — routing them to `.issueflows/02-partly-solved-issues/` is `/iflow-pause`'s job.
 
@@ -77,4 +78,4 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 - Never use `git branch -D` or `git push --force`.
 - Never delete the default branch.
 - If anything is ambiguous (detached HEAD, multiple remotes, missing tracking info), report and stop rather than guess.
-- Do not open or update PRs. Do not bump versions. Those belong to `/iflow-close`.
+- Do not open or update PRs. Do not bump version fields — pyproject bumps belong to `/iflow-close`. The only version action allowed here is creating a release tag that `/iflow-close` **planned** (tag-derived strategy), inside the consolidated confirm.

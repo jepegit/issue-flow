@@ -31,16 +31,16 @@ Other optional notes still apply: branch name, PR title, draft PR, skip issue do
    - **Graph freshness (optional).** If this change touched the project's structure (new modules, big refactor, removed files) and `graphify-out/` exists, suggest the user run `/iflow-graphify` (default: `graphify update`, AST-only, no LLM key needed) before pushing so teammates pull a current `GRAPH_REPORT.md`. Do not run `/iflow-graphify` automatically — it is opt-in. Skip this bullet entirely if `graphify-out/` is not present.
 
 2. **Optional version bump** (only if the user asked for it in the command input)
-   - Read `{{ agent_dir }}/skills/iflow-version-bump/SKILL.md` and follow it — it defines every supported level and the pre-release-aware default.
-   - From the project root, run `uv version --bump <level>` for the resolved level (`bump` with no level → the default rule based on the current version; or the named level from the input).
-   - Do this **before** updating issue markdown and **before** commit / push / PR so the new version is in the tree that gets merged.
-   - If the project has no bumpable `pyproject.toml` version, skip and say so; continue with the remaining steps.
+   - Read `{{ agent_dir }}/skills/iflow-version-bump/SKILL.md` and follow it — it resolves the project's **release strategy** first (the "Release & version bump" section of `{{ issueflows_dir }}/{{ designs_folder }}/this-project.md`, else `pyproject.toml` detection, else the uv default), and defines every supported level and the pre-release-aware default.
+   - **Static version:** from the project root, run `uv version --bump <level>` for the resolved level (`bump` with no level → the default rule based on the current version; or the named level from the input). Do this **before** updating issue markdown and **before** commit / push / PR so the new version is in the tree that gets merged.
+   - **Git-tag derived:** edit nothing — compute and report the **planned tag** (next version from the latest tag, e.g. `v1.0.4a3`), record it in the status file, and defer creating the tag until after the merge (step 8 with `yolo`, else `/iflow-cleanup`). Never tag the issue branch.
+   - If neither strategy applies (no `pyproject.toml` version at all), skip and say so; continue with the remaining steps.
 
 3. **Update `{{ history_file }}`** (opt-out via `nohistory`)
    - Read `{{ agent_dir }}/skills/iflow-history-update/SKILL.md` and follow it.
    - Default summary for the new bullet is the GitHub issue title; override with `log "..."` / `note "..."` from the command input.
-   - If step 2 did **not** bump the version, append a bullet to the existing `## [Unreleased]` section: `- <summary>. (#<N>)`.
-   - If step 2 **did** bump the version, promote `## [Unreleased]` to `## [<new_version>] - <YYYY-MM-DD>`, prepend a fresh empty `## [Unreleased]` above it, and put the new bullet inside the just-closed release section.
+   - If step 2 did **not** bump (or plan) a version, append a bullet to the existing `## [Unreleased]` section: `- <summary>. (#<N>)`.
+   - If step 2 **did** bump or plan a version, promote `## [Unreleased]` to `## [<new_version>] - <YYYY-MM-DD>` (for tag-derived projects use the planned tag's version), prepend a fresh empty `## [Unreleased]` above it, and put the new bullet inside the just-closed release section.
    - If `{{ history_file }}` does not exist at the project root, skip this step with a short note and continue. Never create it here.
    - Show the proposed diff and confirm once before writing. If declined, leave `{{ history_file }}` untouched and move on.
    - **`yolo` input:** do not ask — decide yourself and write the bullet (issue title, or the `log "..."` text) directly. `nohistory` still skips the step entirely.
@@ -73,13 +73,14 @@ Other optional notes still apply: branch name, PR title, draft PR, skip issue do
    - **CLI fast path (preferred).** If the `issue-flow` CLI is on `PATH`, run `issue-flow agent switchback --json` after the PR is open or updated. It performs this whole step deterministically: refuses while the working tree is dirty (listing the paths), else switches to the detected default branch and runs `git pull --ff-only`. On exit 1, report its `notes` to the user and stop — do not force anything.
    - **Manual fallback.** Detect the default branch: prefer `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`, else `git symbolic-ref --quiet --short refs/remotes/origin/HEAD | sed 's|^origin/||'`, else `main`. Run `git status --porcelain`; if it is clean, switch back with `git switch <default>` and then run `git pull --ff-only`. A clean tree here means the branch work has been committed and pushed to the PR branch. If the working tree is dirty, stay on the current branch, list the uncommitted paths, and explain that switching is unsafe until those changes are committed, stashed, or discarded by the user.
    - **`yolo` input:** this step is mandatory (unless `stay` was also passed) and runs **after** the merge from step 7a, so the pull brings the just-merged squash commit into the local default branch. If step 7a only queued an auto-merge, still switch and pull, and note that the merge commit will arrive once checks pass.
+   - **Planned release tag (`yolo` + tag-derived strategy only):** if step 2 planned a tag, create it now — after the pull, standing on the squash commit — with `git tag <planned>` then `git push origin <planned>` (covered by the yolo consolidated confirm). If the merge was only queued via `--auto`, leave the tag to `/iflow-cleanup` and say so.
    - This step never deletes the issue branch. Branch deletion remains in `/iflow-cleanup`.
 
 9. **After review**
    - With the `yolo` input the PR was already merged in step 7a — skip to the `/iflow-cleanup` reminder below.
    - Address feedback, push updates, and merge when approved and CI is green.
    - If step 8 switched back to the default branch, switch to the PR branch again before making review fixes.
-   - Once the PR is merged, run **`/iflow-cleanup`** to switch back to the default branch, `git pull --ff-only`, `git fetch --prune`, and delete local branches whose commits are already in the default branch (single consolidated confirm). `/iflow-close` no longer does post-merge cleanup itself.
+   - Once the PR is merged, run **`/iflow-cleanup`** to switch back to the default branch, `git pull --ff-only`, `git fetch --prune`, and delete local branches whose commits are already in the default branch (single consolidated confirm — which, for tag-derived projects, also offers to create the release tag planned in step 2). `/iflow-close` no longer does post-merge cleanup itself.
 
 ## Output
 

@@ -51,7 +51,7 @@ It also seeds `.issueflows/00-tools/README.md` — the index of the project's **
 | `iflow-fix` | `iflow fix`, `iflow-fix`, `/iflow-fix` | Interactive iterative-fixes session. Off-path. |
 | `iflow-status` | `iflow status`, `iflow-status`, `/iflow-status` | Read-only issue overview. Off-path. |
 | `iflow-archive` | `iflow archive`, `iflow-archive`, `/iflow-archive` | Condense solved archive. Off-path; destructive. |
-| `iflow-version-bump` | `@iflow-version-bump` (often used from `/iflow-close`) | Bump `[project]` version in `pyproject.toml` via `uv version --bump <level>` (any uv level: `major`/`minor`/`patch`/`stable`/`alpha`/`beta`/`rc`/`post`/`dev`); a bare `bump` stays on the current pre-release channel. |
+| `iflow-version-bump` | `@iflow-version-bump` (often used from `/iflow-close`) | Strategy-aware version bump: static `[project]` versions via `uv version --bump <level>` (any uv level: `major`/`minor`/`patch`/`stable`/`alpha`/`beta`/`rc`/`post`/`dev`); git-tag-derived versions via a planned post-merge tag. The project's own "Release & version bump" section in `this-project.md` wins; a bare `bump` stays on the current pre-release channel. |
 | `iflow-history-update` | `@iflow-history-update` (used from `/iflow-close`) | Append an entry to `## [Unreleased]` in `HISTORY.md`, or promote it to a new `## [x.y.z] - YYYY-MM-DD` release section when a version bump happened. |
 | `iflow-graphify` | `iflow graphify`, `iflow-graphify`, `/iflow-graphify` | Rebuild the graphify knowledge graph. Off-path. |
 
@@ -206,7 +206,7 @@ The bump runs **after** tests and **before** issue-folder moves and **before** c
 **Typical steps the assistant follows:**
 
 1. **Sanity check** — e.g. `uv run pytest`, review the diff.
-2. **Optional version bump** — if requested, follow `.cursor/skills/iflow-version-bump/SKILL.md` and run `uv version --bump …` from the project root.
+2. **Optional version bump** — if requested, follow `.cursor/skills/iflow-version-bump/SKILL.md`. It resolves the project's **release strategy** first (the "Release & version bump" section of `.issueflows/04-designs-and-guides/this-project.md`, else `pyproject.toml` detection): static versions are bumped with `uv version --bump …` from the project root; **git-tag derived** versions (setuptools-scm and friends) get a **planned tag** instead — created after the merge (by `/iflow-cleanup`, or the yolo close's post-merge step), never on the issue branch.
 3. **Update `HISTORY.md`** — unless `nohistory` was passed, follow `.cursor/skills/iflow-history-update/SKILL.md`. Append a bullet to `## [Unreleased]` (no bump) or promote `## [Unreleased]` to `## [<new_version>] - <YYYY-MM-DD>` and open a fresh empty `## [Unreleased]` above it (with bump). The assistant shows the diff and asks for a single confirm before writing. If `HISTORY.md` is missing at the project root, the step is skipped with a note — never auto-created.
 4. **Issue folders** — update status markdown; use `- [x] Done` only when fully resolved. Move completed issue files from `.issueflows/01-current-issues/` to `.issueflows/03-solved-issues/`, or partly done work to `.issueflows/02-partly-solved-issues/`.
 5. **Commit** — focused staging and a clear message (include `pyproject.toml` / `uv.lock` if the bump changed them, and `HISTORY.md` when step 3 updated it). Sync with the default branch using `git pull --ff-only`.
