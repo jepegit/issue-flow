@@ -25,6 +25,15 @@ Keep scope tight to what this step requires.
 
 
 
+> **CLI fast path (optional).** If the `issue-flow` CLI is on `PATH`, run
+> `issue-flow agent version-plan [--bump <level>] --json`. It detects the
+> strategy from `pyproject.toml`, reads the latest tag, does the PEP 440
+> next-version arithmetic, and returns the exact commands — read-only, it
+> never edits files or creates tags. The `this-project.md` release section
+> still wins over its detection: when the payload says
+> `brief_release_section: "filled"`, read the section and follow it. If the
+> CLI is missing or errors, fall back to the manual steps below.
+
 ## Resolve the release strategy first
 
 In order — stop at the first that answers:

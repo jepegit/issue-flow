@@ -339,6 +339,8 @@ def test_init_version_bump_skill_documents_release_strategies(
     assert "uv version --bump" in content
     # Self-healing: discovered strategies get recorded in the brief.
     assert "Record what you learn" in content
+    # Deterministic fast path for the arithmetic.
+    assert "issue-flow agent version-plan" in content
 
 
 def test_init_project_brief_documents_release_section(tmp_path: Path) -> None:

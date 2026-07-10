@@ -2,9 +2,9 @@
 
 These functions back ``issue-flow status`` (human-facing, top-level) and the
 ``issue-flow agent ...`` sub-commands (``state`` / ``preflight`` / ``switchback`` /
-``resolve`` / ``sweep`` / ``archive`` / ``capture``) that exist so AI agents can
-ask the tool for a deterministic answer instead of re-deriving lifecycle state
-by hand on every run.
+``version-plan`` / ``resolve`` / ``sweep`` / ``archive`` / ``capture``) that
+exist so AI agents can ask the tool for a deterministic answer instead of
+re-deriving lifecycle state by hand on every run.
 
 Each ``run_*`` returns a process exit code and emits either a short human
 report (via :class:`rich.console.Console`) or a stable JSON object on stdout
@@ -385,6 +385,164 @@ def run_resolve(
             f"(default: {escape(workspace.default) if workspace.default else 'none'})"
         )
     return 0
+
+
+# ---------------------------------------------------------------------------
+# agent version-plan
+# ---------------------------------------------------------------------------
+
+
+def run_version_plan(
+    project_root: Path,
+    console: Console,
+    levels: list[str],
+    as_json: bool,
+) -> int:
+    """Plan the next version deterministically — the mechanical half of the
+    release-strategy work in the iflow-version-bump skill.
+
+    Read-only: detects the strategy from ``pyproject.toml``, reads the current
+    version (static field, or latest git tag), applies the PEP 440 bump
+    arithmetic, and reports the exact commands. It never edits files and never
+    creates tags. The ``this-project.md`` release section still beats
+    detection — that judgment stays agent-side; ``brief_release_section``
+    tells the agent whether there is a section to read.
+    """
+    from issue_flow import versionplan
+
+    settings = Settings()
+    notes: list[str] = []
+
+    strategy, reason, static_version = versionplan.detect_strategy(project_root)
+
+    brief = (
+        project_root
+        / settings.issueflows_dir
+        / settings.designs_folder
+        / "this-project.md"
+    )
+    brief_section = "missing"
+    if brief.is_file():
+        try:
+            text = brief.read_text(encoding="utf-8")
+        except OSError:
+            text = ""
+        if "## Release & version bump" in text:
+            section = text.split("## Release & version bump", 1)[1]
+            section = section.split("\n## ", 1)[0]
+            brief_section = "todo" if "TODO" in section else "filled"
+    if brief_section == "filled":
+        notes.append(
+            "this-project.md has a filled-in 'Release & version bump' section — "
+            "it wins over the detected strategy; read it before acting."
+        )
+
+    payload: dict[str, Any] = {
+        "strategy": strategy,
+        "reason": reason,
+        "brief_release_section": brief_section,
+        "current_version": None,
+        "latest_tag": None,
+        "levels": [],
+        "planned_version": None,
+        "planned_tag": None,
+        "commands": [],
+        "notes": notes,
+    }
+
+    def emit(exit_code: int) -> int:
+        if as_json:
+            _emit_json(console, payload)
+        else:
+            _render_version_plan_text(console, payload, exit_code)
+        return exit_code
+
+    if strategy == "unknown":
+        notes.append("no plan produced; resolve the strategy manually.")
+        return emit(1)
+
+    if strategy == "uv":
+        current_text = static_version or ""
+    else:
+        tag = gitutils.latest_tag(project_root)
+        payload["latest_tag"] = tag
+        if tag is None:
+            notes.append(
+                "no git tags found; seed the series manually (e.g. "
+                "`git tag v0.1.0`) before planning bumps."
+            )
+            return emit(1)
+        current_text = tag
+
+    current = versionplan.parse_version(current_text)
+    payload["current_version"] = (
+        current.formatted().lstrip("v") if current else current_text
+    )
+    if current is None:
+        notes.append(
+            f"could not parse '{current_text}' as a version; plan it manually."
+        )
+        return emit(1)
+
+    if not levels:
+        levels = versionplan.default_levels(current)
+        notes.append(f"no level given; pre-release-aware default: {', '.join(levels)}.")
+    payload["levels"] = sorted(levels, key=versionplan.LEVELS.index)
+
+    planned, bump_notes = versionplan.bump(current, levels)
+    notes.extend(bump_notes)
+    if planned is None:
+        return emit(1)
+
+    if strategy == "uv":
+        payload["planned_version"] = planned.formatted().lstrip("v")
+        payload["commands"] = [
+            "uv version " + " ".join(f"--bump {level}" for level in payload["levels"])
+        ]
+        notes.append(
+            "uv is authoritative for static versions; the planned version is "
+            "advisory (verify with `uv version --dry-run`)."
+        )
+    else:
+        planned_tag = planned.formatted()
+        payload["planned_version"] = planned_tag.lstrip("v")
+        payload["planned_tag"] = planned_tag
+        payload["commands"] = [
+            f"git tag {planned_tag}",
+            f"git push origin {planned_tag}",
+            f"gh release create {planned_tag} --generate-notes  # optional",
+        ]
+        notes.append(
+            "create the tag only after the PR merges, standing on the updated "
+            "default branch — never on the issue branch."
+        )
+
+    return emit(0)
+
+
+def _render_version_plan_text(
+    console: Console, payload: dict[str, Any], exit_code: int
+) -> None:
+    console.print(
+        f"[bold]Strategy[/bold]: {payload['strategy']} "
+        f"[dim]({escape(str(payload['reason']))})[/dim]"
+    )
+    if payload["current_version"]:
+        current = payload["current_version"]
+        tag = payload["latest_tag"]
+        suffix = f" (latest tag {escape(tag)})" if tag else ""
+        console.print(f"[bold]Current[/bold]: {escape(str(current))}{suffix}")
+    if payload["planned_version"]:
+        levels = ", ".join(payload["levels"])
+        console.print(
+            f"[bold]Planned[/bold]: {escape(str(payload['planned_version']))} "
+            f"[dim](levels: {levels})[/dim]"
+        )
+    for command in payload["commands"]:
+        console.print(f"  $ {escape(command)}")
+    for note in payload["notes"]:
+        style = "yellow" if exit_code != 0 else "dim"
+        console.print(f"  [{style}]{escape(note)}[/{style}]")
 
 
 # ---------------------------------------------------------------------------

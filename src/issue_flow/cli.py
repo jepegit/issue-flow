@@ -285,6 +285,40 @@ def agent_switchback(
     raise typer.Exit(code=run_switchback(project_dir, _console, json_output))
 
 
+@agent_app.command("version-plan")
+def agent_version_plan(
+    project_dir: Path = _PROJECT_DIR_ARGUMENT,
+    bump: list[str] = typer.Option(
+        [],
+        "--bump",
+        "-b",
+        help=(
+            "Bump level(s): major, minor, patch, stable, alpha, beta, rc, "
+            "post, dev. Repeatable; combined levels apply in canonical order "
+            "(minor + alpha -> 0.5.0a1). Omitted -> the pre-release-aware "
+            "default based on the current version."
+        ),
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Plan the next version deterministically (read-only).
+
+    Detects the release strategy from ``pyproject.toml`` (static
+    ``[project] version`` -> uv; ``dynamic = ["version"]`` with a tag-driven
+    backend -> git tag), reads the current version (static field or latest
+    tag), applies the PEP 440 bump arithmetic, and prints the exact commands.
+    Never edits files, never creates tags — the doing stays with the agent
+    and the user, per the iflow-version-bump skill.
+    """
+    from issue_flow.agent import run_version_plan
+
+    raise typer.Exit(
+        code=run_version_plan(project_dir, _console, list(bump), json_output)
+    )
+
+
 @agent_app.command("resolve")
 def agent_resolve(
     project_dir: Path = typer.Option(

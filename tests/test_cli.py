@@ -709,6 +709,104 @@ def test_agent_resolve_fails_without_scaffold(
 
 
 # ---------------------------------------------------------------------------
+# agent version-plan (issue #133)
+# ---------------------------------------------------------------------------
+
+
+def test_agent_version_plan_static_project(runner: CliRunner, tmp_path: Path) -> None:
+    (tmp_path / "pyproject.toml").write_text(
+        '[project]\nname = "x"\nversion = "0.4.1a4"\n', encoding="utf-8"
+    )
+
+    result = runner.invoke(
+        app, ["agent", "version-plan", str(tmp_path), "--bump", "beta", "--json"]
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["strategy"] == "uv"
+    assert payload["current_version"] == "0.4.1a4"
+    assert payload["planned_version"] == "0.4.1b1"
+    assert payload["planned_tag"] is None
+    assert payload["commands"] == ["uv version --bump beta"]
+
+
+def test_agent_version_plan_tag_project_defaults_to_channel(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from issue_flow import gitutils as gitutils_module
+
+    (tmp_path / "pyproject.toml").write_text(
+        '[project]\nname = "x"\ndynamic = ["version"]\n\n[tool.setuptools_scm]\n',
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(gitutils_module, "latest_tag", lambda _cwd: "v1.0.4a2")
+
+    result = runner.invoke(app, ["agent", "version-plan", str(tmp_path), "--json"])
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["strategy"] == "tag"
+    assert payload["latest_tag"] == "v1.0.4a2"
+    # No level given -> pre-release-aware default keeps the alpha channel.
+    assert payload["levels"] == ["alpha"]
+    assert payload["planned_tag"] == "v1.0.4a3"
+    assert payload["commands"][0] == "git tag v1.0.4a3"
+    assert any("after the PR merges" in note for note in payload["notes"])
+
+
+def test_agent_version_plan_tag_project_without_tags_fails(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from issue_flow import gitutils as gitutils_module
+
+    (tmp_path / "pyproject.toml").write_text(
+        '[project]\nname = "x"\ndynamic = ["version"]\n\n[tool.setuptools_scm]\n',
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(gitutils_module, "latest_tag", lambda _cwd: None)
+
+    result = runner.invoke(app, ["agent", "version-plan", str(tmp_path), "--json"])
+
+    assert result.exit_code == 1
+    payload = _json(result.stdout)
+    assert payload["planned_tag"] is None
+    assert any("no git tags" in note for note in payload["notes"])
+
+
+def test_agent_version_plan_unknown_strategy_fails(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    result = runner.invoke(app, ["agent", "version-plan", str(tmp_path), "--json"])
+
+    assert result.exit_code == 1
+    payload = _json(result.stdout)
+    assert payload["strategy"] == "unknown"
+    assert payload["commands"] == []
+
+
+def test_agent_version_plan_flags_filled_brief(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    (tmp_path / "pyproject.toml").write_text(
+        '[project]\nname = "x"\nversion = "1.0.0"\n', encoding="utf-8"
+    )
+    designs = tmp_path / ".issueflows" / "04-designs-and-guides"
+    designs.mkdir(parents=True)
+    (designs / "this-project.md").write_text(
+        "# x\n\n## Release & version bump\n\nWe tag manually on main.\n",
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(app, ["agent", "version-plan", str(tmp_path), "--json"])
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["brief_release_section"] == "filled"
+    assert any("wins over" in note for note in payload["notes"])
+
+
+# ---------------------------------------------------------------------------
 # workspace registry (issue #126)
 # ---------------------------------------------------------------------------
 
