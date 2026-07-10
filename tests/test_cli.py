@@ -538,6 +538,53 @@ def test_agent_archive_deletes_files(
     assert (solved / "issue2_original.md").exists()
 
 
+def test_agent_archive_never_touches_sibling_folders(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Archiving issue N deletes only its files inside 03-solved-issues/.
+
+    Pins the safety contract: sibling .issueflows/ folders survive untouched,
+    even when they contain files whose names match the issue<N>_* pattern of
+    the archived issue, and non-issue files inside the solved folder (the
+    dated summary) survive too.
+    """
+    from issue_flow import gitutils as gitutils_module
+
+    monkeypatch.setattr(gitutils_module, "head_sha", lambda _cwd: "abc123")
+    _seed_solved_issue(tmp_path, 1)
+
+    base = tmp_path / ".issueflows"
+    tools = base / "00-tools"
+    tools.mkdir(parents=True)
+    (tools / "README.md").write_text("# Tool index\n", encoding="utf-8")
+    # The nasty case: an issue-pattern filename in the wrong folder.
+    (tools / "issue1_helper.py").write_text("print('keep me')\n", encoding="utf-8")
+    designs = base / "04-designs-and-guides"
+    designs.mkdir(parents=True)
+    (designs / "issue1_design-notes.md").write_text("keep\n", encoding="utf-8")
+    current = base / "01-current-issues"
+    current.mkdir(parents=True)
+    (current / "issue1_original.md").write_text("active copy\n", encoding="utf-8")
+    solved = base / "03-solved-issues"
+    summary = solved / "2026-07-10_archived_issues.md"
+    summary.write_text("# Archived issues\n", encoding="utf-8")
+
+    result = runner.invoke(
+        app, ["agent", "archive", "1", "-C", str(tmp_path), "--json"]
+    )
+
+    assert result.exit_code == 0, result.output
+    # The solved group itself is gone...
+    assert not (solved / "issue1_original.md").exists()
+    assert not (solved / "issue1_status.md").exists()
+    # ...and everything else survived.
+    assert (tools / "README.md").exists()
+    assert (tools / "issue1_helper.py").exists()
+    assert (designs / "issue1_design-notes.md").exists()
+    assert (current / "issue1_original.md").exists()
+    assert summary.exists()
+
+
 def test_agent_archive_refuses_missing_issue(
     runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
