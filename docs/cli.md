@@ -13,6 +13,7 @@ issue-flow agent sweep [PROJECT_DIR] [--except N] [--dry-run] [--json]
 issue-flow agent archive N [N ...] [-C PROJECT_DIR] [--dry-run] [--json]
 issue-flow agent capture N [-C PROJECT_DIR] [--repo OWNER/REPO] [--force] [--json]
 issue-flow config add [-C PROJECT_DIR] [--force] [--json]
+issue-flow workspace init [WORKSPACE_DIR] [--default MEMBER] [--force] [--json]
 ```
 
 ## When to use which
@@ -110,7 +111,7 @@ project never installs `issue-flow`.
 | `agent state` | Resolve the focus issue (branch-derived number wins, else the single current group), its lifecycle stage (`init`/`plan`/`start`/`close`), and the suggested next command. |
 | `agent preflight` | Branch hygiene report: default branch, clean/dirty working tree, ahead/behind vs `origin/<default>`, and a stale-branch flag when the issue is already archived. Runs `git fetch --prune` first. |
 | `agent switchback` | The mechanical "switch back when safe" half of `/iflow-close`: refuses (exit 1) while the working tree is dirty — listing the paths — else runs `git switch <default>` and `git pull --ff-only`. A refused fast-forward is reported, never forced. Never deletes branches (that stays in `/iflow-cleanup`). |
-| `agent resolve` | Resolve project root, owner/repo, branch, and sibling scaffolds — for [multi-root workspaces](editors.md#multi-root-workspaces). |
+| `agent resolve` | Resolve project root, owner/repo, branch, and sibling scaffolds — for [multi-root workspaces](editors.md#multi-root-workspaces). When no scaffold is found walking up, falls back to the **default member** from a workspace-root `issueflow-workspace.toml` (reported as `resolved_via_workspace_default: true`); explicit hints and the nearest scaffold always win. |
 | `agent sweep` | Archive `issue<N>_*` groups out of `01-current-issues/` to `03-solved-issues/` (Done) or `02-partly-solved-issues/` (not Done). Use `--except N` to keep the focus issue and `--dry-run` to preview. |
 | `agent archive` | Mechanical deletion half of `/iflow-archive`: remove the chosen groups' files from `03-solved-issues/` and report the pre-archive HEAD sha (for the recovery ref in the summary file). Summarising into `YYYY-MM-DD_archived_issues.md` stays agent-side. Refuses when a requested issue has no solved group. `--dry-run` to preview. |
 | `agent capture N` | Fetch GitHub issue `N` with `gh` and write `issue<N>_original.md` (the `## Original issue text` body). Prints the comments payload so the agent can triage them; comment triage stays agent-side. Use `--repo`, `--force`, `-C`. |
@@ -128,3 +129,25 @@ default branch".
 
 Creates `.issueflows/config.toml`, seeded from `.env` (or issue-flow defaults).
 See [Creating config.toml](configuration.md#creating-configtoml).
+
+## `issue-flow workspace init`
+
+Creates `issueflow-workspace.toml` at the **workspace root** — the folder that
+contains several scaffolded member repos — so lifecycle commands invoked from
+outside any single repo (typically the workspace root) can fall back to a
+declared **default ("parent") member** instead of stopping to ask.
+
+| Argument / Option | Description |
+| ----------------- | ----------- |
+| `WORKSPACE_DIR`   | Workspace root directory. Defaults to `.` (current directory). |
+| `--default`       | Member folder name lifecycle commands default to. Must be a scaffolded member; with exactly one member it is chosen automatically. |
+| `--force`, `-f`   | Overwrite an existing registry file. |
+| `--json`          | Emit a machine-readable JSON object. |
+
+Members are auto-discovered (immediate child directories carrying an
+`.issueflows/` tree); the command refuses when there are none, and when
+`--default` names something that is not a scaffolded member — a typo must
+never redirect git operations. The registry only ever fills the bottom of the
+resolution order: explicit `root:`/`repo:` hints, the nearest scaffold, and
+the issue-branch heuristic all still win. See
+[multi-root workspaces](editors.md#multi-root-workspaces).

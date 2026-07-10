@@ -279,7 +279,13 @@ def run_resolve(
     from_file: Path | None,
     as_json: bool,
 ) -> int:
-    """Resolve the issue-flow project root, GitHub repo slug, and branch context."""
+    """Resolve the issue-flow project root, GitHub repo slug, and branch context.
+
+    A nearest scaffold (walking up from the start directory / active file)
+    always wins. Only when none is found does the workspace registry's
+    ``default`` member kick in — the registry replaces the final "stop and
+    ask" step of the resolution order, never an earlier one.
+    """
     settings = Settings()
     start = from_file if from_file is not None else project_root
     resolved = project.find_project_root(
@@ -293,6 +299,21 @@ def run_resolve(
             issueflows_dir=settings.issueflows_dir,
             current_issues_folder=settings.current_issues_folder,
         )
+
+    workspace = project.discover_workspace(
+        start, issueflows_dir=settings.issueflows_dir
+    )
+    if workspace is None and from_file is not None:
+        workspace = project.discover_workspace(
+            project_root, issueflows_dir=settings.issueflows_dir
+        )
+
+    via_workspace_default = False
+    if resolved is None and workspace is not None:
+        default_root = workspace.default_root()
+        if default_root is not None:
+            resolved = default_root
+            via_workspace_default = True
 
     repo: str | None = None
     branch: str | None = None
@@ -317,6 +338,12 @@ def run_resolve(
         "default_branch": default_branch,
         "issueflows_dir": settings.issueflows_dir,
         "sibling_roots": sibling_roots,
+        "workspace_root": str(workspace.root) if workspace else None,
+        "workspace_default": workspace.default if workspace else None,
+        "workspace_members": (
+            [str(p) for p in workspace.member_roots()] if workspace else []
+        ),
+        "resolved_via_workspace_default": via_workspace_default,
     }
 
     if as_json:
@@ -328,9 +355,19 @@ def run_resolve(
             "[red]No issue-flow scaffold found[/red] walking up from "
             f"{start.resolve()}."
         )
+        if workspace is not None and workspace.default is not None:
+            console.print(
+                f"  [yellow]warn[/yellow]  workspace registry names "
+                f"'{escape(workspace.default)}' as default, but it is not a "
+                "scaffolded member."
+            )
         return 1
 
     console.print(f"[bold]Project root[/bold]: {resolved}")
+    if via_workspace_default:
+        console.print(
+            f"  [dim](workspace default from {project.WORKSPACE_FILENAME})[/dim]"
+        )
     if repo:
         console.print(f"[bold]Repo[/bold]: {repo}")
     if branch:
@@ -342,6 +379,121 @@ def run_resolve(
             f"[bold]Sibling scaffolds[/bold]: {len(sibling_roots)} "
             "(run lifecycle commands once per repo)"
         )
+    if workspace is not None and len(workspace.members) > 1:
+        console.print(
+            f"[bold]Workspace members[/bold]: {len(workspace.members)} "
+            f"(default: {escape(workspace.default) if workspace.default else 'none'})"
+        )
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# workspace init
+# ---------------------------------------------------------------------------
+
+
+def run_workspace_init(
+    workspace_dir: Path,
+    console: Console,
+    default: str | None,
+    force: bool,
+    as_json: bool,
+) -> int:
+    """Create the multi-repo workspace registry (``issueflow-workspace.toml``).
+
+    Members are auto-discovered: immediate child directories that carry an
+    ``<issueflows_dir>/`` tree. Refuses when there are none (the command was
+    probably run in the wrong directory) and when ``--default`` names
+    something that is not a scaffolded member (a typo must never redirect
+    lifecycle commands). An existing file is kept unless ``--force``.
+    """
+    import tomlkit
+
+    settings = Settings()
+    root = workspace_dir.resolve()
+    target = root / project.WORKSPACE_FILENAME
+
+    try:
+        children = sorted(root.iterdir())
+    except OSError:
+        children = []
+    members = [
+        child.name
+        for child in children
+        if child.is_dir() and (child / settings.issueflows_dir).is_dir()
+    ]
+
+    def _fail(msg: str) -> int:
+        if as_json:
+            _emit_json(
+                console,
+                {"written": False, "path": str(target), "error": msg},
+            )
+        else:
+            console.print(f"[red]error[/red]  {msg}")
+        return 1
+
+    if not members:
+        return _fail(
+            f"no scaffolded member repos found under {root} — run "
+            "`issue-flow init` inside the member repos first, and run this "
+            "command from the workspace root (the folder that contains them)."
+        )
+
+    if default is not None and default not in members:
+        return _fail(
+            f"--default '{default}' is not a scaffolded member; "
+            f"available members: {', '.join(members)}."
+        )
+
+    if target.exists() and not force:
+        return _fail(f"{target} already exists; pass --force to overwrite it.")
+
+    if default is None and len(members) == 1:
+        default = members[0]
+
+    doc = tomlkit.document()
+    doc.add(tomlkit.comment("issue-flow multi-repo workspace registry."))
+    doc.add(
+        tomlkit.comment(
+            "`default` names the member repo lifecycle commands target when"
+        )
+    )
+    doc.add(
+        tomlkit.comment(
+            "invoked from the workspace root; explicit root:/repo: hints and"
+        )
+    )
+    doc.add(
+        tomlkit.comment(
+            "the nearest scaffold always win. Omit `members` to auto-discover."
+        )
+    )
+    table = tomlkit.table()
+    if default is not None:
+        table["default"] = default
+    else:
+        table.add(tomlkit.comment('default = "<one of the members below>"'))
+    table["members"] = members
+    doc["workspace"] = table
+    target.write_text(tomlkit.dumps(doc), encoding="utf-8")
+
+    payload = {
+        "written": True,
+        "path": str(target),
+        "workspace_root": str(root),
+        "default": default,
+        "members": members,
+    }
+    if as_json:
+        _emit_json(console, payload)
+        return 0
+
+    console.print(f"[green]wrote[/green]  {target}")
+    console.print(
+        f"  members: {', '.join(members)} — default: "
+        f"{escape(default) if default else '(none; edit the file to set one)'}"
+    )
     return 0
 
 
