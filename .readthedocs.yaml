@@ -1,0 +1,24 @@
+# Read the Docs configuration for the issue-flow documentation site.
+#
+# The site is built with Zensical (https://zensical.org) from zensical.toml;
+# Read the Docs has no native Zensical builder yet, so this uses the
+# build.jobs recipe from the official guide:
+# https://docs.readthedocs.com/platform/latest/intro/zensical.html
+#
+# Docs: https://docs.readthedocs.com/platform/stable/config-file/v2.html
+
+version: 2
+
+build:
+  os: ubuntu-24.04
+  tools:
+    python: latest
+  jobs:
+    install:
+      - pip install zensical
+    build:
+      html:
+        - zensical build
+    post_build:
+      - mkdir -p $READTHEDOCS_OUTPUT/html/
+      - cp --recursive site/* $READTHEDOCS_OUTPUT/html/
