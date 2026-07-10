@@ -261,6 +261,7 @@ Thanks to the authors and communities behind these projects:
 | [Jinja2](https://github.com/pallets/jinja) | Renders the scaffolded skill, command, and rules templates. | BSD-3-Clause |
 | [tomlkit](https://github.com/python-poetry/tomlkit) | Comment-preserving round-trips of `.issueflows/config.toml`. | MIT |
 | [python-dotenv](https://github.com/theskumar/python-dotenv) | Loads `ISSUEFLOW_*` settings from a project `.env`. | BSD-3-Clause |
+| [Zensical](https://github.com/zensical/zensical) | Builds the [documentation site](https://issue-flow.readthedocs.io/) (from the Material for MkDocs team). | MIT |
 
 Using or drawing on another project that should be listed here? Open a PR or issue
 to add a row.
