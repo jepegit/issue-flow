@@ -124,6 +124,22 @@ def head_sha(cwd: Path) -> str | None:
     return _stdout([GIT, "rev-parse", "HEAD"], cwd)
 
 
+def latest_tag(cwd: Path) -> str | None:
+    """Most recent version tag (best effort).
+
+    Prefers the nearest tag reachable from HEAD (`git describe`), falling back
+    to the highest version-sorted tag in the repo, else ``None``.
+    """
+    tag = _stdout([GIT, "describe", "--tags", "--abbrev=0"], cwd)
+    if tag:
+        return tag
+    out = _stdout([GIT, "tag", "--list", "--sort=-v:refname"], cwd)
+    if not out:
+        return None
+    first = out.splitlines()[0].strip()
+    return first or None
+
+
 def working_tree_clean(cwd: Path) -> bool | None:
     """True for a clean tree, False if dirty, ``None`` if git is unavailable."""
     result = _run([GIT, "status", "--porcelain"], cwd)

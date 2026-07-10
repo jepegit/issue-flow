@@ -8,6 +8,7 @@ issue-flow status [PROJECT_DIR] [--local] [--json]
 issue-flow agent state [PROJECT_DIR] [--json]
 issue-flow agent preflight [PROJECT_DIR] [--json]
 issue-flow agent switchback [PROJECT_DIR] [--json]
+issue-flow agent version-plan [PROJECT_DIR] [--bump LEVEL ...] [--json]
 issue-flow agent resolve [-C PROJECT_DIR] [--from-file FILE] [--json]
 issue-flow agent sweep [PROJECT_DIR] [--except N] [--dry-run] [--json]
 issue-flow agent archive N [N ...] [-C PROJECT_DIR] [--dry-run] [--json]
@@ -111,6 +112,7 @@ project never installs `issue-flow`.
 | `agent state` | Resolve the focus issue (branch-derived number wins, else the single current group), its lifecycle stage (`init`/`plan`/`start`/`close`), and the suggested next command. |
 | `agent preflight` | Branch hygiene report: default branch, clean/dirty working tree, ahead/behind vs `origin/<default>`, and a stale-branch flag when the issue is already archived. Runs `git fetch --prune` first. |
 | `agent switchback` | The mechanical "switch back when safe" half of `/iflow-close`: refuses (exit 1) while the working tree is dirty — listing the paths — else runs `git switch <default>` and `git pull --ff-only`. A refused fast-forward is reported, never forced. Never deletes branches (that stays in `/iflow-cleanup`). |
+| `agent version-plan` | **Read-only** next-version planning for the `iflow-version-bump` skill: detects the release strategy from `pyproject.toml` (static `[project] version` → uv; `dynamic = ["version"]` + setuptools-scm/hatch-vcs/versioningit → git tag), reads the current version (static field or latest tag), applies the PEP 440 bump arithmetic (`--bump` repeatable; omitted → the pre-release-aware default), and prints the exact commands. Never edits files or creates tags; a filled `this-project.md` release section is flagged (`brief_release_section`) and wins over detection. |
 | `agent resolve` | Resolve project root, owner/repo, branch, and sibling scaffolds — for [multi-root workspaces](editors.md#multi-root-workspaces). When no scaffold is found walking up, falls back to the **default member** from a workspace-root `issueflow-workspace.toml` (reported as `resolved_via_workspace_default: true`); explicit hints and the nearest scaffold always win. |
 | `agent sweep` | Archive `issue<N>_*` groups out of `01-current-issues/` to `03-solved-issues/` (Done) or `02-partly-solved-issues/` (not Done). Use `--except N` to keep the focus issue and `--dry-run` to preview. |
 | `agent archive` | Mechanical deletion half of `/iflow-archive`: remove the chosen groups' files from `03-solved-issues/` and report the pre-archive HEAD sha (for the recovery ref in the summary file). Summarising into `YYYY-MM-DD_archived_issues.md` stays agent-side. Refuses when a requested issue has no solved group. `--dry-run` to preview. |
