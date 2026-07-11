@@ -354,6 +354,51 @@ def agent_epic_status(
     )
 
 
+@agent_app.command("queue")
+def agent_queue(
+    numbers: list[int] = typer.Argument(
+        None,
+        help="Explicit issue numbers to queue (alternative to --label/--epic).",
+    ),
+    project_dir: Path = typer.Option(
+        Path("."),
+        "--project-dir",
+        "-C",
+        help="Project root directory (defaults to current directory).",
+        exists=True,
+        file_okay=False,
+        resolve_path=True,
+    ),
+    label: str | None = typer.Option(
+        None, "--label", help="Queue every open issue carrying this label."
+    ),
+    epic: int | None = typer.Option(
+        None,
+        "--epic",
+        help="Queue the current stage of this epic's plan file.",
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Plan a hands-off execution queue (read-only).
+
+    Exactly one source — explicit numbers, ``--label``, or ``--epic`` — is
+    resolved, ``Depends on #N`` / ``Blocked by #N`` lines are parsed, and the
+    result is a deterministic topological order plus ``blocked`` (open
+    dependencies outside the queue), ``skipped_closed``, and ``independent``
+    (parallel-safe) sets. A dependency cycle aborts with exit 1, naming the
+    members; nothing is ever executed by this command.
+    """
+    from issue_flow.agent import run_queue
+
+    raise typer.Exit(
+        code=run_queue(
+            project_dir, _console, list(numbers or []), label, epic, json_output
+        )
+    )
+
+
 @agent_app.command("resolve")
 def agent_resolve(
     project_dir: Path = typer.Option(
