@@ -241,6 +241,8 @@ When the user message is **exactly** one of these forms, or **starts with** it f
 
 | `iflow close`, `iflow-close`, `/iflow-close`, `/iflow close` | `iflow-close` |
 
+| `iflow cycle`, `iflow-cycle`, `/iflow-cycle`, `/iflow cycle` | `iflow-cycle` |
+
 | `iflow epic`, `iflow-epic`, `/iflow-epic`, `/iflow epic` | `iflow-epic` |
 
 | `iflow fix`, `iflow-fix`, `/iflow-fix`, `/iflow fix` | `iflow-fix` |
@@ -293,7 +295,9 @@ Lifecycle skills include a **`### MODEL & EXECUTION DIRECTIVE`** section that te
 
 `/iflow-status` prints a **read-only** overview of where every issue stands — the local tracking state under `.issueflows/` (focus / parked / solved) plus open GitHub issues cross-referenced against it. It is off-path (never auto-dispatched) and changes nothing.
 
-`/iflow-epic <N>` plans a change **too large for one issue** as a staged epic: it drafts `.issueflows/05-epics/epic<N>_plan.md` (anchored to GitHub issue `<N>`), dividing the work into sequential stages of manageable issue specs with explicit dependencies and a per-issue yolo-fitness judgment. It is **draft-only** (never creates GitHub issues — publishing is a separate confirmed step) and off-path (never auto-dispatched). Epics decompose into the normal single-issue lifecycle, never around it.
+`/iflow-epic <N>` plans a change **too large for one issue** as a staged epic: it drafts `.issueflows/05-epics/epic<N>_plan.md` (anchored to GitHub issue `<N>`), dividing the work into sequential stages of manageable issue specs with explicit dependencies and a per-issue yolo-fitness judgment. Drafting writes nothing on GitHub; **`/iflow-epic <N> publish [stage <k>]`** creates a confirmed stage's issues behind one consolidated confirm (yolo labels per the recorded judgment, task list maintained on the anchor issue, `Published: #<M>` recorded back into the plan so re-runs are idempotent). Off-path (never auto-dispatched); epics decompose into the normal single-issue lifecycle, never around it.
+
+`/iflow-cycle <queue-spec>` processes **many issues hands-off in a row** under a single up-front confirmation — the batch equivalent of `/iflow-yolo`. It resolves a queue via `issue-flow agent queue` (explicit numbers, `label:<L>`, or `epic <N> [stage <k>]`), then runs each issue through the full yolo chain (PR auto-merged), interrupting you only when input is **strictly necessary** (unfixable failure, refused merge / non-fast-forward pull, ambiguous or not-actually-small spec, or anything outside the confirmed queue). It stops the whole cycle on the first such condition, leaving the repo clean on the default branch. Off-path (never auto-dispatched); never weakens a yolo safeguard to keep moving.
 
 `/iflow-archive` condenses old solved issue groups under `.issueflows/03-solved-issues/` into a single dated `YYYY-MM-DD_archived_issues.md` summary file (recording the pre-archive git ref for recovery via `git show <ref>:<path>`), then deletes the original `issue<N>_*` files. It is off-path and destructive: nothing is deleted before one consolidated confirmation.
 

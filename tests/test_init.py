@@ -377,16 +377,16 @@ def test_init_cleanup_skill_offers_planned_tag(tmp_path: Path) -> None:
     assert "git tag -l" in content
 
 
-def test_init_epic_skill_is_draft_only_and_staged(tmp_path: Path) -> None:
-    """iflow-epic skill: staged plan structure, yolo judgments, draft-only."""
+def test_init_epic_skill_is_staged_and_gated(tmp_path: Path) -> None:
+    """iflow-epic skill: staged plan structure, yolo judgments, gated writes."""
     run_init(tmp_path)
     content = (tmp_path / ".cursor" / "skills" / "iflow-epic" / "SKILL.md").read_text(
         encoding="utf-8"
     )
-    # Draft-only boundary: no GitHub writes from this surface.
-    assert "draft-only" in content.lower()
-    assert "never creates GitHub issues" in content
-    # The parseable plan structure the publish step depends on.
+    # Drafting stays write-free; publish is the single gated exception.
+    assert "Drafting writes nothing on GitHub" in content
+    assert "consolidated confirm" in content
+    # The parseable plan structure the publish/epic-status steps depend on.
     assert "epic<N>_plan.md" in content
     assert "05-epics" in content
     assert "### Issue:" in content
@@ -396,6 +396,26 @@ def test_init_epic_skill_is_draft_only_and_staged(tmp_path: Path) -> None:
     # Sizing + off-path discipline.
     assert "one issue = one branch = one PR" in content
     assert "Off-path" in content
+
+
+def test_init_epic_skill_publish_action_contract(tmp_path: Path) -> None:
+    """The publish action: confirmed-only, idempotent, label-checked, task list."""
+    run_init(tmp_path)
+    content = (tmp_path / ".cursor" / "skills" / "iflow-epic" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    assert "## Action: publish" in content
+    # Gate: only confirmed plans publish; drafts are refused.
+    assert "Requires `Status: confirmed`" in content
+    # Dry-run before the consolidated confirm.
+    assert "Dry-run listing" in content
+    # Idempotency via recorded numbers.
+    assert "Published: #" in content
+    assert "idempotent" in content
+    # yolo label only when it exists in the repo.
+    assert "gh label list" in content
+    # Anchor task list is append/patch only.
+    assert "append/patch only" in content
 
 
 def test_init_epic_surface_is_standard_mode_only(tmp_path: Path) -> None:
@@ -411,6 +431,44 @@ def test_init_dispatcher_never_dispatches_to_epic(tmp_path: Path) -> None:
         encoding="utf-8"
     )
     assert "/iflow-epic" in content
+
+
+def test_init_cycle_skill_is_batch_yolo_with_stop_rule(tmp_path: Path) -> None:
+    """iflow-cycle skill: queue-driven batch yolo, one confirm, strict stop rule."""
+    run_init(tmp_path)
+    content = (tmp_path / ".cursor" / "skills" / "iflow-cycle" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    # Drives the deterministic queue planner.
+    assert "issue-flow agent queue" in content
+    # One up-front consolidated confirm, not per-issue.
+    assert "consolidated confirm" in content
+    # Reuses the yolo chain verbatim (safeguards stay in force).
+    assert "iflow-yolo/SKILL.md" in content
+    # The strictly-necessary-input rule and its stop conditions.
+    assert "strictly necessary" in content.lower()
+    assert "Strictly-necessary-input rule" in content
+    # Default failure policy stops the cycle.
+    assert "stop" in content.lower()
+    # Safety cap on queue length.
+    assert "10" in content
+    # Batch report at the end.
+    assert "Batch report" in content
+
+
+def test_init_cycle_surface_is_standard_mode_only(tmp_path: Path) -> None:
+    """Simple mode must not install the cycle surface."""
+    run_init(tmp_path, mode="simple")
+    assert not (tmp_path / ".cursor" / "skills" / "iflow-cycle").exists()
+
+
+def test_init_dispatcher_never_dispatches_to_cycle(tmp_path: Path) -> None:
+    """/iflow's constraint list must include the cycle surface."""
+    run_init(tmp_path)
+    content = (tmp_path / ".cursor" / "skills" / "iflow" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    assert "/iflow-cycle" in content
 
 
 def test_init_close_skill_documents_prerelease_default(tmp_path: Path) -> None:
