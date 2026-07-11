@@ -377,16 +377,16 @@ def test_init_cleanup_skill_offers_planned_tag(tmp_path: Path) -> None:
     assert "git tag -l" in content
 
 
-def test_init_epic_skill_is_staged_and_gated(tmp_path: Path) -> None:
-    """iflow-epic skill: staged plan structure, yolo judgments, gated writes."""
+def test_init_epic_skill_is_draft_only_and_staged(tmp_path: Path) -> None:
+    """iflow-epic skill: staged plan structure, yolo judgments, draft-only."""
     run_init(tmp_path)
     content = (tmp_path / ".cursor" / "skills" / "iflow-epic" / "SKILL.md").read_text(
         encoding="utf-8"
     )
-    # Drafting stays write-free; publish is the single gated exception.
-    assert "Drafting writes nothing on GitHub" in content
-    assert "consolidated confirm" in content
-    # The parseable plan structure the publish/epic-status steps depend on.
+    # Draft-only boundary: no GitHub writes from this surface.
+    assert "draft-only" in content.lower()
+    assert "never creates GitHub issues" in content
+    # The parseable plan structure the publish step depends on.
     assert "epic<N>_plan.md" in content
     assert "05-epics" in content
     assert "### Issue:" in content
@@ -396,26 +396,6 @@ def test_init_epic_skill_is_staged_and_gated(tmp_path: Path) -> None:
     # Sizing + off-path discipline.
     assert "one issue = one branch = one PR" in content
     assert "Off-path" in content
-
-
-def test_init_epic_skill_publish_action_contract(tmp_path: Path) -> None:
-    """The publish action: confirmed-only, idempotent, label-checked, task list."""
-    run_init(tmp_path)
-    content = (tmp_path / ".cursor" / "skills" / "iflow-epic" / "SKILL.md").read_text(
-        encoding="utf-8"
-    )
-    assert "## Action: publish" in content
-    # Gate: only confirmed plans publish; drafts are refused.
-    assert "Requires `Status: confirmed`" in content
-    # Dry-run before the consolidated confirm.
-    assert "Dry-run listing" in content
-    # Idempotency via recorded numbers.
-    assert "Published: #" in content
-    assert "idempotent" in content
-    # yolo label only when it exists in the repo.
-    assert "gh label list" in content
-    # Anchor task list is append/patch only.
-    assert "append/patch only" in content
 
 
 def test_init_epic_surface_is_standard_mode_only(tmp_path: Path) -> None:

@@ -2,7 +2,7 @@
 name: iflow-epic
 description: >-
   Plan a larger change as a staged epic: draft epic<N>_plan.md with stages of
-  manageable issue specs, then publish confirmed stages as GitHub issues.
+  manageable issue specs. Draft-only — publishing to GitHub is a separate step.
 disable-model-invocation: true
 issue-flow-version: 0.4.2a4
 ---
@@ -11,12 +11,11 @@ issue-flow-version: 0.4.2a4
 
 Follow this skill to plan a change that is **too large for one issue**: divide it into sequential **stages**, each stage into **manageable issues** that flow through the normal lifecycle (`/iflow-init` → `/iflow-plan` → `/iflow-start` → `/iflow-close`).
 
-The surface has two actions. **Drafting** (the default) is write-free on GitHub: its deliverable is `.issueflows/05-epics/epic<N>_plan.md`, and it never creates GitHub issues, labels, or milestones. **`publish`** is the single exception — it turns a *confirmed* plan into real GitHub issues, stage by stage, behind one consolidated confirm.
+**This skill is draft-only.** Its deliverable is `.issueflows/05-epics/epic<N>_plan.md`. It never creates GitHub issues, labels, or milestones — publishing a confirmed plan is a separate, explicitly confirmed step of the epic workflow.
 
 ## Input
 
 - **`<N>`** — the GitHub issue number of the **epic anchor** (an umbrella issue describing the large change). Required: an epic without an anchor has nowhere to track progress. If no anchor issue exists yet, stop and ask the user to create one (title prefixed `Epic:`, label `epic` when available) — creating it is the user's call, not this skill's.
-- **`publish [stage <k>]`** — run the publish action (below) instead of drafting. Without a stage number, the earliest stage with unpublished specs is chosen.
 - Optional free text — extra context, constraints, or a proposed stage split to seed the draft.
 
 
@@ -97,8 +96,6 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
    ...
    ```
 
-   The `publish` action later appends a `- Published: #<M>` line to each spec it creates — never add those by hand.
-
 3. **Sizing rules for issue specs** — every issue must be *manageable*:
    - one issue = one branch = one PR, implementable in roughly a day or less;
    - a **crisp acceptance criterion** someone else could verify;
@@ -109,22 +106,11 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 
 5. **Review with the user.** Present the draft (stage titles, issue titles, dependency graph, yolo flags) and iterate until they confirm. Record the confirmation by changing `Status: draft` to `Status: confirmed` in the plan file.
 
-6. **Stop.** Creating the GitHub issues is the `publish` action below, with its own consolidated confirm — never create them from the drafting flow, even if asked to "just create them": run `/iflow-epic <N> publish` explicitly so the confirm gates stay distinct.
-
-## Action: publish
-
-Turn one stage of a **confirmed** plan into real GitHub issues. Requires `Status: confirmed` in `epic<N>_plan.md` — refuse drafts and point at the review step instead.
-
-1. **Select the stage.** A named `stage <k>` publishes exactly that stage; otherwise pick the earliest stage containing specs without a `Published:` line. Specs that already carry `- Published: #<M>` are **skipped** (this makes re-runs idempotent).
-2. **Dry-run listing.** Show what would be created: per spec — title, labels (`yolo` when the judgment says yes **and** the label exists per `gh label list`; otherwise note the gap), and the dependency lines after placeholder resolution. `stage <j> issue <k>` placeholders pointing at already-published specs are rewritten to their real `#<M>`; placeholders at still-unpublished specs stay verbatim with a note.
-3. **Consolidated confirm** (destructive-ish — outward-facing writes; normal prose, never shortened). One prompt covering exactly: which issues get created, with which labels, and that the anchor issue's task list will be updated. Do not proceed without a clear yes.
-4. **Create, in dependency order within the stage.** For each spec: `gh issue create --repo <owner/repo>` with the self-contained body (context, scope, acceptance criteria, resolved `Depends on: #<M>` lines, and a closing `Part of epic #<N>.` line). Immediately record the new number in the plan file as `- Published: #<M>` under that spec.
-5. **Update the anchor issue's task list** (append/patch only — never rewrite the user's own body text): fetch the body, append a `## Stage <k> — <title>` section (or extend it) with one `- [ ] #<M>` line per created issue, and write it back via `gh issue edit <N> --body-file`.
-6. **Report.** Created issues (numbers + titles + labels), skipped already-published specs, unresolved placeholders, and the reminder that the next stage publishes only after this one's issues close.
+6. **Stop.** Publishing the confirmed plan (creating the GitHub issues stage by stage and maintaining the task list on the anchor issue) is the epic workflow's separate publish step — never do it from this skill, even if asked to "just create them": switch surfaces explicitly so the confirm gates stay distinct.
 
 ## Constraints
 
-- **Drafting writes nothing on GitHub**: no `gh issue create`, no label or milestone writes, no task-list edits on the anchor issue. Reading with `gh issue view` / `gh issue list` is always fine. The `publish` action is the single exception and never runs without its consolidated confirm.
+- **Draft-only**: no `gh issue create`, no label or milestone writes, no task-list edits on the anchor issue. Reading with `gh issue view` / `gh issue list` is fine.
 - **Off-path**: `/iflow` never auto-dispatches to `/iflow-epic`; the user opts in explicitly.
 - Epics decompose **into** the normal single-issue lifecycle, never around it — no issue spec may assume work happens outside a normal issue branch + PR.
 - The plan file is user-owned working state under `.issueflows/`: `issue-flow update` never touches it.
