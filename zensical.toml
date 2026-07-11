@@ -35,6 +35,7 @@ nav = [
 ]
 
 [project.theme]
+logo = "static/images/LOGO_01.png"
 language = "en"
 
 features = [
