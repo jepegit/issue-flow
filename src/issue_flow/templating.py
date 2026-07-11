@@ -128,6 +128,7 @@ COMMAND_NAMES: list[str] = [
     "iflow-fix",
     "iflow-status",
     "iflow-archive",
+    "iflow-epic",
     "iflow-graphify",
 ]
 
@@ -148,6 +149,7 @@ SKILL_DIRS: list[str] = [
     "iflow_fix",
     "iflow_status",
     "iflow_archive",
+    "iflow_epic",
     "iflow_version_bump",
     "iflow_history_update",
     "iflow_graphify",
