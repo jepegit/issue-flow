@@ -81,49 +81,28 @@ issue-flow/
 
 ---
 
-## Scaffolding modes
+## Working on scaffolding modes
 
-A **mode** selects which workflow surfaces (skills / slash commands) `issue-flow
-init` installs. Two modes ship built in:
+End-user docs for what a mode is, how to pick one, and custom project modes live
+in [Configuration → Modes](configuration.md#modes). This section is for
+contributors changing how modes work in the package.
 
-- **`standard`** (default) -- the full workflow: planning, PRs, history, cleanup,
-  graphify, and all helpers.
-- **`simple`** -- a markdown-only lifecycle (capture, plan, implement, park,
-  status); no PR/cleanup/yolo/fix/graphify automation.
-
-```bash
-uv run issue-flow init <DIR> --mode simple
-```
-
-The chosen mode is persisted to the project's `.issueflows/config.toml` under
-`[issueflow].mode`, so `issue-flow update` refreshes exactly that mode's
-surfaces. **`update` never changes the mode** -- switch by re-running
-`issue-flow init --mode <id>` (which also prunes surfaces the new mode excludes).
-Resolution order for the active mode: `--mode` (CLI, on `init`) > persisted
-`.issueflows/config.toml` > `ISSUEFLOW_MODE` env > `standard`. The persisted
-choice beats the env var on purpose, so a stray `ISSUEFLOW_MODE` can't override
-the project's mode on `update`.
-
-**Defining modes (developers):** built-in modes live in
+**Built-in mode definitions** ship in
 [src/issue_flow/modes.toml](../src/issue_flow/modes.toml). Each `[modes.<id>]`
 table accepts `name`, `description`, `skills`/`commands` (`"all"` or a list of
 stems), or `extends` + `add`/`remove` to compose on top of another mode.
-
-**Custom modes (users):** a project can add or override modes in its own
-`.issueflows/config.toml` using the same `[modes.<id>]` grammar, e.g.:
-
-```toml
-[issueflow]
-mode = "mine"
-
-[modes.mine]
-extends = "simple"
-add = ["iflow_graphify"]   # any packaged surface stem
-```
+**Resolution and persistence** live in
+[src/issue_flow/modes.py](../src/issue_flow/modes.py).
 
 Templates branch on surface membership via `included_skills` /
 `included_commands` (not on the mode id), so new modes and surfaces compose
-without per-mode conditionals.
+without per-mode conditionals. When you add a skill or command, gate it in
+templates the same way.
+
+**Smoke test:** `uv run issue-flow init /tmp/test-project --mode simple`
+
+**Tests:** `uv run pytest tests/test_modes.py` (plus `test_init.py` /
+`test_update.py` if manifest filtering changes).
 
 ---
 
