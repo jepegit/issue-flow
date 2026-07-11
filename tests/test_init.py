@@ -433,6 +433,30 @@ def test_init_dispatcher_never_dispatches_to_epic(tmp_path: Path) -> None:
     assert "/iflow-epic" in content
 
 
+def test_init_pick_skill_prefers_active_epic(tmp_path: Path) -> None:
+    """iflow-pick should source an active epic's current-stage candidates."""
+    run_init(tmp_path)
+    content = (tmp_path / ".cursor" / "skills" / "iflow-pick" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    assert "Active epic" in content
+    assert "issue-flow agent epic-status" in content
+    assert "next_candidates" in content
+
+
+def test_init_cleanup_skill_offers_stage_gate(tmp_path: Path) -> None:
+    """iflow-cleanup should offer the epic stage gate on a completed stage."""
+    run_init(tmp_path)
+    content = (
+        tmp_path / ".cursor" / "skills" / "iflow-cleanup" / "SKILL.md"
+    ).read_text(encoding="utf-8")
+    assert "stage gate" in content.lower()
+    assert "issue-flow agent epic-status" in content
+    # Offer only — never auto-publish.
+    assert "never auto-publish" in content
+    assert "/iflow-epic" in content
+
+
 def test_init_cycle_skill_is_batch_yolo_with_stop_rule(tmp_path: Path) -> None:
     """iflow-cycle skill: queue-driven batch yolo, one confirm, strict stop rule."""
     run_init(tmp_path)

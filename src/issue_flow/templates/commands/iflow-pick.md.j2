@@ -28,9 +28,11 @@ Optional free-form text after the command:
 
 2. **Source the candidates** (in precedence order):
    - **Parked work first.** If `{{ issueflows_dir }}/{{ partly_solved_folder }}/` contains any `issue<n>_*` groups, list them as the **primary** candidates — these are already-started issues that deserve to be finished before new work begins. Show issue number, title (from each `issue<n>_original.md`), and a one-line status if a status file exists.
+   - **Active epic next.** If an epic plan under `{{ issueflows_dir }}/{{ epics_folder }}/` has open issues (or the user named one, e.g. `epic 144`), prefer its **current stage's unblocked issues**. Fast path: `issue-flow agent epic-status <N> --json` — its `next_candidates` are exactly the open, dependency-satisfied issues of the current stage. Surface those near the top so the epic advances stage by stage instead of stalling.
    - **Otherwise, pull from GitHub.** Run `gh issue list --state open --json number,title,labels,milestone,updatedAt` (add `--repo owner/repo` if the default remote is ambiguous). Drop any issue already captured locally under `{{ issueflows_dir }}/{{ current_issues_folder }}/`, `{{ partly_solved_folder }}/`, or `{{ solved_folder }}/`.
 
 3. **Rank by relevance and present a shortlist.** Rank candidates using, in combination:
+   - **Epic membership** — an active epic's current-stage `next_candidates` first (note the epic + stage on those entries).
    - **Milestone** — prefer issues on the nearest / active milestone (and honour any milestone hint in the input).
    - **Labels** — prefer labels that match recent work or any label hint in the input.
    - **Topical similarity** — bias toward issues whose title/labels resemble recently solved issues (skim `{{ issueflows_dir }}/{{ solved_folder }}/` and recent branch names) so related work clusters together.
