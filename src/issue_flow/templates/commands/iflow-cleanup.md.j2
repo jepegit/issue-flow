@@ -47,6 +47,10 @@ Optional free-form text after the command. Examples:
    - For each group whose status file contains `- [x] Done` (case-insensitive on `done`), move the group to `{{ issueflows_dir }}/{{ solved_folder }}/`.
    - Groups without a checked `Done` stay put — do not route them to `{{ issueflows_dir }}/{{ partly_solved_folder }}/` from `/iflow-cleanup`. That is `/iflow-pause`'s job and requires a human decision.
 
+6. **Epic stage gate (offer only).**
+   - If the just-merged issue's number appears in a `- Published: #<N>` line of an `epic<M>_plan.md` under `{{ issueflows_dir }}/{{ epics_folder }}/`, it belongs to an epic. Run `issue-flow agent epic-status <M> --json`; if the issue's stage now has no open issues left, the stage just completed.
+   - On a completed stage, **offer** (never automatic): (a) post a short stage-summary comment on the epic anchor issue, and (b) run `/iflow-epic <M> publish` to publish the next stage. Publishing and commenting stay the user's explicit call.
+
 ## Output
 
 Report:
