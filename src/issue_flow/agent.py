@@ -1395,6 +1395,11 @@ def run_status(project_root: Path, console: Console, local: bool, as_json: bool)
     ]
     solved_numbers = sorted(tracking.group_issue_files(folders["solved"]))
 
+    # An in-flight /iflow-cycle leaves a cycle_status.md in current-issues; a
+    # finished one is archived to solved/, so its presence here means a batch
+    # run is paused or active.
+    cycle_active = (folders["current"] / "cycle_status.md").is_file()
+
     github: dict[str, Any] | None = None
     if not local:
         github = _github_section(project_root, folders)
@@ -1406,6 +1411,7 @@ def run_status(project_root: Path, console: Console, local: bool, as_json: bool)
         "parked": parked,
         "solved_count": len(solved_numbers),
         "solved_recent": solved_numbers[-5:],
+        "cycle_active": cycle_active,
         "github": github,
     }
 
@@ -1484,6 +1490,12 @@ def _render_status_text(
         console.print("[bold]Parked[/bold]: 0")
 
     console.print(f"[bold]Solved[/bold]: {payload['solved_count']}")
+
+    if payload.get("cycle_active"):
+        console.print(
+            "[bold]Cycle[/bold]: [yellow]in-flight[/yellow] "
+            "(cycle_status.md present — resume with `/iflow-cycle resume`)"
+        )
 
     github = payload["github"]
     summary_github = ""

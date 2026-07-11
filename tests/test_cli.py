@@ -1365,6 +1365,26 @@ def test_status_local_json(
     assert payload["focus"]["number"] == 7
     assert payload["focus"]["stage"] == "close"
     assert payload["github"] is None
+    assert payload["cycle_active"] is False
+
+
+def test_status_reports_in_flight_cycle(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A cycle_status.md in current-issues is reported as an in-flight cycle."""
+    from issue_flow import gitutils as gitutils_module
+
+    monkeypatch.setattr(gitutils_module, "current_branch", lambda _cwd: None)
+    current = tmp_path / ".issueflows" / "01-current-issues"
+    current.mkdir(parents=True)
+    (current / "cycle_status.md").write_text(
+        "# Cycle\n- [ ] #12 — thing — pending\n", encoding="utf-8"
+    )
+
+    result = runner.invoke(app, ["status", str(tmp_path), "--local", "--json"])
+
+    assert result.exit_code == 0, result.output
+    assert _json(result.stdout)["cycle_active"] is True
 
 
 def test_status_text_escapes_malicious_title(

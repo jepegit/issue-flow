@@ -18,7 +18,8 @@ Use only when every queued issue is genuinely yolo-fit (small, low-risk, well-sp
 - **explicit numbers** — e.g. `12 15 18`.
 - **`label:<L>`** — every open issue carrying label `<L>`.
 - **`epic <N> [stage <k>]`** — the current stage of epic `<N>` (or stage `<k>`).
-- **`resume`** — reserved for the resumable cycle (a later slice); not yet available.
+- **`resume`** — pick up an interrupted cycle from its state file (see **Resuming** below).
+- **`onfail:stop`** (default) / **`onfail:skip`** — failure policy (see step 7).
 - **`max:<n>`** — raise the safety cap (default 10) for this run.
 - **`stay`** — forward `stay` to each close so the working copy stays on each issue branch (rarely wanted in a cycle).
 
@@ -37,25 +38,40 @@ Use only when every queued issue is genuinely yolo-fit (small, low-risk, well-sp
 3. **One consolidated confirm** (the only planned interruption). Present, in normal prose:
    - the **ordered** queue (numbers + titles), and which issues are **skipped** (closed) or **blocked** (open dependency outside the queue) with the reason;
    - that each issue runs the **full yolo chain** and its PR is **auto-merged**;
-   - the failure policy (**stop on the first failure** — see below);
+   - the failure policy (`onfail:stop`, the default, or `onfail:skip` — see step 7);
    - the default-branch preflight that must hold before starting (clean tree, tests passing).
    Require an explicit yes; anything else aborts before any work.
 
-4. **Per-issue loop.** For each issue in order, from a clean default branch:
-   - create/switch to its `<N>-<slug>` branch, then follow `{{ agent_dir }}/skills/iflow-yolo/SKILL.md` **verbatim** — including its own preflight (refuse on default branch, refuse with dirty unrelated changes, tests pass up front) and its consolidated-confirm step, which the up-front batch confirm in step 3 satisfies (do not re-ask per issue).
-   - after the yolo close merges and switches back to the default branch, record the outcome (PR URL, merge result) and continue to the next issue.
-   - Every yolo safeguard stays in force. A safeguard that trips is a **stop condition** (step 5), never a guard to skip.
+4. **Write the cycle state file.** After the confirm, write `{{ issueflows_dir }}/{{ current_issues_folder }}/cycle_status.md` — the durable record that makes the run resumable and visible to `/iflow-status`. Include: the queue spec, the `onfail` policy, an ISO timestamp, and the ordered queue as a checklist with one line per issue (`- [ ] #<N> — <title> — pending`). Update this file as the loop progresses (see step 5); it is a normal tracking file (not an `issue<N>_*` group), so the folder sweep never touches it.
 
-5. **Strictly-necessary-input rule.** Between issues the cycle runs unattended. **Stop and ask only** when:
+5. **Per-issue loop.** For each issue in order, from a clean default branch:
+   - mark it `in-progress` in `cycle_status.md`, then create/switch to its `<N>-<slug>` branch and follow `{{ agent_dir }}/skills/iflow-yolo/SKILL.md` **verbatim** — including its own preflight (refuse on default branch, refuse with dirty unrelated changes, tests pass up front) and its consolidated-confirm step, which the up-front batch confirm in step 3 satisfies (do not re-ask per issue).
+   - after the yolo close merges and switches back to the default branch, record the outcome in `cycle_status.md` (`- [x] #<N> — <title> — merged <PR-url>`) and continue to the next issue.
+   - Every yolo safeguard stays in force. A safeguard that trips is a **stop condition** (step 6), never a guard to skip.
+
+6. **Strictly-necessary-input rule.** Between issues the cycle runs unattended. **Stop and ask only** when:
    a. tests or lint fail in a way you cannot fix within the current issue's scope;
    b. a merge is refused or a `git pull --ff-only` will not fast-forward (divergence);
    c. the issue spec is ambiguous, contradictory, or turns out **not** small (yolo's scope check aborts);
    d. an action would fall **outside the confirmed queue** (touching an unlisted issue, an unrelated dirty file, a destructive op).
    Anything else — routine implementation choices, passing tests, clean merges — proceeds without asking.
 
-6. **Failure policy (default: stop).** On the first stop condition, **halt the cycle**: finish no further issues, leave the repo on the **default branch, clean** (the in-flight issue's branch stays as-is for the user to inspect), and report. Do not attempt the rest of the queue. (A skip-and-continue policy, `onfail:skip`, is a later slice.)
+7. **Failure policy** (from the `onfail:` token; default **stop**). When a stop condition (step 6) trips on an issue:
+   - **`onfail:stop`** (default) — **halt the cycle**: finish no further issues, leave the repo on the **default branch, clean** (the in-flight issue's branch stays as-is for the user to inspect), record the stop reason and the not-reached issues in `cycle_status.md`, and report. Do not attempt the rest of the queue.
+   - **`onfail:skip`** — **park and continue**: record the failure against that issue in `cycle_status.md` (`- [~] #<N> — <title> — failed: <reason>`), park its work per `{{ agent_dir }}/skills/iflow-pause/SKILL.md` conventions (status note + move to `{{ partly_solved_folder }}/`), return to a clean default branch, and proceed to the next queued issue. A skip never bypasses a yolo safeguard — it records the trip and moves on.
 
-7. **Batch report.** Summarize the whole run: per issue — number, title, PR URL, merge result (merged / queued via `--auto` / not reached), and duration if tracked; then the queue items **skipped** (closed), **blocked** (with blockers), and — on a halt — the **stop reason** and which issues were **not reached**. End by reminding the user to run `/iflow-cleanup` once to prune the merged local branches.
+8. **Finish.** When the queue is exhausted (or halted), finalize `cycle_status.md` (mark it `- [x] Done`) and move it to `{{ issueflows_dir }}/{{ solved_folder }}/cycle_status_<YYYY-MM-DD>.md` so it is archived, not re-detected as in-flight.
+
+9. **Batch report.** Summarize the whole run: per issue — number, title, PR URL, merge result (merged / queued via `--auto` / failed-and-skipped / not reached), and duration if tracked; then the queue items **skipped** (closed), **blocked** (with blockers), and — on a halt — the **stop reason** and which issues were **not reached**. End by reminding the user to run `/iflow-cleanup` once to prune the merged local branches.
+
+## Resuming
+
+`/iflow-cycle resume` picks up an interrupted cycle:
+
+1. Read `{{ issueflows_dir }}/{{ current_issues_folder }}/cycle_status.md`. If it is missing, tell the user there is no in-flight cycle and stop.
+2. Take the **remaining** issues (those still `pending` / `in-progress`) and **re-verify** them with `issue-flow agent queue <original-spec> --json` — an issue that has since closed, or become blocked, is dropped/deferred with a note (state can move while a cycle is paused).
+3. **Do not re-ask the original consolidated confirm** for the unchanged remaining items — the batch was already authorized. Ask again only if the re-verified queue differs materially from what was confirmed (new blockers, added issues), and only about the delta.
+4. Continue the per-issue loop (step 5) with the same `onfail` policy recorded in the file.
 
 ## Constraints
 
@@ -63,3 +79,4 @@ Use only when every queued issue is genuinely yolo-fit (small, low-risk, well-sp
 - Never weaken a yolo safeguard to keep the cycle moving — safeguards are stop conditions, not obstacles.
 - Never run `/iflow-cleanup` from this skill; batch branch deletion still needs the user to see the merged PRs first.
 - One consolidated confirm covers the batch; never silently expand the queue beyond what was confirmed.
+- `cycle_status.md` is the single source of truth for an in-flight cycle: keep it current so `resume` and `/iflow-status` stay accurate. It is not an `issue<N>_*` group, so the folder sweep leaves it alone; archive it (step 8) when the run ends.

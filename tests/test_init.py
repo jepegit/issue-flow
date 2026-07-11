@@ -462,6 +462,34 @@ def test_init_cycle_surface_is_standard_mode_only(tmp_path: Path) -> None:
     assert not (tmp_path / ".cursor" / "skills" / "iflow-cycle").exists()
 
 
+def test_init_cycle_skill_has_state_file_resume_and_onfail(tmp_path: Path) -> None:
+    """iflow-cycle skill: durable state file, resume action, onfail policy."""
+    run_init(tmp_path)
+    content = (tmp_path / ".cursor" / "skills" / "iflow-cycle" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    # Durable, resumable state file.
+    assert "cycle_status.md" in content
+    # Resume without re-asking the original confirm.
+    assert "## Resuming" in content
+    assert "without" in content and "re-ask" in content.lower()
+    # Both failure policies.
+    assert "onfail:stop" in content
+    assert "onfail:skip" in content
+    # Skip parks via pause conventions and continues.
+    assert "iflow-pause" in content
+
+
+def test_init_status_skill_mentions_in_flight_cycle(tmp_path: Path) -> None:
+    """iflow-status skill should surface an in-flight cycle."""
+    run_init(tmp_path)
+    content = (
+        tmp_path / ".cursor" / "skills" / "iflow-status" / "SKILL.md"
+    ).read_text(encoding="utf-8")
+    assert "cycle_status.md" in content
+    assert "cycle_active" in content
+
+
 def test_init_dispatcher_never_dispatches_to_cycle(tmp_path: Path) -> None:
     """/iflow's constraint list must include the cycle surface."""
     run_init(tmp_path)
