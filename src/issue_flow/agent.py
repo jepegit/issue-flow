@@ -546,6 +546,156 @@ def _render_version_plan_text(
 
 
 # ---------------------------------------------------------------------------
+# agent epic-status
+# ---------------------------------------------------------------------------
+
+
+def run_epic_status(
+    project_root: Path,
+    console: Console,
+    number: int,
+    local: bool,
+    as_json: bool,
+) -> int:
+    """Deterministic epic progress: stages, per-issue state, next candidates.
+
+    Read-only. Parses ``epic<N>_plan.md`` (the contract the /iflow-epic skill
+    writes) and — unless ``local`` — resolves each published issue's state via
+    ``gh``. A missing/unauthenticated ``gh`` degrades to ``state: "unknown"``
+    per issue rather than failing the command.
+    """
+    from issue_flow import epicplan
+
+    settings = Settings()
+    plan_path = (
+        project_root
+        / settings.issueflows_dir
+        / settings.epics_folder
+        / f"epic{number}_plan.md"
+    )
+    plan = epicplan.parse_epic_plan(plan_path)
+    if plan is None:
+        msg = f"no epic plan found at {plan_path}; draft one with /iflow-epic {number}."
+        if as_json:
+            _emit_json(console, {"epic": number, "error": msg})
+        else:
+            console.print(f"[red]error[/red]  {escape(msg)}")
+        return 1
+
+    repo_slug: str | None = None
+    owner_repo = gitutils.remote_owner_repo(project_root)
+    if owner_repo is not None:
+        repo_slug = f"{owner_repo[0]}/{owner_repo[1]}"
+
+    states: dict[int, str | None] = {}
+    if not local:
+        for stage in plan.stages:
+            for spec in stage.issues:
+                if spec.published is not None:
+                    states[spec.published] = gitutils.gh_issue_state(
+                        spec.published, project_root, repo_slug
+                    )
+
+    def spec_state(spec: epicplan.IssueSpec) -> str:
+        if spec.published is None:
+            return "unpublished"
+        if local:
+            return "published"
+        state = states.get(spec.published)
+        return state if state in ("open", "closed") else "unknown"
+
+    def dep_closed(dep: int) -> bool:
+        # A dependency counts as satisfied only when provably closed.
+        return (not local) and states.get(dep) == "closed"
+
+    stage_payloads: list[dict[str, Any]] = []
+    current_stage: int | None = None
+    next_candidates: list[int] = []
+    for stage in plan.stages:
+        issues: list[dict[str, Any]] = []
+        done = bool(stage.issues)
+        for spec in stage.issues:
+            state = spec_state(spec)
+            blocked_by = [dep for dep in spec.depends_on if not dep_closed(dep)]
+            issues.append(
+                {
+                    "number": spec.published,
+                    "title": spec.title,
+                    "state": state,
+                    "depends_on": spec.depends_on,
+                    "placeholder_deps": [
+                        f"stage {j} issue {k}" for j, k in spec.placeholder_deps
+                    ],
+                    "blocked_by": blocked_by,
+                    "yolo": spec.yolo,
+                }
+            )
+            if state != "closed":
+                done = False
+        stage_payloads.append(
+            {
+                "index": stage.index,
+                "title": stage.title,
+                "issues": issues,
+                "done": done,
+            }
+        )
+        if not done and current_stage is None:
+            current_stage = stage.index
+            for item in issues:
+                if (
+                    item["state"] == "open"
+                    and not item["blocked_by"]
+                    and not item["placeholder_deps"]
+                ):
+                    next_candidates.append(item["number"])
+
+    payload: dict[str, Any] = {
+        "epic": plan.number if plan.number is not None else number,
+        "title": plan.title,
+        "plan_status": plan.status,
+        "local": local,
+        "stages": stage_payloads,
+        "current_stage": current_stage,
+        "next_candidates": next_candidates,
+    }
+
+    if as_json:
+        _emit_json(console, payload)
+        return 0
+
+    console.print(
+        f"[bold]Epic #{payload['epic']}[/bold] — {escape(plan.title)} "
+        f"[dim](plan: {plan.status})[/dim]"
+    )
+    for stage in stage_payloads:
+        marker = (
+            "done"
+            if stage["done"]
+            else ("current" if stage["index"] == current_stage else "pending")
+        )
+        console.print(f"  Stage {stage['index']} — {escape(stage['title'])} [{marker}]")
+        for item in stage["issues"]:
+            number_str = f"#{item['number']}" if item["number"] else "(unpublished)"
+            flags = " yolo" if item["yolo"] else ""
+            blocked = (
+                f" blocked by {', '.join(f'#{d}' for d in item['blocked_by'])}"
+                if item["blocked_by"]
+                else ""
+            )
+            console.print(
+                f"    {number_str} [{item['state']}]{flags}{blocked} "
+                f"{escape(item['title'])}"
+            )
+    if next_candidates:
+        console.print(
+            "[bold]Next candidates[/bold]: "
+            + ", ".join(f"#{n}" for n in next_candidates)
+        )
+    return 0
+
+
+# ---------------------------------------------------------------------------
 # workspace init
 # ---------------------------------------------------------------------------
 

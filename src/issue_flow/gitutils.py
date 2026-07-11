@@ -252,6 +252,25 @@ def gh_issue_view(
         return None
 
 
+def gh_issue_state(number: int, cwd: Path, repo: str | None = None) -> str | None:
+    """State (``open`` / ``closed``, lowercased) of one GitHub issue.
+
+    Returns ``None`` when ``gh`` is missing, unauthenticated, or the issue
+    cannot be fetched.
+    """
+    argv = [GH, "issue", "view", str(number), "--json", "state"]
+    if repo:
+        argv += ["--repo", repo]
+    out = _stdout(argv, cwd)
+    if out is None:
+        return None
+    try:
+        state = json.loads(out).get("state")
+    except json.JSONDecodeError:
+        return None
+    return state.lower() if isinstance(state, str) else None
+
+
 def gh_issue_list(
     cwd: Path, repo: str | None = None, limit: int = 100
 ) -> list[dict[str, Any]] | None:

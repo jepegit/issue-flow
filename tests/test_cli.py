@@ -807,6 +807,115 @@ def test_agent_version_plan_flags_filled_brief(
 
 
 # ---------------------------------------------------------------------------
+# agent epic-status (issue #138)
+# ---------------------------------------------------------------------------
+
+_EPIC_PLAN = """# Epic #9: Test epic
+
+Status: confirmed
+
+## Stage 1 — first
+
+### Issue: Done thing
+
+- Spec: closed already.
+- Depends on: none
+- yolo: no
+- Published: #11
+
+### Issue: Open thing
+
+- Spec: ready to work.
+- Depends on: #11
+- yolo: yes
+- Published: #12
+
+## Stage 2 — second
+
+### Issue: Future thing
+
+- Spec: not yet published.
+- Depends on: #12
+- yolo: no
+"""
+
+
+def _seed_epic_plan(tmp_path: Path) -> None:
+    epics = tmp_path / ".issueflows" / "05-epics"
+    epics.mkdir(parents=True)
+    (epics / "epic9_plan.md").write_text(_EPIC_PLAN, encoding="utf-8")
+
+
+def test_agent_epic_status_reports_stages_and_candidates(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from issue_flow import gitutils as gitutils_module
+
+    _seed_epic_plan(tmp_path)
+    states = {11: "closed", 12: "open"}
+    monkeypatch.setattr(gitutils_module, "remote_owner_repo", lambda _cwd: None)
+    monkeypatch.setattr(
+        gitutils_module,
+        "gh_issue_state",
+        lambda number, _cwd, _repo=None: states.get(number),
+    )
+
+    result = runner.invoke(
+        app, ["agent", "epic-status", "9", "-C", str(tmp_path), "--json"]
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["epic"] == 9
+    assert payload["plan_status"] == "confirmed"
+    stage1, stage2 = payload["stages"]
+    assert stage1["done"] is False  # #12 is still open
+    assert stage1["issues"][0]["state"] == "closed"
+    assert stage1["issues"][1]["state"] == "open"
+    # #12's only dependency (#11) is closed -> unblocked candidate.
+    assert stage1["issues"][1]["blocked_by"] == []
+    assert payload["current_stage"] == 1
+    assert payload["next_candidates"] == [12]
+    # Stage 2's spec is unpublished and blocked by the open #12.
+    assert stage2["issues"][0]["state"] == "unpublished"
+    assert stage2["issues"][0]["blocked_by"] == [12]
+
+
+def test_agent_epic_status_local_skips_github(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from issue_flow import gitutils as gitutils_module
+
+    _seed_epic_plan(tmp_path)
+
+    def explode(*_a: object, **_kw: object) -> object:
+        raise AssertionError("gh must not be queried with --local")
+
+    monkeypatch.setattr(gitutils_module, "gh_issue_state", explode)
+    monkeypatch.setattr(gitutils_module, "remote_owner_repo", lambda _cwd: None)
+
+    result = runner.invoke(
+        app, ["agent", "epic-status", "9", "-C", str(tmp_path), "--local", "--json"]
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["local"] is True
+    assert payload["stages"][0]["issues"][0]["state"] == "published"
+
+
+def test_agent_epic_status_missing_plan_fails(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    result = runner.invoke(
+        app, ["agent", "epic-status", "9", "-C", str(tmp_path), "--json"]
+    )
+    assert result.exit_code == 1
+    payload = _json(result.stdout)
+    assert "no epic plan" in payload["error"]
+
+
+# ---------------------------------------------------------------------------
 # workspace registry (issue #126)
 # ---------------------------------------------------------------------------
 
