@@ -916,6 +916,136 @@ def test_agent_epic_status_missing_plan_fails(
 
 
 # ---------------------------------------------------------------------------
+# agent queue (issue #140)
+# ---------------------------------------------------------------------------
+
+
+def _fake_meta(
+    number: int,
+    *,
+    state: str = "OPEN",
+    body: str = "",
+    labels: list[str] | None = None,
+) -> dict[str, object]:
+    return {
+        "number": number,
+        "title": f"Issue {number}",
+        "state": state,
+        "body": body,
+        "labels": [{"name": name} for name in (labels or [])],
+    }
+
+
+def test_agent_queue_numbers_orders_by_dependencies(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from issue_flow import gitutils as gitutils_module
+
+    metas = {
+        1: _fake_meta(1, labels=["yolo"]),
+        2: _fake_meta(2, body="Depends on #1."),
+        3: _fake_meta(3, state="CLOSED"),
+    }
+    monkeypatch.setattr(gitutils_module, "remote_owner_repo", lambda _cwd: None)
+    monkeypatch.setattr(
+        gitutils_module,
+        "gh_issue_meta",
+        lambda number, _cwd, _repo=None: metas.get(number),
+    )
+
+    result = runner.invoke(
+        app, ["agent", "queue", "2", "1", "3", "-C", str(tmp_path), "--json"]
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert [entry["number"] for entry in payload["queue"]] == [1, 2]
+    assert payload["queue"][0]["yolo"] is True
+    assert payload["skipped_closed"] == [3]
+
+
+def test_agent_queue_refuses_partial_fetch(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from issue_flow import gitutils as gitutils_module
+
+    monkeypatch.setattr(gitutils_module, "remote_owner_repo", lambda _cwd: None)
+    monkeypatch.setattr(
+        gitutils_module, "gh_issue_meta", lambda _n, _cwd, _repo=None: None
+    )
+
+    result = runner.invoke(app, ["agent", "queue", "1", "-C", str(tmp_path), "--json"])
+
+    assert result.exit_code == 1
+    payload = _json(result.stdout)
+    assert "refusing" in payload["error"]
+
+
+def test_agent_queue_reports_cycle(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from issue_flow import gitutils as gitutils_module
+
+    metas = {
+        1: _fake_meta(1, body="Depends on #2."),
+        2: _fake_meta(2, body="Depends on #1."),
+    }
+    monkeypatch.setattr(gitutils_module, "remote_owner_repo", lambda _cwd: None)
+    monkeypatch.setattr(
+        gitutils_module,
+        "gh_issue_meta",
+        lambda number, _cwd, _repo=None: metas.get(number),
+    )
+
+    result = runner.invoke(
+        app, ["agent", "queue", "1", "2", "-C", str(tmp_path), "--json"]
+    )
+
+    assert result.exit_code == 1
+    payload = _json(result.stdout)
+    assert payload["cycle"] == [1, 2]
+
+
+def test_agent_queue_requires_exactly_one_source(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    result = runner.invoke(
+        app,
+        ["agent", "queue", "1", "--label", "x", "-C", str(tmp_path), "--json"],
+    )
+    assert result.exit_code == 2
+
+    result = runner.invoke(app, ["agent", "queue", "-C", str(tmp_path), "--json"])
+    assert result.exit_code == 2
+
+
+def test_agent_queue_epic_source_uses_current_stage(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from issue_flow import gitutils as gitutils_module
+
+    _seed_epic_plan(tmp_path)  # epic 9: stage 1 has #11 (closed) and #12 (open)
+    states = {11: "closed", 12: "open"}
+    monkeypatch.setattr(gitutils_module, "remote_owner_repo", lambda _cwd: None)
+    monkeypatch.setattr(
+        gitutils_module,
+        "gh_issue_state",
+        lambda number, _cwd, _repo=None: states.get(number),
+    )
+
+    result = runner.invoke(
+        app, ["agent", "queue", "--epic", "9", "-C", str(tmp_path), "--json"]
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["source"] == {"type": "epic", "value": 9, "stage": 1}
+    assert [entry["number"] for entry in payload["queue"]] == [12]
+    assert payload["queue"][0]["yolo"] is True
+    assert payload["skipped_closed"] == [11]
+
+
+# ---------------------------------------------------------------------------
 # workspace registry (issue #126)
 # ---------------------------------------------------------------------------
 

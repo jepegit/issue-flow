@@ -271,6 +271,61 @@ def gh_issue_state(number: int, cwd: Path, repo: str | None = None) -> str | Non
     return state.lower() if isinstance(state, str) else None
 
 
+def gh_issue_meta(
+    number: int, cwd: Path, repo: str | None = None
+) -> dict[str, Any] | None:
+    """Queue-planning metadata for one issue: number/title/state/body/labels."""
+    argv = [
+        GH,
+        "issue",
+        "view",
+        str(number),
+        "--json",
+        "number,title,state,body,labels",
+    ]
+    if repo:
+        argv += ["--repo", repo]
+    out = _stdout(argv, cwd)
+    if out is None:
+        return None
+    try:
+        return json.loads(out)
+    except json.JSONDecodeError:
+        return None
+
+
+def gh_issue_list_meta(
+    cwd: Path,
+    repo: str | None = None,
+    label: str | None = None,
+    limit: int = 100,
+) -> list[dict[str, Any]] | None:
+    """Open issues with queue-planning metadata, optionally filtered by label."""
+    argv = [
+        GH,
+        "issue",
+        "list",
+        "--state",
+        "open",
+        "--limit",
+        str(limit),
+        "--json",
+        "number,title,state,body,labels",
+    ]
+    if label:
+        argv += ["--label", label]
+    if repo:
+        argv += ["--repo", repo]
+    out = _stdout(argv, cwd)
+    if out is None:
+        return None
+    try:
+        data = json.loads(out)
+    except json.JSONDecodeError:
+        return None
+    return data if isinstance(data, list) else None
+
+
 def gh_issue_list(
     cwd: Path, repo: str | None = None, limit: int = 100
 ) -> list[dict[str, Any]] | None:

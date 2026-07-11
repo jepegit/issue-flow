@@ -696,6 +696,249 @@ def run_epic_status(
 
 
 # ---------------------------------------------------------------------------
+# agent queue
+# ---------------------------------------------------------------------------
+
+
+def _yolo_from_labels(labels: object) -> bool:
+    if not isinstance(labels, list):
+        return False
+    for label in labels:
+        name = label.get("name") if isinstance(label, dict) else label
+        if isinstance(name, str) and name.lower() == "yolo":
+            return True
+    return False
+
+
+def run_queue(
+    project_root: Path,
+    console: Console,
+    numbers: list[int],
+    label: str | None,
+    epic: int | None,
+    as_json: bool,
+) -> int:
+    """Plan an execution queue for the cycling workflow (read-only).
+
+    Exactly one source: explicit issue numbers, a label, or an epic's current
+    stage. Dependencies come from ``Depends on #N`` / ``Blocked by #N`` lines
+    (or the epic plan); the result is a deterministic topological order plus
+    blocked / skipped / independent sets. Cycles abort with exit 1.
+    """
+    from issue_flow import epicplan, queueplan
+
+    settings = Settings()
+    sources = sum(1 for source in (numbers, label, epic) if source)
+    if sources != 1:
+        msg = "give exactly one source: issue numbers, --label, or --epic."
+        if as_json:
+            _emit_json(console, {"error": msg})
+        else:
+            console.print(f"[red]error[/red]  {msg}")
+        return 2
+
+    repo_slug: str | None = None
+    owner_repo = gitutils.remote_owner_repo(project_root)
+    if owner_repo is not None:
+        repo_slug = f"{owner_repo[0]}/{owner_repo[1]}"
+
+    notes: list[str] = []
+    items: list[queueplan.QueueItem] = []
+    source: dict[str, Any]
+
+    if numbers:
+        source = {"type": "numbers", "value": numbers}
+        missing: list[int] = []
+        for number in numbers:
+            meta = gitutils.gh_issue_meta(number, project_root, repo_slug)
+            if meta is None:
+                missing.append(number)
+                continue
+            items.append(
+                queueplan.QueueItem(
+                    number=meta.get("number", number),
+                    title=meta.get("title", ""),
+                    state=str(meta.get("state", "unknown")).lower(),
+                    yolo=_yolo_from_labels(meta.get("labels")),
+                    depends_on=queueplan.parse_dependencies(meta.get("body") or ""),
+                )
+            )
+        if missing:
+            # A typo must never shrink the confirmed queue silently.
+            msg = (
+                "could not fetch issue(s) "
+                + ", ".join(f"#{n}" for n in missing)
+                + " (gh missing/unauthenticated, or wrong number); refusing to "
+                "plan a partial queue."
+            )
+            if as_json:
+                _emit_json(console, {"source": source, "error": msg})
+            else:
+                console.print(f"[red]error[/red]  {msg}")
+            return 1
+    elif label:
+        source = {"type": "label", "value": label}
+        listing = gitutils.gh_issue_list_meta(project_root, repo_slug, label=label)
+        if listing is None:
+            msg = "gh is unavailable or unauthenticated; cannot list issues."
+            if as_json:
+                _emit_json(console, {"source": source, "error": msg})
+            else:
+                console.print(f"[red]error[/red]  {msg}")
+            return 1
+        for meta in listing:
+            items.append(
+                queueplan.QueueItem(
+                    number=meta.get("number", 0),
+                    title=meta.get("title", ""),
+                    state=str(meta.get("state", "open")).lower(),
+                    yolo=_yolo_from_labels(meta.get("labels")),
+                    depends_on=queueplan.parse_dependencies(meta.get("body") or ""),
+                )
+            )
+    else:
+        source = {"type": "epic", "value": epic}
+        plan_path = (
+            project_root
+            / settings.issueflows_dir
+            / settings.epics_folder
+            / f"epic{epic}_plan.md"
+        )
+        epic_plan = epicplan.parse_epic_plan(plan_path)
+        if epic_plan is None:
+            msg = f"no epic plan found at {plan_path}."
+            if as_json:
+                _emit_json(console, {"source": source, "error": msg})
+            else:
+                console.print(f"[red]error[/red]  {msg}")
+            return 1
+        # Current stage: the first stage whose published specs are not all
+        # closed (or that still has unpublished specs).
+        states: dict[int, str] = {}
+        chosen = None
+        for stage in epic_plan.stages:
+            stage_done = bool(stage.issues)
+            for spec in stage.issues:
+                if spec.published is None:
+                    stage_done = False
+                    continue
+                state = gitutils.gh_issue_state(spec.published, project_root, repo_slug)
+                states[spec.published] = state or "unknown"
+                if state != "closed":
+                    stage_done = False
+            if not stage_done:
+                chosen = stage
+                break
+        if chosen is None:
+            notes.append("every stage of the epic is complete; nothing to queue.")
+        else:
+            source["stage"] = chosen.index
+            unpublished = [
+                spec.title for spec in chosen.issues if spec.published is None
+            ]
+            if unpublished:
+                notes.append(
+                    "unpublished specs are not queueable: "
+                    + "; ".join(unpublished)
+                    + " — run the epic publish action first."
+                )
+            for spec in chosen.issues:
+                if spec.published is None:
+                    continue
+                items.append(
+                    queueplan.QueueItem(
+                        number=spec.published,
+                        title=spec.title,
+                        state=states.get(spec.published, "unknown"),
+                        yolo=spec.yolo,
+                        depends_on=list(spec.depends_on),
+                    )
+                )
+
+    plan = queueplan.build_queue(items)
+
+    if plan.cycle:
+        payload = {
+            "source": source,
+            "error": "dependency cycle detected",
+            "cycle": plan.cycle,
+        }
+        if as_json:
+            _emit_json(console, payload)
+        else:
+            console.print(
+                "[red]error[/red]  dependency cycle detected among "
+                + ", ".join(f"#{n}" for n in plan.cycle)
+                + " — fix the Depends on lines; nothing was planned."
+            )
+        return 1
+
+    payload = {
+        "source": source,
+        "queue": [
+            {
+                "order": position + 1,
+                "number": item.number,
+                "title": item.title,
+                "yolo": item.yolo,
+                "depends_on": item.depends_on,
+            }
+            for position, item in enumerate(plan.ordered)
+        ],
+        "blocked": [
+            {
+                "number": item.number,
+                "title": item.title,
+                "open_external_deps": deps,
+            }
+            for item, deps in plan.blocked
+        ],
+        "skipped_closed": [item.number for item in plan.skipped_closed],
+        "independent": plan.independent,
+        "notes": notes,
+    }
+
+    if as_json:
+        _emit_json(console, payload)
+        return 0
+
+    if not plan.ordered:
+        console.print("[dim]Nothing to queue.[/dim]")
+    for entry in payload["queue"]:
+        flags = " [yolo]" if entry["yolo"] else ""
+        deps = (
+            f" (after {', '.join(f'#{d}' for d in entry['depends_on'])})"
+            if entry["depends_on"]
+            else ""
+        )
+        console.print(
+            f"  {entry['order']}. #{entry['number']}{flags} "
+            f"{escape(entry['title'])}{deps}"
+        )
+    for entry in payload["blocked"]:
+        console.print(
+            f"  [yellow]blocked[/yellow] #{entry['number']} "
+            f"{escape(entry['title'])} — waiting on "
+            + ", ".join(f"#{d}" for d in entry["open_external_deps"])
+        )
+    if plan.skipped_closed:
+        console.print(
+            "  [dim]skipped (closed): "
+            + ", ".join(f"#{n}" for n in payload["skipped_closed"])
+            + "[/dim]"
+        )
+    if plan.independent:
+        console.print(
+            "  [dim]independent (parallel-safe): "
+            + ", ".join(f"#{n}" for n in plan.independent)
+            + "[/dim]"
+        )
+    for note in notes:
+        console.print(f"  [dim]{escape(note)}[/dim]")
+    return 0
+
+
+# ---------------------------------------------------------------------------
 # workspace init
 # ---------------------------------------------------------------------------
 
