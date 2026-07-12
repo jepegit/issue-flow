@@ -1,6 +1,6 @@
 # Issue #158 — status
 
-- [ ] Done
+- [x] Done
 
 ## What's done
 
@@ -9,7 +9,8 @@
 - JSON mode suppresses per-member Rich noise; partial failures continue
 - Tests: happy path, no registry, partial failure, help listing
 - `multi-repo-workspaces.md` documents batch update
+- PR #159 opened; 466 tests pass
 
 ## Remaining work
 
-- `/iflow-close` — full test run already green locally
+- None
