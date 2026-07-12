@@ -1216,6 +1216,100 @@ def test_workspace_init_refuses_overwrite_without_force(
     assert "hand-written" not in registry.read_text(encoding="utf-8")
 
 
+def _seed_scaffolded_workspace(tmp_path: Path) -> Path:
+    """Workspace with two fully scaffolded members and a registry file."""
+    from issue_flow.init import run_init
+
+    workspace = tmp_path / "workspace"
+    for name in ("alpha", "beta"):
+        run_init(workspace / name)
+    (workspace / "issueflow-workspace.toml").write_text(
+        '[workspace]\ndefault = "alpha"\n', encoding="utf-8"
+    )
+    return workspace
+
+
+def test_workspace_update_refreshes_all_members(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    workspace = _seed_scaffolded_workspace(tmp_path)
+    rule = workspace / "alpha" / ".cursor" / "rules" / "issueflow-rules.mdc"
+    rule.write_text("stale custom content", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        ["workspace", "update", str(workspace), "--skip-dep-check", "--json"],
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["ok"] is True
+    assert payload["ok_count"] == 2
+    assert payload["fail_count"] == 0
+    assert len(payload["members"]) == 2
+    assert all(m["ok"] for m in payload["members"])
+    assert "stale custom content" not in rule.read_text(encoding="utf-8")
+    beta_rule = workspace / "beta" / ".cursor" / "rules" / "issueflow-rules.mdc"
+    assert beta_rule.is_file()
+
+
+def test_workspace_update_without_registry_fails(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    bare = tmp_path / "nowhere"
+    bare.mkdir()
+
+    result = runner.invoke(
+        app,
+        ["workspace", "update", str(bare), "--skip-dep-check", "--json"],
+    )
+
+    assert result.exit_code == 1
+    payload = _json(result.stdout)
+    assert payload["ok"] is False
+    assert "issueflow-workspace.toml" in payload["error"]
+
+
+def test_workspace_update_partial_failure_continues(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    from issue_flow.init import run_init
+
+    workspace = tmp_path / "workspace"
+    run_init(workspace / "alpha")
+    bad = workspace / "beta"
+    (bad / ".issueflows").mkdir(parents=True)
+    (bad / ".issueflows" / "config.toml").write_text(
+        '[issueflow]\nmode = "nonexistent-mode"\n', encoding="utf-8"
+    )
+    (workspace / "issueflow-workspace.toml").write_text(
+        '[workspace]\nmembers = ["alpha", "beta"]\n', encoding="utf-8"
+    )
+    alpha_rule = workspace / "alpha" / ".cursor" / "rules" / "issueflow-rules.mdc"
+    alpha_rule.write_text("STALE_MARKER_ONLY", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        ["workspace", "update", str(workspace), "--skip-dep-check", "--json"],
+    )
+
+    assert result.exit_code == 1
+    payload = _json(result.stdout)
+    assert payload["ok"] is False
+    assert payload["ok_count"] == 1
+    assert payload["fail_count"] == 1
+    by_name = {m["name"]: m for m in payload["members"]}
+    assert by_name["alpha"]["ok"] is True
+    assert by_name["beta"]["ok"] is False
+    assert "STALE_MARKER_ONLY" not in alpha_rule.read_text(encoding="utf-8")
+
+
+def test_workspace_help_lists_update(runner: CliRunner) -> None:
+    result = runner.invoke(app, ["workspace", "--help"])
+    assert result.exit_code == 0
+    assert "update" in _plain(result.stdout)
+
+
 # ---------------------------------------------------------------------------
 # config sub-app
 # ---------------------------------------------------------------------------

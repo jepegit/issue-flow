@@ -599,6 +599,52 @@ def workspace_init(
     )
 
 
+@workspace_app.command("update")
+def workspace_update(
+    workspace_dir: Path = typer.Argument(
+        default=Path("."),
+        help=(
+            "Workspace root directory — the folder that contains the member "
+            "repos (defaults to current directory)."
+        ),
+        exists=True,
+        file_okay=False,
+        resolve_path=True,
+    ),
+    skip_dep_check: bool = typer.Option(
+        False,
+        "--skip-dep-check",
+        help=(
+            "Skip the external-CLI dependency check (git, gh) and the "
+            "confirmation prompt that follows if anything is missing."
+        ),
+    ),
+    editor: list[str] = typer.Option(
+        ["cursor"],
+        "--editor",
+        "-e",
+        help=_EDITOR_HELP,
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Refresh packaged scaffolds in every scaffolded workspace member.
+
+    Walks up from ``workspace_dir`` for ``issueflow-workspace.toml``, then
+    runs ``issue-flow update`` in each member repo that carries a
+    ``.issueflows/`` tree. Per-member ``mode`` and ``skill_level`` come from
+    each repo's own ``config.toml``.
+    """
+    from issue_flow.agent import run_workspace_update
+
+    raise typer.Exit(
+        code=run_workspace_update(
+            workspace_dir, _console, skip_dep_check, editor, json_output
+        )
+    )
+
+
 app.add_typer(agent_app)
 app.add_typer(config_app)
 app.add_typer(workspace_app)

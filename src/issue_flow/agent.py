@@ -1048,6 +1048,128 @@ def run_workspace_init(
     return 0
 
 
+def run_workspace_update(
+    workspace_dir: Path,
+    console: Console,
+    skip_dep_check: bool,
+    editors: list[str] | None,
+    as_json: bool,
+) -> int:
+    """Refresh issue-flow scaffolds in every scaffolded workspace member.
+
+    Discovers ``issueflow-workspace.toml`` above ``workspace_dir``, runs
+    :func:`issue_flow.init.run_update` on each member that carries a
+    ``.issueflows/`` tree, and aggregates per-member success. One dependency
+    check runs up front (unless ``skip_dep_check``); individual member
+  failures do not abort the rest.
+    """
+    import typer
+
+    from issue_flow.init import _dependency_gate, run_update
+
+    start = workspace_dir.resolve()
+    workspace = project.discover_workspace(start)
+
+    def _fail(msg: str) -> int:
+        if as_json:
+            _emit_json(
+                console,
+                {
+                    "ok": False,
+                    "error": msg,
+                    "workspace_root": None,
+                    "members": [],
+                    "ok_count": 0,
+                    "fail_count": 0,
+                },
+            )
+        else:
+            console.print(f"[red]error[/red]  {msg}")
+        return 1
+
+    if workspace is None:
+        return _fail(
+            f"no {project.WORKSPACE_FILENAME} found above {start} — run "
+            f"`issue-flow workspace init` from the workspace root first."
+        )
+
+    member_roots = workspace.member_roots()
+    if not member_roots:
+        return _fail(
+            f"no scaffolded member repos found under {workspace.root} — run "
+            "`issue-flow init` inside the member repos first."
+        )
+
+    if not skip_dep_check and not _dependency_gate(skip_dep_check=False):
+        return 1
+
+    import issue_flow.init as init_module
+
+    def _run_member_update(root: Path) -> None:
+        if as_json:
+            saved = init_module.console
+            init_module.console = Console(quiet=True)
+            try:
+                run_update(root, skip_dep_check=True, editors=editors)
+            finally:
+                init_module.console = saved
+        else:
+            run_update(root, skip_dep_check=True, editors=editors)
+
+    if not as_json:
+        console.print(
+            f"\n[bold]Updating issue-flow scaffolds in workspace "
+            f"[cyan]{workspace.root}[/cyan][/bold]"
+        )
+        console.print(f"[dim]{len(member_roots)} member(s)[/dim]\n")
+
+    results: list[dict[str, Any]] = []
+    ok_count = 0
+    fail_count = 0
+
+    for name, root in zip(workspace.members, member_roots, strict=True):
+        entry: dict[str, Any] = {"name": name, "path": str(root)}
+        try:
+            _run_member_update(root)
+            entry["ok"] = True
+            ok_count += 1
+        except typer.Exit as exc:
+            entry["ok"] = False
+            entry["error"] = f"update failed (exit {exc.exit_code})"
+            fail_count += 1
+        results.append(entry)
+
+    payload = {
+        "ok": fail_count == 0,
+        "workspace_root": str(workspace.root),
+        "members": results,
+        "ok_count": ok_count,
+        "fail_count": fail_count,
+    }
+
+    if as_json:
+        _emit_json(console, payload)
+        return 0 if fail_count == 0 else 1
+
+    console.print()
+    if fail_count == 0:
+        console.print(
+            f"[bold green]Updated {ok_count}/{len(member_roots)} member(s).[/bold green]"
+        )
+    else:
+        console.print(
+            f"[bold yellow]Updated {ok_count}/{len(member_roots)} member(s); "
+            f"{fail_count} failed.[/bold yellow]"
+        )
+        for entry in results:
+            if not entry.get("ok"):
+                console.print(
+                    f"  [red]fail[/red]  {escape(entry['name'])}: "
+                    f"{escape(str(entry.get('error', 'unknown error')))}"
+                )
+    return 0 if fail_count == 0 else 1
+
+
 # ---------------------------------------------------------------------------
 # agent sweep
 # ---------------------------------------------------------------------------
