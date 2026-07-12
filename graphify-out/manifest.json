@@ -3,17 +3,25 @@
     "mtime": 1776325619.781332,
     "hash": "98a1bf4b326adceec0f1becb21bf47ac"
   },
+  "C:\\scripting\\issue-flow\\site\\assets\\javascripts\\bundle.d7f30b55.min.js": {
+    "mtime": 1783848292.1426375,
+    "hash": "338c463e09b6daa82e526d8444f906ca"
+  },
+  "C:\\scripting\\issue-flow\\site\\assets\\javascripts\\workers\\search.b6b7e04f.min.js": {
+    "mtime": 1783848292.0924492,
+    "hash": "a45d28d18de31a7b066d6393accb37b1"
+  },
   "C:\\scripting\\issue-flow\\src\\issue_flow\\agent.py": {
-    "mtime": 1783336064.0216358,
-    "hash": "87ffeb32d9a601964084a216959b7d36"
+    "mtime": 1783847861.0904698,
+    "hash": "982590a0b5e71ea4fff3c132cbe96987"
   },
   "C:\\scripting\\issue-flow\\src\\issue_flow\\cli.py": {
-    "mtime": 1783336003.260264,
-    "hash": "02fa75c4d1e0e22d5e1f9611c121b514"
+    "mtime": 1783788721.5447035,
+    "hash": "6be081d36321aa769d4e71362c0e7ee9"
   },
   "C:\\scripting\\issue-flow\\src\\issue_flow\\config.py": {
-    "mtime": 1783333313.2891848,
-    "hash": "f9cf8fea67774bca440a8ed799a8ed1d"
+    "mtime": 1783782142.787125,
+    "hash": "f432f027d227beedb90887c317c62019"
   },
   "C:\\scripting\\issue-flow\\src\\issue_flow\\dependencies.py": {
     "mtime": 1783098709.8487587,
@@ -23,9 +31,13 @@
     "mtime": 1782465882.9538243,
     "hash": "6073ad3d85c8da557d95b66aa1b4ba1a"
   },
+  "C:\\scripting\\issue-flow\\src\\issue_flow\\epicplan.py": {
+    "mtime": 1783782142.7891276,
+    "hash": "4bea343bbfc23f03090f188a5ae7d7dc"
+  },
   "C:\\scripting\\issue-flow\\src\\issue_flow\\gitutils.py": {
-    "mtime": 1783098709.8507729,
-    "hash": "afeec7b6baa7abcd86012aec0ddeb070"
+    "mtime": 1783788721.5447035,
+    "hash": "77cb86a7ec447c1064c88bb714d51657"
   },
   "C:\\scripting\\issue-flow\\src\\issue_flow\\graphify.py": {
     "mtime": 1783098709.8527877,
@@ -40,24 +52,32 @@
     "hash": "78c9841dea5287cb0ba9c0fb5423af64"
   },
   "C:\\scripting\\issue-flow\\src\\issue_flow\\project.py": {
-    "mtime": 1783335997.6070726,
-    "hash": "1ca041399a7971207839e59ba3ff4f67"
+    "mtime": 1783673286.14007,
+    "hash": "7e1fb51d20f35a3eb168f4471099c4d4"
+  },
+  "C:\\scripting\\issue-flow\\src\\issue_flow\\queueplan.py": {
+    "mtime": 1783788721.5447035,
+    "hash": "9c4b209a17dae79e574bf552ff96764a"
   },
   "C:\\scripting\\issue-flow\\src\\issue_flow\\step_profiles.py": {
     "mtime": 1783098709.856784,
     "hash": "acbe313ff3c741016aab8e4d7c89e60a"
   },
   "C:\\scripting\\issue-flow\\src\\issue_flow\\templating.py": {
-    "mtime": 1783333313.2904713,
-    "hash": "23998dbe0ee26a8ce147d72ff9e2165a"
+    "mtime": 1783802850.9025126,
+    "hash": "e7021c15b396e1674e2539ed1fb002da"
   },
   "C:\\scripting\\issue-flow\\src\\issue_flow\\tracking.py": {
     "mtime": 1783098709.9126225,
     "hash": "efebcba0f3086a6188277dd160e568a3"
   },
+  "C:\\scripting\\issue-flow\\src\\issue_flow\\versionplan.py": {
+    "mtime": 1783686831.4705427,
+    "hash": "2c2b9bb8ed0885acc517a9d1924298c5"
+  },
   "C:\\scripting\\issue-flow\\src\\issue_flow\\__init__.py": {
-    "mtime": 1782663774.5303433,
-    "hash": "5880b8972112847b5601615b0d73aa31"
+    "mtime": 1783633898.9089081,
+    "hash": "6b4e95a5e8c535ef960917bedce004fa"
   },
   "C:\\scripting\\issue-flow\\src\\issue_flow\\templates\\__init__.py": {
     "mtime": 1775242534.568753,
@@ -80,12 +100,12 @@
     "hash": "163c4916357069e7b557452d3ef0198d"
   },
   "C:\\scripting\\issue-flow\\tests\\test_cli.py": {
-    "mtime": 1783336088.681039,
-    "hash": "0370e519b4f6a0b40280e5715dc37859"
+    "mtime": 1783847861.1019332,
+    "hash": "e4f4995c26cc848d26d6ba282eb8a2d0"
   },
   "C:\\scripting\\issue-flow\\tests\\test_config.py": {
-    "mtime": 1783333313.296803,
-    "hash": "9881db484e3a33f839c4406c253f4a50"
+    "mtime": 1783782142.806837,
+    "hash": "a91ae580cc95a9e289acb88dd8376af0"
   },
   "C:\\scripting\\issue-flow\\tests\\test_dependencies.py": {
     "mtime": 1783098709.9139256,
@@ -95,69 +115,113 @@
     "mtime": 1782465883.0071325,
     "hash": "7c4d5804d2174df90dea9dfbba304f4a"
   },
+  "C:\\scripting\\issue-flow\\tests\\test_epicplan.py": {
+    "mtime": 1783782142.807837,
+    "hash": "cbc216d3b496b6dfd6b037f233a3c9f0"
+  },
   "C:\\scripting\\issue-flow\\tests\\test_gitutils.py": {
-    "mtime": 1783098709.9139256,
-    "hash": "85dac9d939d7fe9ea929cf42c482cc07"
+    "mtime": 1783662923.9451914,
+    "hash": "eaf0f80f2d871f673c1c990c90b45f93"
   },
   "C:\\scripting\\issue-flow\\tests\\test_graphify.py": {
     "mtime": 1783098709.9139256,
     "hash": "72a0034ccb5415075a3c78e0bcd9c29a"
   },
   "C:\\scripting\\issue-flow\\tests\\test_init.py": {
-    "mtime": 1783336218.0781212,
-    "hash": "dfc99083d7e4addabf91062cd485894a"
+    "mtime": 1783885679.3047945,
+    "hash": "b3f58d4f5a553952dc598c4b2432fdfa"
   },
   "C:\\scripting\\issue-flow\\tests\\test_init_skill_level.py": {
     "mtime": 1783333313.2904713,
     "hash": "1bd800cc9831a02da225eeee525816b5"
   },
   "C:\\scripting\\issue-flow\\tests\\test_modes.py": {
-    "mtime": 1783333313.2936845,
+    "mtime": 1783667901.9355009,
     "hash": "de70574e27b09c655804206b376e37b8"
   },
   "C:\\scripting\\issue-flow\\tests\\test_project.py": {
-    "mtime": 1783336085.5680897,
-    "hash": "071d63ce3e7a1a27bd6def89dfabef42"
+    "mtime": 1783673286.1523015,
+    "hash": "2ea16ae16c72d227e213b4431db08647"
+  },
+  "C:\\scripting\\issue-flow\\tests\\test_queueplan.py": {
+    "mtime": 1783788721.5701637,
+    "hash": "5dbe97c3db5a8ddde965411bddf33408"
   },
   "C:\\scripting\\issue-flow\\tests\\test_step_profiles.py": {
     "mtime": 1783098709.9233747,
     "hash": "58d8906c15b025dadbaeb1e23c71be37"
   },
+  "C:\\scripting\\issue-flow\\tests\\test_template_cli_consistency.py": {
+    "mtime": 1783671797.2584307,
+    "hash": "ba4049532b740c50f11363f0a78c4fb2"
+  },
   "C:\\scripting\\issue-flow\\tests\\test_templating.py": {
-    "mtime": 1783336062.0766416,
-    "hash": "b17257db7c3ce7ec680b97ab8a1fed30"
+    "mtime": 1783802860.0750709,
+    "hash": "23276133ff6ccf5877b2827f3762ca6a"
   },
   "C:\\scripting\\issue-flow\\tests\\test_tracking.py": {
     "mtime": 1783091114.5417826,
     "hash": "98b252f2aa86e3bf87094d71ba0463fc"
   },
   "C:\\scripting\\issue-flow\\tests\\test_update.py": {
-    "mtime": 1783336167.1780584,
-    "hash": "62bb1c95d720c78fd933e47c4a7c1d04"
+    "mtime": 1783633898.954574,
+    "hash": "4d2162fb3b02840791293b6d062879d3"
+  },
+  "C:\\scripting\\issue-flow\\tests\\test_versionplan.py": {
+    "mtime": 1783686831.473128,
+    "hash": "8a8818b6fb6a3f40d874bc6872032d47"
   },
   "C:\\scripting\\issue-flow\\tests\\__init__.py": {
     "mtime": 1775242662.6771905,
     "hash": "d41d8cd98f00b204e9800998ecf8427e"
   },
   "C:\\scripting\\issue-flow\\AGENTS.md": {
-    "mtime": 1783098709.8142579,
-    "hash": "0125fda3a89913c036da40a8fe7a028c"
+    "mtime": 1783885683.2424533,
+    "hash": "6222abc5ba14331635b041653681b158"
   },
   "C:\\scripting\\issue-flow\\HISTORY.md": {
-    "mtime": 1783333313.2958047,
-    "hash": "2fb38967ffce4f6f844464d046a9b6a4"
+    "mtime": 1783882917.402594,
+    "hash": "38145e02414866dfbf4ca1e8414d0dfe"
   },
   "C:\\scripting\\issue-flow\\README.md": {
-    "mtime": 1783336051.8826816,
-    "hash": "8c134e34b8fe449d174449e1ceeab6d2"
+    "mtime": 1783885675.9900198,
+    "hash": "0c509a87c8c99807046582023b6d3b83"
+  },
+  "C:\\scripting\\issue-flow\\docs\\acknowledgements.md": {
+    "mtime": 1783667928.2031243,
+    "hash": "ab2e5da2fe8e4404a5d3e71ad3d97927"
+  },
+  "C:\\scripting\\issue-flow\\docs\\changelog.md": {
+    "mtime": 1783664374.3805172,
+    "hash": "eb05f4af70fc6f1e9d6e7d9b5c5ae838"
+  },
+  "C:\\scripting\\issue-flow\\docs\\cli.md": {
+    "mtime": 1783788721.5386996,
+    "hash": "59924d7f9d53765e106aeaa56f75ef4c"
+  },
+  "C:\\scripting\\issue-flow\\docs\\configuration.md": {
+    "mtime": 1783662923.9226816,
+    "hash": "a3bb3003fb1a4dfa0df66f166255ac86"
   },
   "C:\\scripting\\issue-flow\\docs\\developing.md": {
-    "mtime": 1782647497.7514489,
-    "hash": "0b48e599bc6c94c43c0096ee8ca22126"
+    "mtime": 1783885676.7125387,
+    "hash": "56389cc539da4051d4ac954732cc5866"
+  },
+  "C:\\scripting\\issue-flow\\docs\\editors.md": {
+    "mtime": 1783673286.1343255,
+    "hash": "f426ccf3e72663c4b666683039709e58"
+  },
+  "C:\\scripting\\issue-flow\\docs\\graphify.md": {
+    "mtime": 1783662923.9256773,
+    "hash": "d8b8253550f49757c799705959bafeaf"
+  },
+  "C:\\scripting\\issue-flow\\docs\\index.md": {
+    "mtime": 1783885676.2458577,
+    "hash": "01bde68064be19efd2b8d370c15e3814"
   },
   "C:\\scripting\\issue-flow\\docs\\issue-workflow.md": {
-    "mtime": 1783098709.8219204,
-    "hash": "88aa55b0d4a89e653985322aed4ba6b7"
+    "mtime": 1783885683.2329483,
+    "hash": "716cd49f37265037490f35ac314f444c"
   },
   "C:\\scripting\\issue-flow\\local\\copy-of-other-repo\\README.md": {
     "mtime": 1775240858.4569998,
@@ -198,5 +262,137 @@
   "C:\\scripting\\issue-flow\\local\\copy-of-other-repo\\docs\\cursor-issue-workflow.md": {
     "mtime": 1775223253.591926,
     "hash": "768576033fe9ffa6eb4ed65501aa5b83"
+  },
+  "C:\\scripting\\issue-flow\\site\\404.html": {
+    "mtime": 1783848293.4982784,
+    "hash": "c6452bc853002b4128ed41a15125cc78"
+  },
+  "C:\\scripting\\issue-flow\\site\\index.html": {
+    "mtime": 1783848293.5112004,
+    "hash": "ad0d4521daaab18ebc0275cad8f26fcf"
+  },
+  "C:\\scripting\\issue-flow\\site\\acknowledgements\\index.html": {
+    "mtime": 1783848293.499256,
+    "hash": "44f8afe192e08bf4fd89a0f1c4e7b675"
+  },
+  "C:\\scripting\\issue-flow\\site\\changelog\\index.html": {
+    "mtime": 1783848293.5195704,
+    "hash": "6b6a7641d5ecbec25606323204689503"
+  },
+  "C:\\scripting\\issue-flow\\site\\cli\\index.html": {
+    "mtime": 1783848293.5206268,
+    "hash": "d64b881ee641ea3fd115822bc58c9b8e"
+  },
+  "C:\\scripting\\issue-flow\\site\\configuration\\index.html": {
+    "mtime": 1783848293.5236351,
+    "hash": "5453e5d8eae8ea56e40cf00f5bd41e0d"
+  },
+  "C:\\scripting\\issue-flow\\site\\developing\\index.html": {
+    "mtime": 1783848293.5236351,
+    "hash": "55b37c518cde80aa20aa821d44feda11"
+  },
+  "C:\\scripting\\issue-flow\\site\\editors\\index.html": {
+    "mtime": 1783848293.5236351,
+    "hash": "67fec57c52e4d7666f27d7099dde5d3a"
+  },
+  "C:\\scripting\\issue-flow\\site\\graphify\\index.html": {
+    "mtime": 1783848293.5236351,
+    "hash": "62eff9456cb3451bbfe4ff5e498eaef7"
+  },
+  "C:\\scripting\\issue-flow\\site\\issue-workflow\\index.html": {
+    "mtime": 1783848293.5112004,
+    "hash": "f09740abb3ebf5ddebc4573f44ea56e5"
+  },
+  "C:\\scripting\\issue-flow\\docs\\static\\images\\logo-black.svg": {
+    "mtime": 1783847538.1426618,
+    "hash": "fe59521e8e2cc954cba37d29301e91b2"
+  },
+  "C:\\scripting\\issue-flow\\docs\\static\\images\\logo-light-right-color.svg": {
+    "mtime": 1783847538.165975,
+    "hash": "d440801d6915d96fa5b7c3244e4dea20"
+  },
+  "C:\\scripting\\issue-flow\\docs\\static\\images\\logo-light-top-color.svg": {
+    "mtime": 1783847538.118662,
+    "hash": "5f7ae66edf4e06dfad0511b1fe11e92c"
+  },
+  "C:\\scripting\\issue-flow\\docs\\static\\images\\logo-white.svg": {
+    "mtime": 1783847773.268781,
+    "hash": "5059485e01cdbd9e4254a7626d202ff8"
+  },
+  "C:\\scripting\\issue-flow\\local\\images_first\\LOGO_01.png": {
+    "mtime": 1783797908.0697925,
+    "hash": "87f4b0fb205c5b0d8da2691d589cdb05"
+  },
+  "C:\\scripting\\issue-flow\\local\\images_first\\LOGO_01_BW.png": {
+    "mtime": 1783798519.1640885,
+    "hash": "b60a742220e234701fc35ef16630565b"
+  },
+  "C:\\scripting\\issue-flow\\local\\images_first\\LOGO_01_dm.png": {
+    "mtime": 1783797908.0908072,
+    "hash": "98f04b33d87a052bffa351e478de6c28"
+  },
+  "C:\\scripting\\issue-flow\\local\\images_first\\LOGO_02_L.png": {
+    "mtime": 1783797908.1579254,
+    "hash": "09ec165128150c2add3245a994d86e9b"
+  },
+  "C:\\scripting\\issue-flow\\local\\images_first\\LOGO_02_S.png": {
+    "mtime": 1783797908.2955163,
+    "hash": "c51e66989dc42bc937522b9cb9971a7d"
+  },
+  "C:\\scripting\\issue-flow\\local\\images_first\\LOGO_02_XL.png": {
+    "mtime": 1783797908.1110303,
+    "hash": "a152f5482d343ba345a60ffe61998e95"
+  },
+  "C:\\scripting\\issue-flow\\local\\images_first\\LOGO_02_XL_BW.png": {
+    "mtime": 1783798519.1836376,
+    "hash": "23cdefc8e27ce50e327e13881df805cc"
+  },
+  "C:\\scripting\\issue-flow\\local\\images_first\\LOGO_02_XL_BW_INV.png": {
+    "mtime": 1783798519.2069724,
+    "hash": "e287d438ed48473bfd57d35ae487d9eb"
+  },
+  "C:\\scripting\\issue-flow\\local\\images_first\\LOGO_02_XS.png": {
+    "mtime": 1783797908.3341985,
+    "hash": "55bddd784c66785c7a77ccbd0a86b7ae"
+  },
+  "C:\\scripting\\issue-flow\\local\\svg\\logo-black.svg": {
+    "mtime": 1783847538.1426618,
+    "hash": "fe59521e8e2cc954cba37d29301e91b2"
+  },
+  "C:\\scripting\\issue-flow\\local\\svg\\logo-light-right-color.svg": {
+    "mtime": 1783847538.165975,
+    "hash": "d440801d6915d96fa5b7c3244e4dea20"
+  },
+  "C:\\scripting\\issue-flow\\local\\svg\\logo-light-top-color.svg": {
+    "mtime": 1783847538.118662,
+    "hash": "5f7ae66edf4e06dfad0511b1fe11e92c"
+  },
+  "C:\\scripting\\issue-flow\\local\\svg\\logo-white.svg": {
+    "mtime": 1783847773.268781,
+    "hash": "5059485e01cdbd9e4254a7626d202ff8"
+  },
+  "C:\\scripting\\issue-flow\\site\\assets\\images\\favicon.png": {
+    "mtime": 1783848292.0204074,
+    "hash": "370ef648333a78cf59e253f1322c6fdc"
+  },
+  "C:\\scripting\\issue-flow\\site\\static\\images\\logo-black.svg": {
+    "mtime": 1783848292.1794462,
+    "hash": "fe59521e8e2cc954cba37d29301e91b2"
+  },
+  "C:\\scripting\\issue-flow\\site\\static\\images\\logo-light-right-color.svg": {
+    "mtime": 1783848292.1649022,
+    "hash": "d440801d6915d96fa5b7c3244e4dea20"
+  },
+  "C:\\scripting\\issue-flow\\site\\static\\images\\logo-light-top-color.svg": {
+    "mtime": 1783848292.1820464,
+    "hash": "5f7ae66edf4e06dfad0511b1fe11e92c"
+  },
+  "C:\\scripting\\issue-flow\\site\\static\\images\\logo-white.svg": {
+    "mtime": 1783848292.1820464,
+    "hash": "5059485e01cdbd9e4254a7626d202ff8"
+  },
+  "C:\\scripting\\issue-flow\\site\\static\\images\\LOGO_01.png": {
+    "mtime": 1783848292.177431,
+    "hash": "a152f5482d343ba345a60ffe61998e95"
   }
 }

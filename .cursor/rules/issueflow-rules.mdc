@@ -88,6 +88,8 @@ issue-flow/
         02-partly-solved-issues/
         03-solved-issues/
         04-designs-and-guides/
+        05-epics/
+            epicXX_plan.md
     pyproject.toml
     readme.md
     ...

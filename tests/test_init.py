@@ -596,6 +596,7 @@ def test_init_rule_documents_designs_folder(tmp_path: Path) -> None:
         encoding="utf-8"
     )
     assert "04-designs-and-guides" in rule
+    assert "05-epics" in rule
     assert "Designs and guides" in rule
 
 

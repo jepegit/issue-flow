@@ -83,6 +83,7 @@ This repo follows the same issue-flow workflow it ships. Issue state lives under
 - `03-solved-issues/` — completed archive
 - `00-tools/` — small helper scripts worth keeping
 - `04-designs-and-guides/` — durable design docs (not tied to one issue)
+- `05-epics/` — staged epic plans (`epic<N>_plan.md`, via `/iflow-epic`)
 
 Slash-command lifecycle:
 
@@ -205,6 +206,8 @@ issue-flow/
         02-partly-solved-issues/
         03-solved-issues/
         04-designs-and-guides/
+        05-epics/
+            epicXX_plan.md
     pyproject.toml
     readme.md
     ...

@@ -77,6 +77,8 @@ issue-flow/
       01-current-issues/        # Active issues being worked on
       02-partly-solved-issues/  # Issues with partial progress
       03-solved-issues/         # Completed issues
+      04-designs-and-guides/    # Durable design docs and project brief
+      05-epics/                 # Staged epic plans (epic<N>_plan.md)
 ```
 
 ---

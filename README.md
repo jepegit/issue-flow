@@ -19,6 +19,7 @@ your-project/
     03-solved-issues/        # Completed issues archive
     04-designs-and-guides/   # Durable project context and decisions
       this-project.md        # Hand-editable project brief (created if missing)
+    05-epics/               # Staged epic plans (epic<N>_plan.md)
   .cursor/
     skills/                  # Agent Skills (/iflow, /iflow-pick, /iflow-init,
                              # /iflow-plan, /iflow-start, /iflow-close, ...)
