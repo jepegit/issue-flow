@@ -13,6 +13,7 @@ Use only when every queued issue is genuinely yolo-fit (small, low-risk, well-sp
 - **explicit numbers** (`12 15 18`), **`label:<L>`**, or **`epic <N> [stage <k>]`**.
 - **`resume`** — pick up an interrupted cycle from `cycle_status.md`.
 - **`onfail:stop`** (default) / **`onfail:skip`** — failure policy.
+- **`parallel:<n>`** — experimental, opt-in: run provably **independent** issues concurrently when the harness supports it (see the skill's *Parallel dispatch* section and `{{ issueflows_dir }}/{{ designs_folder }}/parallel-cycle.md`). Sequential is the default; refused when the harness can't confirm background execution.
 - **`max:<n>`** — raise the safety cap (default 10) for this run.
 - **`stay`** — forward `stay` to each close (rarely wanted in a cycle).
 

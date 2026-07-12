@@ -109,9 +109,22 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 3. **Do not re-ask the original consolidated confirm** for the unchanged remaining items — the batch was already authorized. Ask again only if the re-verified queue differs materially from what was confirmed (new blockers, added issues), and only about the delta.
 4. Continue the per-issue loop (step 5) with the same `onfail` policy recorded in the file.
 
+## Parallel dispatch (experimental, opt-in)
+
+By default the cycle is **sequential** — one issue fully lands before the next starts. When the input passes **`parallel:<n>`** *and* the harness supports background execution, provably independent issues may run concurrently (up to `n` at a time). This is experimental; the sequential path above is always the default and is never weakened to enable it.
+
+- **Only independent issues qualify.** Use `issue-flow agent queue`'s **`independent`** list — issues with *no* dependency relation (either direction) to any other queue member. Everything else runs sequentially.
+- **Harness gate.** If you cannot confirm the harness supports background execution (worktrees + parallel agents/subagents), **refuse `parallel:<n>` and run sequentially** — never pretend to parallelize.
+- **Worktree per issue.** `git worktree add ../<repo>-<N> <N>-<slug>` so each issue has an isolated tree; run the yolo work there.
+- **Serialize merges.** Never merge PRs concurrently — the coordinating session merges them one at a time on the default branch, pulling between merges and rebasing/retrying on a non-fast-forward or CI refusal.
+- **Shared files via the coordinator only.** Parallel workers must **not** each edit `HISTORY.md`; each leaves its changelog bullet in its issue status file / PR body, and the coordinator appends them in **merge order** during the serial merge step.
+
+When in doubt, prefer the sequential run — parallel dispatch trades safety for speed and every one of the rules above must hold.
+
 ## Constraints
 
 - **Off-path**: `/iflow` never auto-dispatches to `/iflow-cycle`; it is an explicit, deliberate batch action.
+- **Sequential is the default and floor.** Parallelism (`parallel:<n>`) is opt-in and experimental; refusing it must always leave a working sequential run.
 - Never weaken a yolo safeguard to keep the cycle moving — safeguards are stop conditions, not obstacles.
 - Never run `/iflow-cleanup` from this skill; batch branch deletion still needs the user to see the merged PRs first.
 - One consolidated confirm covers the batch; never silently expand the queue beyond what was confirmed.
