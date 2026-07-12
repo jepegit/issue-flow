@@ -462,6 +462,23 @@ def test_init_cycle_surface_is_standard_mode_only(tmp_path: Path) -> None:
     assert not (tmp_path / ".cursor" / "skills" / "iflow-cycle").exists()
 
 
+def test_init_cycle_skill_parallel_dispatch_is_opt_in_and_gated(
+    tmp_path: Path,
+) -> None:
+    """iflow-cycle skill: parallel:<n> opt-in, independent-only, serial merges."""
+    run_init(tmp_path)
+    content = (tmp_path / ".cursor" / "skills" / "iflow-cycle" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    assert "parallel:<n>" in content
+    assert "experimental" in content.lower()
+    # Only independent issues; harness gate; serialized merges; coordinator HISTORY.
+    assert "independent" in content
+    assert "refuse `parallel:<n>` and run sequentially" in content
+    assert "worktree" in content.lower()
+    assert "Serialize merges" in content or "serial merge" in content.lower()
+
+
 def test_init_cycle_skill_has_state_file_resume_and_onfail(tmp_path: Path) -> None:
     """iflow-cycle skill: durable state file, resume action, onfail policy."""
     run_init(tmp_path)
