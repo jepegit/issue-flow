@@ -280,6 +280,7 @@ def test_cli_lists_status_and_agent(runner: CliRunner) -> None:
     assert result.exit_code == 0
     plain = _plain(result.stdout)
     assert "status" in plain
+    assert "doctor" in plain
     assert "agent" in plain
 
 
@@ -293,6 +294,8 @@ def test_agent_help_lists_subcommands(runner: CliRunner) -> None:
         "switchback",
         "resolve",
         "sweep",
+        "audit",
+        "repair",
         "capture",
         "archive",
     ):
@@ -357,6 +360,88 @@ def test_agent_sweep_applies_moves(runner: CliRunner, tmp_path: Path) -> None:
     assert not (cur / "issue1_original.md").exists()
     assert (solved / "issue1_original.md").exists()
     assert (cur / "issue9_original.md").exists()
+
+
+def test_doctor_json_clean(runner: CliRunner, tmp_path: Path) -> None:
+    _seed_issue(tmp_path, 5)
+    for name in (
+        "00-tools",
+        "02-partly-solved-issues",
+        "03-solved-issues",
+        "04-designs-and-guides",
+        "05-epics",
+    ):
+        (tmp_path / ".issueflows" / name).mkdir(parents=True, exist_ok=True)
+
+    result = runner.invoke(app, ["doctor", str(tmp_path), "--json"])
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["findings"] == []
+
+
+def test_doctor_reports_multi_focus_exit_code(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    _seed_issue(tmp_path, 1)
+    _seed_issue(tmp_path, 2)
+    for name in (
+        "00-tools",
+        "02-partly-solved-issues",
+        "03-solved-issues",
+        "04-designs-and-guides",
+        "05-epics",
+    ):
+        (tmp_path / ".issueflows" / name).mkdir(parents=True, exist_ok=True)
+
+    result = runner.invoke(app, ["doctor", str(tmp_path), "--json"])
+
+    assert result.exit_code == 1, result.output
+    codes = {f["code"] for f in _json(result.stdout)["findings"]}
+    assert "multi_focus" in codes
+
+
+def test_doctor_fix_dry_run_does_not_move(runner: CliRunner, tmp_path: Path) -> None:
+    _seed_issue(tmp_path, 1)
+    _seed_issue(tmp_path, 2)
+    for name in (
+        "00-tools",
+        "02-partly-solved-issues",
+        "03-solved-issues",
+        "04-designs-and-guides",
+        "05-epics",
+    ):
+        (tmp_path / ".issueflows" / name).mkdir(parents=True, exist_ok=True)
+
+    result = runner.invoke(
+        app,
+        ["doctor", str(tmp_path), "--fix", "--except", "2", "--dry-run", "--json"],
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["dry_run"] is True
+    assert payload["moves"]
+    cur = tmp_path / ".issueflows" / "01-current-issues"
+    assert (cur / "issue1_original.md").exists()
+
+
+def test_doctor_fix_refuses_ambiguous_focus(runner: CliRunner, tmp_path: Path) -> None:
+    _seed_issue(tmp_path, 1)
+    _seed_issue(tmp_path, 2)
+    for name in (
+        "00-tools",
+        "02-partly-solved-issues",
+        "03-solved-issues",
+        "04-designs-and-guides",
+        "05-epics",
+    ):
+        (tmp_path / ".issueflows" / name).mkdir(parents=True, exist_ok=True)
+
+    result = runner.invoke(app, ["doctor", str(tmp_path), "--fix", "--json"])
+
+    assert result.exit_code == 1, result.output
+    assert "ambiguous" in _json(result.stdout)["error"]
 
 
 def test_agent_preflight_json_handles_missing_git(

@@ -10,6 +10,7 @@ issue-flow init [PROJECT_DIR] [--force] [--skip-dep-check]
 issue-flow update [PROJECT_DIR] [--skip-dep-check] [--editor EDITOR]
 issue-flow graphify [-C PROJECT_DIR] [...graphify subcommand + args]
 issue-flow status [PROJECT_DIR] [--local] [--json]
+issue-flow doctor [PROJECT_DIR] [--fix] [--except N] [--dry-run] [--json]
 issue-flow agent state [PROJECT_DIR] [--json]
 issue-flow agent preflight [PROJECT_DIR] [--json]
 issue-flow agent switchback [PROJECT_DIR] [--json]
@@ -35,6 +36,7 @@ issue-flow workspace init [WORKSPACE_DIR] [--default MEMBER]
 | Replace generated scaffolds without upgrading logic | `issue-flow init --force` |
 | Rebuild the graphify knowledge graph | `issue-flow graphify` |
 | See where every issue stands (focus / parked / solved / GitHub) | `issue-flow status` |
+| Audit or repair dirty `.issueflows/` folders | `issue-flow doctor` (or `/iflow-doctor`) |
 | Let an agent resolve lifecycle state / sweep / capture deterministically | `issue-flow agent ...` |
 | Condense old solved issues into a dated summary (recoverable via git) | `/iflow-archive` (summary is agent-written; `issue-flow agent archive …` for the delete step) |
 
@@ -107,6 +109,25 @@ local `.issueflows/` folders.
 A missing or unauthenticated `gh` never fails the command — the GitHub section
 is simply skipped and noted.
 
+## `issue-flow doctor`
+
+Audit the local `.issueflows/` tree for **dirty** conditions (multiple focus
+groups, leftovers in `01-current-issues/`, duplicates across folders, and
+similar). Optionally apply **safe repairs** on confirmation — creating missing
+tree folders and sweeping non-focus groups using the same rules as
+`issue-flow agent sweep`.
+
+| Argument / Option | Description |
+| ----------------- | ----------- |
+| `PROJECT_DIR`     | Project root directory. Defaults to `.` (current directory). |
+| `--fix`           | Apply safe repairs (`mkdir` + sweep). Without this flag, audit only. |
+| `--except`, `-x`  | With `--fix`, issue number to keep in `01-current-issues/`. |
+| `--dry-run`       | With `--fix`, preview repairs without touching files. |
+| `--json`          | Emit a machine-readable JSON object. |
+
+Exit code is `1` when the audit finds any **error**-severity finding (for
+example ambiguous multi-focus or duplicate groups across folders).
+
 ## `issue-flow agent ...`
 
 The `agent` sub-app exposes the deterministic, mechanical building blocks the
@@ -126,6 +147,8 @@ project never installs `issue-flow`.
 | `agent queue` | **Read-only** execution-queue planner for the cycling workflow. Exactly one source — explicit issue numbers, `--label L`, or `--epic N` (the epic's current stage). Parses `Depends on #N` / `Blocked by #N` lines, topologically orders the queue, and reports `blocked` (open deps outside the queue), `skipped_closed`, and `independent` (no dependency relation to any other member — parallel-safe). A dependency cycle aborts with exit 1, naming the members; the explicit-numbers source refuses a partial fetch so a typo never shrinks the queue silently. |
 | `agent resolve` | Resolve project root, owner/repo, branch, and sibling scaffolds — for [multi-root workspaces](editors.md#multi-root-workspaces). When no scaffold is found walking up, falls back to the **default member** from a workspace-root `issueflow-workspace.toml` (reported as `resolved_via_workspace_default: true`); explicit hints and the nearest scaffold always win. |
 | `agent sweep` | Archive `issue<N>_*` groups out of `01-current-issues/` to `03-solved-issues/` (Done) or `02-partly-solved-issues/` (not Done). Use `--except N` to keep the focus issue and `--dry-run` to preview. |
+| `agent audit` | Audit `.issueflows/` for dirty conditions (alias for `issue-flow doctor`). Exit `1` on error-level findings. |
+| `agent repair` | Apply safe repairs (alias for `issue-flow doctor --fix`). Use `--except N` and `--dry-run` like `agent sweep`. |
 | `agent archive` | Mechanical deletion half of `/iflow-archive`: remove the chosen groups' files from `03-solved-issues/` and report the pre-archive HEAD sha (for the recovery ref in the summary file). Summarising into `YYYY-MM-DD_archived_issues.md` stays agent-side. Refuses when a requested issue has no solved group. `--dry-run` to preview. |
 | `agent capture N` | Fetch GitHub issue `N` with `gh` and write `issue<N>_original.md` (the `## Original issue text` body). Prints the comments payload so the agent can triage them; comment triage stays agent-side. Use `--repo`, `--force`, `-C`. |
 

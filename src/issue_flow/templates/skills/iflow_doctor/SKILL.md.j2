@@ -1,0 +1,56 @@
+---
+name: iflow-doctor
+description: >-
+  Audit .issueflows/ for dirty conditions and optionally apply safe repairs.
+disable-model-invocation: true
+---
+
+# issue-flow — doctor (`.issueflows/` health) (`/iflow-doctor`)
+
+Follow this skill to **detect and optionally fix** inconsistent issue-tracking
+folders under `{{ issueflows_dir }}/`.{% if commands_supported %} Matches
+`{{ agent_dir }}/{{ commands_dir }}/iflow-doctor.md`.{% endif %}
+
+Unlike `/iflow-status` (read-only overview), `/iflow-doctor` can **move issue
+groups** when the user confirms repair — using the same safe sweep rules as
+`/iflow-init` and `/iflow-start`.
+
+Do **not** auto-dispatch from `/iflow`, `/iflow-start`, or `/iflow-close`.
+
+{% set iflow_step = "doctor" %}
+{% include "skills/_invocation_forms.md.j2" %}
+
+{% include "skills/_model_directive.md.j2" %}
+
+{% include "skills/_resolve_project_root.md.j2" %}
+
+## Instructions
+
+> **CLI fast path (optional).** If the `issue-flow` CLI is on `PATH`:
+> - **Audit:** `issue-flow doctor [--json]` (or `issue-flow agent audit`).
+> - **Repair:** `issue-flow doctor --fix [--except N] [--dry-run] [--json]`
+>   (or `issue-flow agent repair`).
+>
+> The CLI is optional: if it is missing or errors, fall back to the manual
+> checklist in `{{ issueflows_dir }}/{{ designs_folder }}/dirty-issueflows.md`.
+
+1. **Resolve project root** — use `issue-flow agent resolve` when available.
+
+2. **Audit** — run `issue-flow doctor` (or manual checks per the design doc).
+   Present every finding: code, severity, message, suggested next step.
+
+3. **Repair (only on explicit user confirm)** — run
+   `issue-flow doctor --fix` with `--dry-run` first when anything will move;
+   pass `--except N` when multiple groups sit in `{{ current_issues_folder }}/`
+   and focus is ambiguous. Never repair duplicate-across-folders automatically.
+
+4. **Re-audit** after repair and report what changed.
+
+## Constraints
+
+- **Off-path** — never auto-dispatch from `/iflow` or other lifecycle steps.
+- **Safe repairs only** — mkdir missing tree folders; sweep non-focus groups
+  from `{{ current_issues_folder }}/` to `{{ partly_solved_folder }}/` or
+  `{{ solved_folder }}/` by Done status. No deletes, no duplicate merges.
+- **Gated moves** — nothing moves without a consolidated user confirm.
+- Degrade gracefully when the CLI is absent (manual checklist + sweep steps).
