@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- **Dirty `.issueflows/` doctor CLI + `/iflow-doctor` (#47).** Define machine-checkable dirty conditions in `tracking.audit_issueflows()`, expose `issue-flow doctor` / `agent audit` for read-only health checks, `doctor --fix` / `agent repair` for safe repairs (mkdir missing tree folders + sweep non-focus groups), scaffold the off-path `/iflow-doctor` skill/command, and document the contract in `dirty-issueflows.md`.
+
 - **Docs site iPhone fixes (#162).** Point the Zensical theme logo at the committed blue SVG, add a favicon, drop instant navigation (Safari blank-page workaround), add mobile overflow CSS for wide CLI blocks/tables, and rewrap the CLI synopsis.
 
 - **Multi-editor canonical store and convert CLI (#23).** Phase 1 for mixed-editor teams: team-committed `.issueflows/agent/` skill snapshots, `issue-flow convert --to <editor|canonical>` (with `--prune-other` / `--gitignore`), `init --canonical`, shared scaffold logic in `surfaces.py`, and `console_io` so `workspace update --json` stays machine-readable. Git-hook automation deferred to follow-up.

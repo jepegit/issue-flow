@@ -25,6 +25,49 @@ def _solved(tmp_path: Path) -> Path:
     return tmp_path / ".issueflows" / "03-solved-issues"
 
 
+def _ensure_tree(tmp_path: Path) -> tuple[Path, Path, Path, Path]:
+    """Create the standard ``.issueflows/`` subfolders."""
+    base = tmp_path / ".issueflows"
+    names = [
+        "00-tools",
+        "01-current-issues",
+        "02-partly-solved-issues",
+        "03-solved-issues",
+        "04-designs-and-guides",
+        "05-epics",
+    ]
+    for name in names:
+        (base / name).mkdir(parents=True, exist_ok=True)
+    return (
+        base,
+        base / "01-current-issues",
+        base / "02-partly-solved-issues",
+        base / "03-solved-issues",
+    )
+
+
+def _audit(
+    tmp_path: Path,
+    branch: str | None = None,
+) -> list[tracking.DirtyFinding]:
+    base, cur, partly, solved = _ensure_tree(tmp_path)
+    return tracking.audit_issueflows(
+        base,
+        cur,
+        partly,
+        solved,
+        branch,
+        expected_subdirs=[
+            "00-tools",
+            "01-current-issues",
+            "02-partly-solved-issues",
+            "03-solved-issues",
+            "04-designs-and-guides",
+            "05-epics",
+        ],
+    )
+
+
 # ---------------------------------------------------------------------------
 # done detection
 # ---------------------------------------------------------------------------
@@ -277,3 +320,136 @@ def test_dated_archive_file_is_not_grouped(tmp_path: Path) -> None:
     _write(solved / "issue1_original.md")
 
     assert set(tracking.group_issue_files(solved)) == {1}
+
+
+# ---------------------------------------------------------------------------
+# audit + repair
+# ---------------------------------------------------------------------------
+
+
+def test_audit_clean_single_focus(tmp_path: Path) -> None:
+    _, cur, _, _ = _ensure_tree(tmp_path)
+    _write(cur / "issue5_original.md", "# Issue #5: Foo\n")
+    findings = _audit(tmp_path)
+    assert findings == []
+
+
+def test_audit_multi_focus(tmp_path: Path) -> None:
+    _, cur, _, _ = _ensure_tree(tmp_path)
+    _write(cur / "issue1_original.md")
+    _write(cur / "issue2_original.md")
+    findings = _audit(tmp_path)
+    codes = {f.code for f in findings}
+    assert "multi_focus" in codes
+
+
+def test_audit_leftover_with_branch_focus(tmp_path: Path) -> None:
+    _, cur, _, _ = _ensure_tree(tmp_path)
+    _write(cur / "issue1_original.md")
+    _write(cur / "issue2_original.md")
+    findings = tracking.audit_issueflows(
+        tmp_path / ".issueflows",
+        cur,
+        tmp_path / ".issueflows" / "02-partly-solved-issues",
+        tmp_path / ".issueflows" / "03-solved-issues",
+        "2-slug",
+        expected_subdirs=[
+            "00-tools",
+            "01-current-issues",
+            "02-partly-solved-issues",
+            "03-solved-issues",
+            "04-designs-and-guides",
+            "05-epics",
+        ],
+    )
+    assert any(
+        f.code == "leftover_in_current" and 1 in f.issue_numbers for f in findings
+    )
+
+
+def test_audit_duplicate_across_folders(tmp_path: Path) -> None:
+    base, cur, partly, solved = _ensure_tree(tmp_path)
+    _write(cur / "issue3_original.md")
+    _write(partly / "issue3_status.md", "- [ ] Done\n")
+    findings = tracking.audit_issueflows(
+        base,
+        cur,
+        partly,
+        solved,
+        None,
+        expected_subdirs=[
+            "00-tools",
+            "01-current-issues",
+            "02-partly-solved-issues",
+            "03-solved-issues",
+            "04-designs-and-guides",
+            "05-epics",
+        ],
+    )
+    assert any(f.code == "duplicate_across_folders" for f in findings)
+
+
+def test_audit_orphan_file_allowed_cycle_status(tmp_path: Path) -> None:
+    _, cur, _, _ = _ensure_tree(tmp_path)
+    _write(cur / "cycle_status.md", "# cycle\n")
+    findings = _audit(tmp_path)
+    assert not any(f.code == "orphan_file" for f in findings)
+
+
+def test_audit_orphan_file_detected(tmp_path: Path) -> None:
+    _, cur, _, _ = _ensure_tree(tmp_path)
+    _write(cur / "notes.txt", "nope\n")
+    findings = _audit(tmp_path)
+    assert any(f.code == "orphan_file" for f in findings)
+
+
+def test_plan_repairs_refuses_ambiguous_without_except(tmp_path: Path) -> None:
+    base, cur, partly, solved = _ensure_tree(tmp_path)
+    _write(cur / "issue1_original.md")
+    _write(cur / "issue2_original.md")
+    plan, error = tracking.plan_repairs(
+        base,
+        cur,
+        partly,
+        solved,
+        None,
+        None,
+        expected_subdirs=[
+            "00-tools",
+            "01-current-issues",
+            "02-partly-solved-issues",
+            "03-solved-issues",
+            "04-designs-and-guides",
+            "05-epics",
+        ],
+    )
+    assert plan is None
+    assert error is not None
+
+
+def test_apply_repairs_sweeps_leftover(tmp_path: Path) -> None:
+    base, cur, partly, solved = _ensure_tree(tmp_path)
+    _write(cur / "issue1_original.md")
+    _write(cur / "issue2_original.md")
+    plan, error = tracking.plan_repairs(
+        base,
+        cur,
+        partly,
+        solved,
+        "2-slug",
+        None,
+        expected_subdirs=[
+            "00-tools",
+            "01-current-issues",
+            "02-partly-solved-issues",
+            "03-solved-issues",
+            "04-designs-and-guides",
+            "05-epics",
+        ],
+    )
+    assert error is None
+    assert plan is not None
+    tracking.apply_repairs(plan, partly, solved, dry_run=False)
+    assert not (cur / "issue1_original.md").exists()
+    assert (partly / "issue1_original.md").exists()
+    assert (cur / "issue2_original.md").exists()

@@ -10,8 +10,9 @@ humans) a deterministic answer instead of re-deriving it by hand every time.
 
 Nothing here ever talks to git or GitHub — that lives in
 :mod:`issue_flow.gitutils`. This module only touches the filesystem, and only
-:func:`apply_sweep` mutates it (moving whole issue groups between the
-``01``/``02``/``03`` folders).
+:func:`apply_sweep` and :func:`apply_repairs` mutate it (moving whole issue
+groups between the ``01``/``02``/``03`` folders, or creating missing tree
+folders).
 """
 
 from __future__ import annotations
@@ -304,6 +305,261 @@ def plan_archive(
             )
         )
     return moves, missing
+
+
+# Files in lifecycle folders that are not ``issue<N>_*`` groups but are expected.
+_ORPHAN_ALLOWLIST = frozenset({"cycle_status.md"})
+
+SEVERITY_ERROR = "error"
+SEVERITY_WARN = "warn"
+SEVERITY_INFO = "info"
+
+
+@dataclass
+class DirtyFinding:
+    """One machine-checkable inconsistency in the ``.issueflows/`` tree."""
+
+    code: str
+    severity: str
+    message: str
+    issue_numbers: list[int] = field(default_factory=list)
+    repairable: bool = False
+    suggested_command: str | None = None
+
+
+@dataclass
+class MkdirRepair:
+    """Create a missing subfolder under ``.issueflows/``."""
+
+    path: Path
+    folder_name: str
+
+
+@dataclass
+class RepairPlan:
+    """Safe, mechanical repairs derived from audit findings."""
+
+    focus: int | None
+    mkdirs: list[MkdirRepair] = field(default_factory=list)
+    sweep_moves: list[SweepMove] = field(default_factory=list)
+
+
+def audit_issueflows(
+    base: Path,
+    current_dir: Path,
+    partly_dir: Path,
+    solved_dir: Path,
+    branch: str | None,
+    *,
+    expected_subdirs: list[str],
+) -> list[DirtyFinding]:
+    """Return every dirty condition detected under the tracking tree."""
+    findings: list[DirtyFinding] = []
+    focus = resolve_focus(current_dir, branch)
+
+    for name in expected_subdirs:
+        path = base / name
+        if not path.is_dir():
+            findings.append(
+                DirtyFinding(
+                    code="missing_tree_folder",
+                    severity=SEVERITY_INFO,
+                    message=(
+                        f"Expected folder {name!r} is missing under "
+                        f"{base.name}/."
+                    ),
+                    repairable=True,
+                    suggested_command="issue-flow doctor --fix",
+                )
+            )
+
+    if focus.resolved_via == "ambiguous":
+        findings.append(
+            DirtyFinding(
+                code="multi_focus",
+                severity=SEVERITY_ERROR,
+                message=(
+                    f"Multiple issue groups in {current_dir.name} with no "
+                    f"branch-derived focus: "
+                    f"{', '.join(f'#{n}' for n in focus.candidates)}."
+                ),
+                issue_numbers=list(focus.candidates),
+                repairable=False,
+                suggested_command=(
+                    "git switch <N>-<slug> or issue-flow doctor --fix --except N"
+                ),
+            )
+        )
+
+    current_groups = group_issue_files(current_dir)
+    focus_number = (
+        focus.number if focus.resolved_via != "ambiguous" else None
+    )
+
+    if focus_number is not None:
+        for number, group in sorted(current_groups.items()):
+            if number != focus_number:
+                findings.append(
+                    DirtyFinding(
+                        code="leftover_in_current",
+                        severity=SEVERITY_WARN,
+                        message=(
+                            f"Issue #{number} has files in {current_dir.name} "
+                            f"but is not the focus issue (#{focus_number})."
+                        ),
+                        issue_numbers=[number],
+                        repairable=True,
+                        suggested_command="issue-flow doctor --fix",
+                    )
+                )
+            elif group.is_done:
+                findings.append(
+                    DirtyFinding(
+                        code="done_still_in_current",
+                        severity=SEVERITY_WARN,
+                        message=(
+                            f"Focus issue #{number} is marked done but still "
+                            f"in {current_dir.name}."
+                        ),
+                        issue_numbers=[number],
+                        repairable=False,
+                        suggested_command="/iflow-close",
+                    )
+                )
+
+    folder_sets = {
+        current_dir.name: set(current_groups),
+        partly_dir.name: set(group_issue_files(partly_dir)),
+        solved_dir.name: set(group_issue_files(solved_dir)),
+    }
+    all_numbers = set().union(*folder_sets.values())
+    for number in sorted(all_numbers):
+        present = [name for name, nums in folder_sets.items() if number in nums]
+        if len(present) > 1:
+            findings.append(
+                DirtyFinding(
+                    code="duplicate_across_folders",
+                    severity=SEVERITY_ERROR,
+                    message=(
+                        f"Issue #{number} has groups in multiple folders: "
+                        f"{', '.join(present)}."
+                    ),
+                    issue_numbers=[number],
+                    repairable=False,
+                    suggested_command=(
+                        "merge or delete duplicate files manually, then re-run "
+                        "issue-flow doctor"
+                    ),
+                )
+            )
+
+    for folder in (current_dir, partly_dir, solved_dir):
+        for number, group in sorted(group_issue_files(folder).items()):
+            if group.original is None and (
+                group.plan is not None or group.status_files
+            ):
+                findings.append(
+                    DirtyFinding(
+                        code="incomplete_group",
+                        severity=SEVERITY_WARN,
+                        message=(
+                            f"Issue #{number} in {folder.name} has plan/status "
+                            f"files but no issue{number}_original.md."
+                        ),
+                        issue_numbers=[number],
+                        repairable=False,
+                        suggested_command="/iflow-init",
+                    )
+                )
+
+    for folder in (current_dir, partly_dir, solved_dir):
+        if not folder.is_dir():
+            continue
+        for path in sorted(folder.iterdir()):
+            if not path.is_file():
+                continue
+            if _ISSUE_FILE_RE.match(path.name):
+                continue
+            if path.name in _ORPHAN_ALLOWLIST:
+                continue
+            findings.append(
+                DirtyFinding(
+                    code="orphan_file",
+                    severity=SEVERITY_INFO,
+                    message=f"Unexpected file {path.name!r} in {folder.name}/.",
+                    repairable=False,
+                )
+            )
+
+    return findings
+
+
+def resolve_repair_focus(
+    current_dir: Path,
+    branch: str | None,
+    except_number: int | None,
+) -> tuple[int | None, str | None]:
+    """Return ``(focus, error)`` for repair planning.
+
+    ``except_number`` wins when provided. Otherwise branch-derived or
+    single-group focus is accepted. Ambiguous multi-focus without an explicit
+    ``except_number`` is refused.
+    """
+    if except_number is not None:
+        return except_number, None
+
+    focus = resolve_focus(current_dir, branch)
+    if focus.resolved_via == "ambiguous":
+        return None, (
+            "ambiguous focus: multiple issue groups in current-issues with no "
+            "branch-derived focus; pass --except N or switch to an issue branch"
+        )
+    return focus.number, None
+
+
+def plan_repairs(
+    base: Path,
+    current_dir: Path,
+    partly_dir: Path,
+    solved_dir: Path,
+    branch: str | None,
+    except_number: int | None,
+    *,
+    expected_subdirs: list[str],
+) -> tuple[RepairPlan | None, str | None]:
+    """Plan safe repairs: mkdir missing folders + sweep non-focus groups."""
+    focus, error = resolve_repair_focus(current_dir, branch, except_number)
+    if error:
+        return None, error
+
+    mkdirs = [
+        MkdirRepair(path=base / name, folder_name=name)
+        for name in expected_subdirs
+        if not (base / name).is_dir()
+    ]
+    sweep_moves = plan_sweep(
+        current_dir, partly_dir, solved_dir, except_number=focus
+    )
+    return RepairPlan(focus=focus, mkdirs=mkdirs, sweep_moves=sweep_moves), None
+
+
+def apply_repairs(
+    plan: RepairPlan,
+    partly_dir: Path,
+    solved_dir: Path,
+    *,
+    dry_run: bool,
+) -> RepairPlan:
+    """Execute a repair plan unless ``dry_run`` is set."""
+    if dry_run:
+        return plan
+
+    for mkdir in plan.mkdirs:
+        mkdir.path.mkdir(parents=True, exist_ok=True)
+
+    if plan.sweep_moves:
+        apply_sweep(plan.sweep_moves, partly_dir, solved_dir)
+    return plan
 
 
 def apply_archive(moves: list[ArchiveMove]) -> list[Path]:

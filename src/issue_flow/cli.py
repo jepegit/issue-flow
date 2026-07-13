@@ -22,7 +22,7 @@ agent_app = typer.Typer(
         "Agent-facing helpers that read the .issueflows/ tree and git/gh so "
         "AI agents get deterministic answers instead of re-deriving lifecycle "
         "state by hand. All are read-only except `sweep`, `archive`, `capture`, "
-        "and `switchback`."
+        "`switchback`, and `repair`."
     ),
 )
 
@@ -326,6 +326,80 @@ def status(
     from issue_flow.agent import run_status
 
     raise typer.Exit(code=run_status(project_dir, _console, local, json_output))
+
+
+@app.command()
+def doctor(
+    project_dir: Path = _PROJECT_DIR_ARGUMENT,
+    fix: bool = typer.Option(
+        False,
+        "--fix",
+        help="Apply safe repairs (mkdir missing folders, sweep non-focus groups).",
+    ),
+    except_number: int | None = typer.Option(
+        None,
+        "--except",
+        "-x",
+        help="Issue number to keep in current-issues when repairing.",
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="With --fix, show planned repairs without touching files.",
+    ),
+    json_output: bool = typer.Option(
+        False,
+        "--json",
+        help="Emit a machine-readable JSON object.",
+    ),
+) -> None:
+    """Audit .issueflows/ for dirty conditions; optionally repair safely."""
+    from issue_flow.agent import run_audit, run_repair
+
+    if fix:
+        raise typer.Exit(
+            code=run_repair(
+                project_dir, _console, except_number, dry_run, json_output
+            )
+        )
+    raise typer.Exit(code=run_audit(project_dir, _console, json_output))
+
+
+@agent_app.command("audit")
+def agent_audit(
+    project_dir: Path = _PROJECT_DIR_ARGUMENT,
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Audit .issueflows/ for dirty conditions (alias for ``issue-flow doctor``)."""
+    from issue_flow.agent import run_audit
+
+    raise typer.Exit(code=run_audit(project_dir, _console, json_output))
+
+
+@agent_app.command("repair")
+def agent_repair(
+    project_dir: Path = _PROJECT_DIR_ARGUMENT,
+    except_number: int | None = typer.Option(
+        None,
+        "--except",
+        "-x",
+        help="Issue number to keep in current-issues when repairing.",
+    ),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Show planned repairs without touching files."
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Apply safe .issueflows/ repairs (alias for ``issue-flow doctor --fix``)."""
+    from issue_flow.agent import run_repair
+
+    raise typer.Exit(
+        code=run_repair(project_dir, _console, except_number, dry_run, json_output)
+    )
 
 
 @agent_app.command("state")

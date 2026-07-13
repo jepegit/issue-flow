@@ -1,0 +1,47 @@
+# Doctor — audit and repair dirty `.issueflows/` folders (`/iflow-doctor`)
+
+`/iflow-doctor` checks the local issue-tracking tree for **dirty** conditions
+(multiple focus groups, leftovers in `{{ current_issues_folder }}/`, duplicates
+across folders, and similar) and can apply **safe repairs** on confirmation.
+
+This is an **off-path** command — `/iflow` never auto-runs it.
+
+{% include "skills/_model_directive.md.j2" %}
+
+{% include "skills/_resolve_project_root.md.j2" %}
+
+## Input
+
+- **(nothing)** — audit only; report findings.
+- **`fix`** — after presenting findings, run repair (preview with `--dry-run`
+  via CLI when available).
+
+## Steps
+
+> **CLI fast path (optional).** If the `issue-flow` CLI is on `PATH`:
+> - Audit: `issue-flow doctor [--json]` or `issue-flow agent audit`.
+> - Repair: `issue-flow doctor --fix [--except N] [--dry-run] [--json]` or
+>   `issue-flow agent repair`.
+>
+> Fallback: `{{ issueflows_dir }}/{{ designs_folder }}/dirty-issueflows.md`.
+
+1. Resolve `<project_root>` and run the audit.
+
+2. Present findings grouped by severity (`error`, `warn`, `info`).
+
+3. If the user asked for repair (or confirms after audit), run repair with
+   `--dry-run` first when moves are planned; require `--except N` when focus is
+   ambiguous.
+
+4. Re-audit and summarize.
+
+## Constraints
+
+- Never delete issue markdown or merge duplicate groups automatically.
+- Never auto-dispatch `/iflow-doctor` from `/iflow`, `/iflow-start`, or
+  `/iflow-close`.
+- Repair moves need explicit user confirmation.
+
+## Output
+
+Short sections: **Findings**, **Repair plan** (if applicable), **Result**.

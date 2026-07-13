@@ -1225,6 +1225,142 @@ def run_sweep(
 
 
 # ---------------------------------------------------------------------------
+# doctor / agent audit + repair
+# ---------------------------------------------------------------------------
+
+
+def _finding_payload(finding: tracking.DirtyFinding) -> dict[str, Any]:
+    return {
+        "code": finding.code,
+        "severity": finding.severity,
+        "message": finding.message,
+        "issue_numbers": finding.issue_numbers,
+        "repairable": finding.repairable,
+        "suggested_command": finding.suggested_command,
+    }
+
+
+def _audit_context(
+    project_root: Path, settings: Settings
+) -> tuple[dict[str, Path], Path, str | None]:
+    folders = _folders(project_root, settings)
+    base = project_root / settings.issueflows_dir
+    branch = gitutils.current_branch(project_root)
+    return folders, base, branch
+
+
+def run_audit(project_root: Path, console: Console, as_json: bool) -> int:
+    """Audit ``.issueflows/`` for dirty conditions."""
+    settings = Settings()
+    folders, base, branch = _audit_context(project_root, settings)
+    findings = tracking.audit_issueflows(
+        base,
+        folders["current"],
+        folders["partly"],
+        folders["solved"],
+        branch,
+        expected_subdirs=settings.issueflows_subdirs,
+    )
+    has_error = any(f.severity == tracking.SEVERITY_ERROR for f in findings)
+    payload: dict[str, Any] = {
+        "findings": [_finding_payload(f) for f in findings],
+        "has_error": has_error,
+        "count": len(findings),
+    }
+
+    if as_json:
+        _emit_json(console, payload)
+        return 1 if has_error else 0
+
+    if not findings:
+        console.print("[green]OK[/green]  No dirty conditions detected.")
+        return 0
+
+    for finding in findings:
+        color = {
+            tracking.SEVERITY_ERROR: "red",
+            tracking.SEVERITY_WARN: "yellow",
+            tracking.SEVERITY_INFO: "dim",
+        }.get(finding.severity, "white")
+        console.print(
+            f"  [{color}]{finding.severity}[/{color}]  "
+            f"{escape(finding.code)}: {escape(finding.message)}"
+        )
+        if finding.suggested_command:
+            console.print(f"         -> {escape(finding.suggested_command)}")
+    return 1 if has_error else 0
+
+
+def run_repair(
+    project_root: Path,
+    console: Console,
+    except_number: int | None,
+    dry_run: bool,
+    as_json: bool,
+) -> int:
+    """Apply safe repairs: mkdir missing folders + sweep non-focus groups."""
+    settings = Settings()
+    folders, base, branch = _audit_context(project_root, settings)
+
+    plan, error = tracking.plan_repairs(
+        base,
+        folders["current"],
+        folders["partly"],
+        folders["solved"],
+        branch,
+        except_number,
+        expected_subdirs=settings.issueflows_subdirs,
+    )
+    if error:
+        if as_json:
+            _emit_json(console, {"repaired": False, "error": error})
+        else:
+            console.print(f"[red]error[/red]  {escape(error)}")
+        return 1
+
+    assert plan is not None
+    tracking.apply_repairs(
+        plan, folders["partly"], folders["solved"], dry_run=dry_run
+    )
+
+    payload: dict[str, Any] = {
+        "dry_run": dry_run,
+        "focus": plan.focus,
+        "mkdirs": [m.folder_name for m in plan.mkdirs],
+        "moves": [
+            {
+                "issue": m.number,
+                "done": m.done,
+                "from": m.source,
+                "to": m.destination,
+                "files": [p.name for p in m.files],
+            }
+            for m in plan.sweep_moves
+        ],
+    }
+
+    if as_json:
+        _emit_json(console, payload)
+        return 0
+
+    if not plan.mkdirs and not plan.sweep_moves:
+        console.print("[dim]Nothing to repair.[/dim]")
+        return 0
+
+    verb = "Would" if dry_run else ""
+    for mkdir in plan.mkdirs:
+        console.print(f"  {verb} create folder {mkdir.folder_name}/".strip())
+    move_verb = "Would move" if dry_run else "Moved"
+    for move in plan.sweep_moves:
+        console.print(
+            f"  {move_verb} #{move.number} "
+            f"({'done' if move.done else 'not done'}): "
+            f"{move.source} -> {move.destination}"
+        )
+    return 0
+
+
+# ---------------------------------------------------------------------------
 # agent archive
 # ---------------------------------------------------------------------------
 
