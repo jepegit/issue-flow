@@ -273,6 +273,10 @@ gh label create 'status:parked' --color FBCA04
 gh label create 'status:solved' --color 6E7781
 ```
 
+By default, `issue-flow sync --apply` **auto-creates** any missing managed labels
+(`bootstrap_labels = true` in `[issueflow.sync]`). Set `bootstrap_labels = false`
+to keep the manual-only behaviour.
+
 **Configuration** — optional `[issueflow.sync]` in `.issueflows/config.toml`:
 
 ```toml
@@ -282,6 +286,7 @@ label_prefix = "status:"
 labels = true
 milestones = false
 close_on_solved = false
+bootstrap_labels = true
 
 [issueflow.sync.milestone_map]
 current = ""

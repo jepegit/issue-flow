@@ -191,3 +191,141 @@ solved = ""
     assert loaded.enabled is False
     assert loaded.label_prefix == "if:"
     assert loaded.milestone_map["current"] == "Active"
+
+
+def test_ensure_managed_labels_creates_missing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    created: list[tuple[str, str]] = []
+
+    monkeypatch.setattr(
+        sync_module.gitutils,
+        "gh_label_names",
+        lambda cwd, repo=None: {"status:current"},
+    )
+
+    def fake_create(name, cwd, *, color, repo=None):
+        created.append((name, color))
+        return True, None
+
+    monkeypatch.setattr(sync_module.gitutils, "gh_label_create", fake_create)
+
+    ok, err = sync_module.ensure_managed_labels("status:", tmp_path, repo="o/r")
+    assert ok is True
+    assert err is None
+    assert created == [
+        ("status:parked", "FBCA04"),
+        ("status:solved", "6E7781"),
+    ]
+
+
+def test_ensure_managed_labels_skips_existing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(
+        sync_module.gitutils,
+        "gh_label_names",
+        lambda cwd, repo=None: {
+            "status:current",
+            "status:parked",
+            "status:solved",
+        },
+    )
+    monkeypatch.setattr(
+        sync_module.gitutils,
+        "gh_label_create",
+        lambda *args, **kwargs: pytest.fail("should not create"),
+    )
+
+    ok, err = sync_module.ensure_managed_labels("status:", tmp_path, repo="o/r")
+    assert ok is True
+    assert err is None
+
+
+def test_run_sync_bootstraps_before_apply(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = _layout(tmp_path, solved=[20])
+    bootstrap_calls: list[str] = []
+
+    monkeypatch.setattr(sync_module.gitutils, "gh_available", lambda: True)
+    monkeypatch.setattr(
+        sync_module.gitutils,
+        "remote_owner_repo",
+        lambda cwd: ("o", "r"),
+    )
+    monkeypatch.setattr(
+        sync_module,
+        "ensure_managed_labels",
+        lambda prefix, project_root, *, repo: (
+            bootstrap_calls.append(prefix) or (True, None)
+        ),
+    )
+    monkeypatch.setattr(
+        sync_module.gitutils,
+        "gh_issue_meta",
+        lambda number, cwd, repo=None: {
+            "number": number,
+            "state": "OPEN",
+            "labels": [],
+            "milestone": None,
+        },
+    )
+    monkeypatch.setattr(
+        sync_module.gitutils,
+        "gh_issue_edit",
+        lambda *args, **kwargs: (True, None),
+    )
+
+    from rich.console import Console
+
+    code = sync_module.run_sync(
+        root, Console(record=True), apply=True, repo="o/r", as_json=True
+    )
+    assert code == 0
+    assert bootstrap_calls == ["status:"]
+
+
+def test_run_sync_skips_bootstrap_when_disabled(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = _layout(tmp_path, solved=[21])
+    settings = Settings()
+    cfg = settings.config_path(root)
+    cfg.parent.mkdir(parents=True, exist_ok=True)
+    cfg.write_text(
+        """
+[issueflow.sync]
+bootstrap_labels = false
+""".strip(),
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(sync_module.gitutils, "gh_available", lambda: True)
+    monkeypatch.setattr(
+        sync_module.gitutils,
+        "gh_issue_meta",
+        lambda number, cwd, repo=None: {
+            "number": number,
+            "state": "OPEN",
+            "labels": [],
+            "milestone": None,
+        },
+    )
+    monkeypatch.setattr(
+        sync_module,
+        "ensure_managed_labels",
+        lambda *args, **kwargs: pytest.fail("bootstrap should be skipped"),
+    )
+    monkeypatch.setattr(
+        sync_module.gitutils,
+        "gh_issue_edit",
+        lambda *args, **kwargs: (False, "'status:solved' not found"),
+    )
+
+    from rich.console import Console
+
+    code = sync_module.run_sync(
+        root, Console(record=True), apply=True, repo="o/r", as_json=True
+    )
+    assert code == 1

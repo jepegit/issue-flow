@@ -405,6 +405,47 @@ def gh_issue_close(
     return True, None
 
 
+def gh_label_names(cwd: Path, repo: str | None = None) -> set[str] | None:
+    """Return label names for the repo, or ``None`` when unavailable."""
+    argv = [GH, "label", "list", "--json", "name", "--limit", "200"]
+    if repo:
+        argv += ["--repo", repo]
+    out = _stdout(argv, cwd)
+    if out is None:
+        return None
+    try:
+        data = json.loads(out)
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(data, list):
+        return None
+    return {
+        str(item["name"])
+        for item in data
+        if isinstance(item, dict) and item.get("name")
+    }
+
+
+def gh_label_create(
+    name: str,
+    cwd: Path,
+    *,
+    color: str,
+    repo: str | None = None,
+) -> tuple[bool, str | None]:
+    """Create a GitHub label. Returns ``(success, error_message)``."""
+    argv = [GH, "label", "create", name, "--color", color]
+    if repo:
+        argv += ["--repo", repo]
+    result = _run(argv, cwd)
+    if result is None:
+        return False, "gh is not available"
+    if result.returncode != 0:
+        err = (result.stderr or result.stdout or "gh label create failed").strip()
+        return False, err
+    return True, None
+
+
 def gh_milestone_titles(cwd: Path, repo: str | None = None) -> list[str] | None:
     """Return open milestone titles for the repo, or ``None`` when unavailable."""
     if repo and "/" in repo:
