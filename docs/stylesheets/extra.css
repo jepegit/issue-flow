@@ -1,0 +1,18 @@
+/* Mobile-friendly overflow for wide CLI synopsis blocks and tables. */
+
+.md-typeset pre > code {
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.md-typeset .highlight pre,
+.md-typeset pre {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.md-typeset table:not([class]) {
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}

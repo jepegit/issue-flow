@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- **Docs site iPhone fixes (#162).** Point the Zensical theme logo at the committed blue SVG, add a favicon, drop instant navigation (Safari blank-page workaround), add mobile overflow CSS for wide CLI blocks/tables, and rewrap the CLI synopsis.
+
 - **Multi-editor canonical store and convert CLI (#23).** Phase 1 for mixed-editor teams: team-committed `.issueflows/agent/` skill snapshots, `issue-flow convert --to <editor|canonical>` (with `--prune-other` / `--gitignore`), `init --canonical`, shared scaffold logic in `surfaces.py`, and `console_io` so `workspace update --json` stays machine-readable. Git-hook automation deferred to follow-up.
 
 - **GitHub Actions sync (#102).** New `issue-flow sync` command (dry-run by default, `--apply` pushes via `gh`) maps `.issueflows/` folder placement (`01-current` / `02-partly-solved` / `03-solved`) to managed `status:*` labels on GitHub (one-way; unrelated labels preserved). Configurable via `[issueflow.sync]` in `config.toml`. Ships a reusable `workflow_call` workflow (`.github/workflows/issue-flow-sync.yml`) plus a dogfood caller on this repo; README documents enablement and label bootstrap.

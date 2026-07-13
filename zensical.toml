@@ -34,8 +34,11 @@ nav = [
   { "Acknowledgements" = "acknowledgements.md" },
 ]
 
+extra_css = ["stylesheets/extra.css"]
+
 [project.theme]
-logo = "static/images/logo-pblue.svg"
+logo = "static/images/logo-light-right-color.svg"
+favicon = "static/images/logo-black.svg"
 language = "en"
 
 features = [
@@ -51,8 +54,6 @@ features = [
     # back-to-top, and anchor tracking.
     "navigation.footer",
     "navigation.indexes",
-    "navigation.instant",
-    "navigation.instant.prefetch",
     "navigation.path",
     "navigation.sections",
     "navigation.top",
