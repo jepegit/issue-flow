@@ -370,6 +370,30 @@ def read_skill_level(cfg_path: Path) -> str | None:
     return None
 
 
+def read_canonical_format(cfg_path: Path) -> bool | None:
+    """Return the persisted ``[issueflow].canonical_format`` flag."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "canonical_format" in section:
+        return bool(section.get("canonical_format"))
+    return None
+
+
+def read_persisted_editor(cfg_path: Path) -> str | None:
+    """Return the persisted ``[issueflow].editor`` value."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict):
+        value = section.get("editor")
+        if value:
+            return str(value)
+    return None
+
+
 def write_active_mode(cfg_path: Path, mode_id: str) -> None:
     """Persist ``[issueflow].mode = mode_id`` while preserving other content.
 
@@ -421,6 +445,38 @@ def write_skill_level(cfg_path: Path, skill_level: str) -> None:
         doc["issueflow"] = section
     section["skill_level"] = skill_level
 
+    cfg_path.write_text(tomlkit.dumps(doc), encoding="utf-8")
+
+
+def write_canonical_format(cfg_path: Path, enabled: bool) -> None:
+    """Persist ``[issueflow].canonical_format`` while preserving other content."""
+    cfg_path.parent.mkdir(parents=True, exist_ok=True)
+    if cfg_path.is_file():
+        doc = tomlkit.parse(cfg_path.read_text(encoding="utf-8"))
+    else:
+        doc = tomlkit.document()
+
+    section = doc.get("issueflow")
+    if not isinstance(section, dict):
+        section = tomlkit.table()
+        doc["issueflow"] = section
+    section["canonical_format"] = enabled
+    cfg_path.write_text(tomlkit.dumps(doc), encoding="utf-8")
+
+
+def write_persisted_editor(cfg_path: Path, editor_id: str) -> None:
+    """Persist ``[issueflow].editor`` while preserving other content."""
+    cfg_path.parent.mkdir(parents=True, exist_ok=True)
+    if cfg_path.is_file():
+        doc = tomlkit.parse(cfg_path.read_text(encoding="utf-8"))
+    else:
+        doc = tomlkit.document()
+
+    section = doc.get("issueflow")
+    if not isinstance(section, dict):
+        section = tomlkit.table()
+        doc["issueflow"] = section
+    section["editor"] = editor_id
     cfg_path.write_text(tomlkit.dumps(doc), encoding="utf-8")
 
 

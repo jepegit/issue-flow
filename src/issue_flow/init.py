@@ -7,10 +7,10 @@ import shutil
 from pathlib import Path
 
 import typer
-from rich.console import Console
 
 from issue_flow import modes as modes_module
 from issue_flow.config import Settings
+import issue_flow.console_io as console_io
 from issue_flow.dependencies import (
     check_dependencies,
     prompt_or_skip,
@@ -18,7 +18,12 @@ from issue_flow.dependencies import (
 from issue_flow.editors import EditorProfile, resolve_editors
 from issue_flow.graphify import register_with_editor as graphify_register_with_editor
 from issue_flow.modes import Mode
-from issue_flow.step_profiles import enrich_render_context
+from issue_flow.surfaces import (
+    ensure_editor_gitignore,
+    materialize_canonical_store,
+    materialize_editor_profile,
+    write_manifest_files,
+)
 from issue_flow.templating import (
     COMMAND_NAMES,
     RETIRED_COMMANDS,
@@ -29,8 +34,6 @@ from issue_flow.templating import (
     resolve_output_path,
     skill_output_name,
 )
-
-console = Console()
 
 # Optional project-root `.env` entries (see README). Values are defaults for comments only.
 _DOTENV_KEYS: tuple[tuple[str, str], ...] = (
@@ -86,7 +89,7 @@ def _ensure_dotenv_file(project_root: Path) -> None:
         for key, default in _DOTENV_KEYS:
             lines.append(f"# {key}={default}\n")
         env_path.write_text("".join(lines), encoding="utf-8")
-        console.print(f"  [green]write[/green] {relative}")
+        console_io.console.print(f"  [green]write[/green] {relative}")
         return
 
     existing = env_path.read_text(encoding="utf-8")
@@ -94,7 +97,7 @@ def _ensure_dotenv_file(project_root: Path) -> None:
         (k, d) for k, d in _DOTENV_KEYS if not _dotenv_documents_key(existing, k)
     ]
     if not missing:
-        console.print(
+        console_io.console.print(
             f"  [dim]skip[/dim]  {relative}  "
             "(already lists ISSUEFLOW_* settings; not modified)"
         )
@@ -105,7 +108,7 @@ def _ensure_dotenv_file(project_root: Path) -> None:
         block.append(f"# {key}={default}\n")
     with env_path.open("a", encoding="utf-8") as f:
         f.write("".join(block))
-    console.print(
+    console_io.console.print(
         f"  [green]append[/green] {relative}  "
         f"(added {len(missing)} commented ISSUEFLOW_* line(s))"
     )
@@ -118,36 +121,8 @@ def _write_manifest_files(
     *,
     force: bool,
 ) -> tuple[list[Path], list[Path]]:
-    """Render templates from ``manifest`` and write under project_root.
-
-    When ``force`` is False, existing files are skipped (not overwritten).
-    Issue markdown under ``.issueflows/`` is never part of the manifest.
-
-    Returns:
-        (written_relative_paths, skipped_relative_paths)
-    """
-    written_files: list[Path] = []
-    skipped_files: list[Path] = []
-
-    for template_name, path_template in manifest:
-        relative_path = resolve_output_path(path_template, context)
-        absolute_path = project_root / relative_path
-
-        if absolute_path.exists() and not force:
-            console.print(
-                f"  [yellow]skip[/yellow]  {relative_path}  (already exists, use --force to overwrite)"
-            )
-            skipped_files.append(relative_path)
-            continue
-
-        render_context = enrich_render_context(context, template_name)
-        rendered = render_template(template_name, render_context)
-        absolute_path.parent.mkdir(parents=True, exist_ok=True)
-        absolute_path.write_text(rendered, encoding="utf-8")
-        console.print(f"  [green]write[/green] {relative_path}")
-        written_files.append(relative_path)
-
-    return written_files, skipped_files
+    """Backward-compatible wrapper around :func:`surfaces.write_manifest_files`."""
+    return write_manifest_files(project_root, manifest, context, force=force)
 
 
 def _ensure_agents_md(project_root: Path, context: dict[str, str]) -> None:
@@ -172,7 +147,7 @@ def _ensure_agents_md(project_root: Path, context: dict[str, str]) -> None:
 
     if not path.exists():
         path.write_text(block, encoding="utf-8")
-        console.print(f"  [green]write[/green] {relative}  (issue-flow managed block)")
+        console_io.console.print(f"  [green]write[/green] {relative}  (issue-flow managed block)")
         return
 
     existing = path.read_text(encoding="utf-8")
@@ -181,19 +156,19 @@ def _ensure_agents_md(project_root: Path, context: dict[str, str]) -> None:
         replacement = f"{_AGENTS_BEGIN}\n{rendered}{_AGENTS_END}"
         updated = _AGENTS_BLOCK_RE.sub(lambda _m: replacement, existing)
         if updated == existing:
-            console.print(
+            console_io.console.print(
                 f"  [dim]skip[/dim]  {relative}  (issue-flow block already up to date)"
             )
             return
         path.write_text(updated, encoding="utf-8")
-        console.print(
+        console_io.console.print(
             f"  [green]update[/green] {relative}  (refreshed issue-flow managed block)"
         )
         return
 
     updated = existing.rstrip("\n") + "\n\n" + block
     path.write_text(updated, encoding="utf-8")
-    console.print(
+    console_io.console.print(
         f"  [green]append[/green] {relative}  (added issue-flow managed block)"
     )
 
@@ -215,13 +190,13 @@ def _ensure_project_brief(
     path = project_root / relative
 
     if path.exists():
-        console.print(f"  [dim]skip[/dim]  {relative}  (project brief already exists)")
+        console_io.console.print(f"  [dim]skip[/dim]  {relative}  (project brief already exists)")
         return
 
     rendered = render_template("docs/this-project.md.j2", context)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(rendered, encoding="utf-8")
-    console.print(f"  [green]write[/green] {relative}")
+    console_io.console.print(f"  [green]write[/green] {relative}")
 
 
 def _ensure_tools_readme(
@@ -239,13 +214,13 @@ def _ensure_tools_readme(
     path = project_root / relative
 
     if path.exists():
-        console.print(f"  [dim]skip[/dim]  {relative}  (tools README already exists)")
+        console_io.console.print(f"  [dim]skip[/dim]  {relative}  (tools README already exists)")
         return
 
     rendered = render_template("tools/README.md.j2", context)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(rendered, encoding="utf-8")
-    console.print(f"  [green]write[/green] {relative}")
+    console_io.console.print(f"  [green]write[/green] {relative}")
 
 
 def _already_initialized(
@@ -275,6 +250,7 @@ def run_init(
     editors: list[str] | None = None,
     mode: str | None = None,
     skill_level: str | None = None,
+    canonical: bool = False,
 ) -> None:
     """Scaffold .issueflows/ directories and editor config (commands, rules, skills).
 
@@ -310,12 +286,16 @@ def run_init(
             When given it is validated and persisted to ``.issueflows/config.toml``
             so later ``update`` runs honour it. When omitted, the persisted/active
             level is used (default ``"standard"``).
+        canonical: When True, scaffold the team-committed canonical store under
+            ``.issueflows/agent/`` instead of per-editor trees, persist
+            ``canonical_format = true``, and append a managed ``.gitignore``
+            block for local editor directories.
     """
     settings = Settings()
     try:
         profiles = resolve_editors(editors)
     except ValueError as exc:
-        console.print(f"[red]error[/red]  {exc}")
+        console_io.console.print(f"[red]error[/red]  {exc}")
         raise typer.Exit(code=2) from None
 
     cfg_path = settings.config_path(project_root)
@@ -324,7 +304,7 @@ def run_init(
     try:
         mode_obj = modes_module.resolve_mode(mode_id, cfg_path)
     except ValueError as exc:
-        console.print(f"[red]error[/red]  {exc}")
+        console_io.console.print(f"[red]error[/red]  {exc}")
         raise typer.Exit(code=2) from None
 
     explicit_skill_level = skill_level is not None
@@ -334,24 +314,27 @@ def run_init(
         else settings.resolve_skill_level(project_root)
     )
     if skill_level_id not in modes_module.SKILL_LEVELS:
-        console.print(
+        console_io.console.print(
             f"[red]error[/red]  Invalid skill level '{skill_level_id}'. "
             f"Choose from: {', '.join(modes_module.SKILL_LEVELS)}"
         )
         raise typer.Exit(code=2)
 
-    console.print(
+    console_io.console.print(
         f"\n[bold]Initializing issue-flow in [cyan]{project_root}[/cyan][/bold]"
     )
-    console.print(f"[dim]Editors: {', '.join(p.id for p in profiles)}[/dim]")
-    console.print(f"[dim]Mode: {mode_obj.id}[/dim]")
-    console.print(f"[dim]Skill level: {skill_level_id}[/dim]\n")
+    if canonical:
+        console_io.console.print("[dim]Layout: canonical (.issueflows/agent/)[/dim]")
+    else:
+        console_io.console.print(f"[dim]Editors: {', '.join(p.id for p in profiles)}[/dim]")
+    console_io.console.print(f"[dim]Mode: {mode_obj.id}[/dim]")
+    console_io.console.print(f"[dim]Skill level: {skill_level_id}[/dim]\n")
 
     if not _dependency_gate(skip_dep_check):
         raise typer.Exit(code=1)
 
     if not force and _already_initialized(project_root, settings, profiles):
-        console.print(
+        console_io.console.print(
             "[dim]This project already has issue-flow scaffold files. "
             "Existing files are skipped so your issue notes stay intact. "
             "Run [bold]issue-flow update[/bold] to refresh commands, rules, and docs "
@@ -365,7 +348,7 @@ def run_init(
             modes_module.write_active_mode(cfg_path, mode_obj.id)
         if explicit_skill_level:
             modes_module.write_skill_level(cfg_path, skill_level_id)
-        console.print(
+        console_io.console.print(
             f"  [green]write[/green] {cfg_path.relative_to(project_root).as_posix()}  "
             f"(mode = {mode_obj.id}, skill_level = {skill_level_id})"
         )
@@ -387,51 +370,75 @@ def run_init(
     written_files: list[Path] = []
     skipped_files: list[Path] = []
     pruned_count = 0
-    for profile in profiles:
-        console.print(
-            f"\n[bold]{profile.name}[/bold] ([cyan]{profile.agent_dir}[/cyan])"
-        )
-        context = settings.template_context(
-            project_root, profile, mode=mode_obj, skill_level=skill_level_id
-        )
-        written, skipped = _write_manifest_files(
-            project_root,
-            build_manifest(profile, mode_obj, skill_level=skill_level_id),
-            context,
-            force=force,
-        )
-        _ensure_agents_md(project_root, context)
-        pruned_count += _prune_retired_files(project_root, profile)
-        pruned_count += _prune_excluded_surfaces(project_root, profile, mode_obj)
-        written_files.extend(written)
-        skipped_files.extend(skipped)
 
-    console.print()
+    if canonical:
+        console_io.console.print("[bold]Canonical store[/bold] (.issueflows/agent/)")
+        result = materialize_canonical_store(
+            project_root,
+            settings,
+            mode_obj,
+            skill_level_id,
+            force=force,
+            ensure_agents_md=_ensure_agents_md,
+        )
+        written_files.extend(result.written)
+        skipped_files.extend(result.skipped)
+        modes_module.write_canonical_format(cfg_path, True)
+        console_io.console.print(
+            f"  [green]write[/green] {cfg_path.relative_to(project_root).as_posix()}  "
+            "(canonical_format = true)"
+        )
+        ensure_editor_gitignore(project_root)
+    else:
+        for profile in profiles:
+            console_io.console.print(
+                f"\n[bold]{profile.name}[/bold] ([cyan]{profile.agent_dir}[/cyan])"
+            )
+            result = materialize_editor_profile(
+                project_root,
+                settings,
+                profile,
+                mode_obj,
+                skill_level_id,
+                force=force,
+                prune=True,
+                ensure_agents_md=_ensure_agents_md,
+            )
+            written_files.extend(result.written)
+            skipped_files.extend(result.skipped)
+            pruned_count += result.pruned
+
+    console_io.console.print()
     _ensure_dotenv_file(project_root)
 
-    console.print()
-    _graphify_postinstall(project_root, profiles)
+    console_io.console.print()
+    if not canonical:
+        _graphify_postinstall(project_root, profiles)
 
-    console.print()
+    console_io.console.print()
     if written_files:
-        console.print(f"[bold green]Created {len(written_files)} file(s).[/bold green]")
+        console_io.console.print(f"[bold green]Created {len(written_files)} file(s).[/bold green]")
     if skipped_files:
-        console.print(
+        console_io.console.print(
             f"[bold yellow]Skipped {len(skipped_files)} existing file(s).[/bold yellow]"
         )
     if pruned_count:
-        console.print(
+        console_io.console.print(
             f"[bold yellow]Pruned {pruned_count} retired scaffold file(s).[/bold yellow]"
         )
     if not written_files and not skipped_files and not pruned_count:
-        console.print("[bold]Nothing to do.[/bold]")
+        console_io.console.print("[bold]Nothing to do.[/bold]")
 
     primary = profiles[0]
-    console.print(
+    if canonical:
+        hint_dir = f"{settings.issueflows_dir}/agent/skills/"
+    else:
+        hint_dir = f"{primary.agent_dir}/skills/"
+    console_io.console.print(
         "\n[dim]Run [bold]/iflow-init <number>[/bold] or [bold]/iflow-init[/bold] "
         "(on a branch like [bold]42-slug[/bold], after confirmation) in your editor "
         "to start tracking a GitHub issue. "
-        f"Optional Agent Skills live under [bold]{primary.agent_dir}/skills/[/bold] "
+        f"Optional Agent Skills live under [bold]{hint_dir}[/bold] "
         "([bold]/iflow-init[/bold], etc.).[/dim]\n"
     )
 
@@ -468,22 +475,22 @@ def run_update(
     try:
         profiles = resolve_editors(editors)
     except ValueError as exc:
-        console.print(f"[red]error[/red]  {exc}")
+        console_io.console.print(f"[red]error[/red]  {exc}")
         raise typer.Exit(code=2) from None
 
     try:
         mode_obj = settings.resolve_mode(project_root)
     except ValueError as exc:
-        console.print(f"[red]error[/red]  {exc}")
+        console_io.console.print(f"[red]error[/red]  {exc}")
         raise typer.Exit(code=2) from None
 
     skill_level_id = settings.resolve_skill_level(project_root)
-    console.print(
+    console_io.console.print(
         f"\n[bold]Updating issue-flow scaffold in [cyan]{project_root}[/cyan][/bold]"
     )
-    console.print(f"[dim]Editors: {', '.join(p.id for p in profiles)}[/dim]")
-    console.print(f"[dim]Mode: {mode_obj.id}[/dim]")
-    console.print(f"[dim]Skill level: {skill_level_id}[/dim]\n")
+    console_io.console.print(f"[dim]Editors: {', '.join(p.id for p in profiles)}[/dim]")
+    console_io.console.print(f"[dim]Mode: {mode_obj.id}[/dim]")
+    console_io.console.print(f"[dim]Skill level: {skill_level_id}[/dim]\n")
 
     if not _dependency_gate(skip_dep_check):
         raise typer.Exit(code=1)
@@ -507,39 +514,38 @@ def run_update(
     written_files: list[Path] = []
     pruned_count = 0
     for profile in profiles:
-        console.print(
+        console_io.console.print(
             f"\n[bold]{profile.name}[/bold] ([cyan]{profile.agent_dir}[/cyan])"
         )
-        context = settings.template_context(
-            project_root, profile, mode=mode_obj, skill_level=skill_level_id
-        )
-        written, _skipped = _write_manifest_files(
+        result = materialize_editor_profile(
             project_root,
-            build_manifest(profile, mode_obj, skill_level=skill_level_id),
-            context,
+            settings,
+            profile,
+            mode_obj,
+            skill_level_id,
             force=True,
+            prune=True,
+            ensure_agents_md=_ensure_agents_md,
         )
-        _ensure_agents_md(project_root, context)
-        pruned_count += _prune_retired_files(project_root, profile)
-        pruned_count += _prune_excluded_surfaces(project_root, profile, mode_obj)
-        written_files.extend(written)
+        written_files.extend(result.written)
+        pruned_count += result.pruned
 
-    console.print()
+    console_io.console.print()
     _graphify_postinstall(project_root, profiles)
 
-    console.print()
+    console_io.console.print()
     if written_files:
-        console.print(
+        console_io.console.print(
             f"[bold green]Refreshed {len(written_files)} file(s).[/bold green]"
         )
     if pruned_count:
-        console.print(
+        console_io.console.print(
             f"[bold yellow]Pruned {pruned_count} retired scaffold file(s).[/bold yellow]"
         )
     if not written_files and not pruned_count:
-        console.print("[bold]Nothing to write.[/bold]")
+        console_io.console.print("[bold]Nothing to write.[/bold]")
 
-    console.print(
+    console_io.console.print(
         "\n[dim]Manifest outputs were overwritten from the installed package. "
         "Issue files under [bold].issueflows/[/bold] were not modified by this command.[/dim]\n"
     )
@@ -584,7 +590,7 @@ def _prune_retired_files(
 
             shutil.rmtree(old_folder)
             relative = old_folder.relative_to(project_root)
-            console.print(f"  [yellow]prune[/yellow]  {relative}")
+            console_io.console.print(f"  [yellow]prune[/yellow]  {relative}")
             pruned_count += 1
 
     return pruned_count
@@ -607,13 +613,13 @@ def _prune_command_files(
         if command_file.exists():
             command_file.unlink()
             relative = command_file.relative_to(project_root)
-            console.print(f"  [yellow]prune[/yellow]  {relative}")
+            console_io.console.print(f"  [yellow]prune[/yellow]  {relative}")
             pruned_count += 1
 
     if remove_empty_dir and cmd_dir.is_dir() and not any(cmd_dir.iterdir()):
         cmd_dir.rmdir()
         relative = cmd_dir.relative_to(project_root)
-        console.print(f"  [yellow]prune[/yellow]  {relative}/")
+        console_io.console.print(f"  [yellow]prune[/yellow]  {relative}/")
         pruned_count += 1
 
     return pruned_count
@@ -640,7 +646,7 @@ def _prune_excluded_surfaces(
         folder = skills_dir / skill_output_name(skill_dir)
         if folder.exists():
             shutil.rmtree(folder)
-            console.print(
+            console_io.console.print(
                 f"  [yellow]prune[/yellow]  {folder.relative_to(project_root)}  "
                 f"(excluded by mode {mode.id})"
             )
@@ -654,7 +660,7 @@ def _prune_excluded_surfaces(
             command_file = cmd_dir / f"{name}.md"
             if command_file.exists():
                 command_file.unlink()
-                console.print(
+                console_io.console.print(
                     f"  [yellow]prune[/yellow]  "
                     f"{command_file.relative_to(project_root)}  "
                     f"(excluded by mode {mode.id})"
@@ -662,7 +668,7 @@ def _prune_excluded_surfaces(
                 pruned_count += 1
         if cmd_dir.is_dir() and not any(cmd_dir.iterdir()):
             cmd_dir.rmdir()
-            console.print(
+            console_io.console.print(
                 f"  [yellow]prune[/yellow]  {cmd_dir.relative_to(project_root)}/"
             )
             pruned_count += 1
@@ -685,7 +691,7 @@ def _graphify_postinstall(project_root: Path, profiles: list[EditorProfile]) -> 
     if not installable:
         return
 
-    console.print("[bold]Graphify integration[/bold]")
+    console_io.console.print("[bold]Graphify integration[/bold]")
     seen: set[str] = set()
     for profile in installable:
         installer = profile.graphify_installer
@@ -693,7 +699,7 @@ def _graphify_postinstall(project_root: Path, profiles: list[EditorProfile]) -> 
         if installer in seen:
             continue
         seen.add(installer)
-        graphify_register_with_editor(project_root, console, installer)
+        graphify_register_with_editor(project_root, console_io.console, installer)
 
 
 def _dependency_gate(skip_dep_check: bool) -> bool:
@@ -704,7 +710,7 @@ def _dependency_gate(skip_dep_check: bool) -> bool:
     report.
     """
     missing = check_dependencies()
-    return prompt_or_skip(missing, console, skip=skip_dep_check)
+    return prompt_or_skip(missing, console_io.console, skip=skip_dep_check)
 
 
 def _create_issueflow_dirs(project_root: Path, settings: Settings) -> None:
@@ -714,12 +720,12 @@ def _create_issueflow_dirs(project_root: Path, settings: Settings) -> None:
     for subdir_name in settings.issueflows_subdirs:
         dir_path = base / subdir_name
         if dir_path.exists():
-            console.print(
+            console_io.console.print(
                 f"  [dim]exists[/dim] {settings.issueflows_dir}/{subdir_name}/"
             )
         else:
             dir_path.mkdir(parents=True, exist_ok=True)
-            console.print(
+            console_io.console.print(
                 f"  [green]mkdir[/green]  {settings.issueflows_dir}/{subdir_name}/"
             )
 

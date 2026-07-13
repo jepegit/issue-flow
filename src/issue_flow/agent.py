@@ -1103,16 +1103,17 @@ def run_workspace_update(
     if not skip_dep_check and not _dependency_gate(skip_dep_check=False):
         return 1
 
-    import issue_flow.init as init_module
+    import issue_flow.console_io as console_module
 
     def _run_member_update(root: Path) -> None:
         if as_json:
-            saved = init_module.console
-            init_module.console = Console(quiet=True)
+            quiet = Console(quiet=True)
+            saved = console_module.console
+            console_module.console = quiet
             try:
                 run_update(root, skip_dep_check=True, editors=editors)
             finally:
-                init_module.console = saved
+                console_module.console = saved
         else:
             run_update(root, skip_dep_check=True, editors=editors)
 
