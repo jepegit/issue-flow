@@ -8,8 +8,12 @@ wrong repo.
 
 - Open a **multi-root workspace** with one folder per repository (e.g.
   `cellpy-core/` and `cellpy/` as siblings).
-- Run **`issue-flow init`** (or `update`) **in each repo** — each gets its own
-  `.issueflows/`, `AGENTS.md` block, and `.cursor/rules/issueflow-rules.mdc`.
+- Run **`issue-flow init`** in each repo — each gets its own `.issueflows/`,
+  `AGENTS.md` block, and `.cursor/rules/issueflow-rules.mdc`.
+- To refresh packaged skills/rules/commands after upgrading issue-flow, run
+  **`issue-flow workspace update`** from the workspace root (or any member —
+  it walks up for `issueflow-workspace.toml`). Per-repo **`issue-flow update`**
+  remains valid when you only need one member.
 - Put **repo-specific toolchain** instructions in each repo's
   `.issueflows/04-designs-and-guides/this-project.md` (conda vs uv, test
   commands, etc.) so merged agent context stays disambiguated.

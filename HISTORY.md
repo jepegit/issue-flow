@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- **Workspace-wide scaffold refresh (#158).** New `issue-flow workspace update` walks up for `issueflow-workspace.toml` and runs `issue-flow update` in every scaffolded member repo — one dependency check up front, per-member failures don't abort the rest, and `--json` reports per-member outcomes. The multi-repo design doc now points at the batch command; per-repo `issue-flow update` remains valid for single members.
+
 ## [0.4.4] - 2026-07-12
 
 - **Experimental parallel cycle dispatch (#143).** Final slice of the cycling-mode epic (#145): `/iflow-cycle parallel:<n>` may run **provably independent** issues concurrently when the harness supports background execution — the sequential cycle remains the default and is never weakened to enable it. Only issues in `agent queue`'s `independent` set (no dependency relation to any other queue member) qualify; each runs in its own `git worktree`; **merges are serialized** by the coordinating session (rebase/retry on refusal); and shared files — chiefly `HISTORY.md` — are written **only by the coordinator in merge order**, never concurrently. If background execution can't be confirmed, the skill refuses `parallel:<n>` and runs sequentially. A new `parallel-cycle.md` design note (scaffolded with the standard cycle surface) records the constraints and per-harness notes, since editor capabilities move fast. Cross-repo parallel cycles remain out of scope.
