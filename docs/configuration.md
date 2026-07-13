@@ -111,6 +111,39 @@ guidance is. It is set with `init --skill-level <level>`, persisted to
 Resolution order mirrors modes: `--skill-level` (CLI) > `config.toml` >
 `ISSUEFLOW_SKILL_LEVEL` (env) > `standard`.
 
+## Multi-editor teams (canonical format)
+
+When teammates use different AI coding tools (Cursor, Claude Code, opencode,
+Codex), issue-flow can keep a **team-committed canonical store** under
+`.issueflows/agent/` (portable `SKILL.md` snapshots + `manifest.json`) plus the
+shared `AGENTS.md` managed block. Per-editor trees (`.cursor/`, `.claude/`, …)
+are generated locally and can be gitignored.
+
+```bash
+# Team setup: commit .issueflows/agent/ instead of every editor tree
+issue-flow init --canonical
+
+# After checkout: materialize your local editor surfaces
+issue-flow convert --to cursor          # or claude, opencode, codex
+
+# Before push: refresh canonical store and drop local editor trees
+issue-flow convert --to canonical --prune-other
+```
+
+Persisted keys in `config.toml`:
+
+| Key | Purpose |
+| --- | --- |
+| `canonical_format = true` | Project uses the canonical store in git (set by `init --canonical` or `convert --to canonical`). |
+| `editor = "cursor"` | Last local editor target for `convert` (optional; `ISSUEFLOW_EDITOR` still wins when set). |
+
+`init --canonical` also appends a managed `.gitignore` block for local editor
+directories. Re-run with `issue-flow convert --gitignore` if you adopted the
+workflow later.
+
+Git hooks for automatic pull/push conversion are planned as a follow-up (#23
+phase 2 / #101-adjacent); hooks remain opt-in.
+
 ## Caveman skill
 
 The `standard` mode installs an optional `caveman` Agent Skill

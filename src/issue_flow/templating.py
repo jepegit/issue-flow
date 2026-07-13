@@ -212,6 +212,39 @@ DOCS_ENTRY: tuple[str, str] = (
 )
 
 
+def build_canonical_manifest(
+    mode: Mode | None = None, skill_level: str | None = None
+) -> list[tuple[str, str]]:
+    """Return skill-only manifest entries under ``.issueflows/agent/skills/``.
+
+    Canonical snapshots use editor-neutral skill bodies (rendered with the codex
+    profile context) and omit per-editor rules, commands, and workflow docs.
+    """
+    skills_filter = None if mode is None else mode.skills
+    entries: list[tuple[str, str]] = []
+
+    for skill_dir in SKILL_DIRS:
+        if skills_filter is not None and skill_dir not in skills_filter:
+            continue
+        output_name = SKILL_OUTPUT_NAMES.get(skill_dir, skill_dir.replace("_", "-"))
+        entries.append(
+            (
+                f"skills/{skill_dir}/SKILL.md.j2",
+                "{issueflows_dir}/agent/skills/" + f"{output_name}/SKILL.md",
+            )
+        )
+
+    if skill_level == "advanced":
+        entries.append(
+            (
+                "designs/python-quality-tools.md.j2",
+                "{issueflows_dir}/{designs_folder}/python-quality-tools.md",
+            )
+        )
+
+    return entries
+
+
 def build_manifest(
     profile: EditorProfile, mode: Mode | None = None, skill_level: str | None = None
 ) -> list[tuple[str, str]]:

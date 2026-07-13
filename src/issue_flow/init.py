@@ -18,7 +18,12 @@ from issue_flow.dependencies import (
 from issue_flow.editors import EditorProfile, resolve_editors
 from issue_flow.graphify import register_with_editor as graphify_register_with_editor
 from issue_flow.modes import Mode
-from issue_flow.step_profiles import enrich_render_context
+from issue_flow.surfaces import (
+    ensure_editor_gitignore,
+    materialize_canonical_store,
+    materialize_editor_profile,
+    write_manifest_files,
+)
 from issue_flow.templating import (
     COMMAND_NAMES,
     RETIRED_COMMANDS,
@@ -118,36 +123,8 @@ def _write_manifest_files(
     *,
     force: bool,
 ) -> tuple[list[Path], list[Path]]:
-    """Render templates from ``manifest`` and write under project_root.
-
-    When ``force`` is False, existing files are skipped (not overwritten).
-    Issue markdown under ``.issueflows/`` is never part of the manifest.
-
-    Returns:
-        (written_relative_paths, skipped_relative_paths)
-    """
-    written_files: list[Path] = []
-    skipped_files: list[Path] = []
-
-    for template_name, path_template in manifest:
-        relative_path = resolve_output_path(path_template, context)
-        absolute_path = project_root / relative_path
-
-        if absolute_path.exists() and not force:
-            console.print(
-                f"  [yellow]skip[/yellow]  {relative_path}  (already exists, use --force to overwrite)"
-            )
-            skipped_files.append(relative_path)
-            continue
-
-        render_context = enrich_render_context(context, template_name)
-        rendered = render_template(template_name, render_context)
-        absolute_path.parent.mkdir(parents=True, exist_ok=True)
-        absolute_path.write_text(rendered, encoding="utf-8")
-        console.print(f"  [green]write[/green] {relative_path}")
-        written_files.append(relative_path)
-
-    return written_files, skipped_files
+    """Backward-compatible wrapper around :func:`surfaces.write_manifest_files`."""
+    return write_manifest_files(project_root, manifest, context, force=force)
 
 
 def _ensure_agents_md(project_root: Path, context: dict[str, str]) -> None:
@@ -275,6 +252,7 @@ def run_init(
     editors: list[str] | None = None,
     mode: str | None = None,
     skill_level: str | None = None,
+    canonical: bool = False,
 ) -> None:
     """Scaffold .issueflows/ directories and editor config (commands, rules, skills).
 
@@ -310,6 +288,10 @@ def run_init(
             When given it is validated and persisted to ``.issueflows/config.toml``
             so later ``update`` runs honour it. When omitted, the persisted/active
             level is used (default ``"standard"``).
+        canonical: When True, scaffold the team-committed canonical store under
+            ``.issueflows/agent/`` instead of per-editor trees, persist
+            ``canonical_format = true``, and append a managed ``.gitignore``
+            block for local editor directories.
     """
     settings = Settings()
     try:
@@ -343,7 +325,10 @@ def run_init(
     console.print(
         f"\n[bold]Initializing issue-flow in [cyan]{project_root}[/cyan][/bold]"
     )
-    console.print(f"[dim]Editors: {', '.join(p.id for p in profiles)}[/dim]")
+    if canonical:
+        console.print("[dim]Layout: canonical (.issueflows/agent/)[/dim]")
+    else:
+        console.print(f"[dim]Editors: {', '.join(p.id for p in profiles)}[/dim]")
     console.print(f"[dim]Mode: {mode_obj.id}[/dim]")
     console.print(f"[dim]Skill level: {skill_level_id}[/dim]\n")
 
@@ -387,30 +372,50 @@ def run_init(
     written_files: list[Path] = []
     skipped_files: list[Path] = []
     pruned_count = 0
-    for profile in profiles:
-        console.print(
-            f"\n[bold]{profile.name}[/bold] ([cyan]{profile.agent_dir}[/cyan])"
-        )
-        context = settings.template_context(
-            project_root, profile, mode=mode_obj, skill_level=skill_level_id
-        )
-        written, skipped = _write_manifest_files(
+
+    if canonical:
+        console.print("[bold]Canonical store[/bold] (.issueflows/agent/)")
+        result = materialize_canonical_store(
             project_root,
-            build_manifest(profile, mode_obj, skill_level=skill_level_id),
-            context,
+            settings,
+            mode_obj,
+            skill_level_id,
             force=force,
+            ensure_agents_md=_ensure_agents_md,
         )
-        _ensure_agents_md(project_root, context)
-        pruned_count += _prune_retired_files(project_root, profile)
-        pruned_count += _prune_excluded_surfaces(project_root, profile, mode_obj)
-        written_files.extend(written)
-        skipped_files.extend(skipped)
+        written_files.extend(result.written)
+        skipped_files.extend(result.skipped)
+        modes_module.write_canonical_format(cfg_path, True)
+        console.print(
+            f"  [green]write[/green] {cfg_path.relative_to(project_root).as_posix()}  "
+            "(canonical_format = true)"
+        )
+        ensure_editor_gitignore(project_root)
+    else:
+        for profile in profiles:
+            console.print(
+                f"\n[bold]{profile.name}[/bold] ([cyan]{profile.agent_dir}[/cyan])"
+            )
+            result = materialize_editor_profile(
+                project_root,
+                settings,
+                profile,
+                mode_obj,
+                skill_level_id,
+                force=force,
+                prune=True,
+                ensure_agents_md=_ensure_agents_md,
+            )
+            written_files.extend(result.written)
+            skipped_files.extend(result.skipped)
+            pruned_count += result.pruned
 
     console.print()
     _ensure_dotenv_file(project_root)
 
     console.print()
-    _graphify_postinstall(project_root, profiles)
+    if not canonical:
+        _graphify_postinstall(project_root, profiles)
 
     console.print()
     if written_files:
@@ -427,11 +432,15 @@ def run_init(
         console.print("[bold]Nothing to do.[/bold]")
 
     primary = profiles[0]
+    if canonical:
+        hint_dir = f"{settings.issueflows_dir}/agent/skills/"
+    else:
+        hint_dir = f"{primary.agent_dir}/skills/"
     console.print(
         "\n[dim]Run [bold]/iflow-init <number>[/bold] or [bold]/iflow-init[/bold] "
         "(on a branch like [bold]42-slug[/bold], after confirmation) in your editor "
         "to start tracking a GitHub issue. "
-        f"Optional Agent Skills live under [bold]{primary.agent_dir}/skills/[/bold] "
+        f"Optional Agent Skills live under [bold]{hint_dir}[/bold] "
         "([bold]/iflow-init[/bold], etc.).[/dim]\n"
     )
 
@@ -510,19 +519,18 @@ def run_update(
         console.print(
             f"\n[bold]{profile.name}[/bold] ([cyan]{profile.agent_dir}[/cyan])"
         )
-        context = settings.template_context(
-            project_root, profile, mode=mode_obj, skill_level=skill_level_id
-        )
-        written, _skipped = _write_manifest_files(
+        result = materialize_editor_profile(
             project_root,
-            build_manifest(profile, mode_obj, skill_level=skill_level_id),
-            context,
+            settings,
+            profile,
+            mode_obj,
+            skill_level_id,
             force=True,
+            prune=True,
+            ensure_agents_md=_ensure_agents_md,
         )
-        _ensure_agents_md(project_root, context)
-        pruned_count += _prune_retired_files(project_root, profile)
-        pruned_count += _prune_excluded_surfaces(project_root, profile, mode_obj)
-        written_files.extend(written)
+        written_files.extend(result.written)
+        pruned_count += result.pruned
 
     console.print()
     _graphify_postinstall(project_root, profiles)

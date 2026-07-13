@@ -132,6 +132,15 @@ def init(
         "--skill-level",
         help=_SKILL_LEVEL_HELP,
     ),
+    canonical: bool = typer.Option(
+        False,
+        "--canonical",
+        help=(
+            "Scaffold the team-committed canonical store under .issueflows/agent/ "
+            "instead of per-editor trees. Adds a managed .gitignore block for "
+            "local editor directories."
+        ),
+    ),
 ) -> None:
     """Scaffold issue-flow directories and editor config files in a project."""
     from issue_flow.init import run_init
@@ -143,6 +152,54 @@ def init(
         editors=editor,
         mode=mode,
         skill_level=skill_level,
+        canonical=canonical,
+    )
+
+
+@app.command()
+def convert(
+    project_dir: Path = typer.Argument(
+        default=Path("."),
+        help="Project root directory (defaults to current directory).",
+        exists=True,
+        file_okay=False,
+        resolve_path=True,
+    ),
+    to: str | None = typer.Option(
+        None,
+        "--to",
+        help=(
+            "Target layout: an editor id (cursor, claude, opencode, codex) or "
+            "'canonical' for the team store under .issueflows/agent/. Defaults "
+            "to ISSUEFLOW_EDITOR / config.toml / cursor."
+        ),
+    ),
+    force: bool = typer.Option(
+        False,
+        "--force",
+        "-f",
+        help="Overwrite existing manifest outputs.",
+    ),
+    prune_other: bool = typer.Option(
+        False,
+        "--prune-other",
+        help="Remove scaffold trees for non-target editors after converting.",
+    ),
+    gitignore: bool = typer.Option(
+        False,
+        "--gitignore",
+        help="Append a managed .gitignore block for local editor directories.",
+    ),
+) -> None:
+    """Convert between canonical and per-editor issue-flow scaffold layouts."""
+    from issue_flow.convert import run_convert
+
+    run_convert(
+        project_root=project_dir,
+        to=to,
+        force=force,
+        prune_other=prune_other,
+        gitignore=gitignore,
     )
 
 

@@ -232,6 +232,34 @@ class Settings:
             return env.strip()
         return DEFAULT_SKILL_LEVEL
 
+    def resolve_canonical_format(self, project_root: Path) -> bool:
+        """Return whether the project uses the canonical agent store in git."""
+        persisted = modes_module.read_canonical_format(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        return False
+
+    def resolve_persisted_editor(self, project_root: Path) -> str | None:
+        """Return the editor id persisted in ``config.toml``, if any."""
+        return modes_module.read_persisted_editor(self.config_path(project_root))
+
+    def resolve_target_editor(self, project_root: Path, cli_editor: str | None) -> str:
+        """Resolve the editor for ``convert --to <editor>``.
+
+        Order: explicit CLI value > ``ISSUEFLOW_EDITOR`` env > persisted
+        ``config.toml`` > default ``cursor``. The special value ``canonical`` is
+        passed through unchanged.
+        """
+        if cli_editor:
+            return cli_editor.strip().lower()
+        env = os.getenv("ISSUEFLOW_EDITOR")
+        if env and env.strip():
+            return env.strip().lower()
+        persisted = self.resolve_persisted_editor(project_root)
+        if persisted:
+            return persisted
+        return DEFAULT_EDITOR
+
     def seed_config_values(self) -> dict[str, object]:
         """Values for a freshly created ``config.toml``: env/``.env`` else defaults.
 
