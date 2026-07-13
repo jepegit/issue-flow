@@ -176,6 +176,37 @@ def update(
     run_update(project_root=project_dir, skip_dep_check=skip_dep_check, editors=editor)
 
 
+@app.command()
+def sync(
+    project_dir: Path = typer.Argument(
+        default=Path("."),
+        help="Project root directory (defaults to current directory).",
+        exists=True,
+        file_okay=False,
+        resolve_path=True,
+    ),
+    apply: bool = typer.Option(
+        False,
+        "--apply",
+        help="Apply label/milestone changes to GitHub (default is dry-run).",
+    ),
+    repo: str | None = typer.Option(
+        None,
+        "--repo",
+        help="owner/repo override (else derived from the origin remote).",
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Sync ``.issueflows/`` folder state to GitHub labels (and optionally milestones)."""
+    from issue_flow.sync import run_sync
+
+    raise typer.Exit(
+        code=run_sync(project_dir, _console, apply=apply, repo=repo, as_json=json_output)
+    )
+
+
 @app.command(
     context_settings={
         "allow_extra_args": True,

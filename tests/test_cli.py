@@ -11,6 +11,7 @@ import pytest
 from typer.testing import CliRunner
 
 from issue_flow.cli import app
+from issue_flow.config import Settings
 
 _ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
 
@@ -118,6 +119,22 @@ def test_graphify_help_describes_passthrough(runner: CliRunner) -> None:
     result = runner.invoke(app, ["graphify", "--help"])
     assert result.exit_code == 0
     assert "graphify" in result.stdout.lower()
+
+
+def test_sync_help_documents_apply(runner: CliRunner) -> None:
+    result = runner.invoke(app, ["sync", "--help"])
+    assert result.exit_code == 0
+    assert "--apply" in result.stdout
+
+
+def test_sync_json_dry_run(runner: CliRunner, tmp_path: Path) -> None:
+    settings = Settings()
+    current = tmp_path / settings.issueflows_dir / settings.current_issues_folder
+    current.mkdir(parents=True)
+    (current / "issue1_status.md").write_text("- [ ] Done\n", encoding="utf-8")
+    result = runner.invoke(app, ["sync", str(tmp_path), "--json"])
+    assert result.exit_code == 0, result.output
+    assert '"dry_run": true' in result.stdout
 
 
 def test_graphify_invokes_graphify_when_available(

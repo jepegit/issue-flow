@@ -274,14 +274,14 @@ def gh_issue_state(number: int, cwd: Path, repo: str | None = None) -> str | Non
 def gh_issue_meta(
     number: int, cwd: Path, repo: str | None = None
 ) -> dict[str, Any] | None:
-    """Queue-planning metadata for one issue: number/title/state/body/labels."""
+    """Queue-planning metadata for one issue: number/title/state/body/labels/milestone."""
     argv = [
         GH,
         "issue",
         "view",
         str(number),
         "--json",
-        "number,title,state,body,labels",
+        "number,title,state,body,labels,milestone",
     ]
     if repo:
         argv += ["--repo", repo]
@@ -351,3 +351,79 @@ def gh_issue_list(
     except json.JSONDecodeError:
         return None
     return data if isinstance(data, list) else None
+
+
+def gh_issue_edit(
+    number: int,
+    cwd: Path,
+    *,
+    repo: str | None = None,
+    add_labels: list[str] | None = None,
+    remove_labels: list[str] | None = None,
+    milestone: str | None = None,
+) -> tuple[bool, str | None]:
+    """Edit one issue's labels and/or milestone via ``gh issue edit``.
+
+    Returns ``(success, error_message)``. ``error_message`` is stderr (or a
+    short fallback) when ``gh`` fails.
+    """
+    argv = [GH, "issue", "edit", str(number)]
+    if repo:
+        argv += ["--repo", repo]
+    for label in remove_labels or []:
+        argv += ["--remove-label", label]
+    for label in add_labels or []:
+        argv += ["--add-label", label]
+    if milestone:
+        argv += ["--milestone", milestone]
+    if len(argv) == 3 + (1 if repo else 0):
+        return True, None
+    result = _run(argv, cwd)
+    if result is None:
+        return False, "gh is not available"
+    if result.returncode != 0:
+        err = (result.stderr or result.stdout or "gh issue edit failed").strip()
+        return False, err
+    return True, None
+
+
+def gh_issue_close(
+    number: int,
+    cwd: Path,
+    repo: str | None = None,
+) -> tuple[bool, str | None]:
+    """Close one GitHub issue. Returns ``(success, error_message)``."""
+    argv = [GH, "issue", "close", str(number)]
+    if repo:
+        argv += ["--repo", repo]
+    result = _run(argv, cwd)
+    if result is None:
+        return False, "gh is not available"
+    if result.returncode != 0:
+        err = (result.stderr or result.stdout or "gh issue close failed").strip()
+        return False, err
+    return True, None
+
+
+def gh_milestone_titles(cwd: Path, repo: str | None = None) -> list[str] | None:
+    """Return open milestone titles for the repo, or ``None`` when unavailable."""
+    if repo and "/" in repo:
+        owner, name = repo.split("/", 1)
+    else:
+        remote = remote_owner_repo(cwd)
+        if remote is None:
+            return None
+        owner, name = remote
+    argv = [
+        GH,
+        "api",
+        f"repos/{owner}/{name}/milestones",
+        "--jq",
+        ".[].title",
+    ]
+    out = _stdout(argv, cwd)
+    if out is None:
+        return None
+    if not out:
+        return []
+    return [line.strip().strip('"') for line in out.splitlines() if line.strip()]

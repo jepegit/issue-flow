@@ -46,6 +46,18 @@ DEFAULT_MODEL_LABEL_FLOWS = False
 DEFAULT_DEEP_MODEL_LABEL = "deep"
 DEFAULT_FAST_MODEL_LABEL = "fast"
 
+# GitHub sync defaults (``.issueflows/`` folder → labels / milestones).
+DEFAULT_SYNC_ENABLED = True
+DEFAULT_SYNC_LABEL_PREFIX = "status:"
+DEFAULT_SYNC_LABELS = True
+DEFAULT_SYNC_MILESTONES = False
+DEFAULT_SYNC_CLOSE_ON_SOLVED = False
+DEFAULT_SYNC_MILESTONE_MAP: dict[str, str] = {
+    "current": "",
+    "parked": "",
+    "solved": "",
+}
+
 # Packaged data file holding the built-in modes (sibling of this module).
 _MODES_RESOURCE = "modes.toml"
 # Per-project config file (relative to the issueflows dir).
@@ -355,6 +367,20 @@ def read_fast_model_label(cfg_path: Path) -> str | None:
         if value:
             return str(value)
     return None
+
+
+def read_sync_settings(cfg_path: Path) -> dict[str, object] | None:
+    """Return ``[issueflow.sync]`` from ``config.toml``, or ``None`` if unset."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if not isinstance(section, dict):
+        return None
+    raw = section.get("sync")
+    if not isinstance(raw, dict):
+        return None
+    return dict(raw)
 
 
 def read_skill_level(cfg_path: Path) -> str | None:
