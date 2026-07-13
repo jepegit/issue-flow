@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- **Sync label bootstrap (#166).** Auto-create missing managed `status:*` labels before `issue-flow sync --apply` (`bootstrap_labels` defaults true); fixes the dogfood `issueflow-sync` GitHub Actions workflow failing with `status:solved` not found.
+
 - **Dirty `.issueflows/` doctor CLI + `/iflow-doctor` (#47).** Define machine-checkable dirty conditions in `tracking.audit_issueflows()`, expose `issue-flow doctor` / `agent audit` for read-only health checks, `doctor --fix` / `agent repair` for safe repairs (mkdir missing tree folders + sweep non-focus groups), scaffold the off-path `/iflow-doctor` skill/command, and document the contract in `dirty-issueflows.md`.
 
 - **Docs site iPhone fixes (#162).** Point the Zensical theme logo at the committed blue SVG, add a favicon, drop instant navigation (Safari blank-page workaround), add mobile overflow CSS for wide CLI blocks/tables, and rewrap the CLI synopsis.

@@ -16,6 +16,7 @@ from rich.table import Table
 from issue_flow import gitutils, tracking
 from issue_flow.config import Settings, _env_flag
 from issue_flow.modes import (
+    DEFAULT_SYNC_BOOTSTRAP_LABELS,
     DEFAULT_SYNC_CLOSE_ON_SOLVED,
     DEFAULT_SYNC_ENABLED,
     DEFAULT_SYNC_LABEL_PREFIX,
@@ -48,6 +49,7 @@ class SyncSettings:
         default_factory=lambda: {"current": "", "parked": "", "solved": ""}
     )
     close_on_solved: bool = False
+    bootstrap_labels: bool = True
 
 
 @dataclass
@@ -119,6 +121,11 @@ def load_sync_settings(settings: Settings, project_root: Path) -> SyncSettings:
             "close_on_solved",
             "ISSUEFLOW_SYNC_CLOSE_ON_SOLVED",
             DEFAULT_SYNC_CLOSE_ON_SOLVED,
+        ),
+        bootstrap_labels=_bool(
+            "bootstrap_labels",
+            "ISSUEFLOW_SYNC_BOOTSTRAP_LABELS",
+            DEFAULT_SYNC_BOOTSTRAP_LABELS,
         ),
     )
 
@@ -329,12 +336,46 @@ def apply_plan(
     return result
 
 
+_LABEL_COLORS: dict[SyncState, str] = {
+    "current": "0E8A16",
+    "parked": "FBCA04",
+    "solved": "6E7781",
+}
+
+
 def bootstrap_hint(prefix: str) -> str:
     return "Create managed labels once, then re-run sync:\n" + "\n".join(
         f"  gh label create '{label_for_state(prefix, state)}' --color "
-        f"{'0E8A16' if state == 'current' else 'FBCA04' if state == 'parked' else '6E7781'}"
+        f"{_LABEL_COLORS[state]}"
         for state in SYNC_STATES
     )
+
+
+def ensure_managed_labels(
+    prefix: str,
+    project_root,
+    *,
+    repo: str | None,
+) -> tuple[bool, str | None]:
+    """Create any missing managed labels under ``prefix``. Idempotent."""
+    existing = gitutils.gh_label_names(project_root, repo=repo)
+    if existing is None:
+        return False, "could not list GitHub labels"
+
+    for state in SYNC_STATES:
+        name = label_for_state(prefix, state)
+        if name in existing:
+            continue
+        ok, err = gitutils.gh_label_create(
+            name,
+            project_root,
+            color=_LABEL_COLORS[state],
+            repo=repo,
+        )
+        if not ok:
+            return False, err or f"failed to create label {name!r}"
+        existing.add(name)
+    return True, None
 
 
 def run_sync(
@@ -369,6 +410,25 @@ def run_sync(
 
     plans, warnings = plan_sync(project_root, settings, config, repo=owner_repo)
     dry_run = not apply
+
+    if apply and config.labels and config.bootstrap_labels:
+        ok, err = ensure_managed_labels(
+            config.label_prefix, project_root, repo=owner_repo
+        )
+        if not ok:
+            if as_json:
+                console.print_json(
+                    data={
+                        "dry_run": False,
+                        "repo": owner_repo,
+                        "error": err or "label bootstrap failed",
+                        "results": [],
+                        "warnings": warnings,
+                    }
+                )
+            else:
+                console.print(f"[red]Label bootstrap failed:[/red] {err}")
+            return 1
     results: list[IssueSyncResult] = [
         apply_plan(plan, project_root, repo=owner_repo, config=config, dry_run=dry_run)
         for plan in plans
@@ -386,6 +446,7 @@ def run_sync(
             "labels": config.labels,
             "milestones": config.milestones,
             "close_on_solved": config.close_on_solved,
+            "bootstrap_labels": config.bootstrap_labels,
         },
         "warnings": warnings,
         "results": [
