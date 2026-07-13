@@ -10,7 +10,13 @@ Agents should behave. Let them follow the issue flow.
 so that AI coding agents can pick up GitHub issues, plan work, and land PRs in a
 consistent way. It supports **Cursor, Claude Code, opencode, and Codex** via
 `--editor` (see [Editor support](editors.md)); the examples below use the
-default, Cursor.
+default, Cursor. 
+
+## Why
+
+I guess it is just a matter of taste. If you are familiar with coding using agents and harnesses, `issue-flow` could very well slow you down. But...
+
+Maybe that is a good thing?
 
 ## What it does
 

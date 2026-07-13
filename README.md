@@ -6,6 +6,14 @@ Agents should behave. Let them follow the issue flow.
 
 **Full documentation:** <https://issue-flow.readthedocs.io/>
 
+
+## Why use it
+
+I guess it is just a matter of taste. If you are familiar with coding using agents and harnesses, `issue-flow` could very well slow you down. But...
+
+Maybe that is a good thing?
+
+
 ## What it does
 
 Running `issue-flow init` in your project root creates:
