@@ -5,9 +5,9 @@ from __future__ import annotations
 from pathlib import Path
 
 import typer
-from rich.console import Console
 
 from issue_flow import modes as modes_module
+import issue_flow.console_io as console_io
 from issue_flow.config import Settings
 from issue_flow.editors import get_profile
 from issue_flow.init import _create_issueflow_dirs, _ensure_agents_md
@@ -18,9 +18,6 @@ from issue_flow.surfaces import (
     prune_all_editor_surfaces,
     prune_other_editor_surfaces,
 )
-
-console = Console()
-
 
 def run_convert(
     project_root: Path,
@@ -45,24 +42,24 @@ def run_convert(
     try:
         mode_obj = settings.resolve_mode(project_root)
     except ValueError as exc:
-        console.print(f"[red]error[/red]  {exc}")
+        console_io.console.print(f"[red]error[/red]  {exc}")
         raise typer.Exit(code=2) from None
 
     skill_level_id = settings.resolve_skill_level(project_root)
     target = settings.resolve_target_editor(project_root, to)
     cfg_path = settings.config_path(project_root)
 
-    console.print(
+    console_io.console.print(
         f"\n[bold]Converting issue-flow surfaces in [cyan]{project_root}[/cyan][/bold]"
     )
-    console.print(f"[dim]Target: {target}[/dim]")
-    console.print(f"[dim]Mode: {mode_obj.id}[/dim]")
-    console.print(f"[dim]Skill level: {skill_level_id}[/dim]\n")
+    console_io.console.print(f"[dim]Target: {target}[/dim]")
+    console_io.console.print(f"[dim]Mode: {mode_obj.id}[/dim]")
+    console_io.console.print(f"[dim]Skill level: {skill_level_id}[/dim]\n")
 
     _create_issueflow_dirs(project_root, settings)
 
     if target == "canonical":
-        console.print("[bold]Canonical store[/bold] (.issueflows/agent/)")
+        console_io.console.print("[bold]Canonical store[/bold] (.issueflows/agent/)")
         result = materialize_canonical_store(
             project_root,
             settings,
@@ -72,7 +69,7 @@ def run_convert(
             ensure_agents_md=_ensure_agents_md,
         )
         modes_module.write_canonical_format(cfg_path, True)
-        console.print(
+        console_io.console.print(
             f"  [green]write[/green] {cfg_path.relative_to(project_root).as_posix()}  "
             "(canonical_format = true)"
         )
@@ -85,10 +82,10 @@ def run_convert(
         try:
             profile = get_profile(target)
         except ValueError as exc:
-            console.print(f"[red]error[/red]  {exc}")
+            console_io.console.print(f"[red]error[/red]  {exc}")
             raise typer.Exit(code=2) from None
 
-        console.print(
+        console_io.console.print(
             f"[bold]{profile.name}[/bold] ([cyan]{profile.agent_dir}[/cyan])"
         )
         result = materialize_editor_profile(
@@ -114,23 +111,23 @@ def run_convert(
     if gitignore:
         ensure_editor_gitignore(project_root)
 
-    console.print()
+    console_io.console.print()
     if result.written:
-        console.print(
+        console_io.console.print(
             f"[bold green]Wrote {len(result.written)} file(s).[/bold green]"
         )
     if result.skipped:
-        console.print(
+        console_io.console.print(
             f"[bold yellow]Skipped {len(result.skipped)} existing file(s).[/bold yellow]"
         )
     if result.pruned:
-        console.print(
+        console_io.console.print(
             f"[bold yellow]Pruned {result.pruned} scaffold path(s).[/bold yellow]"
         )
     if not result.written and not result.skipped and not result.pruned:
-        console.print("[bold]Nothing to do.[/bold]")
+        console_io.console.print("[bold]Nothing to do.[/bold]")
 
-    console.print(
+    console_io.console.print(
         "\n[dim]Editor-specific trees are generated artifacts. When using the "
         "canonical workflow, commit [bold].issueflows/agent/[/bold] and "
         "[bold]AGENTS.md[/bold]; run [bold]issue-flow convert --to <editor>[/bold] "

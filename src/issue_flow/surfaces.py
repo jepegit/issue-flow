@@ -9,8 +9,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
-from rich.console import Console
-
+import issue_flow.console_io as console_io
 from issue_flow.config import Settings
 from issue_flow.editors import EDITORS, EditorProfile, get_profile
 from issue_flow.modes import Mode
@@ -21,8 +20,6 @@ from issue_flow.templating import (
     render_template,
     resolve_output_path,
 )
-
-console = Console()
 
 SurfaceTarget = Literal["editor", "canonical"]
 
@@ -56,7 +53,7 @@ def write_manifest_files(
         absolute_path = project_root / relative_path
 
         if absolute_path.exists() and not force:
-            console.print(
+            console_io.console.print(
                 f"  [yellow]skip[/yellow]  {relative_path}  "
                 "(already exists, use --force to overwrite)"
             )
@@ -67,7 +64,7 @@ def write_manifest_files(
         rendered = render_template(template_name, render_context)
         absolute_path.parent.mkdir(parents=True, exist_ok=True)
         absolute_path.write_text(rendered, encoding="utf-8")
-        console.print(f"  [green]write[/green] {relative_path}")
+        console_io.console.print(f"  [green]write[/green] {relative_path}")
         written_files.append(relative_path)
 
     return written_files, skipped_files
@@ -99,14 +96,14 @@ def write_canonical_manifest_json(
     }
     text = json.dumps(payload, indent=2) + "\n"
     if path.exists() and not force:
-        console.print(
+        console_io.console.print(
             f"  [yellow]skip[/yellow]  {relative}  "
             "(already exists, use --force to overwrite)"
         )
         return None
 
     path.write_text(text, encoding="utf-8")
-    console.print(f"  [green]write[/green] {relative}")
+    console_io.console.print(f"  [green]write[/green] {relative}")
     return relative
 
 
@@ -207,7 +204,7 @@ def prune_other_editor_surfaces(
         agent_root = project_root / profile.agent_dir
         if agent_root.exists():
             shutil.rmtree(agent_root)
-            console.print(f"  [yellow]prune[/yellow]  {agent_root.relative_to(project_root)}/")
+            console_io.console.print(f"  [yellow]prune[/yellow]  {agent_root.relative_to(project_root)}/")
             pruned += 1
         for relative in collect_profile_paths(
             project_root, settings, profile, mode, skill_level
@@ -215,7 +212,7 @@ def prune_other_editor_surfaces(
             absolute = project_root / relative
             if absolute.is_file():
                 absolute.unlink()
-                console.print(f"  [yellow]prune[/yellow]  {relative}")
+                console_io.console.print(f"  [yellow]prune[/yellow]  {relative}")
                 pruned += 1
         if profile.rules_extra:
             _, rules_template = profile.rules_extra
@@ -225,7 +222,7 @@ def prune_other_editor_surfaces(
             rules_path = project_root / resolve_output_path(rules_template, context)
             if rules_path.is_file():
                 rules_path.unlink()
-                console.print(f"  [yellow]prune[/yellow]  {rules_path.relative_to(project_root)}")
+                console_io.console.print(f"  [yellow]prune[/yellow]  {rules_path.relative_to(project_root)}")
                 pruned += 1
     return pruned
 
@@ -257,11 +254,11 @@ def ensure_editor_gitignore(project_root: Path) -> bool:
     if path.exists():
         existing = path.read_text(encoding="utf-8")
         if _GITIGNORE_MARKER_BEGIN in existing:
-            console.print("  [dim]skip[/dim]  .gitignore  (issue-flow editor block present)")
+            console_io.console.print("  [dim]skip[/dim]  .gitignore  (issue-flow editor block present)")
             return False
         updated = existing.rstrip("\n") + "\n\n" + block
     else:
         updated = block
     path.write_text(updated, encoding="utf-8")
-    console.print("  [green]write[/green] .gitignore  (issue-flow editor surfaces)")
+    console_io.console.print("  [green]write[/green] .gitignore  (issue-flow editor surfaces)")
     return True
