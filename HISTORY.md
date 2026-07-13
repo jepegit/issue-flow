@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- **GitHub Actions sync (#102).** New `issue-flow sync` command (dry-run by default, `--apply` pushes via `gh`) maps `.issueflows/` folder placement (`01-current` / `02-partly-solved` / `03-solved`) to managed `status:*` labels on GitHub (one-way; unrelated labels preserved). Configurable via `[issueflow.sync]` in `config.toml`. Ships a reusable `workflow_call` workflow (`.github/workflows/issue-flow-sync.yml`) plus a dogfood caller on this repo; README documents enablement and label bootstrap.
+
 - **Workspace-wide scaffold refresh (#158).** New `issue-flow workspace update` walks up for `issueflow-workspace.toml` and runs `issue-flow update` in every scaffolded member repo — one dependency check up front, per-member failures don't abort the rest, and `--json` reports per-member outcomes. The multi-repo design doc now points at the batch command; per-repo `issue-flow update` remains valid for single members.
 
 ## [0.4.4] - 2026-07-12

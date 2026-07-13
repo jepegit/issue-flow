@@ -1,0 +1,58 @@
+name: issue-flow sync (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      dry_run:
+        description: Report planned changes without applying them
+        type: boolean
+        default: false
+      install_mode:
+        description: "'pypi' installs from PyPI; 'workspace' uses uv sync in the checkout"
+        type: string
+        default: pypi
+      issue_flow_version:
+        description: PyPI version pin when install_mode is pypi (e.g. 0.4.2)
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: latest
+
+      - name: Install issue-flow (workspace)
+        if: inputs.install_mode == 'workspace'
+        run: uv sync
+
+      - name: Install issue-flow (PyPI)
+        if: inputs.install_mode != 'workspace'
+        run: |
+          if [ -n "${{ inputs.issue_flow_version }}" ]; then
+            uv tool install "issue-flow==${{ inputs.issue_flow_version }}"
+          else
+            uv tool install issue-flow
+          fi
+
+      - name: Sync .issueflows/ state to GitHub
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ARGS="sync --json"
+          if [ "${{ inputs.dry_run }}" != "true" ]; then
+            ARGS="$ARGS --apply"
+          fi
+          if [ "${{ inputs.install_mode }}" = "workspace" ]; then
+            uv run issue-flow $ARGS
+          else
+            issue-flow $ARGS
+          fi

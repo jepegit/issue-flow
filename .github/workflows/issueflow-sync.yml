@@ -1,0 +1,19 @@
+name: issueflow sync (dogfood)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".issueflows/**"
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  sync:
+    uses: ./.github/workflows/issue-flow-sync.yml
+    with:
+      install_mode: workspace
+      dry_run: false
+    secrets: inherit

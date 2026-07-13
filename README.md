@@ -248,12 +248,70 @@ See [docs/developing.md](https://github.com/jepegit/issue-flow/blob/main/docs/de
 
 See [HISTORY.md](https://github.com/jepegit/issue-flow/blob/main/HISTORY.md) for release notes.
 
+## GitHub Actions sync
+
+Sync `.issueflows/` folder placement (`01-current-issues` / `02-partly-solved-issues` /
+`03-solved-issues`) to GitHub issue labels (one-way: files → GitHub).
+
+**CLI (local or CI):**
+
+```bash
+issue-flow sync              # dry-run (shows planned label changes)
+issue-flow sync --apply      # push labels via gh
+issue-flow sync --json       # machine-readable report
+```
+
+**Managed labels** (default prefix `status:`): `status:current`, `status:parked`,
+`status:solved`. Only labels with that prefix are added/removed; other labels
+(e.g. `yolo`) are left alone.
+
+**Bootstrap labels once** (if they do not exist yet):
+
+```bash
+gh label create 'status:current' --color 0E8A16
+gh label create 'status:parked' --color FBCA04
+gh label create 'status:solved' --color 6E7781
+```
+
+**Configuration** — optional `[issueflow.sync]` in `.issueflows/config.toml`:
+
+```toml
+[issueflow.sync]
+enabled = true
+label_prefix = "status:"
+labels = true
+milestones = false
+close_on_solved = false
+
+[issueflow.sync.milestone_map]
+current = ""
+parked = ""
+solved = ""
+```
+
+**Reusable workflow** — add a caller in your repo (pin to a release tag):
+
+```yaml
+on:
+  push:
+    paths: ['.issueflows/**']
+jobs:
+  sync:
+    uses: jepegit/issue-flow/.github/workflows/issue-flow-sync.yml@v0.4.4
+    with:
+      dry_run: false
+    secrets: inherit
+```
+
+Requires `permissions: issues: write` on the job. The workflow installs
+`issue-flow` from PyPI by default (`install_mode: pypi`); this repo dogfoods
+with `install_mode: workspace` via [`.github/workflows/issueflow-sync.yml`](.github/workflows/issueflow-sync.yml).
+
 ## Future plans
 
 - **More editors** — extend `--editor` coverage to further AI coding tools (e.g. Windsurf) on top of the current Cursor / Claude Code / opencode / Codex support.
 - **Custom templates** — let users supply their own Jinja2 templates to tailor slash commands and rules to their team's conventions.
 - **Git hook integration** — optionally move issue files on commit based on status markers.
-- **GitHub Actions workflow** — ship a reusable action that syncs issue state between `.issueflows/` and GitHub issue labels/milestones.
 
 ## Acknowledgements
 
