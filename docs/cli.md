@@ -1,7 +1,12 @@
+---
+title: CLI reference
+---
+
 # CLI reference
 
-```
-issue-flow init [PROJECT_DIR] [--force] [--skip-dep-check] [--editor EDITOR] [--mode MODE] [--skill-level LEVEL]
+```text
+issue-flow init [PROJECT_DIR] [--force] [--skip-dep-check]
+  [--editor EDITOR] [--mode MODE] [--skill-level LEVEL]
 issue-flow update [PROJECT_DIR] [--skip-dep-check] [--editor EDITOR]
 issue-flow graphify [-C PROJECT_DIR] [...graphify subcommand + args]
 issue-flow status [PROJECT_DIR] [--local] [--json]
@@ -14,9 +19,11 @@ issue-flow agent queue [N ...] [--label L] [--epic N] [-C PROJECT_DIR] [--json]
 issue-flow agent resolve [-C PROJECT_DIR] [--from-file FILE] [--json]
 issue-flow agent sweep [PROJECT_DIR] [--except N] [--dry-run] [--json]
 issue-flow agent archive N [N ...] [-C PROJECT_DIR] [--dry-run] [--json]
-issue-flow agent capture N [-C PROJECT_DIR] [--repo OWNER/REPO] [--force] [--json]
+issue-flow agent capture N [-C PROJECT_DIR] [--repo OWNER/REPO]
+  [--force] [--json]
 issue-flow config add [-C PROJECT_DIR] [--force] [--json]
-issue-flow workspace init [WORKSPACE_DIR] [--default MEMBER] [--force] [--json]
+issue-flow workspace init [WORKSPACE_DIR] [--default MEMBER]
+  [--force] [--json]
 ```
 
 ## When to use which
