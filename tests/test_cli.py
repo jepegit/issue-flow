@@ -124,7 +124,7 @@ def test_graphify_help_describes_passthrough(runner: CliRunner) -> None:
 def test_sync_help_documents_apply(runner: CliRunner) -> None:
     result = runner.invoke(app, ["sync", "--help"])
     assert result.exit_code == 0
-    assert "--apply" in result.stdout
+    assert "--apply" in _plain(result.stdout)
 
 
 def test_sync_json_dry_run(runner: CliRunner, tmp_path: Path) -> None:
