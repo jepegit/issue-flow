@@ -1,6 +1,6 @@
 # Issue #166 — status
 
-- [ ] Done
+- [x] Done
 
 ## What's done
 
@@ -8,7 +8,8 @@
 - `ensure_managed_labels()` + `bootstrap_labels` config (default on) in `sync.py`
 - 4 new tests in `test_sync.py`; full suite 497 pass
 - README documents `bootstrap_labels`
+- PR #167 opened
 
 ## Remaining work
 
-- `/iflow-close` (PR + merge; dogfood workflow green after merge + next `.issueflows/` push)
+- None
