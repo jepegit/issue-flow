@@ -13,4 +13,4 @@
 
 ## Remaining work
 
-- `/iflow-close`: commit/push/PR hygiene, optional bump, mark Done, archive.
+- `/iflow-close`: optional bump, mark Done, archive (PR [#177](https://github.com/jepegit/issue-flow/pull/177) already open as draft).
