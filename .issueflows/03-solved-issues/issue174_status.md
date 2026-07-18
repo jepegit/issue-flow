@@ -1,6 +1,6 @@
 # Status — Issue #174: skill for reviewing and labelling issues
 
-- [ ] Done
+- [x] Done
 
 ## What's done
 
@@ -10,7 +10,8 @@
 - Design doc: `.issueflows/04-designs-and-guides/issue-review-labelling.md`.
 - Dogfood: `issue-flow update` refreshed `.cursor/skills/iflow-review/`, AGENTS, docs.
 - Tests: 529 passed (`uv run pytest`).
+- HISTORY.md Unreleased bullet; draft PR [#177](https://github.com/jepegit/issue-flow/pull/177).
 
 ## Remaining work
 
-- `/iflow-close`: optional bump, mark Done, archive (PR [#177](https://github.com/jepegit/issue-flow/pull/177) already open as draft).
+- None.
