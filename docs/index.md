@@ -89,8 +89,40 @@ linear path explicitly:
 Plus a few off-path commands (never auto-dispatched): `/iflow-pick` (choose the
 next issue), `/iflow-pause` (park work), `/iflow-yolo` (hands-off chain for
 small issues), `/iflow-fix` (iterative fixes session), `/iflow-status`
-(read-only overview), and `/iflow-archive` (condense the solved archive). The
-full lifecycle is described in [The workflow](issue-workflow.md).
+(read-only overview), `/iflow-epic` (staged epic plan + publish),
+`/iflow-cycle` (batch yolo queue), `/iflow-review` (label open issues),
+`/iflow-doctor` (scaffold health check), and `/iflow-archive` (condense the
+solved archive). The full lifecycle is described in
+[The workflow](issue-workflow.md).
+
+## Recipes
+
+Short paths for common multi-issue work. Fuller examples live in the
+scaffolded [workflow doc](issue-workflow.md) after `issue-flow init`.
+
+**One issue, linear path** — `/iflow-init` → `/iflow-plan` → `/iflow-start` →
+`/iflow-close` → `/iflow-cleanup` (or just `/iflow` between steps).
+
+**One small issue, hands-off** — `/iflow-yolo <N>` (or pick an issue that
+already has the `yolo` label via `/iflow-pick`).
+
+**Label and ship a batch**
+
+```text
+iflow review yolo    # propose yolo labels; confirm once; apply
+iflow cycle yolo     # process every open yolo-labelled issue
+```
+
+**Plan a large change as an epic**
+
+```text
+iflow epic 42                 # draft .issueflows/05-epics/epic42_plan.md
+iflow epic 42 publish         # or: publish stage 1
+iflow cycle epic 42 stage 1   # optional: batch the published stage
+```
+
+**Front door when you have not chosen yet** — `/iflow-pick` (parked work first,
+else ranked open GitHub issues).
 
 ## Where to go next
 
