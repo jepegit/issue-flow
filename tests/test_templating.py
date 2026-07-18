@@ -787,6 +787,24 @@ def test_issue_workflow_doc_leads_with_slashless_chat() -> None:
     assert "`iflow plan`, `iflow-plan`, `/iflow-plan`" in rendered
 
 
+def test_issue_workflow_doc_covers_epic_cycle_review_examples() -> None:
+    """Scaffolded workflow doc must document epic/cycle/review with examples (#179)."""
+    rendered = render_template("docs/issue-workflow.md.j2", _default_context())
+    assert "/iflow-epic" in rendered
+    assert "/iflow-cycle" in rendered
+    assert "/iflow-review" in rendered
+    assert "iflow review yolo" in rendered
+    assert "iflow cycle yolo" in rendered
+    assert "/iflow-cycle yolo" in rendered
+    assert "iflow epic" in rendered
+    assert "publish" in rendered
+    assert "iflow-epic" in rendered
+    assert "iflow-cycle" in rendered
+    # Off-path list should name the batch/epic skills explicitly.
+    assert "/iflow-epic" in rendered.split("Not auto-dispatched:")[1].split("\n")[0]
+    assert "/iflow-cycle" in rendered.split("Not auto-dispatched:")[1].split("\n")[0]
+
+
 def test_rules_body_defers_to_project_toolchain_and_covers_conda() -> None:
     """Regression for issue #58: the shared rules body must defer to the
     project's existing toolchain and cover conda, not hard-mandate uv."""
