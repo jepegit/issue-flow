@@ -106,8 +106,8 @@ def test_resolve_output_path() -> None:
 
 
 def test_manifest_entry_count() -> None:
-    # Cursor is skills-first: 1 rule + 1 doc + 21 skills = 23
-    assert len(TEMPLATE_MANIFEST) == 23
+    # Cursor is skills-first: 1 rule + 1 doc + 22 skills = 24
+    assert len(TEMPLATE_MANIFEST) == 24
 
 
 def _resolved_paths(profile_id: str) -> set[str]:
@@ -127,7 +127,7 @@ def _resolved_paths(profile_id: str) -> set[str]:
 def test_build_manifest_cursor_matches_default() -> None:
     """The default TEMPLATE_MANIFEST is the cursor profile manifest."""
     assert build_manifest(EDITORS["cursor"]) == TEMPLATE_MANIFEST
-    assert len(build_manifest(EDITORS["cursor"])) == 23
+    assert len(build_manifest(EDITORS["cursor"])) == 24
 
 
 def test_build_manifest_cursor_has_skills_and_rules_but_no_commands() -> None:
@@ -142,15 +142,15 @@ def test_build_manifest_cursor_has_skills_and_rules_but_no_commands() -> None:
 
 
 def test_build_manifest_codex_has_skills_and_docs_but_no_commands() -> None:
-    """Codex: skills (21) + docs (1), no slash commands and no rules extra."""
+    """Codex: skills (22) + docs (1), no slash commands and no rules extra."""
     manifest = build_manifest(get_profile("codex"))
     template_names = [name for name, _ in manifest]
     assert not any(name.startswith("commands/") for name in template_names)
-    assert sum(name.startswith("skills/") for name in template_names) == 21
+    assert sum(name.startswith("skills/") for name in template_names) == 22
     assert "docs/issue-workflow.md.j2" in template_names
     # No .mdc / CLAUDE.md rules extra for Codex.
     assert not any(name.startswith("rules/") for name in template_names)
-    assert len(manifest) == 22
+    assert len(manifest) == 23
 
 
 def test_build_manifest_opencode_uses_singular_command_dir() -> None:
@@ -295,6 +295,8 @@ _CLI_FASTPATH_SURFACES = {
     "skills/iflow_plan/SKILL.md.j2": "issue-flow agent preflight",
     "commands/iflow-archive.md.j2": "issue-flow agent archive",
     "skills/iflow_archive/SKILL.md.j2": "issue-flow agent archive",
+    "commands/iflow-review.md.j2": "issue-flow agent label-candidates",
+    "skills/iflow_review/SKILL.md.j2": "issue-flow agent label-candidates",
 }
 
 
@@ -570,6 +572,43 @@ def test_iflow_lists_issue_fix_as_off_path() -> None:
     skill = render_template("skills/iflow_iflow/SKILL.md.j2", _default_context())
     assert "/iflow-fix" in cmd
     assert "/iflow-fix" in skill
+
+
+def test_iflow_review_command_documents_kinds_and_cli() -> None:
+    """/iflow-review must describe kinds, confirm gate, and CLI helpers."""
+    rendered = render_template("commands/iflow-review.md.j2", _default_context())
+    assert "label-candidates" in rendered
+    assert "label-apply" in rendered
+    assert "yolo" in rendered
+    assert "Consolidated confirm" in rendered or "consolidated confirm" in rendered
+    assert "off-path" in rendered.lower()
+    assert "gh label create" in rendered
+
+
+def test_iflow_review_skill_mirrors_command() -> None:
+    """The iflow-review skill must carry the same flow and frontmatter."""
+    rendered = render_template("skills/iflow_review/SKILL.md.j2", _default_context())
+    assert "name: iflow-review" in rendered
+    assert "disable-model-invocation: true" in rendered
+    assert "label-candidates" in rendered
+    assert "label-apply" in rendered
+    assert "well-specified" in rendered
+    assert "low blast radius" in rendered
+
+
+def test_iflow_lists_review_as_off_path() -> None:
+    """/iflow must list /iflow-review among the explicit-only commands."""
+    cmd = render_template("commands/iflow.md.j2", _default_context())
+    skill = render_template("skills/iflow_iflow/SKILL.md.j2", _default_context())
+    assert "/iflow-review" in cmd
+    assert "/iflow-review" in skill
+
+
+def test_rules_body_mentions_review() -> None:
+    """The shared rules body must describe /iflow-review as off-path."""
+    rendered = render_template("rules/AGENTS.md.j2", _default_context())
+    assert "/iflow-review" in rendered
+    assert "label-candidates" in rendered
 
 
 def test_iflow_describes_state_machine() -> None:

@@ -262,6 +262,8 @@ When the user message is **exactly** one of these forms, or **starts with** it f
 
 | `iflow plan`, `iflow-plan`, `/iflow-plan`, `/iflow plan` | `iflow-plan` |
 
+| `iflow review`, `iflow-review`, `/iflow-review`, `/iflow review` | `iflow-review` |
+
 | `iflow start`, `iflow-start`, `/iflow-start`, `/iflow start` | `iflow-start` |
 
 | `iflow status`, `iflow-status`, `/iflow-status`, `/iflow status` | `iflow-status` |
@@ -301,6 +303,8 @@ Lifecycle skills include a **`### MODEL & EXECUTION DIRECTIVE`** section that te
 `/iflow-status` prints a **read-only** overview of where every issue stands — the local tracking state under `.issueflows/` (focus / parked / solved) plus open GitHub issues cross-referenced against it. It is off-path (never auto-dispatched) and changes nothing.
 
 `/iflow-doctor` audits `.issueflows/` for **dirty** conditions (ambiguous multi-focus, leftovers in `01-current-issues/`, duplicates across folders, and similar) and can apply **safe repairs** on confirmation (`issue-flow doctor` / `agent audit` + `repair`). It is off-path and never auto-dispatched.
+
+`/iflow-review` reviews open GitHub issues and applies labels (extendable kinds; v1: **yolo** → configured `yolo_label`). Off-path; consolidated confirm before any label create/apply; never auto-dispatched. CLI helpers: `issue-flow agent label-candidates` / `label-apply`.
 
 `/iflow-epic <N>` plans a change **too large for one issue** as a staged epic: it drafts `.issueflows/05-epics/epic<N>_plan.md` (anchored to GitHub issue `<N>`), dividing the work into sequential stages of manageable issue specs with explicit dependencies and a per-issue yolo-fitness judgment. Drafting writes nothing on GitHub; **`/iflow-epic <N> publish [stage <k>]`** creates a confirmed stage's issues behind one consolidated confirm (yolo labels per the recorded judgment, task list maintained on the anchor issue, `Published: #<M>` recorded back into the plan so re-runs are idempotent). Off-path (never auto-dispatched); epics decompose into the normal single-issue lifecycle, never around it.
 

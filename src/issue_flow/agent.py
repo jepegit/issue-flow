@@ -700,14 +700,205 @@ def run_epic_status(
 # ---------------------------------------------------------------------------
 
 
-def _yolo_from_labels(labels: object) -> bool:
+def _label_names(labels: object) -> list[str]:
+    """Normalize a ``gh`` labels field to a list of label name strings."""
     if not isinstance(labels, list):
-        return False
+        return []
+    names: list[str] = []
     for label in labels:
         name = label.get("name") if isinstance(label, dict) else label
-        if isinstance(name, str) and name.lower() == "yolo":
-            return True
-    return False
+        if isinstance(name, str) and name:
+            names.append(name)
+    return names
+
+
+def _has_label(labels: object, target: str) -> bool:
+    """Return True when ``labels`` contains ``target`` (case-insensitive)."""
+    needle = target.casefold()
+    return any(name.casefold() == needle for name in _label_names(labels))
+
+
+def _yolo_from_labels(labels: object, yolo_label: str = "yolo") -> bool:
+    """Return True when the issue carries the configured yolo trigger label."""
+    return _has_label(labels, yolo_label)
+
+
+def run_label_candidates(
+    project_root: Path,
+    console: Console,
+    kind: str,
+    as_json: bool,
+) -> int:
+    """List open issues for a review kind (deterministic; no fitness judgment).
+
+    ``kind`` selects which label to check. v1 supports ``yolo`` only (uses the
+    project's resolved ``yolo_label``). Every open issue is returned, tagged
+    with whether it already carries the target label.
+    """
+    settings = Settings()
+    kind_norm = kind.strip().lower()
+    if kind_norm != "yolo":
+        msg = f"unknown review kind {kind!r}; supported: yolo."
+        if as_json:
+            _emit_json(console, {"error": msg, "kind": kind})
+        else:
+            console.print(f"[red]error[/red]  {msg}")
+        return 2
+
+    target_label = settings.resolve_yolo_label(project_root)
+    label_flows = settings.resolve_label_flows(project_root)
+    repo_slug: str | None = None
+    owner_repo = gitutils.remote_owner_repo(project_root)
+    if owner_repo is not None:
+        repo_slug = f"{owner_repo[0]}/{owner_repo[1]}"
+
+    listing = gitutils.gh_issue_list_meta(project_root, repo_slug)
+    if listing is None:
+        msg = "gh is unavailable or unauthenticated; cannot list issues."
+        if as_json:
+            _emit_json(console, {"error": msg, "kind": kind_norm})
+        else:
+            console.print(f"[red]error[/red]  {msg}")
+        return 1
+
+    repo_labels = gitutils.gh_label_names(project_root, repo_slug)
+    label_exists: bool | None
+    if repo_labels is None:
+        label_exists = None
+    else:
+        label_exists = any(
+            name.casefold() == target_label.casefold() for name in repo_labels
+        )
+
+    candidates: list[dict[str, Any]] = []
+    for meta in listing:
+        labels = _label_names(meta.get("labels"))
+        candidates.append(
+            {
+                "number": meta.get("number", 0),
+                "title": meta.get("title", ""),
+                "labels": labels,
+                "has_label": _has_label(meta.get("labels"), target_label),
+            }
+        )
+
+    payload: dict[str, Any] = {
+        "kind": kind_norm,
+        "label": target_label,
+        "label_exists": label_exists,
+        "label_flows": label_flows,
+        "repo": repo_slug,
+        "candidates": candidates,
+    }
+
+    if as_json:
+        _emit_json(console, payload)
+        return 0
+
+    exists_note = (
+        "present"
+        if label_exists is True
+        else "missing"
+        if label_exists is False
+        else "unknown (gh label list unavailable)"
+    )
+    console.print(
+        f"kind={kind_norm} label={target_label!r} ({exists_note}) "
+        f"label_flows={label_flows} open={len(candidates)}"
+    )
+    for entry in candidates:
+        flag = " [has]" if entry["has_label"] else ""
+        label_list = ", ".join(entry["labels"]) if entry["labels"] else "-"
+        console.print(
+            f"  #{entry['number']}{flag} {escape(str(entry['title']))} "
+            f"({escape(label_list)})"
+        )
+    return 0
+
+
+def run_label_apply(
+    project_root: Path,
+    console: Console,
+    numbers: list[int],
+    label: str,
+    dry_run: bool,
+    as_json: bool,
+) -> int:
+    """Apply one label to many issues (no judgment; idempotent add)."""
+    if not numbers:
+        msg = "give at least one issue number."
+        if as_json:
+            _emit_json(console, {"error": msg})
+        else:
+            console.print(f"[red]error[/red]  {msg}")
+        return 2
+
+    label_clean = label.strip()
+    if not label_clean:
+        msg = "--label must be a non-empty label name."
+        if as_json:
+            _emit_json(console, {"error": msg})
+        else:
+            console.print(f"[red]error[/red]  {msg}")
+        return 2
+
+    repo_slug: str | None = None
+    owner_repo = gitutils.remote_owner_repo(project_root)
+    if owner_repo is not None:
+        repo_slug = f"{owner_repo[0]}/{owner_repo[1]}"
+
+    results: list[dict[str, Any]] = []
+    failures = 0
+    for number in numbers:
+        if dry_run:
+            results.append(
+                {
+                    "number": number,
+                    "ok": True,
+                    "dry_run": True,
+                    "error": None,
+                }
+            )
+            continue
+        ok, err = gitutils.gh_issue_edit(
+            number,
+            project_root,
+            repo=repo_slug,
+            add_labels=[label_clean],
+        )
+        if not ok:
+            failures += 1
+        results.append(
+            {
+                "number": number,
+                "ok": ok,
+                "dry_run": False,
+                "error": err,
+            }
+        )
+
+    payload: dict[str, Any] = {
+        "label": label_clean,
+        "repo": repo_slug,
+        "dry_run": dry_run,
+        "results": results,
+    }
+
+    if as_json:
+        _emit_json(console, payload)
+        return 1 if failures else 0
+
+    mode = "dry-run" if dry_run else "apply"
+    console.print(f"{mode} label={label_clean!r} on {len(numbers)} issue(s)")
+    for entry in results:
+        if entry["ok"]:
+            console.print(f"  [green]ok[/green]  #{entry['number']}")
+        else:
+            console.print(
+                f"  [red]fail[/red] #{entry['number']} — "
+                f"{escape(str(entry['error'] or 'unknown error'))}"
+            )
+    return 1 if failures else 0
 
 
 def run_queue(
@@ -728,6 +919,7 @@ def run_queue(
     from issue_flow import epicplan, queueplan
 
     settings = Settings()
+    yolo_label = settings.resolve_yolo_label(project_root)
     sources = sum(1 for source in (numbers, label, epic) if source)
     if sources != 1:
         msg = "give exactly one source: issue numbers, --label, or --epic."
@@ -759,7 +951,7 @@ def run_queue(
                     number=meta.get("number", number),
                     title=meta.get("title", ""),
                     state=str(meta.get("state", "unknown")).lower(),
-                    yolo=_yolo_from_labels(meta.get("labels")),
+                    yolo=_yolo_from_labels(meta.get("labels"), yolo_label),
                     depends_on=queueplan.parse_dependencies(meta.get("body") or ""),
                 )
             )
@@ -792,7 +984,7 @@ def run_queue(
                     number=meta.get("number", 0),
                     title=meta.get("title", ""),
                     state=str(meta.get("state", "open")).lower(),
-                    yolo=_yolo_from_labels(meta.get("labels")),
+                    yolo=_yolo_from_labels(meta.get("labels"), yolo_label),
                     depends_on=queueplan.parse_dependencies(meta.get("body") or ""),
                 )
             )

@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- **Skill for reviewing and labelling issues (#174).** Off-path `/iflow-review` (v1: yolo) with `agent label-candidates` / `label-apply`; queue detection honours configured `yolo_label`.
+
 - **List and watch GitHub in `/iflow-close` (#172).** Prefer `gh pr list` before create and `gh pr checks` for CI; yolo watches checks (configurable `checks_watch_minutes`, default 15) then retries merge, with `--auto` as last resort.
 
 - **Opt-in Linguist `.gitattributes` (#168).** Config-gated managed `.gitattributes` block (`linguist_attributes`, default off) so `init`/`update` keep GitHub Linguist focused on library source; dogfooded in this repo.

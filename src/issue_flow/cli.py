@@ -22,7 +22,7 @@ agent_app = typer.Typer(
         "Agent-facing helpers that read the .issueflows/ tree and git/gh so "
         "AI agents get deterministic answers instead of re-deriving lifecycle "
         "state by hand. All are read-only except `sweep`, `archive`, `capture`, "
-        "`switchback`, and `repair`."
+        "`switchback`, `repair`, and `label-apply`."
     ),
 )
 
@@ -557,6 +557,76 @@ def agent_queue(
     raise typer.Exit(
         code=run_queue(
             project_dir, _console, list(numbers or []), label, epic, json_output
+        )
+    )
+
+
+@agent_app.command("label-candidates")
+def agent_label_candidates(
+    project_dir: Path = typer.Option(
+        Path("."),
+        "--project-dir",
+        "-C",
+        help="Project root directory (defaults to current directory).",
+        exists=True,
+        file_okay=False,
+        resolve_path=True,
+    ),
+    kind: str = typer.Option(
+        "yolo",
+        "--kind",
+        help="Review kind (v1: yolo). Selects which configured label to check.",
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """List open issues for a review kind (read-only; no fitness judgment).
+
+    For ``--kind yolo``, uses the project's resolved ``yolo_label``. Every open
+    issue is returned with ``has_label`` true/false. Agents still decide
+    yolo-fitness in ``/iflow-review``; this command only lists candidates.
+    """
+    from issue_flow.agent import run_label_candidates
+
+    raise typer.Exit(
+        code=run_label_candidates(project_dir, _console, kind, json_output)
+    )
+
+
+@agent_app.command("label-apply")
+def agent_label_apply(
+    numbers: list[int] = typer.Argument(
+        ...,
+        help="Issue numbers to label.",
+    ),
+    label: str = typer.Option(
+        ...,
+        "--label",
+        help="Label name to add (idempotent).",
+    ),
+    project_dir: Path = typer.Option(
+        Path("."),
+        "--project-dir",
+        "-C",
+        help="Project root directory (defaults to current directory).",
+        exists=True,
+        file_okay=False,
+        resolve_path=True,
+    ),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Show what would be applied without calling gh."
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Apply one label to many issues (no judgment; writes via gh unless dry-run)."""
+    from issue_flow.agent import run_label_apply
+
+    raise typer.Exit(
+        code=run_label_apply(
+            project_dir, _console, list(numbers), label, dry_run, json_output
         )
     )
 

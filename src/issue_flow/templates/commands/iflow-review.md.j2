@@ -1,0 +1,77 @@
+# Review and label open GitHub issues (`/iflow-review`)
+
+`/iflow-review` helps assess how open issues should be labelled. It is
+**extendable by review kind**; v1 supports **`yolo`** only — examine open
+issues and add the configured `{{ yolo_label }}` label where the yolo-fitness
+judgment says yes.
+
+This is an **off-path** command — `/iflow` never auto-runs it. It does **not**
+create new GitHub issues and does **not** remove labels in v1.
+
+{% set iflow_step = "review" %}
+{% include "skills/_model_directive.md.j2" %}
+
+{% include "skills/_resolve_project_root.md.j2" %}
+
+## Input
+
+Optional free-form text after the command:
+
+- **No extra text** — list supported review kinds and ask which to run.
+- **`yolo`** — run the yolo review (apply resolved `yolo_label`).
+
+## Review kinds (extendable)
+
+| Kind | Label applied | Fitness criteria |
+|------|---------------|------------------|
+| `yolo` | resolved `[issueflow].yolo_label` (default `"{{ yolo_label }}"`) | Same as `/iflow-epic`: well-specified, mechanical or pattern-following, low blast radius, guarded by existing tests — umbrella work, design decisions, and flag-day changes are **no**. |
+
+## Steps
+
+> **CLI fast path (optional).** If the `issue-flow` CLI is on `PATH`:
+> - **List:** `issue-flow agent label-candidates [--kind yolo] [--json]`
+> - **Apply (after confirm):** `issue-flow agent label-apply <N> [<N>…] --label <name> [--dry-run] [--json]`
+>
+> The CLI never judges fitness. Judgment stays in this command. If the CLI is
+> missing or errors, fall back to the manual steps below
+> (`gh issue list` / `gh issue edit --add-label` with `--repo <owner/repo>`).
+
+1. **Resolve kind.** If omitted, list kinds and ask. Unknown kind → stop.
+
+2. **Resolve config.** Read `yolo_label` and `label_flows` (or use
+   `label-candidates --json`). If `label_flows` is false, still allow labelling
+   but warn that `/iflow-pick` will not route on the label until enabled +
+   `issue-flow update`.
+
+3. **Ensure the label exists.** If missing, offer
+   `gh label create '<name>' --color FBCA04 --repo <owner/repo>` under confirm;
+   stop if declined.
+
+4. **List candidates.** All open issues (including already-labelled — re-score).
+   Prefer `issue-flow agent label-candidates --kind yolo --json`.
+
+5. **Judge.** Per issue: **add** (fit, missing label), **keep** (fit, already
+   labelled), or **skip** (unfit). Never auto-remove labels. Present
+   `#N` / title / labels / action / reason.
+
+6. **Consolidated confirm** for the **add** set (writes; normal prose). Empty
+   add set → report and stop.
+
+7. **Apply** via `issue-flow agent label-apply … --label <yolo_label>` or
+   `gh issue edit <N> --add-label … --repo <owner/repo>`.
+
+8. **Report** applied / failed / skipped / keep.
+
+## Constraints
+
+- **Off-path.** Never auto-dispatch `/iflow-review` from `/iflow`, `/iflow-start`,
+  or `/iflow-close`.
+- **Confirm before writes** — label create and apply need explicit confirmation.
+- **No removals / no issue create** in v1.
+- Always pass `--repo <owner/repo>` to `gh`.
+
+## Example invocations
+
+- `/iflow-review` — list kinds, ask which to run.
+- `/iflow-review yolo` — run the yolo labelling review.
+- `iflow review yolo` — same via chat invocation.

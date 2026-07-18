@@ -298,6 +298,8 @@ def test_agent_help_lists_subcommands(runner: CliRunner) -> None:
         "repair",
         "capture",
         "archive",
+        "label-candidates",
+        "label-apply",
     ):
         assert sub in plain
 
@@ -1018,7 +1020,7 @@ def test_agent_epic_status_missing_plan_fails(
 
 
 # ---------------------------------------------------------------------------
-# agent queue (issue #140)
+# agent queue helpers + label-candidates / label-apply (issues #140 / #174)
 # ---------------------------------------------------------------------------
 
 
@@ -1036,6 +1038,169 @@ def _fake_meta(
         "body": body,
         "labels": [{"name": name} for name in (labels or [])],
     }
+
+
+def test_label_candidates_json_shape(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from issue_flow import gitutils as gitutils_module
+
+    listing = [
+        _fake_meta(1, labels=["yolo"]),
+        _fake_meta(2, labels=["enhancement"]),
+    ]
+    monkeypatch.setattr(gitutils_module, "remote_owner_repo", lambda _cwd: ("o", "r"))
+    monkeypatch.setattr(
+        gitutils_module,
+        "gh_issue_list_meta",
+        lambda _cwd, _repo=None, label=None, limit=100: listing,
+    )
+    monkeypatch.setattr(
+        gitutils_module, "gh_label_names", lambda _cwd, _repo=None: {"yolo", "bug"}
+    )
+
+    result = runner.invoke(
+        app, ["agent", "label-candidates", "-C", str(tmp_path), "--json"]
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["kind"] == "yolo"
+    assert payload["label"] == "yolo"
+    assert payload["label_exists"] is True
+    assert payload["repo"] == "o/r"
+    by_number = {entry["number"]: entry for entry in payload["candidates"]}
+    assert by_number[1]["has_label"] is True
+    assert by_number[2]["has_label"] is False
+    assert "enhancement" in by_number[2]["labels"]
+
+
+def test_label_candidates_unknown_kind_fails(runner: CliRunner, tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        ["agent", "label-candidates", "-C", str(tmp_path), "--kind", "nope", "--json"],
+    )
+    assert result.exit_code == 2
+    payload = _json(result.stdout)
+    assert "unknown review kind" in payload["error"]
+
+
+def test_label_apply_dry_run_does_not_call_edit(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from issue_flow import gitutils as gitutils_module
+
+    called: list[object] = []
+
+    def boom(*_args: object, **_kwargs: object) -> tuple[bool, str | None]:
+        called.append(True)
+        return False, "should not be called"
+
+    monkeypatch.setattr(gitutils_module, "remote_owner_repo", lambda _cwd: None)
+    monkeypatch.setattr(gitutils_module, "gh_issue_edit", boom)
+
+    result = runner.invoke(
+        app,
+        [
+            "agent",
+            "label-apply",
+            "10",
+            "11",
+            "--label",
+            "yolo",
+            "--dry-run",
+            "-C",
+            str(tmp_path),
+            "--json",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert called == []
+    payload = _json(result.stdout)
+    assert payload["dry_run"] is True
+    assert [entry["number"] for entry in payload["results"]] == [10, 11]
+    assert all(entry["ok"] and entry["dry_run"] for entry in payload["results"])
+
+
+def test_label_apply_calls_gh_issue_edit(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from issue_flow import gitutils as gitutils_module
+
+    edits: list[tuple[int, list[str]]] = []
+
+    def fake_edit(
+        number: int,
+        _cwd: Path,
+        *,
+        repo: str | None = None,
+        add_labels: list[str] | None = None,
+        remove_labels: list[str] | None = None,
+        milestone: str | None = None,
+    ) -> tuple[bool, str | None]:
+        edits.append((number, list(add_labels or [])))
+        return True, None
+
+    monkeypatch.setattr(gitutils_module, "remote_owner_repo", lambda _cwd: ("o", "r"))
+    monkeypatch.setattr(gitutils_module, "gh_issue_edit", fake_edit)
+
+    result = runner.invoke(
+        app,
+        [
+            "agent",
+            "label-apply",
+            "7",
+            "--label",
+            "fast-track",
+            "-C",
+            str(tmp_path),
+            "--json",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert edits == [(7, ["fast-track"])]
+    payload = _json(result.stdout)
+    assert payload["label"] == "fast-track"
+    assert payload["results"][0]["ok"] is True
+
+
+def test_agent_queue_honours_configured_yolo_label(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from issue_flow import gitutils as gitutils_module
+
+    issueflows = tmp_path / ".issueflows"
+    issueflows.mkdir()
+    (issueflows / "config.toml").write_text(
+        '[issueflow]\nyolo_label = "fast-track"\n', encoding="utf-8"
+    )
+    metas = {
+        1: _fake_meta(1, labels=["fast-track"]),
+        2: _fake_meta(2, labels=["yolo"]),
+    }
+    monkeypatch.setattr(gitutils_module, "remote_owner_repo", lambda _cwd: None)
+    monkeypatch.setattr(
+        gitutils_module,
+        "gh_issue_meta",
+        lambda number, _cwd, _repo=None: metas.get(number),
+    )
+
+    result = runner.invoke(
+        app, ["agent", "queue", "1", "2", "-C", str(tmp_path), "--json"]
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    by_number = {entry["number"]: entry for entry in payload["queue"]}
+    assert by_number[1]["yolo"] is True
+    assert by_number[2]["yolo"] is False
+
+
+# ---------------------------------------------------------------------------
+# agent queue (issue #140)
+# ---------------------------------------------------------------------------
 
 
 def test_agent_queue_numbers_orders_by_dependencies(
