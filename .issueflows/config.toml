@@ -1,3 +1,4 @@
 [issueflow]
 mode = "standard"
 caveman_default = true
+linguist_attributes = true

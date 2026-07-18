@@ -1057,11 +1057,11 @@ def run_workspace_update(
 ) -> int:
     """Refresh issue-flow scaffolds in every scaffolded workspace member.
 
-    Discovers ``issueflow-workspace.toml`` above ``workspace_dir``, runs
-    :func:`issue_flow.init.run_update` on each member that carries a
-    ``.issueflows/`` tree, and aggregates per-member success. One dependency
-    check runs up front (unless ``skip_dep_check``); individual member
-  failures do not abort the rest.
+      Discovers ``issueflow-workspace.toml`` above ``workspace_dir``, runs
+      :func:`issue_flow.init.run_update` on each member that carries a
+      ``.issueflows/`` tree, and aggregates per-member success. One dependency
+      check runs up front (unless ``skip_dep_check``); individual member
+    failures do not abort the rest.
     """
     import typer
 
@@ -1319,9 +1319,7 @@ def run_repair(
         return 1
 
     assert plan is not None
-    tracking.apply_repairs(
-        plan, folders["partly"], folders["solved"], dry_run=dry_run
-    )
+    tracking.apply_repairs(plan, folders["partly"], folders["solved"], dry_run=dry_run)
 
     payload: dict[str, Any] = {
         "dry_run": dry_run,
@@ -1571,6 +1569,11 @@ def _print_config_guide(console: Console, cfg_path: Path) -> None:
         "  [dim]- [bold]step_directives[/bold] / [bold]model_label_flows[/bold]: "
         "bake MODEL & EXECUTION DIRECTIVE sections into lifecycle skills; optional "
         "label hints during /iflow-pick; re-run 'issue-flow update' after changing.[/dim]"
+    )
+    console.print(
+        "  [dim]- [bold]linguist_attributes[/bold]: true/false (default false); "
+        "when true, 'issue-flow update' writes a managed .gitattributes block for "
+        "GitHub Linguist.[/dim]"
     )
     console.print(
         "  [dim]Other ISSUEFLOW_* settings are environment-only (set them in "

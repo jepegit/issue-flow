@@ -22,6 +22,7 @@ from issue_flow.surfaces import (
     ensure_editor_gitignore,
     materialize_canonical_store,
     materialize_editor_profile,
+    maybe_ensure_linguist_gitattributes,
     write_manifest_files,
 )
 from issue_flow.templating import (
@@ -147,7 +148,9 @@ def _ensure_agents_md(project_root: Path, context: dict[str, str]) -> None:
 
     if not path.exists():
         path.write_text(block, encoding="utf-8")
-        console_io.console.print(f"  [green]write[/green] {relative}  (issue-flow managed block)")
+        console_io.console.print(
+            f"  [green]write[/green] {relative}  (issue-flow managed block)"
+        )
         return
 
     existing = path.read_text(encoding="utf-8")
@@ -190,7 +193,9 @@ def _ensure_project_brief(
     path = project_root / relative
 
     if path.exists():
-        console_io.console.print(f"  [dim]skip[/dim]  {relative}  (project brief already exists)")
+        console_io.console.print(
+            f"  [dim]skip[/dim]  {relative}  (project brief already exists)"
+        )
         return
 
     rendered = render_template("docs/this-project.md.j2", context)
@@ -214,7 +219,9 @@ def _ensure_tools_readme(
     path = project_root / relative
 
     if path.exists():
-        console_io.console.print(f"  [dim]skip[/dim]  {relative}  (tools README already exists)")
+        console_io.console.print(
+            f"  [dim]skip[/dim]  {relative}  (tools README already exists)"
+        )
         return
 
     rendered = render_template("tools/README.md.j2", context)
@@ -326,7 +333,9 @@ def run_init(
     if canonical:
         console_io.console.print("[dim]Layout: canonical (.issueflows/agent/)[/dim]")
     else:
-        console_io.console.print(f"[dim]Editors: {', '.join(p.id for p in profiles)}[/dim]")
+        console_io.console.print(
+            f"[dim]Editors: {', '.join(p.id for p in profiles)}[/dim]"
+        )
     console_io.console.print(f"[dim]Mode: {mode_obj.id}[/dim]")
     console_io.console.print(f"[dim]Skill level: {skill_level_id}[/dim]\n")
 
@@ -410,6 +419,7 @@ def run_init(
 
     console_io.console.print()
     _ensure_dotenv_file(project_root)
+    maybe_ensure_linguist_gitattributes(project_root, settings)
 
     console_io.console.print()
     if not canonical:
@@ -417,7 +427,9 @@ def run_init(
 
     console_io.console.print()
     if written_files:
-        console_io.console.print(f"[bold green]Created {len(written_files)} file(s).[/bold green]")
+        console_io.console.print(
+            f"[bold green]Created {len(written_files)} file(s).[/bold green]"
+        )
     if skipped_files:
         console_io.console.print(
             f"[bold yellow]Skipped {len(skipped_files)} existing file(s).[/bold yellow]"
@@ -529,6 +541,9 @@ def run_update(
         )
         written_files.extend(result.written)
         pruned_count += result.pruned
+
+    console_io.console.print()
+    maybe_ensure_linguist_gitattributes(project_root, settings)
 
     console_io.console.print()
     _graphify_postinstall(project_root, profiles)

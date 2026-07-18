@@ -217,6 +217,44 @@ def test_label_flows_config_beats_env(
     assert settings.resolve_label_flows(tmp_path) is True
 
 
+def test_linguist_attributes_off_by_default(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    """With no config and no env, linguist_attributes is off (opt-in)."""
+    monkeypatch.delenv("ISSUEFLOW_LINGUIST_ATTRIBUTES", raising=False)
+    settings = Settings()
+    assert settings.resolve_linguist_attributes(tmp_path) is False
+
+
+def test_linguist_attributes_from_config(tmp_path: Path) -> None:
+    """A persisted [issueflow].linguist_attributes=true is honored."""
+    _write_config(tmp_path, "[issueflow]\nlinguist_attributes = true\n")
+    settings = Settings()
+    assert settings.resolve_linguist_attributes(tmp_path) is True
+
+
+def test_linguist_attributes_from_env(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    """ISSUEFLOW_LINGUIST_ATTRIBUTES is used when config does not set the key."""
+    monkeypatch.setenv("ISSUEFLOW_LINGUIST_ATTRIBUTES", "true")
+    settings = Settings()
+    assert settings.resolve_linguist_attributes(tmp_path) is True
+
+
+def test_linguist_attributes_config_beats_env(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    """The persisted config value wins over a conflicting env var."""
+    _write_config(tmp_path, "[issueflow]\nlinguist_attributes = false\n")
+    monkeypatch.setenv("ISSUEFLOW_LINGUIST_ATTRIBUTES", "true")
+    settings = Settings()
+    assert settings.resolve_linguist_attributes(tmp_path) is False
+
+
 def test_yolo_label_default(
     tmp_path: Path,
     monkeypatch: "pytest.MonkeyPatch",  # noqa: F821

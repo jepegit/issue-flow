@@ -14,6 +14,7 @@ from issue_flow.modes import (
     DEFAULT_DEEP_MODEL_LABEL,
     DEFAULT_FAST_MODEL_LABEL,
     DEFAULT_LABEL_FLOWS,
+    DEFAULT_LINGUIST_ATTRIBUTES,
     DEFAULT_MODE,
     DEFAULT_MODEL_LABEL_FLOWS,
     DEFAULT_SKILL_LEVEL,
@@ -165,6 +166,21 @@ class Settings:
             return persisted
         return _env_flag("ISSUEFLOW_LABEL_FLOWS", default=DEFAULT_LABEL_FLOWS)
 
+    def resolve_linguist_attributes(self, project_root: Path) -> bool:
+        """Resolve whether to write a managed Linguist ``.gitattributes`` block.
+
+        Order: persisted ``.issueflows/config.toml [issueflow].linguist_attributes`` >
+        ``ISSUEFLOW_LINGUIST_ATTRIBUTES`` env/``.env`` > ``False`` (opt-in).
+        """
+        persisted = modes_module.read_linguist_attributes(
+            self.config_path(project_root)
+        )
+        if persisted is not None:
+            return persisted
+        return _env_flag(
+            "ISSUEFLOW_LINGUIST_ATTRIBUTES", default=DEFAULT_LINGUIST_ATTRIBUTES
+        )
+
     def resolve_yolo_label(self, project_root: Path) -> str:
         """Resolve the GitHub label that triggers the yolo flow for ``project_root``.
 
@@ -305,6 +321,10 @@ class Settings:
                 fast_model_label.strip()
                 if fast_model_label and fast_model_label.strip()
                 else DEFAULT_FAST_MODEL_LABEL
+            ),
+            "linguist_attributes": _env_flag(
+                "ISSUEFLOW_LINGUIST_ATTRIBUTES",
+                default=DEFAULT_LINGUIST_ATTRIBUTES,
             ),
         }
 
