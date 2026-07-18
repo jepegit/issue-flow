@@ -27,6 +27,7 @@ It also seeds `.issueflows/00-tools/README.md` — the index of the project's **
 | `/iflow-fix` | `iflow-fix/SKILL.md` | **Off-path.** Interactive iterative-fixes session: create one issue + long-lived branch, then loop over many small fixes (short plan each, recorded in `issue<N>_status.md`), ending with `/iflow-close`. |
 | `/iflow-status` | `iflow-status/SKILL.md` | **Off-path, read-only.** Snapshot of where every issue stands — local tracking state (focus / parked / solved) plus open GitHub issues cross-referenced against it. Changes nothing. |
 | `/iflow-doctor` | `iflow-doctor/SKILL.md` | **Off-path.** Audit `.issueflows/` for dirty conditions; optional safe repair (mkdir + sweep). |
+| `/iflow-review` | `iflow-review/SKILL.md` | **Off-path.** Review open GitHub issues and apply labels (extendable kinds; v1: yolo → configured `yolo_label`). Confirm before writes. |
 | `/iflow-archive` | `iflow-archive/SKILL.md` | **Off-path, destructive (gated).** Condense old solved issue groups into a dated `YYYY-MM-DD_archived_issues.md` summary (recording the pre-archive git ref for recovery), then delete the original files after one consolidated confirm. |
 | `/iflow-epic` | `iflow-epic/SKILL.md` | **Off-path.** Plan a larger change as a staged epic: `05-epics/epic<N>_plan.md` divides the work into stages of manageable issue specs (dependencies + per-issue yolo judgment). Drafting writes nothing on GitHub; `publish [stage <k>]` creates a confirmed stage's issues behind one consolidated confirm and maintains a task list on the anchor issue. |
 | `/iflow-cycle` | `iflow-cycle/SKILL.md` | **Off-path.** Process a queue of yolo-fit issues hands-off in a row under one up-front confirm — the batch equivalent of `/iflow-yolo`. Resolves the queue via `issue-flow agent queue`, runs each issue through the full yolo chain (PR auto-merged), and stops only when input is strictly necessary. |
@@ -54,6 +55,7 @@ It also seeds `.issueflows/00-tools/README.md` — the index of the project's **
 | `iflow-fix` | `iflow fix`, `iflow-fix`, `/iflow-fix` | Interactive iterative-fixes session. Off-path. |
 | `iflow-status` | `iflow status`, `iflow-status`, `/iflow-status` | Read-only issue overview. Off-path. |
 | `iflow-doctor` | `iflow doctor`, `iflow-doctor`, `/iflow-doctor` | Audit/repair dirty `.issueflows/`. Off-path. |
+| `iflow-review` | `iflow review`, `iflow-review`, `/iflow-review` | Review open issues and apply labels (v1: yolo). Off-path. |
 | `iflow-archive` | `iflow archive`, `iflow-archive`, `/iflow-archive` | Condense solved archive. Off-path; destructive. |
 | `iflow-version-bump` | `@iflow-version-bump` (often used from `/iflow-close`) | Strategy-aware version bump: static `[project]` versions via `uv version --bump <level>` (any uv level: `major`/`minor`/`patch`/`stable`/`alpha`/`beta`/`rc`/`post`/`dev`); git-tag-derived versions via a planned post-merge tag. The project's own "Release & version bump" section in `this-project.md` wins; a bare `bump` stays on the current pre-release channel. |
 | `iflow-history-update` | `@iflow-history-update` (used from `/iflow-close`) | Append an entry to `## [Unreleased]` in `HISTORY.md`, or promote it to a new `## [x.y.z] - YYYY-MM-DD` release section when a version bump happened. |
@@ -114,7 +116,7 @@ All workflows that touch git also run a short **branch-status preflight**: `git 
 
 **Focus-issue resolution:** prefer the leading digits of the current branch when it matches `^<N>-.+`; else the single group in `.issueflows/01-current-issues/`; else ask.
 
-**Not auto-dispatched:** `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-status`, and `/iflow-archive`. `/iflow` will mention them in its output when relevant (e.g. "after the PR merges, run `/iflow-cleanup`") but never picks them for you.
+**Not auto-dispatched:** `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-status`, `/iflow-doctor`, `/iflow-review`, and `/iflow-archive`. `/iflow` will mention them in its output when relevant (e.g. "after the PR merges, run `/iflow-cleanup`") but never picks them for you.
 
 **Result:** One of the four linear commands runs, with its own normal checkpoints intact.
 
@@ -322,7 +324,27 @@ The bump runs **after** tests and **before** issue-folder moves and **before** c
 
 ---
 
-## 11. `/iflow-archive` — condense the solved-issues archive (destructive, gated)
+## 11. `/iflow-review` — review open issues and apply labels
+
+**When:** You want help deciding which open GitHub issues should carry workflow labels (v1: the configured `yolo` label).
+
+**What you pass:** Nothing (list kinds and ask), or `yolo` to run the yolo review.
+
+**What the assistant does:**
+
+1. **Kind** — if omitted, list supported review kinds and ask.
+2. **Config / label** — resolve `yolo_label` (and note `label_flows`); create the label under confirm if missing.
+3. **Candidates** — list all open issues (`issue-flow agent label-candidates`), including already-labelled ones for re-score.
+4. **Judge** — yolo-fitness (same criteria as `/iflow-epic`); propose **add** / **keep** / **skip** (never auto-remove).
+5. **Confirm + apply** — one consolidated confirm, then `issue-flow agent label-apply` (or `gh issue edit --add-label`).
+
+**Off-path:** `/iflow` never auto-dispatches to `/iflow-review`. No issue creation; no label removals in v1.
+
+**Result:** Selected open issues carry the target label so `/iflow-pick` can route them (when `label_flows` is on).
+
+---
+
+## 12. `/iflow-archive` — condense the solved-issues archive (destructive, gated)
 
 **When:** `.issueflows/03-solved-issues/` has grown large and most of its `issue<N>_*` groups are no longer worth keeping as individual files.
 
@@ -376,6 +398,7 @@ Detours:
   /iflow-yolo   — chain init → plan → start → close for tiny fixes (safeguarded)
   /iflow-fix    — interactive session: one branch, many small fixes, then /iflow-close
   /iflow-status — read-only overview of all issues (focus / parked / solved + GitHub)
+  /iflow-review — review open issues and apply labels (v1: yolo)
   /iflow-archive — condense old solved issues into a dated summary file (gated deletion)
 ```
 
