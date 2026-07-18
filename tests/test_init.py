@@ -478,6 +478,19 @@ def test_init_cycle_skill_is_batch_yolo_with_stop_rule(tmp_path: Path) -> None:
     assert "10" in content
     # Batch report at the end.
     assert "Batch report" in content
+    # All-yolo alias (issue #175): bare `yolo` → label:<yolo_label>.
+    assert "**`yolo`**" in content or "`yolo`" in content
+    assert "label:yolo" in content
+    assert "All yolo issues" in content
+
+
+def test_init_review_skill_hints_cycle_yolo(tmp_path: Path) -> None:
+    """iflow-review report should point at /iflow-cycle yolo for batch runs."""
+    run_init(tmp_path)
+    content = (
+        tmp_path / ".cursor" / "skills" / "iflow-review" / "SKILL.md"
+    ).read_text(encoding="utf-8")
+    assert "/iflow-cycle yolo" in content
 
 
 def test_init_cycle_surface_is_standard_mode_only(tmp_path: Path) -> None:

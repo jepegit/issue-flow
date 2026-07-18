@@ -30,7 +30,7 @@ It also seeds `.issueflows/00-tools/README.md` — the index of the project's **
 | `/iflow-review` | `iflow-review/SKILL.md` | **Off-path.** Review open GitHub issues and apply labels (extendable kinds; v1: yolo → configured `yolo_label`). Confirm before writes. |
 | `/iflow-archive` | `iflow-archive/SKILL.md` | **Off-path, destructive (gated).** Condense old solved issue groups into a dated `YYYY-MM-DD_archived_issues.md` summary (recording the pre-archive git ref for recovery), then delete the original files after one consolidated confirm. |
 | `/iflow-epic` | `iflow-epic/SKILL.md` | **Off-path.** Plan a larger change as a staged epic: `05-epics/epic<N>_plan.md` divides the work into stages of manageable issue specs (dependencies + per-issue yolo judgment). Drafting writes nothing on GitHub; `publish [stage <k>]` creates a confirmed stage's issues behind one consolidated confirm and maintains a task list on the anchor issue. |
-| `/iflow-cycle` | `iflow-cycle/SKILL.md` | **Off-path.** Process a queue of yolo-fit issues hands-off in a row under one up-front confirm — the batch equivalent of `/iflow-yolo`. Resolves the queue via `issue-flow agent queue`, runs each issue through the full yolo chain (PR auto-merged), and stops only when input is strictly necessary. |
+| `/iflow-cycle` | `iflow-cycle/SKILL.md` | **Off-path.** Process a queue of yolo-fit issues hands-off in a row under one up-front confirm — the batch equivalent of `/iflow-yolo`. Resolves the queue via `issue-flow agent queue`, runs each issue through the full yolo chain (PR auto-merged), and stops only when input is strictly necessary. **All yolo-labelled issues:** `/iflow-cycle yolo` (alias for `label:yolo`). |
 | `/iflow-graphify` | `iflow-graphify/SKILL.md` | **Off-path.** Rebuild the [graphify](https://iflow-graphify.net) knowledge graph (`graphify-out/graph.html`, `GRAPH_REPORT.md`, `graph.json`). Wraps `issue-flow graphify` / `graphify`. Optional: only meaningful when `graphifyy` is installed. |
 
 
@@ -399,6 +399,7 @@ Detours:
   /iflow-fix    — interactive session: one branch, many small fixes, then /iflow-close
   /iflow-status — read-only overview of all issues (focus / parked / solved + GitHub)
   /iflow-review — review open issues and apply labels (v1: yolo)
+  /iflow-cycle yolo — auto-process all open issues with the configured yolo label
   /iflow-archive — condense old solved issues into a dated summary file (gated deletion)
 ```
 
