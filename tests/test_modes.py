@@ -8,6 +8,7 @@ import pytest
 
 from issue_flow import modes
 from issue_flow.modes import (
+    DEFAULT_CHECKS_WATCH_MINUTES,
     DEFAULT_LABEL_FLOWS,
     DEFAULT_LINGUIST_ATTRIBUTES,
     DEFAULT_MODE,
@@ -16,6 +17,7 @@ from issue_flow.modes import (
     config_path,
     read_active_mode,
     read_caveman_default,
+    read_checks_watch_minutes,
     read_grill_me_default,
     read_label_flows,
     read_linguist_attributes,
@@ -262,6 +264,15 @@ def test_read_yolo_label_value(tmp_path: Path) -> None:
     assert read_yolo_label(cfg) == "fast-track"
 
 
+def test_read_checks_watch_minutes_missing_returns_none(tmp_path: Path) -> None:
+    assert read_checks_watch_minutes(config_path(tmp_path, ".issueflows")) is None
+
+
+def test_read_checks_watch_minutes_value(tmp_path: Path) -> None:
+    cfg = _write_config(tmp_path, "[issueflow]\nchecks_watch_minutes = 30\n")
+    assert read_checks_watch_minutes(cfg) == 30
+
+
 def test_read_linguist_attributes_missing_returns_none(tmp_path: Path) -> None:
     """No config file -> linguist_attributes is unset (None), not a boolean."""
     assert read_linguist_attributes(config_path(tmp_path, ".issueflows")) is None
@@ -291,6 +302,7 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
     )
     assert read_label_flows(cfg) is DEFAULT_LABEL_FLOWS
     assert read_yolo_label(cfg) == DEFAULT_YOLO_LABEL
+    assert read_checks_watch_minutes(cfg) == DEFAULT_CHECKS_WATCH_MINUTES
     assert read_linguist_attributes(cfg) is DEFAULT_LINGUIST_ATTRIBUTES
 
 
@@ -308,6 +320,7 @@ def test_write_default_config_upserts_label_flow_keys(tmp_path: Path) -> None:
         grill_me_default=False,
         label_flows=True,
         yolo_label="speedy",
+        checks_watch_minutes=25,
         linguist_attributes=True,
         overwrite=True,
     )
@@ -315,6 +328,7 @@ def test_write_default_config_upserts_label_flow_keys(tmp_path: Path) -> None:
     assert "# keep me" in text
     assert read_label_flows(cfg) is True
     assert read_yolo_label(cfg) == "speedy"
+    assert read_checks_watch_minutes(cfg) == 25
     assert read_linguist_attributes(cfg) is True
 
 

@@ -11,6 +11,7 @@ import os
 from issue_flow import modes as modes_module
 from issue_flow.editors import DEFAULT_EDITOR, EditorProfile, get_profile
 from issue_flow.modes import (
+    DEFAULT_CHECKS_WATCH_MINUTES,
     DEFAULT_DEEP_MODEL_LABEL,
     DEFAULT_FAST_MODEL_LABEL,
     DEFAULT_LABEL_FLOWS,
@@ -195,6 +196,28 @@ class Settings:
             return env.strip()
         return DEFAULT_YOLO_LABEL
 
+    def resolve_checks_watch_minutes(self, project_root: Path) -> int:
+        """Resolve the ``gh pr checks --watch`` wall-clock budget (minutes).
+
+        Order: persisted ``.issueflows/config.toml [issueflow].checks_watch_minutes`` >
+        ``ISSUEFLOW_CHECKS_WATCH_MINUTES`` env/``.env`` > ``15``. Non-positive or
+        unparseable values fall through to the next layer, then the default.
+        """
+        persisted = modes_module.read_checks_watch_minutes(
+            self.config_path(project_root)
+        )
+        if persisted is not None and persisted > 0:
+            return persisted
+        env = os.getenv("ISSUEFLOW_CHECKS_WATCH_MINUTES")
+        if env and env.strip():
+            try:
+                minutes = int(env.strip())
+            except ValueError:
+                minutes = 0
+            if minutes > 0:
+                return minutes
+        return DEFAULT_CHECKS_WATCH_MINUTES
+
     def resolve_step_directives(self, project_root: Path) -> bool:
         """Resolve whether step model directives are baked into lifecycle skills."""
         persisted = modes_module.read_step_directives(self.config_path(project_root))
@@ -289,6 +312,15 @@ class Settings:
         yolo_label = os.getenv("ISSUEFLOW_YOLO_LABEL")
         deep_model_label = os.getenv("ISSUEFLOW_DEEP_MODEL_LABEL")
         fast_model_label = os.getenv("ISSUEFLOW_FAST_MODEL_LABEL")
+        checks_watch_raw = os.getenv("ISSUEFLOW_CHECKS_WATCH_MINUTES")
+        checks_watch_minutes = DEFAULT_CHECKS_WATCH_MINUTES
+        if checks_watch_raw and checks_watch_raw.strip():
+            try:
+                parsed = int(checks_watch_raw.strip())
+            except ValueError:
+                parsed = 0
+            if parsed > 0:
+                checks_watch_minutes = parsed
         return {
             "mode": mode.strip() if mode and mode.strip() else DEFAULT_MODE,
             "skill_level": (
@@ -306,6 +338,7 @@ class Settings:
                 if yolo_label and yolo_label.strip()
                 else DEFAULT_YOLO_LABEL
             ),
+            "checks_watch_minutes": checks_watch_minutes,
             "step_directives": _env_flag(
                 "ISSUEFLOW_STEP_DIRECTIVES", default=DEFAULT_STEP_DIRECTIVES
             ),
@@ -380,6 +413,7 @@ class Settings:
             "grill_me_default": self.resolve_grill_me_default(project_root),
             "label_flows": self.resolve_label_flows(project_root),
             "yolo_label": self.resolve_yolo_label(project_root),
+            "checks_watch_minutes": self.resolve_checks_watch_minutes(project_root),
             "step_directives": self.resolve_step_directives(project_root),
             "model_label_flows": self.resolve_model_label_flows(project_root),
             "deep_model_label": self.resolve_deep_model_label(project_root),

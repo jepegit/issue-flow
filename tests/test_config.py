@@ -56,6 +56,7 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "grill_me_default",
         "label_flows",
         "yolo_label",
+        "checks_watch_minutes",
         "step_directives",
         "model_label_flows",
         "deep_model_label",
@@ -293,6 +294,52 @@ def test_yolo_label_config_beats_env(
     monkeypatch.setenv("ISSUEFLOW_YOLO_LABEL", "speedy")
     settings = Settings()
     assert settings.resolve_yolo_label(tmp_path) == "fast-track"
+
+
+def test_checks_watch_minutes_default(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    """With no config and no env, the watch budget is 15 minutes."""
+    monkeypatch.delenv("ISSUEFLOW_CHECKS_WATCH_MINUTES", raising=False)
+    settings = Settings()
+    assert settings.resolve_checks_watch_minutes(tmp_path) == 15
+    assert settings.template_context(tmp_path)["checks_watch_minutes"] == 15
+
+
+def test_checks_watch_minutes_from_config(tmp_path: Path) -> None:
+    _write_config(tmp_path, "[issueflow]\nchecks_watch_minutes = 30\n")
+    settings = Settings()
+    assert settings.resolve_checks_watch_minutes(tmp_path) == 30
+
+
+def test_checks_watch_minutes_from_env(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    monkeypatch.setenv("ISSUEFLOW_CHECKS_WATCH_MINUTES", "45")
+    settings = Settings()
+    assert settings.resolve_checks_watch_minutes(tmp_path) == 45
+
+
+def test_checks_watch_minutes_config_beats_env(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    _write_config(tmp_path, "[issueflow]\nchecks_watch_minutes = 20\n")
+    monkeypatch.setenv("ISSUEFLOW_CHECKS_WATCH_MINUTES", "45")
+    settings = Settings()
+    assert settings.resolve_checks_watch_minutes(tmp_path) == 20
+
+
+def test_checks_watch_minutes_nonpositive_falls_back(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    _write_config(tmp_path, "[issueflow]\nchecks_watch_minutes = 0\n")
+    monkeypatch.setenv("ISSUEFLOW_CHECKS_WATCH_MINUTES", "-3")
+    settings = Settings()
+    assert settings.resolve_checks_watch_minutes(tmp_path) == 15
 
 
 def test_step_directives_on_by_default(

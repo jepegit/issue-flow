@@ -1424,6 +1424,7 @@ def _clear_issueflow_env(monkeypatch: pytest.MonkeyPatch) -> None:
         "ISSUEFLOW_GRILL_ME_DEFAULT",
         "ISSUEFLOW_LABEL_FLOWS",
         "ISSUEFLOW_YOLO_LABEL",
+        "ISSUEFLOW_CHECKS_WATCH_MINUTES",
         "ISSUEFLOW_LINGUIST_ATTRIBUTES",
     ):
         monkeypatch.delenv(var, raising=False)
@@ -1453,6 +1454,7 @@ def test_config_add_creates_defaults(
     assert payload["grill_me_default"] is False
     assert payload["label_flows"] is True
     assert payload["yolo_label"] == "yolo"
+    assert payload["checks_watch_minutes"] == 15
     assert payload["linguist_attributes"] is False
 
     cfg = tmp_path / ".issueflows" / "config.toml"
@@ -1463,6 +1465,7 @@ def test_config_add_creates_defaults(
     assert data["issueflow"]["grill_me_default"] is False
     assert data["issueflow"]["label_flows"] is True
     assert data["issueflow"]["yolo_label"] == "yolo"
+    assert data["issueflow"]["checks_watch_minutes"] == 15
     assert data["issueflow"]["linguist_attributes"] is False
 
 
@@ -1476,6 +1479,7 @@ def test_config_add_reads_env(
     monkeypatch.delenv("ISSUEFLOW_GRILL_ME_DEFAULT", raising=False)
     monkeypatch.setenv("ISSUEFLOW_LABEL_FLOWS", "false")
     monkeypatch.setenv("ISSUEFLOW_YOLO_LABEL", "fast-track")
+    monkeypatch.setenv("ISSUEFLOW_CHECKS_WATCH_MINUTES", "40")
     monkeypatch.setenv("ISSUEFLOW_LINGUIST_ATTRIBUTES", "true")
 
     result = runner.invoke(app, ["config", "add", "-C", str(tmp_path), "--json"])
@@ -1488,6 +1492,7 @@ def test_config_add_reads_env(
     assert data["issueflow"]["grill_me_default"] is False
     assert data["issueflow"]["label_flows"] is False
     assert data["issueflow"]["yolo_label"] == "fast-track"
+    assert data["issueflow"]["checks_watch_minutes"] == 40
     assert data["issueflow"]["linguist_attributes"] is True
 
 
@@ -1546,6 +1551,7 @@ def test_config_add_force_upserts_and_preserves(
     assert data["issueflow"]["grill_me_default"] is False
     assert data["issueflow"]["label_flows"] is True
     assert data["issueflow"]["yolo_label"] == "yolo"
+    assert data["issueflow"]["checks_watch_minutes"] == 15
     # User content preserved.
     assert "# keep me" in text
     assert data["modes"]["mine"]["extends"] == "simple"

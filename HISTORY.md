@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- **List and watch GitHub in `/iflow-close` (#172).** Prefer `gh pr list` before create and `gh pr checks` for CI; yolo watches checks (configurable `checks_watch_minutes`, default 15) then retries merge, with `--auto` as last resort.
+
 - **Opt-in Linguist `.gitattributes` (#168).** Config-gated managed `.gitattributes` block (`linguist_attributes`, default off) so `init`/`update` keep GitHub Linguist focused on library source; dogfooded in this repo.
 
 - **Sync label bootstrap (#166).** Auto-create missing managed `status:*` labels before `issue-flow sync --apply` (`bootstrap_labels` defaults true); fixes the dogfood `issueflow-sync` GitHub Actions workflow failing with `status:solved` not found.

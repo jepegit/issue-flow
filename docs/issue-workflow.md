@@ -26,6 +26,7 @@ It also seeds `.issueflows/00-tools/README.md` — the index of the project's **
 | `/iflow-yolo` | `iflow-yolo/SKILL.md` | All-in-one for small, low-risk issues: chains `init → plan → start → close` with up-front safeguards and a single confirmation. |
 | `/iflow-fix` | `iflow-fix/SKILL.md` | **Off-path.** Interactive iterative-fixes session: create one issue + long-lived branch, then loop over many small fixes (short plan each, recorded in `issue<N>_status.md`), ending with `/iflow-close`. |
 | `/iflow-status` | `iflow-status/SKILL.md` | **Off-path, read-only.** Snapshot of where every issue stands — local tracking state (focus / parked / solved) plus open GitHub issues cross-referenced against it. Changes nothing. |
+| `/iflow-doctor` | `iflow-doctor/SKILL.md` | **Off-path.** Audit `.issueflows/` for dirty conditions; optional safe repair (mkdir + sweep). |
 | `/iflow-archive` | `iflow-archive/SKILL.md` | **Off-path, destructive (gated).** Condense old solved issue groups into a dated `YYYY-MM-DD_archived_issues.md` summary (recording the pre-archive git ref for recovery), then delete the original files after one consolidated confirm. |
 | `/iflow-epic` | `iflow-epic/SKILL.md` | **Off-path.** Plan a larger change as a staged epic: `05-epics/epic<N>_plan.md` divides the work into stages of manageable issue specs (dependencies + per-issue yolo judgment). Drafting writes nothing on GitHub; `publish [stage <k>]` creates a confirmed stage's issues behind one consolidated confirm and maintains a task list on the anchor issue. |
 | `/iflow-cycle` | `iflow-cycle/SKILL.md` | **Off-path.** Process a queue of yolo-fit issues hands-off in a row under one up-front confirm — the batch equivalent of `/iflow-yolo`. Resolves the queue via `issue-flow agent queue`, runs each issue through the full yolo chain (PR auto-merged), and stops only when input is strictly necessary. |
@@ -52,6 +53,7 @@ It also seeds `.issueflows/00-tools/README.md` — the index of the project's **
 | `iflow-yolo` | `iflow yolo`, `iflow-yolo`, `/iflow-yolo` | Chain `init → plan → start → close`. |
 | `iflow-fix` | `iflow fix`, `iflow-fix`, `/iflow-fix` | Interactive iterative-fixes session. Off-path. |
 | `iflow-status` | `iflow status`, `iflow-status`, `/iflow-status` | Read-only issue overview. Off-path. |
+| `iflow-doctor` | `iflow doctor`, `iflow-doctor`, `/iflow-doctor` | Audit/repair dirty `.issueflows/`. Off-path. |
 | `iflow-archive` | `iflow archive`, `iflow-archive`, `/iflow-archive` | Condense solved archive. Off-path; destructive. |
 | `iflow-version-bump` | `@iflow-version-bump` (often used from `/iflow-close`) | Strategy-aware version bump: static `[project]` versions via `uv version --bump <level>` (any uv level: `major`/`minor`/`patch`/`stable`/`alpha`/`beta`/`rc`/`post`/`dev`); git-tag-derived versions via a planned post-merge tag. The project's own "Release & version bump" section in `this-project.md` wins; a bare `bump` stays on the current pre-release channel. |
 | `iflow-history-update` | `@iflow-history-update` (used from `/iflow-close`) | Append an entry to `## [Unreleased]` in `HISTORY.md`, or promote it to a new `## [x.y.z] - YYYY-MM-DD` release section when a version bump happened. |
@@ -213,9 +215,9 @@ The bump runs **after** tests and **before** issue-folder moves and **before** c
 4. **Issue folders** — update status markdown; use `- [x] Done` only when fully resolved. Move completed issue files from `.issueflows/01-current-issues/` to `.issueflows/03-solved-issues/`, or partly done work to `.issueflows/02-partly-solved-issues/`.
 5. **Commit** — focused staging and a clear message (include `pyproject.toml` / `uv.lock` if the bump changed them, and `HISTORY.md` when step 3 updated it). Sync with the default branch using `git pull --ff-only`.
 6. **Push** — to your usual remote (e.g. `origin`).
-7. **Pull request** — open against the default branch; link the GitHub issue (`Closes #n` / `Refs #n`).
+7. **Pull request** — `gh pr list --head <branch>` first (reuse an open PR); else create. Afterward, snapshot CI with `gh pr checks`. Link the GitHub issue (`Closes #n` / `Refs #n`).
 8. **Switch back when safe** — unless `stay` / `don't switch` was passed, run `git status --porcelain`; if clean, `git switch <default>` and `git pull --ff-only`; if dirty, stay put and report why switching is unsafe.
-9. **After review** — if switched back, return to the PR branch before review fixes; once the PR merges, run `/iflow-cleanup` for the post-merge tidy-up.
+9. **After review** — if switched back, return to the PR branch before review fixes; merge when approved and `gh pr checks` is green; once the PR merges, run `/iflow-cleanup` for the post-merge tidy-up. With `yolo`, close may `gh pr checks --watch` (budget: `checks_watch_minutes`, default 15) before merge, falling back to `--auto` only when the cap elapses.
 
 **Result:** Commit, push, PR link, and either a clean switch back to the default branch or a clear reason for staying on the issue branch. No branches are deleted from `/iflow-close` itself.
 

@@ -29,6 +29,7 @@ _MODE_CONTEXT = {
     "grill_me_default": False,
     "label_flows": True,
     "yolo_label": "yolo",
+    "checks_watch_minutes": 15,
     "step_directives": True,
     "model_label_flows": False,
     "deep_model_label": "deep",
@@ -429,6 +430,8 @@ def test_issue_yolo_chains_hands_off_close() -> None:
         rendered = render_template(template_name, _default_context())
         assert "/iflow-close yolo" in rendered, template_name
         assert "gh pr merge --squash" in rendered, template_name
+        assert "gh pr checks --watch" in rendered, template_name
+        assert "15" in rendered, template_name
 
 
 def test_issue_close_yolo_token_merges_and_pulls() -> None:
@@ -440,11 +443,27 @@ def test_issue_close_yolo_token_merges_and_pulls() -> None:
         rendered = render_template(template_name, _default_context())
         assert "`yolo`" in rendered, template_name
         assert "gh pr merge" in rendered, template_name
+        assert "gh pr list" in rendered, template_name
+        assert "gh pr checks" in rendered, template_name
+        assert "--watch" in rendered, template_name
+        assert "15" in rendered, template_name
         assert "--squash --auto" in rendered, template_name
+        assert "last resort" in rendered.lower(), template_name
         # Branch deletion still belongs to /iflow-cleanup, never to close.
         assert "branch deletion stays in `/iflow-cleanup`" in rendered.lower(), (
             template_name
         )
+
+
+def test_issue_close_bakes_checks_watch_minutes_override() -> None:
+    """checks_watch_minutes from context is baked into close surfaces."""
+    context = {**_default_context(), "checks_watch_minutes": 30}
+    for template_name in (
+        "commands/iflow-close.md.j2",
+        "skills/iflow_close/SKILL.md.j2",
+    ):
+        rendered = render_template(template_name, context)
+        assert "30" in rendered, template_name
 
 
 def test_issue_pick_routes_yolo_label_when_label_flows_on() -> None:

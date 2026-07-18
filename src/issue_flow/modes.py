@@ -40,6 +40,9 @@ DEFAULT_SKILL_LEVEL = "standard"
 DEFAULT_LABEL_FLOWS = True
 DEFAULT_YOLO_LABEL = "yolo"
 
+# Hard wall-clock budget for `gh pr checks --watch` during /iflow-close yolo.
+DEFAULT_CHECKS_WATCH_MINUTES = 15
+
 # Step model/execution directives baked into lifecycle skills at render time.
 DEFAULT_STEP_DIRECTIVES = True
 DEFAULT_MODEL_LABEL_FLOWS = False
@@ -341,6 +344,24 @@ def read_yolo_label(cfg_path: Path) -> str | None:
     return None
 
 
+def read_checks_watch_minutes(cfg_path: Path) -> int | None:
+    """Return persisted ``[issueflow].checks_watch_minutes``, or ``None`` if unset.
+
+    Returns the raw integer when present (including non-positive values) so
+    callers can clamp. Non-integer values are treated as unset.
+    """
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if not isinstance(section, dict) or "checks_watch_minutes" not in section:
+        return None
+    value = section.get("checks_watch_minutes")
+    if isinstance(value, bool) or not isinstance(value, int):
+        return None
+    return value
+
+
 def read_step_directives(cfg_path: Path) -> bool | None:
     """Return the persisted ``[issueflow].step_directives`` flag."""
     if not cfg_path.is_file():
@@ -535,6 +556,7 @@ def write_default_config(
     grill_me_default: bool,
     label_flows: bool = DEFAULT_LABEL_FLOWS,
     yolo_label: str = DEFAULT_YOLO_LABEL,
+    checks_watch_minutes: int = DEFAULT_CHECKS_WATCH_MINUTES,
     step_directives: bool = DEFAULT_STEP_DIRECTIVES,
     model_label_flows: bool = DEFAULT_MODEL_LABEL_FLOWS,
     deep_model_label: str = DEFAULT_DEEP_MODEL_LABEL,
@@ -576,6 +598,7 @@ def write_default_config(
         section["grill_me_default"] = grill_me_default
         section["label_flows"] = label_flows
         section["yolo_label"] = yolo_label
+        section["checks_watch_minutes"] = checks_watch_minutes
         section["step_directives"] = step_directives
         section["model_label_flows"] = model_label_flows
         section["deep_model_label"] = deep_model_label
@@ -601,6 +624,7 @@ def write_default_config(
             grill_me_default,
             label_flows,
             yolo_label,
+            checks_watch_minutes,
             step_directives,
             model_label_flows,
             deep_model_label,
@@ -619,6 +643,7 @@ def _commented_issueflow_table(
     grill_me_default: bool,
     label_flows: bool,
     yolo_label: str,
+    checks_watch_minutes: int,
     step_directives: bool,
     model_label_flows: bool,
     deep_model_label: str,
@@ -669,6 +694,15 @@ def _commented_issueflow_table(
     table["label_flows"] = label_flows
     table.add(tomlkit.comment("The GitHub label that triggers the yolo flow."))
     table["yolo_label"] = yolo_label
+    table.add(tomlkit.nl())
+    table.add(
+        tomlkit.comment(
+            "Hard wall-clock budget (minutes) for `gh pr checks --watch` during "
+            "/iflow-close yolo when checks are pending. Re-run 'issue-flow update' "
+            "after changing so close/yolo skills re-render with the new budget."
+        )
+    )
+    table["checks_watch_minutes"] = checks_watch_minutes
     table.add(tomlkit.nl())
     table.add(
         tomlkit.comment(
