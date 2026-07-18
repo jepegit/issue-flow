@@ -9,6 +9,10 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+## [0.4.5] - 2026-07-18
+
+- **Review docs (#179).** Document epics, cycles, and reviews with examples in the scaffolded workflow doc, site home recipes, README off-path lists, and config cross-links; patch release.
+
 - **Auto-process all yolo issues (#175).** `/iflow-cycle yolo` aliases `label:<yolo_label>`; documents sequential merge-to-default conflict stance; `/iflow-review` hints the batch path.
 
 - **Skill for reviewing and labelling issues (#174).** Off-path `/iflow-review` (v1: yolo) with `agent label-candidates` / `label-apply`; queue detection honours configured `yolo_label`.

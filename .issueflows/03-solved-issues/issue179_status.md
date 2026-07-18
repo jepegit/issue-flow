@@ -1,6 +1,6 @@
 # Status — Issue #179: Review docs
 
-- [ ] Done
+- [x] Done
 
 ## What's done
 
@@ -13,7 +13,8 @@
 - Template contract test for epic/cycle/review examples.
 - `uv run pytest` — 532 passed.
 - Draft PR #180.
+- Version bumped `0.4.4.post3` → `0.4.5`; HISTORY promoted.
 
 ## Remaining work
 
-- Close with `/iflow-close bump patch` (HISTORY + version).
+- None.
