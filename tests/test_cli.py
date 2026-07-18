@@ -1424,6 +1424,7 @@ def _clear_issueflow_env(monkeypatch: pytest.MonkeyPatch) -> None:
         "ISSUEFLOW_GRILL_ME_DEFAULT",
         "ISSUEFLOW_LABEL_FLOWS",
         "ISSUEFLOW_YOLO_LABEL",
+        "ISSUEFLOW_LINGUIST_ATTRIBUTES",
     ):
         monkeypatch.delenv(var, raising=False)
 
@@ -1452,6 +1453,7 @@ def test_config_add_creates_defaults(
     assert payload["grill_me_default"] is False
     assert payload["label_flows"] is True
     assert payload["yolo_label"] == "yolo"
+    assert payload["linguist_attributes"] is False
 
     cfg = tmp_path / ".issueflows" / "config.toml"
     assert cfg.is_file()
@@ -1461,6 +1463,7 @@ def test_config_add_creates_defaults(
     assert data["issueflow"]["grill_me_default"] is False
     assert data["issueflow"]["label_flows"] is True
     assert data["issueflow"]["yolo_label"] == "yolo"
+    assert data["issueflow"]["linguist_attributes"] is False
 
 
 def test_config_add_reads_env(
@@ -1473,6 +1476,7 @@ def test_config_add_reads_env(
     monkeypatch.delenv("ISSUEFLOW_GRILL_ME_DEFAULT", raising=False)
     monkeypatch.setenv("ISSUEFLOW_LABEL_FLOWS", "false")
     monkeypatch.setenv("ISSUEFLOW_YOLO_LABEL", "fast-track")
+    monkeypatch.setenv("ISSUEFLOW_LINGUIST_ATTRIBUTES", "true")
 
     result = runner.invoke(app, ["config", "add", "-C", str(tmp_path), "--json"])
 
@@ -1484,6 +1488,7 @@ def test_config_add_reads_env(
     assert data["issueflow"]["grill_me_default"] is False
     assert data["issueflow"]["label_flows"] is False
     assert data["issueflow"]["yolo_label"] == "fast-track"
+    assert data["issueflow"]["linguist_attributes"] is True
 
 
 def test_config_add_does_not_clobber_without_force(

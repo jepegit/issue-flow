@@ -28,6 +28,7 @@ don't already have. `issue-flow update` does not touch `.env` at all.
 | `ISSUEFLOW_GRILL_ME_DEFAULT` | `false`    | Fallback for the [grill-me-during-planning](#grill-me-skill) toggle. Full order: `config.toml` > `ISSUEFLOW_GRILL_ME_DEFAULT` > `false`. Only honored when the `grill_me` skill is in the active mode. |
 | `ISSUEFLOW_LABEL_FLOWS`  | `true`         | Fallback for the [label-driven flows](#label-driven-flows) toggle. Full order: `config.toml` > `ISSUEFLOW_LABEL_FLOWS` > `true`. Only honored when the `iflow-pick` and `iflow-yolo` commands are in the active mode. |
 | `ISSUEFLOW_YOLO_LABEL`   | `yolo`         | Fallback for the [yolo trigger label](#label-driven-flows). Full order: `config.toml` > `ISSUEFLOW_YOLO_LABEL` > `yolo`. |
+| `ISSUEFLOW_LINGUIST_ATTRIBUTES` | `false` | Fallback for the [Linguist `.gitattributes`](#linguist-gitattributes) toggle. Full order: `config.toml` > `ISSUEFLOW_LINGUIST_ATTRIBUTES` > `false` (opt-in). |
 
 The optional [graphify integration](graphify.md) additionally reads an LLM API
 key (`GEMINI_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`,
@@ -46,14 +47,15 @@ issue-flow config add --force    # regenerate its [issueflow] keys in place
 It writes the keys issue-flow actually reads from `config.toml` — `mode`,
 `skill_level`, `caveman_default`, `grill_me_default`, `label_flows`,
 `yolo_label`, `step_directives`, `model_label_flows`, `deep_model_label`,
-`fast_model_label` — taking each value from its `ISSUEFLOW_*` env var / `.env`
-when set, otherwise the issue-flow default. The other `ISSUEFLOW_*` settings
-are **environment-only** and are deliberately *not* written to `config.toml`
-(putting them there would have no effect). An existing file is left untouched
-unless `--force` is passed, in which case the keys are upserted while your
-comments and `[modes.*]` tables are preserved. After changing any of these
-keys, re-run `issue-flow update` so the rule and commands re-render. Pass
-`--json` for a machine-readable result.
+`fast_model_label`, `linguist_attributes` — taking each value from its
+`ISSUEFLOW_*` env var / `.env` when set, otherwise the issue-flow default. The
+other `ISSUEFLOW_*` settings are **environment-only** and are deliberately
+*not* written to `config.toml` (putting them there would have no effect). An
+existing file is left untouched unless `--force` is passed, in which case the
+keys are upserted while your comments and `[modes.*]` tables are preserved.
+After changing any of these keys, re-run `issue-flow update` so the rule and
+commands re-render (and so optional side effects like the Linguist
+`.gitattributes` block can apply). Pass `--json` for a machine-readable result.
 
 ## Modes
 
@@ -208,3 +210,20 @@ Set `label_flows = false` to opt out, or change `yolo_label` to use a different
 trigger label; re-run `issue-flow update` after changing either so the commands
 re-render. Only honored when the `iflow-pick` and `iflow-yolo` commands are part
 of the active mode.
+
+## Linguist `.gitattributes`
+
+Optionally keep GitHub Linguist language stats focused on library source by
+writing a managed root `.gitattributes` block (marks `graphify-out/` as
+generated and docs / tests / `.issueflows/` / `scripts/` / `dev/` as
+documentation). This is **off by default** (opt-in):
+
+```toml
+[issueflow]
+linguist_attributes = true
+```
+
+Re-run `issue-flow update` (or `init`) after enabling. The writer is
+idempotent: it appends a `# BEGIN issue-flow linguist` … `# END` marker block
+once and never rewrites user rules outside those markers. Turning the flag
+back to `false` leaves an existing managed block in place (no auto-delete).

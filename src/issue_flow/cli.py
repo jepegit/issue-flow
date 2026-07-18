@@ -260,7 +260,9 @@ def sync(
     from issue_flow.sync import run_sync
 
     raise typer.Exit(
-        code=run_sync(project_dir, _console, apply=apply, repo=repo, as_json=json_output)
+        code=run_sync(
+            project_dir, _console, apply=apply, repo=repo, as_json=json_output
+        )
     )
 
 
@@ -358,9 +360,7 @@ def doctor(
 
     if fix:
         raise typer.Exit(
-            code=run_repair(
-                project_dir, _console, except_number, dry_run, json_output
-            )
+            code=run_repair(project_dir, _console, except_number, dry_run, json_output)
         )
     raise typer.Exit(code=run_audit(project_dir, _console, json_output))
 
@@ -709,10 +709,10 @@ def config_add(
     Writes the ``[issueflow]`` keys issue-flow reads from ``config.toml`` —
     ``mode``, ``skill_level``, ``caveman_default``, ``grill_me_default``,
     ``label_flows``, ``yolo_label``, ``step_directives``, ``model_label_flows``,
-    ``deep_model_label``, ``fast_model_label`` — taking each from its
-    ``ISSUEFLOW_*`` env var when set, else the default. Other ``ISSUEFLOW_*``
-    settings are environment-only and are not written here. Existing files are
-    left untouched unless ``--force`` is passed.
+    ``deep_model_label``, ``fast_model_label``, ``linguist_attributes`` —
+    taking each from its ``ISSUEFLOW_*`` env var when set, else the default.
+    Other ``ISSUEFLOW_*`` settings are environment-only and are not written
+    here. Existing files are left untouched unless ``--force`` is passed.
     """
     from issue_flow.agent import run_config_add
 

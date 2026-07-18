@@ -46,6 +46,9 @@ DEFAULT_MODEL_LABEL_FLOWS = False
 DEFAULT_DEEP_MODEL_LABEL = "deep"
 DEFAULT_FAST_MODEL_LABEL = "fast"
 
+# Optional managed `.gitattributes` for GitHub Linguist (opt-in; default off).
+DEFAULT_LINGUIST_ATTRIBUTES = False
+
 # GitHub sync defaults (``.issueflows/`` folder → labels / milestones).
 DEFAULT_SYNC_ENABLED = True
 DEFAULT_SYNC_LABEL_PREFIX = "status:"
@@ -309,6 +312,22 @@ def read_label_flows(cfg_path: Path) -> bool | None:
     return None
 
 
+def read_linguist_attributes(cfg_path: Path) -> bool | None:
+    """Return the persisted ``[issueflow].linguist_attributes`` flag.
+
+    Returns ``None`` when the file is missing or the key is unset, so callers can
+    distinguish "not configured" (fall through to env / default) from an explicit
+    ``false``.
+    """
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "linguist_attributes" in section:
+        return bool(section.get("linguist_attributes"))
+    return None
+
+
 def read_yolo_label(cfg_path: Path) -> str | None:
     """Return the persisted ``[issueflow].yolo_label`` value, or ``None`` if unset."""
     if not cfg_path.is_file():
@@ -520,6 +539,7 @@ def write_default_config(
     model_label_flows: bool = DEFAULT_MODEL_LABEL_FLOWS,
     deep_model_label: str = DEFAULT_DEEP_MODEL_LABEL,
     fast_model_label: str = DEFAULT_FAST_MODEL_LABEL,
+    linguist_attributes: bool = DEFAULT_LINGUIST_ATTRIBUTES,
     overwrite: bool = False,
 ) -> bool:
     """Create (or, with ``overwrite``, refresh) the project's ``config.toml``.
@@ -560,6 +580,7 @@ def write_default_config(
         section["model_label_flows"] = model_label_flows
         section["deep_model_label"] = deep_model_label
         section["fast_model_label"] = fast_model_label
+        section["linguist_attributes"] = linguist_attributes
     else:
         doc = tomlkit.document()
         doc.add(
@@ -584,6 +605,7 @@ def write_default_config(
             model_label_flows,
             deep_model_label,
             fast_model_label,
+            linguist_attributes,
         )
 
     cfg_path.write_text(tomlkit.dumps(doc), encoding="utf-8")
@@ -601,6 +623,7 @@ def _commented_issueflow_table(
     model_label_flows: bool,
     deep_model_label: str,
     fast_model_label: str,
+    linguist_attributes: bool,
 ) -> tomlkit.items.Table:
     """Build a fresh ``[issueflow]`` table with explanatory comments per key."""
     table = tomlkit.table()
@@ -669,4 +692,13 @@ def _commented_issueflow_table(
     )
     table["deep_model_label"] = deep_model_label
     table["fast_model_label"] = fast_model_label
+    table.add(tomlkit.nl())
+    table.add(
+        tomlkit.comment(
+            "Write a managed .gitattributes block that keeps GitHub Linguist "
+            "focused on library source (true/false; default false / opt-in). "
+            "Re-run 'issue-flow update' after enabling."
+        )
+    )
+    table["linguist_attributes"] = linguist_attributes
     return table

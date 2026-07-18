@@ -9,6 +9,7 @@ import pytest
 from issue_flow import modes
 from issue_flow.modes import (
     DEFAULT_LABEL_FLOWS,
+    DEFAULT_LINGUIST_ATTRIBUTES,
     DEFAULT_MODE,
     DEFAULT_YOLO_LABEL,
     available_modes,
@@ -17,6 +18,7 @@ from issue_flow.modes import (
     read_caveman_default,
     read_grill_me_default,
     read_label_flows,
+    read_linguist_attributes,
     read_yolo_label,
     resolve_mode,
     write_active_mode,
@@ -260,6 +262,23 @@ def test_read_yolo_label_value(tmp_path: Path) -> None:
     assert read_yolo_label(cfg) == "fast-track"
 
 
+def test_read_linguist_attributes_missing_returns_none(tmp_path: Path) -> None:
+    """No config file -> linguist_attributes is unset (None), not a boolean."""
+    assert read_linguist_attributes(config_path(tmp_path, ".issueflows")) is None
+
+
+def test_read_linguist_attributes_unset_key_returns_none(tmp_path: Path) -> None:
+    cfg = _write_config(tmp_path, '[issueflow]\nmode = "standard"\n')
+    assert read_linguist_attributes(cfg) is None
+
+
+def test_read_linguist_attributes_true_and_false(tmp_path: Path) -> None:
+    cfg_true = _write_config(tmp_path, "[issueflow]\nlinguist_attributes = true\n")
+    assert read_linguist_attributes(cfg_true) is True
+    cfg_false = _write_config(tmp_path, "[issueflow]\nlinguist_attributes = false\n")
+    assert read_linguist_attributes(cfg_false) is False
+
+
 def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
     """A freshly written config.toml carries label_flows and yolo_label."""
     cfg = config_path(tmp_path, ".issueflows")
@@ -272,6 +291,7 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
     )
     assert read_label_flows(cfg) is DEFAULT_LABEL_FLOWS
     assert read_yolo_label(cfg) == DEFAULT_YOLO_LABEL
+    assert read_linguist_attributes(cfg) is DEFAULT_LINGUIST_ATTRIBUTES
 
 
 def test_write_default_config_upserts_label_flow_keys(tmp_path: Path) -> None:
@@ -288,12 +308,14 @@ def test_write_default_config_upserts_label_flow_keys(tmp_path: Path) -> None:
         grill_me_default=False,
         label_flows=True,
         yolo_label="speedy",
+        linguist_attributes=True,
         overwrite=True,
     )
     text = cfg.read_text(encoding="utf-8")
     assert "# keep me" in text
     assert read_label_flows(cfg) is True
     assert read_yolo_label(cfg) == "speedy"
+    assert read_linguist_attributes(cfg) is True
 
 
 def test_resolve_mode_module_alias() -> None:

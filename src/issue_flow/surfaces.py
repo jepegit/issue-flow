@@ -29,6 +29,30 @@ _CANONICAL_RENDER_PROFILE = get_profile("codex")
 _GITIGNORE_MARKER_BEGIN = "# BEGIN issue-flow editor surfaces (generated; do not edit)"
 _GITIGNORE_MARKER_END = "# END issue-flow editor surfaces"
 
+_LINGUIST_MARKER_BEGIN = "# BEGIN issue-flow linguist (generated; do not edit)"
+_LINGUIST_MARKER_END = "# END issue-flow linguist"
+
+# Keep GitHub Linguist focused on library source; paths match issue #168.
+_LINGUIST_BLOCK_LINES = (
+    _LINGUIST_MARKER_BEGIN,
+    "# GitHub Linguist: keep language stats focused on library source.",
+    "# Without this, graphify-out/graph.html might dominate as HTML.",
+    "",
+    "graphify-out/** linguist-generated",
+    "docs/** linguist-documentation",
+    "tests/** linguist-documentation",
+    ".issueflows/** linguist-documentation",
+    "dev/** linguist-documentation",
+    "scripts/** linguist-documentation",
+    "",
+    "# Cross-platform line endings for shell helpers",
+    ".aliases     text eol=lf",
+    "*.sh         text eol=lf",
+    "*.lock       text eol=lf",
+    _LINGUIST_MARKER_END,
+    "",
+)
+
 
 @dataclass
 class MaterializeResult:
@@ -204,7 +228,9 @@ def prune_other_editor_surfaces(
         agent_root = project_root / profile.agent_dir
         if agent_root.exists():
             shutil.rmtree(agent_root)
-            console_io.console.print(f"  [yellow]prune[/yellow]  {agent_root.relative_to(project_root)}/")
+            console_io.console.print(
+                f"  [yellow]prune[/yellow]  {agent_root.relative_to(project_root)}/"
+            )
             pruned += 1
         for relative in collect_profile_paths(
             project_root, settings, profile, mode, skill_level
@@ -222,7 +248,9 @@ def prune_other_editor_surfaces(
             rules_path = project_root / resolve_output_path(rules_template, context)
             if rules_path.is_file():
                 rules_path.unlink()
-                console_io.console.print(f"  [yellow]prune[/yellow]  {rules_path.relative_to(project_root)}")
+                console_io.console.print(
+                    f"  [yellow]prune[/yellow]  {rules_path.relative_to(project_root)}"
+                )
                 pruned += 1
     return pruned
 
@@ -237,6 +265,7 @@ def prune_all_editor_surfaces(
     return prune_other_editor_surfaces(
         project_root, settings, keep_profile=None, mode=mode, skill_level=skill_level
     )
+
 
 def ensure_editor_gitignore(project_root: Path) -> bool:
     """Append gitignore entries for local-only editor dirs. Returns True if changed."""
@@ -254,11 +283,48 @@ def ensure_editor_gitignore(project_root: Path) -> bool:
     if path.exists():
         existing = path.read_text(encoding="utf-8")
         if _GITIGNORE_MARKER_BEGIN in existing:
-            console_io.console.print("  [dim]skip[/dim]  .gitignore  (issue-flow editor block present)")
+            console_io.console.print(
+                "  [dim]skip[/dim]  .gitignore  (issue-flow editor block present)"
+            )
             return False
         updated = existing.rstrip("\n") + "\n\n" + block
     else:
         updated = block
     path.write_text(updated, encoding="utf-8")
-    console_io.console.print("  [green]write[/green] .gitignore  (issue-flow editor surfaces)")
+    console_io.console.print(
+        "  [green]write[/green] .gitignore  (issue-flow editor surfaces)"
+    )
     return True
+
+
+def ensure_linguist_gitattributes(project_root: Path) -> bool:
+    """Append a managed Linguist ``.gitattributes`` block. Returns True if changed.
+
+    Idempotent: skips when the begin marker is already present. Never rewrites
+    user content outside the managed block. Does not remove the block when the
+    feature is later disabled — callers gate invocation on the config flag.
+    """
+    block = "\n".join(_LINGUIST_BLOCK_LINES)
+    path = project_root / ".gitattributes"
+    if path.exists():
+        existing = path.read_text(encoding="utf-8")
+        if _LINGUIST_MARKER_BEGIN in existing:
+            console_io.console.print(
+                "  [dim]skip[/dim]  .gitattributes  (issue-flow linguist block present)"
+            )
+            return False
+        updated = existing.rstrip("\n") + "\n\n" + block
+    else:
+        updated = block
+    path.write_text(updated, encoding="utf-8")
+    console_io.console.print(
+        "  [green]write[/green] .gitattributes  (issue-flow linguist)"
+    )
+    return True
+
+
+def maybe_ensure_linguist_gitattributes(project_root: Path, settings: Settings) -> bool:
+    """Write the Linguist block when ``linguist_attributes`` resolves true."""
+    if not settings.resolve_linguist_attributes(project_root):
+        return False
+    return ensure_linguist_gitattributes(project_root)
