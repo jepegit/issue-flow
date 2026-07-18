@@ -1,6 +1,6 @@
 # Status — Issue #168: fix GitHub Linguist skew
 
-- [ ] Done
+- [x] Done
 
 ## What's done
 
@@ -14,8 +14,9 @@
   (`.issueflows/04-designs-and-guides/linguist-gitattributes.md`).
 - Dogfood: `.issueflows/config.toml` `linguist_attributes = true` + root
   `.gitattributes`.
-- Tests: modes/config/cli + `tests/test_linguist_attributes.py`.
+- Tests: modes/config/cli + `tests/test_linguist_attributes.py` (512 passed).
+- HISTORY.md Unreleased bullet; archived to `03-solved-issues/`.
 
 ## Remaining work
 
-- `/iflow-close`: full suite confirmation, commit/PR hygiene, mark done.
+- None.
