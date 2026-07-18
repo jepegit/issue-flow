@@ -594,6 +594,21 @@ def test_iflow_review_skill_mirrors_command() -> None:
     assert "label-apply" in rendered
     assert "well-specified" in rendered
     assert "low blast radius" in rendered
+    assert "/iflow-cycle yolo" in rendered
+
+
+def test_iflow_cycle_documents_yolo_alias() -> None:
+    """/iflow-cycle must document the yolo → label:<yolo_label> alias (#175)."""
+    context = {**_default_context(), "yolo_label": "fast-track"}
+    skill = render_template("skills/iflow_cycle/SKILL.md.j2", context)
+    cmd = render_template("commands/iflow-cycle.md.j2", context)
+    for rendered in (skill, cmd):
+        assert "label:fast-track" in rendered
+        assert "yolo" in rendered
+        assert "All yolo issues" in rendered or "all yolo" in rendered.lower()
+    rules = render_template("rules/AGENTS.md.j2", context)
+    assert "/iflow-cycle yolo" in rules
+    assert "label:fast-track" in rules
 
 
 def test_iflow_lists_review_as_off_path() -> None:

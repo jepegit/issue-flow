@@ -19,6 +19,19 @@ GitHub labels already carry intent.
   pending checks block it; `draft` skips the merge), then default-branch
   switch + `git pull --ff-only`. Branch deletion stays in `/iflow-cleanup`.
 
+### Batch: all yolo-labelled issues (issue #175)
+
+- `/iflow-cycle yolo` is the one-token alias for
+  `label:<resolved yolo_label>` — process every open issue carrying the
+  trigger label through the yolo chain under one confirm.
+- No separate `/iflow-yolo-all` skill: cycle already owns queue confirm,
+  `cycle_status.md`, onfail, and resume.
+- **Merge conflicts:** sequential cycle merges each PR and returns to a clean
+  default before the next issue (single-writer for `HISTORY.md` etc.).
+  Experimental `parallel:<n>` still serializes merges (see
+  [parallel-cycle.md](./parallel-cycle.md)).
+- Optional prep: `/iflow-review yolo` to assign labels, then `/iflow-cycle yolo`.
+
 **Alternatives considered.**
 
 - Always `gh pr merge --auto` — rejected: on repos without required checks the
@@ -26,5 +39,8 @@ GitHub labels already carry intent.
   fallback is more deterministic.
 - Runtime reading of `config.toml` by the agent — rejected: baking values at
   render time matches every other knob and keeps commands self-contained.
+- New `/iflow-yolo-all` skill (#175) — rejected: duplicates cycle machinery;
+  alias + docs on `/iflow-cycle` suffice.
 
 **Link.** Issue #106, `issue106_plan.md` (archived with the issue group).
+Issue #175 (batch alias).

@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- **Auto-process all yolo issues (#175).** `/iflow-cycle yolo` aliases `label:<yolo_label>`; documents sequential merge-to-default conflict stance; `/iflow-review` hints the batch path.
+
 - **Skill for reviewing and labelling issues (#174).** Off-path `/iflow-review` (v1: yolo) with `agent label-candidates` / `label-apply`; queue detection honours configured `yolo_label`.
 
 - **List and watch GitHub in `/iflow-close` (#172).** Prefer `gh pr list` before create and `gh pr checks` for CI; yolo watches checks (configurable `checks_watch_minutes`, default 15) then retries merge, with `--auto` as last resort.

@@ -123,7 +123,9 @@ Future kinds (e.g. model-profile labels) add a row here + optional CLI
 
 8. **Report.** Applied / failed / skipped / already-labelled (keep). Remind
    that labelled issues are picked up by `/iflow-pick` → `/iflow-yolo` when
-   `label_flows` is on.
+   `label_flows` is on. If any labels were added (or already present and kept),
+   hint the batch path: **to auto-process them, run `/iflow-cycle yolo`**
+   (alias for `label:yolo`).
 
 ## Constraints
 
