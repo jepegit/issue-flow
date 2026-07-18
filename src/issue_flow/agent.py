@@ -1566,6 +1566,11 @@ def _print_config_guide(console: Console, cfg_path: Path) -> None:
         "'issue-flow update' so the commands re-render.[/dim]"
     )
     console.print(
+        "  [dim]- [bold]checks_watch_minutes[/bold]: hard wall-clock budget "
+        "(default 15) for `gh pr checks --watch` during /iflow-close yolo; "
+        "re-run 'issue-flow update' so close/yolo re-render.[/dim]"
+    )
+    console.print(
         "  [dim]- [bold]step_directives[/bold] / [bold]model_label_flows[/bold]: "
         "bake MODEL & EXECUTION DIRECTIVE sections into lifecycle skills; optional "
         "label hints during /iflow-pick; re-run 'issue-flow update' after changing.[/dim]"

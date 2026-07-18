@@ -59,14 +59,19 @@ Other optional notes still apply: branch name, PR title, draft PR, skip issue do
    - Push your branch to `origin` (or the remote you use).
 
 7. **Pull request**
-   - Open a PR against the default branch (e.g. `main`).
+   - Always pass `--repo <owner/repo>`.
+   - **List before create.** `gh pr list --repo <owner/repo> --head <branch> --state open --json number,url,title,isDraft`. If an open PR already exists for this head, **update** it instead of opening a second one; otherwise `gh pr create`.
    - Describe the change, how to test it, and link the GitHub issue (e.g. `Closes #123` or `Refs #123` in the PR body).
+   - **Checks snapshot.** After the PR exists, run `gh pr checks <number> --repo <owner/repo>` and report pass / fail / pending. "CI is green" means exit 0 (or JSON buckets all `pass` / `skipping`). Without `yolo`, prefer the one-shot list; offer `gh pr checks … --watch --fail-fast` only when the user wants to wait, still honouring the **{{ checks_watch_minutes }}-minute** wall-clock cap (agent-enforced).
 
 7a. **Merge the PR (`yolo` input only)**
-   - Merge immediately with `gh pr merge <number> --squash` (squash matches the project's assume-squash-merge convention). Never pass `--delete-branch` — branch deletion stays in `/iflow-cleanup`.
-   - If GitHub refuses (branch protection, required checks still running), fall back to `gh pr merge <number> --squash --auto` and report that the merge is queued behind the checks.
-   - If even `--auto` fails, stop the hands-off behaviour there: report the error and leave the PR open for the user.
-   - Without the `yolo` input, skip this step — merging stays a user decision (step 9).
+   - Never pass `--delete-branch` — branch deletion stays in `/iflow-cleanup`. Without `yolo`, skip — merging stays a user decision (step 9).
+   - Try `gh pr merge <number> --squash` immediately (squash matches the project's assume-squash-merge convention).
+   - If GitHub refuses for pending/required checks: `gh pr checks <number> --repo <owner/repo> --watch --fail-fast` under a hard wall-clock budget of **{{ checks_watch_minutes }} minutes** (from `[issueflow].checks_watch_minutes` / `ISSUEFLOW_CHECKS_WATCH_MINUTES`, default 15; agent stops the watch when the cap hits — `gh` has no max-duration flag).
+   - Watch succeeds within the cap → retry `gh pr merge <number> --squash`.
+   - Watch fails (red / `--fail-fast`) → stop hands-off, leave the PR open, report failing check links.
+   - Cap elapses while still pending, or checks never register / watch unavailable → last resort `gh pr merge <number> --squash --auto` and report the merge as queued. If even `--auto` fails, stop hands-off, report the error, leave the PR open.
+   - `draft` still skips merge entirely.
 
 8. **Switch back when safe**
    - If the input included `stay`, `stay on branch`, `don't switch`, or `dont switch to main`, stay on the issue branch and report that the user opted out.
@@ -78,7 +83,7 @@ Other optional notes still apply: branch name, PR title, draft PR, skip issue do
 
 9. **After review**
    - With the `yolo` input the PR was already merged in step 7a — skip to the `/iflow-cleanup` reminder below.
-   - Address feedback, push updates, and merge when approved and CI is green.
+   - Address feedback, push updates, and merge when approved and `gh pr checks <number> --repo <owner/repo>` is green (exit 0).
    - If step 8 switched back to the default branch, switch to the PR branch again before making review fixes.
    - Once the PR is merged, run **`/iflow-cleanup`** to switch back to the default branch, `git pull --ff-only`, `git fetch --prune`, and delete local branches whose commits are already in the default branch (single consolidated confirm — which, for tag-derived projects, also offers to create the release tag planned in step 2). `/iflow-close` no longer does post-merge cleanup itself.
 

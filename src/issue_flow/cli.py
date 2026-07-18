@@ -708,9 +708,10 @@ def config_add(
 
     Writes the ``[issueflow]`` keys issue-flow reads from ``config.toml`` —
     ``mode``, ``skill_level``, ``caveman_default``, ``grill_me_default``,
-    ``label_flows``, ``yolo_label``, ``step_directives``, ``model_label_flows``,
-    ``deep_model_label``, ``fast_model_label``, ``linguist_attributes`` —
-    taking each from its ``ISSUEFLOW_*`` env var when set, else the default.
+    ``label_flows``, ``yolo_label``, ``checks_watch_minutes``,
+    ``step_directives``, ``model_label_flows``, ``deep_model_label``,
+    ``fast_model_label``, ``linguist_attributes`` — taking each from its
+    ``ISSUEFLOW_*`` env var when set, else the default.
     Other ``ISSUEFLOW_*`` settings are environment-only and are not written
     here. Existing files are left untouched unless ``--force`` is passed.
     """

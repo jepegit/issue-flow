@@ -246,6 +246,8 @@ When the user message is **exactly** one of these forms, or **starts with** it f
 
 | `iflow cycle`, `iflow-cycle`, `/iflow-cycle`, `/iflow cycle` | `iflow-cycle` |
 
+| `iflow doctor`, `iflow-doctor`, `/iflow-doctor`, `/iflow doctor` | `iflow-doctor` |
+
 | `iflow epic`, `iflow-epic`, `/iflow-epic`, `/iflow epic` | `iflow-epic` |
 
 | `iflow fix`, `iflow-fix`, `/iflow-fix`, `/iflow fix` | `iflow-fix` |
@@ -284,7 +286,7 @@ The full slash-command lifecycle is:
 5. **`/iflow-close`** — tests, optional `uv version --bump`, status update, commit, push, PR. Does not delete branches.
 6. **`/iflow-cleanup`** — post-merge: switch to default, `git pull --ff-only`, `git fetch --prune`, `git branch -d` on merged local branches under a single consolidated confirm. Never `-D`.
 
-`/iflow-yolo` chains `init → plan → start → close yolo` for small, low-risk issues with up-front safeguards (clean tree, passing tests, single consolidated confirm). Its close step is hands-off: changelog decided without a prompt, PR merged (`gh pr merge --squash`, `--auto` fallback), then default-branch switch + pull.
+`/iflow-yolo` chains `init → plan → start → close yolo` for small, low-risk issues with up-front safeguards (clean tree, passing tests, single consolidated confirm). Its close step is hands-off: changelog decided without a prompt, PR merged (`gh pr merge --squash`; on pending checks may `gh pr checks --watch` then retry, with `--auto` as last resort), then default-branch switch + pull.
 
 
 Issue labels can select the flow: when an issue picked via `/iflow-pick` carries the **`yolo`** label, it is routed through `/iflow-yolo` (one combined confirmation). Controlled by `label_flows` (default `true`) and `yolo_label` (default `"yolo"`) under `[issueflow]` in `.issueflows/config.toml`; re-run `issue-flow update` after changing them.
@@ -297,6 +299,8 @@ Lifecycle skills include a **`### MODEL & EXECUTION DIRECTIVE`** section that te
 `/iflow-fix` opens an interactive iterative-fixes session: it creates one GitHub issue + long-lived branch, then loops over many small fixes (each gets a short plan and is implemented only on confirmation, recorded as a dated bullet in `issue<N>_status.md`), and ends with `/iflow-close`. It is off-path (never auto-dispatched); while a session is active, drive it with `/iflow-fix` + `/iflow-close`, not `/iflow`.
 
 `/iflow-status` prints a **read-only** overview of where every issue stands — the local tracking state under `.issueflows/` (focus / parked / solved) plus open GitHub issues cross-referenced against it. It is off-path (never auto-dispatched) and changes nothing.
+
+`/iflow-doctor` audits `.issueflows/` for **dirty** conditions (ambiguous multi-focus, leftovers in `01-current-issues/`, duplicates across folders, and similar) and can apply **safe repairs** on confirmation (`issue-flow doctor` / `agent audit` + `repair`). It is off-path and never auto-dispatched.
 
 `/iflow-epic <N>` plans a change **too large for one issue** as a staged epic: it drafts `.issueflows/05-epics/epic<N>_plan.md` (anchored to GitHub issue `<N>`), dividing the work into sequential stages of manageable issue specs with explicit dependencies and a per-issue yolo-fitness judgment. Drafting writes nothing on GitHub; **`/iflow-epic <N> publish [stage <k>]`** creates a confirmed stage's issues behind one consolidated confirm (yolo labels per the recorded judgment, task list maintained on the anchor issue, `Published: #<M>` recorded back into the plan so re-runs are idempotent). Off-path (never auto-dispatched); epics decompose into the normal single-issue lifecycle, never around it.
 

@@ -132,7 +132,7 @@ The full slash-command lifecycle is:
 5. **`/iflow-close`** — tests, optional `uv version --bump`, status update, commit, push, PR. Does not delete branches.
 6. **`/iflow-cleanup`** — post-merge: switch to default, `git pull --ff-only`, `git fetch --prune`, `git branch -d` on merged local branches under a single consolidated confirm. Never `-D`.
 
-`/iflow-yolo` chains `init → plan → start → close yolo` for small, low-risk issues with up-front safeguards (clean tree, passing tests, single consolidated confirm). Its close step is hands-off: changelog decided without a prompt, PR merged (`gh pr merge --squash`, `--auto` fallback), then default-branch switch + pull.
+`/iflow-yolo` chains `init → plan → start → close yolo` for small, low-risk issues with up-front safeguards (clean tree, passing tests, single consolidated confirm). Its close step is hands-off: changelog decided without a prompt, PR merged (`gh pr merge --squash`; on pending checks may `gh pr checks --watch` then retry, with `--auto` as last resort), then default-branch switch + pull.
 {% if label_flows and "iflow-yolo" in included_commands and "iflow-pick" in included_commands %}
 
 Issue labels can select the flow: when an issue picked via `/iflow-pick` carries the **`{{ yolo_label }}`** label, it is routed through `/iflow-yolo` (one combined confirmation). Controlled by `label_flows` (default `true`) and `yolo_label` (default `"yolo"`) under `[issueflow]` in `{{ issueflows_dir }}/config.toml`; re-run `issue-flow update` after changing them.
