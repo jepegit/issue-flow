@@ -10,7 +10,7 @@ Run this when a change is **too large for one issue**: it drafts a staged plan �
 
 ## Input
 
-- **`<N>`** (required) — the GitHub issue number of the **epic anchor** (umbrella issue). If none exists, stop and ask the user to create one (title prefixed `Epic:`, label `epic` when available).
+- **`<N>`** (required) — the GitHub issue number of the **epic anchor** (umbrella issue). If none exists, stop and point at **`/iflow-issue epic <intent>`**, then re-run `/iflow-epic <N>` with the new number.
 - **`publish [stage <k>]`** — publish action: create the stage's GitHub issues from a `Status: confirmed` plan (earliest unpublished stage when `<k>` is omitted).
 - Optional free text — context, constraints, or a proposed stage split.
 

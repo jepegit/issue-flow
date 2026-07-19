@@ -115,8 +115,8 @@ def test_resolve_output_path() -> None:
 
 
 def test_manifest_entry_count() -> None:
-    # Cursor is skills-first: 1 rule + 1 doc + 22 skills = 24
-    assert len(TEMPLATE_MANIFEST) == 24
+    # Cursor is skills-first: 1 rule + 1 doc + 23 skills = 25
+    assert len(TEMPLATE_MANIFEST) == 25
 
 
 def _resolved_paths(profile_id: str) -> set[str]:
@@ -136,7 +136,7 @@ def _resolved_paths(profile_id: str) -> set[str]:
 def test_build_manifest_cursor_matches_default() -> None:
     """The default TEMPLATE_MANIFEST is the cursor profile manifest."""
     assert build_manifest(EDITORS["cursor"]) == TEMPLATE_MANIFEST
-    assert len(build_manifest(EDITORS["cursor"])) == 24
+    assert len(build_manifest(EDITORS["cursor"])) == 25
 
 
 def test_build_manifest_cursor_has_skills_and_rules_but_no_commands() -> None:
@@ -151,15 +151,15 @@ def test_build_manifest_cursor_has_skills_and_rules_but_no_commands() -> None:
 
 
 def test_build_manifest_codex_has_skills_and_docs_but_no_commands() -> None:
-    """Codex: skills (22) + docs (1), no slash commands and no rules extra."""
+    """Codex: skills (23) + docs (1), no slash commands and no rules extra."""
     manifest = build_manifest(get_profile("codex"))
     template_names = [name for name, _ in manifest]
     assert not any(name.startswith("commands/") for name in template_names)
-    assert sum(name.startswith("skills/") for name in template_names) == 22
+    assert sum(name.startswith("skills/") for name in template_names) == 23
     assert "docs/issue-workflow.md.j2" in template_names
     # No .mdc / CLAUDE.md rules extra for Codex.
     assert not any(name.startswith("rules/") for name in template_names)
-    assert len(manifest) == 23
+    assert len(manifest) == 24
 
 
 def test_build_manifest_opencode_uses_singular_command_dir() -> None:
@@ -230,6 +230,7 @@ def test_manifest_has_expected_skills() -> None:
         "iflow_cleanup",
         "iflow_yolo",
         "iflow_fix",
+        "iflow_issue",
         "iflow_status",
         "iflow_archive",
         "iflow_version_bump",
@@ -253,6 +254,7 @@ def test_claude_manifest_has_expected_commands() -> None:
         "iflow-cleanup",
         "iflow-yolo",
         "iflow-fix",
+        "iflow-issue",
         "iflow-status",
         "iflow-doctor",
         "iflow-archive",
@@ -629,6 +631,45 @@ def test_iflow_lists_issue_fix_as_off_path() -> None:
     skill = render_template("skills/iflow_iflow/SKILL.md.j2", _default_context())
     assert "/iflow-fix" in cmd
     assert "/iflow-fix" in skill
+
+
+def test_iflow_issue_describes_normal_issue_create() -> None:
+    """/iflow-issue must describe confirm-gated create + optional init handoff."""
+    rendered = render_template("commands/iflow-issue.md.j2", _default_context())
+    assert "off-path" in rendered.lower()
+    assert "gh issue create" in rendered
+    assert "GitLab is not supported" in rendered
+    assert "Problem / context" in rendered
+    assert "Acceptance criteria" in rendered
+    assert "/iflow-init" in rendered
+    assert "/iflow-plan" in rendered
+    assert "epic" in rendered.lower()
+
+
+def test_iflow_issue_skill_mirrors_command() -> None:
+    """The iflow-issue skill must carry the same flow and frontmatter."""
+    rendered = render_template("skills/iflow_issue/SKILL.md.j2", _default_context())
+    assert "name: iflow-issue" in rendered
+    assert "disable-model-invocation: true" in rendered
+    assert "gh issue create" in rendered
+    assert "/iflow-init" in rendered
+    assert "/iflow-plan" in rendered
+    assert "Acceptance criteria" in rendered
+
+
+def test_iflow_lists_issue_as_off_path() -> None:
+    """/iflow and its skill must list /iflow-issue among the explicit-only commands."""
+    cmd = render_template("commands/iflow.md.j2", _default_context())
+    skill = render_template("skills/iflow_iflow/SKILL.md.j2", _default_context())
+    assert "/iflow-issue" in cmd
+    assert "/iflow-issue" in skill
+
+
+def test_rules_body_mentions_iflow_issue() -> None:
+    """The shared rules body must describe /iflow-issue as off-path."""
+    rendered = render_template("rules/AGENTS.md.j2", _default_context())
+    assert "/iflow-issue" in rendered
+    assert "well-specified normal GitHub issue" in rendered
 
 
 def test_iflow_review_command_documents_kinds_and_cli() -> None:

@@ -12,7 +12,7 @@ Follow this skill for an **ongoing working session** of many small fixes (small 
 
 Do **not** use this skill from `/iflow`, `/iflow-start`, or `/iflow-close`. `/iflow-fix` is explicit-only because it creates GitHub issues and branches and drives an open-ended loop. While a session is active, drive it with `/iflow-fix` + `/iflow-close`, not `/iflow`.
 
-It **coexists** with `/iflow-pick fix`: that command is a one-shot setup back into the normal `/iflow-plan` → `/iflow-start` flow, whereas `/iflow-fix` stays and runs the loop until close.
+It **coexists** with `/iflow-pick fix` (one-shot general-fixes setup into `/iflow-plan` → `/iflow-start`) and `/iflow-issue` (one well-specified normal issue). `/iflow-fix` stays and runs the loop until close.
 
 ## Input
 
@@ -46,7 +46,7 @@ For each proposed fix:
 4. **Implement** the confirmed fix, focused on that one change.
 5. **Record** it: append a dated bullet to **`## Iterative fixes log`** in `issue<N>_status.md`. Offer proactively; always update when asked.
 
-If a "fix" is really a substantial feature or sprawls across unrelated areas, say so and suggest handling it as its own issue via `/iflow-init` → `/iflow-plan` → `/iflow-start`.
+If a "fix" is really a substantial feature or sprawls across unrelated areas, say so and suggest filing it as its own issue via `/iflow-issue` (then `/iflow-plan` → `/iflow-start`).
 
 ### Phase 3 — finish
 

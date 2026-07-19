@@ -6,7 +6,8 @@ issues and add the configured `{{ yolo_label }}` label where the yolo-fitness
 judgment says yes.
 
 This is an **off-path** command — `/iflow` never auto-runs it. It does **not**
-create new GitHub issues and does **not** remove labels in v1.
+create new GitHub issues (use `/iflow-issue`, `/iflow-pick fix`, or
+`/iflow-epic … publish`) and does **not** remove labels in v1.
 
 {% set iflow_step = "review" %}
 {% include "skills/_model_directive.md.j2" %}
