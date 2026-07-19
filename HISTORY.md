@@ -9,6 +9,7 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- **Changelog timing (#171).** Default `confirm_changelog_update` to false so HISTORY lands in the close/PR commit; decline blocks close; forbid post-merge changelog offers.
 - Add `/iflow-issue` to create one well-specified normal GitHub issue (optional branch + `/iflow-init`; epic-anchor mode). (#181)
 - **More config settings (#182).** Add skill-behaviour knobs (`remind_cleanup`, `suggest_graphify`, `auto_switchback`, `auto_close`, `confirm_version_bump`, `confirm_changelog_update`, `pr_merge_method`, `cycle_max_issues`, `ruff_autofix`) baked at `issue-flow update`, with docs and naming consistency.
 
