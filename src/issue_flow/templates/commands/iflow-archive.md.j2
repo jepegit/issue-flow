@@ -49,7 +49,7 @@ Optional free-form text after the command:
 
 ## Constraints
 
-- **Off-path.** Never auto-dispatched by `/iflow`, `/iflow-start`, or `/iflow-close`.
+- **Off-path.** Never auto-dispatched by `/iflow`, `/iflow-build`, or `/iflow-close`.
 - **Destructive, so gated.** Nothing is deleted before the consolidated confirm, and nothing is deleted that was not summarised first.
 - Only `{{ issueflows_dir }}/{{ solved_folder }}/` is touched — never the current, partly-solved, tools, or designs folders.
 - Requires a clean working tree so the deletion can land as its own commit and `git show <ref>:<path>` recovery always works.

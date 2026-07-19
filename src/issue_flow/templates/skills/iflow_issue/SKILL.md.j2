@@ -10,7 +10,7 @@ disable-model-invocation: true
 
 Follow this skill to **author and create one well-specified GitHub issue** (a single deliverable), then optionally set up the normal lifecycle (branch + `/iflow-init` → hand off to `/iflow-plan`).{% if commands_supported %} Matches `{{ agent_dir }}/{{ commands_dir }}/iflow-issue.md`.{% endif %}
 
-Do **not** use this skill from `/iflow`, `/iflow-start`, or `/iflow-close`. `/iflow-issue` is explicit-only because it creates GitHub issues (and optionally branches).
+Do **not** use this skill from `/iflow`, `/iflow-build`, or `/iflow-close`. `/iflow-issue` is explicit-only because it creates GitHub issues (and optionally branches).
 
 **Coexists** with:
 
@@ -55,7 +55,7 @@ Do **not** use this skill from `/iflow`, `/iflow-start`, or `/iflow-close`. `/if
 
 ## Constraints
 
-- Off-path: never auto-dispatch from `/iflow`, `/iflow-start`, or `/iflow-close`.
+- Off-path: never auto-dispatch from `/iflow`, `/iflow-build`, or `/iflow-close`.
 - Never create a GitHub issue or branch without explicit confirmation; show what will be created first.
 - GitHub only (`gh`); GitLab is not supported.
 - Branch off the detected default (or the current branch when chosen); never force-push or delete branches from this skill.

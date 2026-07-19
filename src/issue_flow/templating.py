@@ -120,7 +120,7 @@ COMMAND_NAMES: list[str] = [
     "iflow-pick",
     "iflow-init",
     "iflow-plan",
-    "iflow-start",
+    "iflow-build",
     "iflow-pause",
     "iflow-close",
     "iflow-cleanup",
@@ -145,7 +145,7 @@ SKILL_DIRS: list[str] = [
     "iflow_init",
     "iflow_comments",
     "iflow_plan",
-    "iflow_start",
+    "iflow_build",
     "iflow_pause",
     "iflow_close",
     "iflow_cleanup",
@@ -189,6 +189,8 @@ RETIRED_COMMANDS: list[str] = [
     "issue-fix",
     "issue-status",
     "graphify",
+    # Renamed in #183: iflow-start → iflow-build
+    "iflow-start",
 ]
 
 # Retired skill folder names (pre-v0.5.0 rename) to be removed on update.
@@ -209,6 +211,8 @@ RETIRED_SKILLS: list[str] = [
     "issueflow-graphify",
     "issueflow-iflow",
     "iflow-iflow",
+    # Renamed in #183: iflow-start → iflow-build
+    "iflow-start",
 ]
 
 # Editor-neutral human-readable workflow doc, emitted for every editor.

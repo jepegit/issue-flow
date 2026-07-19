@@ -10,7 +10,7 @@ disable-model-invocation: true
 
 Follow this skill to refresh the project's [graphify](https://iflow-graphify.net) knowledge graph — a stale `graphify-out/` after a large refactor, or the initial graph after installing `graphifyy`.{% if commands_supported %} Matches `{{ agent_dir }}/{{ commands_dir }}/iflow-graphify.md`.{% endif %}
 
-Do **not** use this skill from `/iflow-start`, `/iflow-close`, or `/iflow`. `/iflow-graphify` is opt-in only.
+Do **not** use this skill from `/iflow-build`, `/iflow-close`, or `/iflow`. `/iflow-graphify` is opt-in only.
 
 {% set iflow_step = "graphify" %}
 {% include "skills/_invocation_forms.md.j2" %}

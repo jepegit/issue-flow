@@ -8,7 +8,7 @@ This is an **off-path** command — the lifecycle dispatcher (`/iflow`) never au
 
 ## How it relates to other commands
 
-- **`/iflow-pick fix`** — one-shot *general-fixes* issue into `/iflow-plan` → `/iflow-start`. Use `/iflow-issue` when the work is a named, well-specified deliverable.
+- **`/iflow-pick fix`** — one-shot *general-fixes* issue into `/iflow-plan` → `/iflow-build`. Use `/iflow-issue` when the work is a named, well-specified deliverable.
 - **`/iflow-fix`** — iterative small-fixes *session* that stays in a loop until `/iflow-close`. They coexist.
 - **`/iflow-epic`** — staged multi-issue work. If the epic **anchor** does not exist yet, create it with `/iflow-issue epic …`, then run `/iflow-epic <N>`.
 

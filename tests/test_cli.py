@@ -326,8 +326,8 @@ def test_agent_state_json_reports_stage(
     payload = _json(result.stdout)
     assert payload["focus"] == 5
     assert payload["resolved_via"] == "single-group"
-    assert payload["stage"] == "start"
-    assert payload["next_command"] == "/iflow-start"
+    assert payload["stage"] == "build"
+    assert payload["next_command"] == "/iflow-build"
 
 
 def test_agent_sweep_dry_run_does_not_move(runner: CliRunner, tmp_path: Path) -> None:

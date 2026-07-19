@@ -34,7 +34,7 @@ your-project/
     05-epics/               # Staged epic plans (epic<N>_plan.md)
   .cursor/
     skills/                  # Agent Skills (/iflow, /iflow-pick, /iflow-init,
-                             # /iflow-plan, /iflow-start, /iflow-close, ...)
+                             # /iflow-plan, /iflow-build, /iflow-close, ...)
     rules/
       issueflow-rules.mdc    # Always-on Cursor rule for the workflow
   AGENTS.md                  # Workflow rules (managed block; shared by all editors)
@@ -80,7 +80,7 @@ linear path explicitly:
 2. `/iflow-plan` — drafts `issue<N>_plan.md` (Goal / Constraints / Approach /
    Files to touch / Test strategy / Open questions) and stops for your
    confirmation.
-3. `/iflow-start` — reads the confirmed plan and implements it.
+3. `/iflow-build` — reads the confirmed plan and implements it.
 4. `/iflow-close` — runs tests, optionally bumps the version, appends a
    `HISTORY.md` entry, updates status files, commits, pushes, and opens a PR.
 5. `/iflow-cleanup` — after the PR merges, switches to the default branch,
@@ -100,7 +100,7 @@ solved archive). The full lifecycle is described in
 Short paths for common multi-issue work. Fuller examples live in the
 scaffolded [workflow doc](issue-workflow.md) after `issue-flow init`.
 
-**One issue, linear path** — `/iflow-init` → `/iflow-plan` → `/iflow-start` →
+**One issue, linear path** — `/iflow-init` → `/iflow-plan` → `/iflow-build` →
 `/iflow-close` → `/iflow-cleanup` (or just `/iflow` between steps).
 
 **One small issue, hands-off** — `/iflow-yolo <N>` (or pick an issue that

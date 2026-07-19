@@ -224,7 +224,7 @@ def test_manifest_has_expected_skills() -> None:
         "iflow_init",
         "iflow_comments",
         "iflow_plan",
-        "iflow_start",
+        "iflow_build",
         "iflow_pause",
         "iflow_close",
         "iflow_cleanup",
@@ -248,7 +248,7 @@ def test_claude_manifest_has_expected_commands() -> None:
         "iflow-pick",
         "iflow-init",
         "iflow-plan",
-        "iflow-start",
+        "iflow-build",
         "iflow-pause",
         "iflow-close",
         "iflow-cleanup",
@@ -286,8 +286,8 @@ def _default_context() -> dict[str, object]:
 
 
 def test_issue_start_mentions_branch_and_sweep_preflight() -> None:
-    """The /iflow-start command must include the new preflight and sweep steps."""
-    rendered = render_template("commands/iflow-start.md.j2", _default_context())
+    """The /iflow-build command must include the new preflight and sweep steps."""
+    rendered = render_template("commands/iflow-build.md.j2", _default_context())
     assert "Branch status preflight" in rendered
     assert "Sweep stale current issues" in rendered
     assert "git fetch --prune" in rendered
@@ -297,12 +297,12 @@ _CLI_FASTPATH_SURFACES = {
     "commands/iflow.md.j2": "issue-flow agent state",
     "commands/iflow-status.md.j2": "issue-flow status",
     "commands/iflow-init.md.j2": "issue-flow agent capture",
-    "commands/iflow-start.md.j2": "issue-flow agent preflight",
+    "commands/iflow-build.md.j2": "issue-flow agent preflight",
     "commands/iflow-plan.md.j2": "issue-flow agent preflight",
     "skills/iflow_iflow/SKILL.md.j2": "issue-flow agent state",
     "skills/iflow_status/SKILL.md.j2": "issue-flow status",
     "skills/iflow_init/SKILL.md.j2": "issue-flow agent capture",
-    "skills/iflow_start/SKILL.md.j2": "issue-flow agent preflight",
+    "skills/iflow_build/SKILL.md.j2": "issue-flow agent preflight",
     "skills/iflow_plan/SKILL.md.j2": "issue-flow agent preflight",
     "commands/iflow-archive.md.j2": "issue-flow agent archive",
     "skills/iflow_archive/SKILL.md.j2": "issue-flow agent archive",
@@ -361,8 +361,8 @@ def test_issue_cleanup_describes_post_merge_branch_cleanup() -> None:
 
 
 def test_issue_start_requires_or_offers_plan() -> None:
-    """/iflow-start should read the plan file and offer to run /iflow-plan when missing."""
-    rendered = render_template("commands/iflow-start.md.j2", _default_context())
+    """/iflow-build should read the plan file and offer to run /iflow-plan when missing."""
+    rendered = render_template("commands/iflow-build.md.j2", _default_context())
     assert "issue<N>_plan.md" in rendered
     assert "/iflow-plan" in rendered
 
@@ -399,9 +399,9 @@ def test_templates_reference_project_brief() -> None:
         "rules/AGENTS.md.j2",
         "rules/CLAUDE.md.j2",
         "commands/iflow-plan.md.j2",
-        "commands/iflow-start.md.j2",
+        "commands/iflow-build.md.j2",
         "skills/iflow_plan/SKILL.md.j2",
-        "skills/iflow_start/SKILL.md.j2",
+        "skills/iflow_build/SKILL.md.j2",
         "docs/issue-workflow.md.j2",
     )
     for template_name in templates:
@@ -410,10 +410,10 @@ def test_templates_reference_project_brief() -> None:
 
 
 def test_issue_start_reads_prior_art_from_plan() -> None:
-    """/iflow-start should remind the agent to read ### Prior art from the plan."""
-    rendered = render_template("commands/iflow-start.md.j2", _default_context())
+    """/iflow-build should remind the agent to read ### Prior art from the plan."""
+    rendered = render_template("commands/iflow-build.md.j2", _default_context())
     assert "### Prior art" in rendered
-    skill = render_template("skills/iflow_start/SKILL.md.j2", _default_context())
+    skill = render_template("skills/iflow_build/SKILL.md.j2", _default_context())
     assert "### Prior art" in skill
 
 
@@ -495,10 +495,10 @@ def test_cycle_bakes_max_issues() -> None:
 
 
 def test_start_auto_close_chains_into_close() -> None:
-    off = render_template("skills/iflow_start/SKILL.md.j2", _default_context())
+    off = render_template("skills/iflow_build/SKILL.md.j2", _default_context())
     assert "tell the user to run `/iflow-close`" in off
     on = render_template(
-        "skills/iflow_start/SKILL.md.j2",
+        "skills/iflow_build/SKILL.md.j2",
         {**_default_context(), "auto_close": True},
     )
     assert "follow" in on and "iflow-close/SKILL.md" in on
@@ -731,7 +731,7 @@ def test_iflow_describes_state_machine() -> None:
     for target in (
         "/iflow-init",
         "/iflow-plan",
-        "/iflow-start",
+        "/iflow-build",
         "/iflow-close",
     ):
         assert target in rendered, f"/iflow must mention {target}"
@@ -832,7 +832,7 @@ def test_lifecycle_skills_include_resolve_partial() -> None:
         "iflow_pick",
         "iflow_status",
         "iflow_iflow",
-        "iflow_start",
+        "iflow_build",
         "iflow_plan",
         "iflow_pause",
         "iflow_yolo",
@@ -943,9 +943,9 @@ def test_iflow_close_and_start_nudge_ruff_fix_when_present() -> None:
     """Lifecycle commands should run ruff check --fix when ruff is in the project."""
     for template_name in (
         "commands/iflow-close.md.j2",
-        "commands/iflow-start.md.j2",
+        "commands/iflow-build.md.j2",
         "skills/iflow_close/SKILL.md.j2",
-        "skills/iflow_start/SKILL.md.j2",
+        "skills/iflow_build/SKILL.md.j2",
     ):
         rendered = render_template(template_name, _default_context())
         assert "ruff check --fix" in rendered, template_name
