@@ -135,7 +135,7 @@ def test_stage_start_when_plan_but_not_done(tmp_path: Path) -> None:
     _write(cur / "issue5_plan.md")
     _write(cur / "issue5_status.md", "- [ ] Done\n")
     group = tracking.group_issue_files(cur)[5]
-    assert group.stage == tracking.STAGE_START
+    assert group.stage == tracking.STAGE_BUILD
 
 
 def test_stage_close_when_done(tmp_path: Path) -> None:

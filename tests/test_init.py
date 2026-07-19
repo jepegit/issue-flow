@@ -174,9 +174,9 @@ def test_init_force_preserves_existing_tools_readme(tmp_path: Path) -> None:
 
 
 def test_init_start_skill_documents_toolbox_and_upfront_status(tmp_path: Path) -> None:
-    """iflow-start skill should nudge toolbox reuse and up-front status seeding."""
+    """iflow-build skill should nudge toolbox reuse and up-front status seeding."""
     run_init(tmp_path)
-    content = (tmp_path / ".cursor" / "skills" / "iflow-start" / "SKILL.md").read_text(
+    content = (tmp_path / ".cursor" / "skills" / "iflow-build" / "SKILL.md").read_text(
         encoding="utf-8"
     )
     assert "00-tools" in content
@@ -201,7 +201,7 @@ def test_init_cursor_is_skills_first(tmp_path: Path) -> None:
     skills_dir = tmp_path / ".cursor" / "skills"
     assert (skills_dir / "iflow" / "SKILL.md").is_file()
     assert (skills_dir / "iflow-init" / "SKILL.md").is_file()
-    assert (skills_dir / "iflow-start" / "SKILL.md").is_file()
+    assert (skills_dir / "iflow-build" / "SKILL.md").is_file()
     assert (skills_dir / "iflow-close" / "SKILL.md").is_file()
 
 
@@ -213,7 +213,7 @@ def test_init_creates_cursor_skills(tmp_path: Path) -> None:
     for name in (
         "iflow",
         "iflow-init",
-        "iflow-start",
+        "iflow-build",
         "iflow-close",
         "iflow-version-bump",
         "iflow-history-update",
@@ -278,7 +278,7 @@ def test_init_templates_reference_issueflows_dir(tmp_path: Path) -> None:
     run_init(tmp_path)
 
     skills_dir = tmp_path / ".cursor" / "skills"
-    for name in ["iflow-init", "iflow-start", "iflow-close"]:
+    for name in ["iflow-init", "iflow-build", "iflow-close"]:
         content = (skills_dir / name / "SKILL.md").read_text(encoding="utf-8")
         assert ".issueflows/" in content, f"{name} should reference .issueflows/"
 
@@ -614,10 +614,10 @@ def test_init_rule_documents_designs_folder(tmp_path: Path) -> None:
 
 
 def test_init_commands_reference_designs_folder(tmp_path: Path) -> None:
-    """/iflow-plan, /iflow-start, and /iflow-close skills should reference the designs folder."""
+    """/iflow-plan, /iflow-build, and /iflow-close skills should reference the designs folder."""
     run_init(tmp_path)
     skills_dir = tmp_path / ".cursor" / "skills"
-    for name in ("iflow-plan", "iflow-start", "iflow-close"):
+    for name in ("iflow-plan", "iflow-build", "iflow-close"):
         content = (skills_dir / name / "SKILL.md").read_text(encoding="utf-8")
         assert "04-designs-and-guides" in content, (
             f"{name} should reference the designs-and-guides folder"
@@ -932,7 +932,7 @@ def test_init_mode_simple_scaffolds_subset(tmp_path: Path) -> None:
         "iflow",
         "iflow-init",
         "iflow-plan",
-        "iflow-start",
+        "iflow-build",
         "iflow-pause",
         "iflow-status",
     ):

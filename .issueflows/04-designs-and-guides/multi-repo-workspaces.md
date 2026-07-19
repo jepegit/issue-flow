@@ -82,7 +82,7 @@ For paired changes (engine + consumer):
 
 1. Create matching GitHub issues in each repo; cross-reference in bodies.
 2. Use the same label/milestone in each repo manually.
-3. Run `/iflow-init`, `/iflow-plan`, `/iflow-start`, `/iflow-close` **per repo**
+3. Run `/iflow-init`, `/iflow-plan`, `/iflow-build`, `/iflow-close` **per repo**
    with explicit `root:` or `repo:` hints (or resolve via active file).
 
 ## Alternatives considered

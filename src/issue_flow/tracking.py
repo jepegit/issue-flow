@@ -36,13 +36,16 @@ _DONE_RE = re.compile(r"-\s*\[\s*x\s*\]\s*done", re.IGNORECASE)
 # run next (skills-first editors use the same names without the leading slash).
 STAGE_INIT = "init"
 STAGE_PLAN = "plan"
-STAGE_START = "start"
+STAGE_BUILD = "build"
 STAGE_CLOSE = "close"
+
+# Back-compat alias for importers that still reference STAGE_START.
+STAGE_START = STAGE_BUILD
 
 STAGE_NEXT_COMMAND: dict[str, str] = {
     STAGE_INIT: "/iflow-init",
     STAGE_PLAN: "/iflow-plan",
-    STAGE_START: "/iflow-start",
+    STAGE_BUILD: "/iflow-build",
     STAGE_CLOSE: "/iflow-close",
 }
 
@@ -82,7 +85,7 @@ class IssueGroup:
             return STAGE_PLAN
         if self.is_done:
             return STAGE_CLOSE
-        return STAGE_START
+        return STAGE_BUILD
 
     @property
     def next_command(self) -> str:

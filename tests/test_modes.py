@@ -48,7 +48,7 @@ def test_simple_is_strict_subset() -> None:
         "iflow_iflow",
         "iflow_init",
         "iflow_plan",
-        "iflow_start",
+        "iflow_build",
         "iflow_pause",
     ):
         assert stem in simple.skills
