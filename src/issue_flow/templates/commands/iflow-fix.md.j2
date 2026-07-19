@@ -8,7 +8,8 @@ This is an **off-path** command — the lifecycle dispatcher (`/iflow`) never au
 
 ## How it relates to other commands
 
-- **`/issue-pick fix`** is a *one-shot* setup: it creates a general-fixes issue + branch and hands you back to the normal `/iflow-plan` → `/iflow-start` flow. `/iflow-fix` instead **stays** with you and runs the iterative loop until you close. They coexist; pick `/iflow-fix` when you want the ongoing session.
+- **`/iflow-pick fix`** is a *one-shot* setup: it creates a general-fixes issue + branch and hands you back to the normal `/iflow-plan` → `/iflow-start` flow. `/iflow-fix` instead **stays** with you and runs the iterative loop until you close. They coexist; pick `/iflow-fix` when you want the ongoing session.
+- **`/iflow-issue`** creates one well-specified normal GitHub issue (context / spec / acceptance). Use that for a single deliverable; use `/iflow-fix` for a stream of small fixes.
 - **`/iflow-close`** ends an `/iflow-fix` session exactly like any other issue (tests, optional bump, status update, commit, push, PR).
 
 {% include "skills/_model_directive.md.j2" %}

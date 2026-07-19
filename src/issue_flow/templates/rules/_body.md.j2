@@ -144,6 +144,8 @@ Lifecycle skills include a **`### MODEL & EXECUTION DIRECTIVE`** section that te
 
 `/iflow-fix` opens an interactive iterative-fixes session: it creates one GitHub issue + long-lived branch, then loops over many small fixes (each gets a short plan and is implemented only on confirmation, recorded as a dated bullet in `issue<N>_status.md`), and ends with `/iflow-close`. It is off-path (never auto-dispatched); while a session is active, drive it with `/iflow-fix` + `/iflow-close`, not `/iflow`.
 
+`/iflow-issue` creates **one well-specified normal GitHub issue** (context / spec / acceptance criteria), then optionally branches and runs `/iflow-init` into the standard lifecycle. It fills the gap between `/iflow-fix` (iterative small-fixes) and `/iflow-epic` (multi-issue staged work). Off-path (never auto-dispatched). For an epic anchor: `/iflow-issue epic <intent>`.
+
 `/iflow-status` prints a **read-only** overview of where every issue stands — the local tracking state under `{{ issueflows_dir }}/` (focus / parked / solved) plus open GitHub issues cross-referenced against it. It is off-path (never auto-dispatched) and changes nothing.
 
 `/iflow-doctor` audits `{{ issueflows_dir }}/` for **dirty** conditions (ambiguous multi-focus, leftovers in `{{ current_issues_folder }}/`, duplicates across folders, and similar) and can apply **safe repairs** on confirmation (`issue-flow doctor` / `agent audit` + `repair`). It is off-path and never auto-dispatched.
