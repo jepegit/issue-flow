@@ -1,6 +1,6 @@
-# Start working with the current issue
+# Build (implement) the current issue
 
-`/iflow-start` **implements** the plan that `/iflow-plan` already wrote. Planning itself now lives in `/iflow-plan` — this command no longer produces the plan.
+`/iflow-build` **implements** the plan that `/iflow-plan` already wrote. Planning itself now lives in `/iflow-plan` — this command no longer produces the plan.
 
 The issue should already be explained in `{{ issueflows_dir }}/{{ current_issues_folder }}/issue<N>_original.md` (from `/iflow-init`) and a confirmed plan in `issue<N>_plan.md` (from `/iflow-plan`).
 
@@ -29,7 +29,7 @@ If additional input is added, use that as implementation hints (scope, constrain
    - Report: current branch, clean/dirty working tree (`git status --porcelain`), and ahead/behind counts vs `origin/<default>` (`git rev-list --left-right --count origin/<default>...HEAD`).
    - Classify the current branch:
      - On default (`main`/`master`/etc.): propose switching to or creating an issue branch before implementing, e.g. `git switch -c <N>-<short-slug>` where `N` is the focus issue number. Ask before running.
-     - Matches `^(\d+)-.+`: treat the leading digits as issue number `N`. Cross-check `{{ issueflows_dir }}/{{ current_issues_folder }}/`, `{{ issueflows_dir }}/{{ partly_solved_folder }}/`, and `{{ issueflows_dir }}/{{ solved_folder }}/`. If `issueN_*` is already under `{{ partly_solved_folder }}/` or `{{ solved_folder }}/`, warn that the branch looks stale and ask whether to switch back to default before continuing. Never delete a branch from `/iflow-start`.
+     - Matches `^(\d+)-.+`: treat the leading digits as issue number `N`. Cross-check `{{ issueflows_dir }}/{{ current_issues_folder }}/`, `{{ issueflows_dir }}/{{ partly_solved_folder }}/`, and `{{ issueflows_dir }}/{{ solved_folder }}/`. If `issueN_*` is already under `{{ partly_solved_folder }}/` or `{{ solved_folder }}/`, warn that the branch looks stale and ask whether to switch back to default before continuing. Never delete a branch from `/iflow-build`.
      - Any other branch name: warn that the branch does not look like an issue branch and ask whether to continue on it.
 
 0.6 **Sweep stale current issues** (auto-safe file moves — no destructive git).

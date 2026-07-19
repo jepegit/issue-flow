@@ -69,7 +69,7 @@ Do **not** use this to park or close an active issue — that is `/iflow-pause` 
 
 ## Constraints
 
-- **Off-path.** Never auto-dispatch from `/iflow`, `/iflow-start`, or `/iflow-close`. The user opts in explicitly.
+- **Off-path.** Never auto-dispatch from `/iflow`, `/iflow-build`, or `/iflow-close`. The user opts in explicitly.
 - **Destructive, so gated.** Never delete anything before the consolidated confirm in step 3, and never delete files that were not summarised in step 4.
 - Only `{{ issueflows_dir }}/{{ solved_folder }}/` is touched — never `{{ current_issues_folder }}/`, `{{ partly_solved_folder }}/`, `{{ tools_folder }}/`, or `{{ designs_folder }}/`.
 - Requires a clean working tree; the deletion should land as its own commit so `git show <ref>:<path>` recovery always works.

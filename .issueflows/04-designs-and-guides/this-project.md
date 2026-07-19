@@ -73,7 +73,7 @@ Key behaviour:
   after merge.
 - **Commits:** only commit when explicitly asked.
 - **Issue workflow:** this repo follows the issue-flow lifecycle it ships —
-  `/iflow-init` → `/iflow-plan` → `/iflow-start` → `/iflow-close` →
+  `/iflow-init` → `/iflow-plan` → `/iflow-build` → `/iflow-close` →
   `/iflow-cleanup` (with `/iflow` as the smart dispatcher, `/iflow-pick` /
   `/iflow-pause` / `/iflow-yolo` off-path). Keep status files accurate with an
   explicit `- [x] Done` / `- [ ] Done` checkbox.

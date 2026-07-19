@@ -22,7 +22,7 @@ templates by hand.
 | `remind_cleanup` | `true` | Soft reminders to run `/iflow-cleanup` after close / cycle / iflow-D |
 | `suggest_graphify` | `true` | Soft GRAPH_REPORT / rebuild suggestions (never auto-run) |
 | `auto_switchback` | `true` | After PR, switch to default when clean (`false` ≈ always `stay`) |
-| `auto_close` | `false` | `/iflow-start` / `/iflow-fix` end chain into `/iflow-close` when ready |
+| `auto_close` | `false` | `/iflow-build` / `/iflow-fix` end chain into `/iflow-close` when ready |
 | `confirm_version_bump` | `false` | Non-yolo close confirms once about bump when unset |
 | `confirm_changelog_update` | `false` | Changelog diff confirm before write; `false` = write without ask (bullet lands in the PR). Decline (when true) **stops** close — no silent skip. |
 | `pr_merge_method` | `"squash"` | Yolo `gh pr merge --{squash\|merge\|rebase}` |

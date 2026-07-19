@@ -89,7 +89,7 @@ Slash-command lifecycle:
 
 1. `/iflow-pick` — front door: choose the next issue, branch, init (off-path)
 2. `/iflow` — smart dispatcher to the right linear step
-3. `/iflow-init` → `/iflow-plan` → `/iflow-start` → `/iflow-close` → `/iflow-cleanup`
+3. `/iflow-init` → `/iflow-plan` → `/iflow-build` → `/iflow-close` → `/iflow-cleanup`
 4. `/iflow-pause` — park work mid-stream
 5. `/iflow-yolo` — full chain for small, low-risk issues
 
@@ -264,7 +264,7 @@ When the user message is **exactly** one of these forms, or **starts with** it f
 
 | `iflow review`, `iflow-review`, `/iflow-review`, `/iflow review` | `iflow-review` |
 
-| `iflow start`, `iflow-start`, `/iflow-start`, `/iflow start` | `iflow-start` |
+| `iflow build`, `iflow-build`, `/iflow-build`, `/iflow build` | `iflow-build` |
 
 | `iflow status`, `iflow-status`, `/iflow-status`, `/iflow status` | `iflow-status` |
 
@@ -277,18 +277,18 @@ Skill `@` attachment is supported on some editors but is not the recommended key
 
 If you have not chosen an issue yet, run **`/iflow-pick`** (or type **`iflow pick`** in chat) — the front door that helps you select the next issue (parked work first, else ranked open GitHub issues), creates the branch, and runs `/iflow-init`. It is off-path (never auto-dispatched).
 
-If you just want the next right step, run **`/iflow`** (or type **`iflow`** in chat) — it detects state (by file presence under `.issueflows/01-current-issues/` and the status-file `- [x] Done` marker) and dispatches to `/iflow-init`, `/iflow-plan`, `/iflow-start`, or `/iflow-close`. It never auto-dispatches to `/iflow-pick`, `/iflow-pause`, `/iflow-cleanup`, or `/iflow-yolo` — those stay explicit.
+If you just want the next right step, run **`/iflow`** (or type **`iflow`** in chat) — it detects state (by file presence under `.issueflows/01-current-issues/` and the status-file `- [x] Done` marker) and dispatches to `/iflow-init`, `/iflow-plan`, `/iflow-build`, or `/iflow-close`. It never auto-dispatches to `/iflow-pick`, `/iflow-pause`, `/iflow-cleanup`, or `/iflow-yolo` — those stay explicit.
 
 The full slash-command lifecycle is:
 
 1. **`/iflow-init`** — capture the GitHub issue as `issue<N>_original.md`.
 2. **`/iflow-plan`** — design the approach in `issue<N>_plan.md` and get explicit confirmation before any code changes.
-3. **`/iflow-start`** — implement the confirmed plan. Asks to run `/iflow-plan` first if the plan file is missing.
+3. **`/iflow-build`** — implement the confirmed plan. Asks to run `/iflow-plan` first if the plan file is missing.
 4. **`/iflow-pause`** *(optional)* — park work mid-stream: update status, move the issue group to `02-partly-solved-issues`, optional WIP commit.
 5. **`/iflow-close`** — tests, optional `uv version --bump`, status update, commit, push, PR. Does not delete branches.
 6. **`/iflow-cleanup`** — post-merge: switch to default, `git pull --ff-only`, `git fetch --prune`, `git branch -d` on merged local branches under a single consolidated confirm. Never `-D`.
 
-`/iflow-yolo` chains `init → plan → start → close yolo` for small, low-risk issues with up-front safeguards (clean tree, passing tests, single consolidated confirm). Its close step is hands-off: changelog decided without a prompt, PR merged (`gh pr merge --squash`; on pending checks may `gh pr checks --watch` then retry, with `--auto` as last resort), then default-branch switch + pull.
+`/iflow-yolo` chains `init → plan → build → close yolo` for small, low-risk issues with up-front safeguards (clean tree, passing tests, single consolidated confirm). Its close step is hands-off: changelog decided without a prompt, PR merged (`gh pr merge --squash`; on pending checks may `gh pr checks --watch` then retry, with `--auto` as last resort), then default-branch switch + pull.
 
 
 Issue labels can select the flow: when an issue picked via `/iflow-pick` carries the **`yolo`** label, it is routed through `/iflow-yolo` (one combined confirmation). Controlled by `label_flows` (default `true`) and `yolo_label` (default `"yolo"`) under `[issueflow]` in `.issueflows/config.toml`; re-run `issue-flow update` after changing them.
@@ -362,7 +362,7 @@ Long-lived design docs, design decisions, and project "good practices" live unde
 
 - **Project brief:** if `.issueflows/04-designs-and-guides/this-project.md` exists, read it early for project-specific context (what the repo is, stack/runtime, how to run/test, conventions, entry points, and known limitations).
 - **Before planning or implementing**, skim `.issueflows/04-designs-and-guides/` for existing docs relevant to the current issue and follow them (cite them in the plan when they influence the approach).
-- **When a non-trivial design decision is made** during `/iflow-plan` or `/iflow-start`, add or update a markdown file here. Keep entries terse: context, the decision, alternatives considered, and a link back to the issue.
+- **When a non-trivial design decision is made** during `/iflow-plan` or `/iflow-build`, add or update a markdown file here. Keep entries terse: context, the decision, alternatives considered, and a link back to the issue.
 - **Never overwritten by `issue-flow update`.** The folder is recreated if missing, but existing files are left alone.
 
 
@@ -388,7 +388,7 @@ When an editor workspace contains **multiple sibling repositories**, each with i
 ### Folder hygiene for `.issueflows/01-current-issues`
 
 - Only the **focus issue** (the one currently being worked on) should live in `.issueflows/01-current-issues`.
-- `/iflow-init` and `/iflow-start` both sweep that folder automatically: every `issue<n>_*` group **other than the focus issue** is moved to `.issueflows/03-solved-issues` if a status file contains `- [x] Done`, otherwise to `.issueflows/02-partly-solved-issues`. Keep status files accurate so the sweep routes them correctly.
+- `/iflow-init` and `/iflow-build` both sweep that folder automatically: every `issue<n>_*` group **other than the focus issue** is moved to `.issueflows/03-solved-issues` if a status file contains `- [x] Done`, otherwise to `.issueflows/02-partly-solved-issues`. Keep status files accurate so the sweep routes them correctly.
 
 
 ### Knowledge graph (optional, via [graphify](https://iflow-graphify.net))
@@ -397,7 +397,7 @@ If a `graphify-out/` folder exists in the project root, the project has the opti
 
 - **Before grepping**, skim `graphify-out/GRAPH_REPORT.md`. It surfaces god-nodes (most-connected concepts), surprising cross-module connections, and suggested questions the graph can answer — often a faster way to locate the files an issue actually touches than full-text search.
 - **`/iflow-graphify`** (slash command) or **`issue-flow graphify`** (CLI) rebuild the graph. With no extra args this runs `graphify update <project>` — AST-only, **no LLM API key needed**. For richer semantic relationships (cross-file links surfaced by an LLM pass), run `issue-flow graphify extract` after setting `GEMINI_API_KEY` / `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `MOONSHOT_API_KEY` (or pass `--backend ollama` for a local LLM). Other subcommands: `watch` (live), `cluster-only --no-viz` (re-cluster). Trailing flags pass through verbatim. Your agent's own LLM cannot be reused by subprocesses; graphify needs its own backend.
-- `/iflow-graphify` is **off-path**: never auto-dispatched by `/iflow`, `/iflow-start`, or `/iflow-close`. It is the user's call. `/iflow-start` may *suggest* skimming `GRAPH_REPORT.md`; `/iflow-close` may *suggest* a rebuild after large structural changes — neither runs `graphify` automatically.
+- `/iflow-graphify` is **off-path**: never auto-dispatched by `/iflow`, `/iflow-build`, or `/iflow-close`. It is the user's call. `/iflow-build` may *suggest* skimming `GRAPH_REPORT.md`; `/iflow-close` may *suggest* a rebuild after large structural changes — neither runs `graphify` automatically.
 - If `graphify-out/` is not present, ignore graph-related guidance entirely. The integration is opt-in (install with `uv tool install graphifyy`, then `issue-flow update` to register the graphify skill).
 
 <!-- END issue-flow (managed) -->

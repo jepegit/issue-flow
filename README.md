@@ -30,7 +30,7 @@ your-project/
     05-epics/               # Staged epic plans (epic<N>_plan.md)
   .cursor/
     skills/                  # Agent Skills (/iflow, /iflow-pick, /iflow-init,
-                             # /iflow-plan, /iflow-start, /iflow-close, ...)
+                             # /iflow-plan, /iflow-build, /iflow-close, ...)
     rules/
       issueflow-rules.mdc    # Always-on Cursor rule for the workflow
   AGENTS.md                  # Workflow rules (managed block; shared by all editors)
@@ -44,7 +44,7 @@ The Cursor Agent Skills give agents a repeatable flow and appear in the slash me
 
 1. `/iflow-init 42` or `iflow init 42` — pulls GitHub issue #42 into `.issueflows/01-current-issues/` and archives older issues.
 2. `iflow plan` or `/iflow-plan` — drafts `issue<N>_plan.md` (Goal / Constraints / Approach / Files to touch / Test strategy / Open questions) and stops for your confirmation.
-3. `/iflow-start` — reads the confirmed plan and implements it. If no plan file exists, it offers to run `/iflow-plan` first, proceed without a plan, or abort.
+3. `/iflow-build` — reads the confirmed plan and implements it. If no plan file exists, it offers to run `/iflow-plan` first, proceed without a plan, or abort.
 4. `/iflow-close` — runs tests, optionally bumps version with `uv version --bump`, appends a `HISTORY.md` entry (or promotes `[Unreleased]` to a new release section on a bump), updates status files, commits, pushes, and opens a PR.
 5. `/iflow-cleanup` — after the PR merges, switches to the default branch, fast-forwards, prunes, and deletes the merged local branch.
 
@@ -53,7 +53,7 @@ Plus a few off-path commands:
 - `/iflow-pick` — **front door**: when you haven't chosen an issue yet, it helps pick one (parked work in `02-partly-solved-issues/` first, else open GitHub issues ranked by milestone, labels, and similarity to recently solved work), creates the `<N>-slug` branch, and runs `/iflow-init`. Pass `fix` to create a new general-fixes issue. Off-path; never auto-dispatched.
 - `/iflow` — **quick start**: inspects the current issue's state and dispatches to the right linear step automatically. A branch-derived number (`42-fix-login` → `N=42`) is authoritative, so `/iflow` works from a fresh branch too.
 - `/iflow-pause` — park the current issue in `02-partly-solved-issues/` with a **Remaining work** note; optional WIP commit + switch back to the default branch.
-- `/iflow-yolo` — all-in-one chain (`init → plan → start → close`) for small, low-risk issues, with up-front safeguards (refuses on the default branch, refuses with dirty unrelated changes, requires passing tests, single consolidated confirm).
+- `/iflow-yolo` — all-in-one chain (`init → plan → build → close`) for small, low-risk issues, with up-front safeguards (refuses on the default branch, refuses with dirty unrelated changes, requires passing tests, single consolidated confirm).
 - `/iflow-fix` — interactive iterative-fixes session: creates one GitHub issue + long-lived branch, then loops over many small fixes (each gets a short plan, implemented only on confirmation and recorded in `issue<N>_status.md`), ending with `/iflow-close`. Coexists with `/iflow-pick fix` (the one-shot setup). Off-path; never auto-dispatched.
 - `/iflow-issue` — create **one well-specified normal GitHub issue** (context / spec / acceptance criteria), then optionally branch + `/iflow-init` into the standard lifecycle. Use `/iflow-issue epic …` for an epic anchor. Off-path; never auto-dispatched.
 - `/iflow-status` — **read-only** overview of where every issue stands: the local tracking state (focus / parked / solved) plus open GitHub issues cross-referenced against it. Pass `local` to skip the GitHub query. Changes nothing; off-path; never auto-dispatched.
@@ -65,7 +65,7 @@ Plus a few off-path commands:
 
 See the [docs](https://issue-flow.readthedocs.io/) for worked recipes (review → cycle, epic publish, cycle queues).
 
-The **Agent Skills** under `.cursor/skills/` carry the workflows for on-demand use with `/iflow-pick`, `/iflow`, `/iflow-init`, `/iflow-plan`, `/iflow-start`, `/iflow-pause`, `/iflow-close`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-status`, `/iflow-epic`, `/iflow-cycle`, `/iflow-review`, `/iflow-doctor`, `/iflow-archive`, `@iflow-version-bump` when you need only the bump steps, or `@iflow-history-update` when you need only the changelog update (see [Cursor Agent Skills](https://cursor.com/help/customization/skills)).
+The **Agent Skills** under `.cursor/skills/` carry the workflows for on-demand use with `/iflow-pick`, `/iflow`, `/iflow-init`, `/iflow-plan`, `/iflow-build`, `/iflow-pause`, `/iflow-close`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-status`, `/iflow-epic`, `/iflow-cycle`, `/iflow-review`, `/iflow-doctor`, `/iflow-archive`, `@iflow-version-bump` when you need only the bump steps, or `@iflow-history-update` when you need only the changelog update (see [Cursor Agent Skills](https://cursor.com/help/customization/skills)).
 
 ## Prerequisites
 
@@ -142,7 +142,7 @@ loads `.env` from the project root before invoking graphify — or export it in
 your shell environment. Cursor's own LLM is not available to subprocesses, so
 graphify needs its own backend. Other subcommands (`watch`, `cluster-only`, …)
 pass through too; trailing flags forward verbatim.
-- The scaffolded rules and `/iflow-start` mention `graphify-out/GRAPH_REPORT.md`
+- The scaffolded rules and `/iflow-build` mention `graphify-out/GRAPH_REPORT.md`
 as a recommended pre-read when the file exists. `/iflow-graphify` is **off-path** —
 `/iflow` never auto-dispatches to it.
 
@@ -197,7 +197,7 @@ That's it. Open the project in Cursor and start with `/iflow` — or step throug
 
 1. `/iflow-init 42` — pulls GitHub issue #42 into `.issueflows/01-current-issues/` and archives older issues.
 2. `/iflow-plan` — drafts `issue<N>_plan.md` (Goal / Constraints / Approach / Files to touch / Test strategy / Open questions) and stops for your confirmation.
-3. `/iflow-start` — reads the confirmed plan and implements it.
+3. `/iflow-build` — reads the confirmed plan and implements it.
 4. `/iflow-close` — runs tests, optionally bumps version, appends a `HISTORY.md` entry, updates status files, commits, pushes, and opens a PR.
 5. `/iflow-cleanup` — after the PR merges, switches to the default branch, fast-forwards, prunes, and deletes the merged local branch.
 
@@ -206,7 +206,7 @@ Plus a few off-path commands (never auto-dispatched):
 - `/iflow-pick` — **front door**: helps pick the next issue (parked work first, else open GitHub issues ranked by milestone, labels, and similarity to recent work), creates the branch, and runs `/iflow-init`.
 - `/iflow` — **quick start**: inspects the current issue's state and dispatches to the right linear step automatically (a branch-derived number like `42-fix-login` is authoritative).
 - `/iflow-pause` — park the current issue with a **Remaining work** note.
-- `/iflow-yolo` — all-in-one chain (`init → plan → start → close`) for small, low-risk issues, with up-front safeguards and a single consolidated confirm.
+- `/iflow-yolo` — all-in-one chain (`init → plan → build → close`) for small, low-risk issues, with up-front safeguards and a single consolidated confirm.
 - `/iflow-fix` — interactive iterative-fixes session: one GitHub issue + long-lived branch, many small confirmed fixes.
 - `/iflow-issue` — create one well-specified normal GitHub issue; optional branch + `/iflow-init`.
 - `/iflow-status` — **read-only** overview of where every issue stands, locally and on GitHub.

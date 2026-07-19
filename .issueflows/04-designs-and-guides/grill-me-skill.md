@@ -23,7 +23,7 @@ custom modes should be able to include it.
   time, each with a recommended answer; explore the code/issue/designs instead of
   asking when answerable; resolve the decision tree, then feed the agreed
   decisions into `issue<N>_plan.md`. It questions and aligns — it does not write
-  code (that stays with `/iflow-start`).
+  code (that stays with `/iflow-build`).
 
 ## On-by-default toggle (mirrors caveman #91)
 

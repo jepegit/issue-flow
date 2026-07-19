@@ -1,10 +1,10 @@
 # Smart dispatcher for the issue-flow lifecycle
 
-`/iflow` inspects the state of the focus issue and **dispatches** to the next logical command in the linear lifecycle — `/iflow-init`, `/iflow-plan`, `/iflow-start`, or `/iflow-close`. It never does work those commands don't already do; it just picks the right one for you.
+`/iflow` inspects the state of the focus issue and **dispatches** to the next logical command in the linear lifecycle — `/iflow-init`, `/iflow-plan`, `/iflow-build`, or `/iflow-close`. It never does work those commands don't already do; it just picks the right one for you.
 
 Off-path commands (`/iflow-pick`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-graphify`) are **not** auto-dispatched. Invoke them directly when you need them. (`/iflow-pick` is the front door *before* `/iflow-init` — use it when you have not chosen an issue yet. `/iflow-fix` runs an interactive iterative-fixes session; while one is active, drive it with `/iflow-fix` + `/iflow-close`, not `/iflow`. `/iflow-issue` creates one well-specified normal GitHub issue.)
 
-Long-lived design docs, design decisions, and project good-practices live under `{{ issueflows_dir }}/{{ designs_folder }}/`. The downstream commands (`/iflow-plan`, `/iflow-start`, `/iflow-close`) read from and add to that folder as they run; `/iflow` itself does not touch it.
+Long-lived design docs, design decisions, and project good-practices live under `{{ issueflows_dir }}/{{ designs_folder }}/`. The downstream commands (`/iflow-plan`, `/iflow-build`, `/iflow-close`) read from and add to that folder as they run; `/iflow` itself does not touch it.
 
 {% include "skills/_model_directive.md.j2" %}
 
@@ -17,7 +17,7 @@ Optional free-form text after the command. `/iflow` forwards the raw trailing te
 - `/iflow` — dispatch with no extra args.
 - `/iflow 42` — forwards `42` (useful when state resolves to `/iflow-init`).
 - `/iflow bump minor` — forwards `bump minor` (meaningful when state resolves to `/iflow-close`; otherwise the downstream command will ignore or ask).
-- `/iflow stick to the existing logger` — forwards the hint (useful when state resolves to `/iflow-plan` or `/iflow-start`).
+- `/iflow stick to the existing logger` — forwards the hint (useful when state resolves to `/iflow-plan` or `/iflow-build`).
 
 ## Steps
 
@@ -43,7 +43,7 @@ Optional free-form text after the command. `/iflow` forwards the raw trailing te
    |-------|-----------|-------------|------------------|
    | A | No `issue<N>_original.md` for the focus issue (or no focus issue at all) | `/iflow-init` | "no `*_original.md` yet" |
    | B | `issue<N>_original.md` exists, no `issue<N>_plan.md` | `/iflow-plan` | "no plan file yet" |
-   | C | Plan exists, and either no status file or the status file does **not** contain `- [x] Done` | `/iflow-start` | "plan is confirmed but status is not `- [x] Done`" |
+   | C | Plan exists, and either no status file or the status file does **not** contain `- [x] Done` | `/iflow-build` | "plan is confirmed but status is not `- [x] Done`" |
    | D | Status file contains `- [x] Done` (case-insensitive on `done`) | `/iflow-close` | "status marks the issue `- [x] Done`" |
 
    Use the first row whose condition matches. Never dispatch to more than one command in a single `/iflow` run.
@@ -54,7 +54,7 @@ Optional free-form text after the command. `/iflow` forwards the raw trailing te
    /iflow -> /iflow-plan  (issue #42: no plan file yet)
    ```
 
-   Then run the exact same logic as the chosen command (follow `{{ agent_dir }}/commands/<command>.md`), forwarding the user's trailing text verbatim. The downstream command keeps all its own checkpoints (plan confirmation in `/iflow-plan`, `/iflow-start`'s soft stop when the plan is missing, `/iflow-close`'s unrelated-changes prompt, etc.).
+   Then run the exact same logic as the chosen command (follow `{{ agent_dir }}/commands/<command>.md`), forwarding the user's trailing text verbatim. The downstream command keeps all its own checkpoints (plan confirmation in `/iflow-plan`, `/iflow-build`'s soft stop when the plan is missing, `/iflow-close`'s unrelated-changes prompt, etc.).
 
 3. **Report.** Summary should include:
    - the focus issue number and how it was resolved (branch-derived / only group / user-specified)
@@ -83,7 +83,7 @@ Optional free-form text after the command. `/iflow` forwards the raw trailing te
 - `/iflow` after `/iflow-init 42` has run and `issue42_original.md` exists, but there is no `issue42_plan.md` yet
   -> dispatches to `/iflow-plan`.
 - `/iflow` after `/iflow-plan` has written and the user confirmed `issue42_plan.md`, with no `issue42_status.md` or an unchecked `- [ ] Done`
-  -> dispatches to `/iflow-start`.
+  -> dispatches to `/iflow-build`.
 - `/iflow bump patch` after implementation is done and `issue42_status.md` contains `- [x] Done`
   -> dispatches to `/iflow-close bump patch`.
 - `/iflow` on branch `99-partial-work` after the issue was paused (files now under `{{ partly_solved_folder }}/`)

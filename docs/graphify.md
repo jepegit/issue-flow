@@ -26,7 +26,7 @@ API key in `.env` for the optional `extract` pass; see below.)
   LLM is not available to subprocesses, so graphify needs its own backend.
   Other subcommands (`watch`, `cluster-only`, …) pass through too; trailing
   flags forward verbatim.
-- The scaffolded rules and `/iflow-start` mention `graphify-out/GRAPH_REPORT.md`
+- The scaffolded rules and `/iflow-build` mention `graphify-out/GRAPH_REPORT.md`
   as a recommended pre-read when the file exists. `/iflow-graphify` is
   **off-path** — `/iflow` never auto-dispatches to it.
 

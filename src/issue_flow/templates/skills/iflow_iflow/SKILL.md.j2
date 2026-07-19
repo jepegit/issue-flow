@@ -2,13 +2,13 @@
 name: iflow
 description: >-
   Smart dispatcher: detect where the focus issue stands and dispatch to
-  /iflow-init, /iflow-plan, /iflow-start, or /iflow-close.
+  /iflow-init, /iflow-plan, /iflow-build, or /iflow-close.
 disable-model-invocation: true
 ---
 
 # issue-flow — iflow smart dispatcher (`/iflow`)
 
-Follow this skill to run **the right next step** in the issue-flow lifecycle: it detects state and routes to `/iflow-init`, `/iflow-plan`, `/iflow-start`, or `/iflow-close`, forwarding trailing args verbatim.{% if commands_supported %} Matches `{{ agent_dir }}/{{ commands_dir }}/iflow.md`.{% endif %}
+Follow this skill to run **the right next step** in the issue-flow lifecycle: it detects state and routes to `/iflow-init`, `/iflow-plan`, `/iflow-build`, or `/iflow-close`, forwarding trailing args verbatim.{% if commands_supported %} Matches `{{ agent_dir }}/{{ commands_dir }}/iflow.md`.{% endif %}
 
 Do **not** use this skill for `/iflow-pick`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-review`, or other off-path helpers. Those are explicit-only commands. (`/iflow-pick` is the front door *before* `/iflow-init`, for when no issue has been chosen yet. `/iflow-fix` runs an interactive iterative-fixes session, driven by `/iflow-fix` + `/iflow-close`. `/iflow-issue` creates one well-specified normal GitHub issue.)
 
@@ -41,7 +41,7 @@ Do **not** use this skill for `/iflow-pick`, `/iflow-pause`, `/iflow-cleanup`, `
 
    - **A** — no `issue<N>_original.md` (or no focus issue) → dispatch to **`/iflow-init`**. Reason: "no `*_original.md` yet".
    - **B** — original exists, no `issue<N>_plan.md` → dispatch to **`/iflow-plan`**. Reason: "no plan file yet".
-   - **C** — plan exists, and status file is missing or its `- [x] Done` is unchecked → dispatch to **`/iflow-start`**. Reason: "plan is confirmed but status is not `- [x] Done`".
+   - **C** — plan exists, and status file is missing or its `- [x] Done` is unchecked → dispatch to **`/iflow-build`**. Reason: "plan is confirmed but status is not `- [x] Done`".
 {% if "iflow_close" in included_skills %}   - **D** — status file contains `- [x] Done` (case-insensitive on `done`) → dispatch to **`/iflow-close`**. Reason: "status marks the issue `- [x] Done`".
 {% else %}   - **D** — status file contains `- [x] Done` (case-insensitive on `done`) → this mode has no `/iflow-close`; report that the issue is done and move its `issue<N>_*` files to `{{ issueflows_dir }}/{{ solved_folder }}/`.
 {% endif %}

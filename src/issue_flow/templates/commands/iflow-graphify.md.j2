@@ -59,7 +59,7 @@ See the [graphify CLI reference](https://iflow-graphify.net/iflow-graphify-cli-c
 
 ## Constraints
 
-- Do **not** run `/iflow-graphify` automatically from `/iflow-start`, `/iflow-close`, or `/iflow`. The user opts in.
+- Do **not** run `/iflow-graphify` automatically from `/iflow-build`, `/iflow-close`, or `/iflow`. The user opts in.
 - Do **not** commit `graphify-out/cost.json` or `graphify-out/manifest.json`; both are local-only. The graph itself (`graph.json`, `graph.html`, `GRAPH_REPORT.md`) is fine to commit so teammates start with a map.
 - Long-running modes (`watch`) keep the process running; ask the user before launching them in an agent context.
 

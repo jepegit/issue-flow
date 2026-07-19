@@ -45,7 +45,7 @@ Optional free-form text after the command:
 {% if label_flows and "iflow-yolo" in included_commands %}
 6. **Label-driven yolo flow.** If the chosen issue carries the **`{{ yolo_label }}`** label (case-insensitive; check the `labels` field from `gh issue list`, or `gh issue view <n> --json labels` when the issue was given directly), the issue is marked for the hands-off `/iflow-yolo` chain:
    - Announce it: "issue #<N> has the `{{ yolo_label }}` label → running it through `/iflow-yolo`".
-   - Fold `/iflow-yolo`'s single consolidated confirm into the pick confirmation — one prompt total, listing the branch to create and the full chain (`init → plan → start → close yolo`). Require an explicit yes; any other answer falls back to the normal (non-yolo) flow or aborts, per the user's answer.
+   - Fold `/iflow-yolo`'s single consolidated confirm into the pick confirmation — one prompt total, listing the branch to create and the full chain (`init → plan → build → close yolo`). Require an explicit yes; any other answer falls back to the normal (non-yolo) flow or aborts, per the user's answer.
    - On yes: run Phase 2 (create the branch) as usual, then follow `{{ agent_dir }}/commands/iflow-yolo.md` **instead of** the plain Phase 3 handoff. The yolo preflight (clean tree, passing tests) still runs and can still abort; do not re-ask its consolidated confirm — the combined prompt above already covered it.
    - This routing is configurable: `label_flows = false` under `[issueflow]` in `{{ issueflows_dir }}/config.toml` turns it off, and `yolo_label` renames the trigger label (re-run `issue-flow update` after changing either).
 {% endif %}
@@ -70,7 +70,7 @@ Optional free-form text after the command:
 
 ## Constraints
 
-- **Off-path.** Never auto-dispatch `/iflow-pick` from `/iflow`, `/iflow-start`, or `/iflow-close`. The user opts in.
+- **Off-path.** Never auto-dispatch `/iflow-pick` from `/iflow`, `/iflow-build`, or `/iflow-close`. The user opts in.
 - **Never create GitHub issues or branches without explicit confirmation.** Show what will be created first.
 - **Respect git safety norms.** Branch off the detected default, never force-push, never delete branches from this command.
 - **Phase B is out of scope** for this version: no automated sub-issue creation, no parking of generated siblings under `{{ partly_solved_folder }}/`. `/iflow-pick` only *mentions* the option (tracked as a follow-up to issue #63).

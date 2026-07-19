@@ -940,7 +940,7 @@ def _commented_issueflow_table(
     table["cycle_max_issues"] = cycle_max_issues
     table.add(
         tomlkit.comment(
-            "When true, /iflow-start (and /iflow-fix end) chain into "
+            "When true, /iflow-build (and /iflow-fix end) chain into "
             "/iflow-close automatically once work is ready to ship "
             "(default false). Close keeps its own confirms."
         )
@@ -965,7 +965,7 @@ def _commented_issueflow_table(
     table.add(
         tomlkit.comment(
             "When ruff is present, run ruff check --fix + ruff format from "
-            "/iflow-start and /iflow-close (true/false)."
+            "/iflow-build and /iflow-close (true/false)."
         )
     )
     table["ruff_autofix"] = ruff_autofix

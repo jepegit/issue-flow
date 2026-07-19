@@ -41,7 +41,7 @@ Optional free-form text after the command:
    - For the focus group, read the title from `issue<n>_original.md` and classify its **lifecycle stage** using the same file-presence logic as `/iflow` (first match wins):
      - **init** — no `issue<n>_original.md` yet → next step `/iflow-init`.
      - **plan** — original exists, no `issue<n>_plan.md` → next step `/iflow-plan`.
-     - **start** — plan exists, status file missing or its `- [x] Done` is unchecked → next step `/iflow-start`.
+     - **build** — plan exists, status file missing or its `- [x] Done` is unchecked → next step `/iflow-build`.
      - **close** — a status file contains `- [x] Done` (case-insensitive on `done`) → next step `/iflow-close`.
    - Show the stage and the suggested next step.
 
@@ -65,7 +65,7 @@ Optional free-form text after the command:
 ## Constraints
 
 - **Read-only.** `/iflow-status` writes nothing, moves no files, and never creates branches, commits, or GitHub issues. It only reads `{{ issueflows_dir }}/` and runs read-only `git` / `gh` queries.
-- **Off-path.** Never auto-dispatch `/iflow-status` from `/iflow`, `/iflow-start`, or `/iflow-close`. The user opts in.
+- **Off-path.** Never auto-dispatch `/iflow-status` from `/iflow`, `/iflow-build`, or `/iflow-close`. The user opts in.
 - **Degrade gracefully.** Missing `gh`, no network, or an empty `{{ issueflows_dir }}/` must still produce a useful local report rather than an error.
 - Do not run tests, package managers, or any command with side effects.
 

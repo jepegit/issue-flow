@@ -199,7 +199,7 @@ The flag is only honored when the `grill_me` skill is part of the active mode.
 Issue labels can select the flow: when an issue picked via `/iflow-pick`
 carries the **`yolo`** label, it is routed through the hands-off `/iflow-yolo`
 chain (one combined confirmation covering the branch and the whole
-`init → plan → start → close yolo` run, which merges the PR and pulls the
+`init → plan → build → close yolo` run, which merges the PR and pulls the
 default branch at the end). This is **on by default** and controlled by two
 keys under `[issueflow]` in `.issueflows/config.toml`:
 
@@ -252,7 +252,7 @@ Lifecycle skills can be tuned with additional `[issueflow]` keys (baked at
 | `cycle_max_issues` | `10` | Default `/iflow-cycle` queue safety cap (raise per run with `max:<n>`) |
 | `confirm_version_bump` | `false` | When `true`, non-yolo close asks once about a version bump if none was requested |
 | `ruff_autofix` | `true` | When ruff is present, run `ruff check --fix` + `ruff format` from start/close |
-| `auto_close` | `false` | When `true`, `/iflow-start` (and `/iflow-fix` end) chain into `/iflow-close` when work is ready to ship; close keeps its own confirms |
+| `auto_close` | `false` | When `true`, `/iflow-build` (and `/iflow-fix` end) chain into `/iflow-close` when work is ready to ship; close keeps its own confirms |
 | `confirm_changelog_update` | `false` | When `true`, `/iflow-close` shows the changelog diff and confirms once before writing (decline **stops** close); `false` writes without asking so the bullet lands in the PR (`nohistory` still skips) |
 
 ```toml

@@ -1,6 +1,6 @@
 # Plan the current issue before any code is written
 
-The issue should already be captured in `{{ issueflows_dir }}/{{ current_issues_folder }}/issue<N>_original.md` (via `/iflow-init`). Use this command to write a structured plan and get explicit user confirmation **before** `/iflow-start` starts editing code.
+The issue should already be captured in `{{ issueflows_dir }}/{{ current_issues_folder }}/issue<N>_original.md` (via `/iflow-init`). Use this command to write a structured plan and get explicit user confirmation **before** `/iflow-build` starts editing code.
 
 {% include "skills/_model_directive.md.j2" %}
 
@@ -76,16 +76,16 @@ Optional free-form text after the command. Examples:
    - Anything that needs the user's call before coding.
    ```
 
-   Keep it terse but specific. Link to files with markdown links when helpful. If the plan expects to **produce** a design doc / decision record under `{{ issueflows_dir }}/{{ designs_folder }}/`, call that out explicitly (e.g. in **Files to touch**) so `/iflow-start` knows to create it.
+   Keep it terse but specific. Link to files with markdown links when helpful. If the plan expects to **produce** a design doc / decision record under `{{ issueflows_dir }}/{{ designs_folder }}/`, call that out explicitly (e.g. in **Files to touch**) so `/iflow-build` knows to create it.
 
 4. **Scope check.** If the plan is broad (many unrelated files, several independent deliverables, or mixes refactors with feature work), **propose splitting** into smaller issues or phased PRs and ask the user before continuing.
 
 5. **Confirm with the user.** Present the plan and **stop**. Ask one of:
-   - **Accept** — the plan is good; next run `/iflow-start` to implement it.
+   - **Accept** — the plan is good; next run `/iflow-build` to implement it.
    - **Revise** — call out sections to change; update `issue<N>_plan.md` in place and re-confirm.
    - **Abort** — remove `issue<N>_plan.md` (with the user's OK) or leave it as a draft.
 
-   Do **not** proceed to implementation from `/iflow-plan`. That belongs to `/iflow-start`.
+   Do **not** proceed to implementation from `/iflow-plan`. That belongs to `/iflow-build`.
 
 6. **If `issue<N>_plan.md` already exists.** Do not overwrite silently. Ask whether to:
    - **Update in place** (replace after the user sees the new content).
@@ -104,4 +104,4 @@ Report:
 
 - Read-only on source code; `/iflow-plan` writes **only** the plan file under `{{ issueflows_dir }}/{{ current_issues_folder }}/`.
 - Do not move files between `01-` / `02-` / `03-` folders from `/iflow-plan`.
-- Do not run tests or package managers; that is `/iflow-start` and `/iflow-close`.
+- Do not run tests or package managers; that is `/iflow-build` and `/iflow-close`.
