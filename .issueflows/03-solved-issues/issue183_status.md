@@ -1,6 +1,6 @@
 # Issue #183 — status
 
-- [ ] Done
+- [x] Done
 
 ## What's done
 
@@ -9,7 +9,8 @@
 - Registries, `RETIRED_*`, `step_profiles`, `modes.toml`, `tracking` stage.
 - Docs/README/AGENTS/rules/workflow cross-links; design note.
 - Tests + ruff green (`544` passed).
+- HISTORY.md Unreleased bullet; landed via `/iflow-close`.
 
 ## Remaining work
 
-- `/iflow-close` — HISTORY, archive, PR polish.
+- None.
