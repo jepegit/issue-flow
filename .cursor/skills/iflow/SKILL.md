@@ -89,6 +89,8 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
    - state **D** + PR likely merged → "after the PR merges, run `/iflow-cleanup`"
    - mid-stream context switch needed → "to park this work, run `/iflow-pause`"
    - tiny fix that would benefit from a single-shot chain → "consider `/iflow-yolo` next time"
+   - `graphify-out/GRAPH_REPORT.md` looks stale (large refactor, new modules) → "consider `/iflow-graphify` to refresh the graph"
+
 
 ## Constraints
 

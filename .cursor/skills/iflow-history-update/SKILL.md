@@ -54,6 +54,7 @@ Keep scope tight to what this step requires.
 3. Append the bullet to the end of the Unreleased bullet list. Preserve existing formatting (blank lines, list markers). Do not reorder existing entries.
 4. Show the user the proposed diff of `HISTORY.md` and confirm once before writing.
 
+
 ### B. Version bump happened — promote `[Unreleased]` to a new release section
 
 Only runs when step 2 of `/iflow-close` actually changed `pyproject.toml` to a new version `NEW_VERSION`.
@@ -87,5 +88,6 @@ When `/iflow-close` reaches its commit step:
 - Read/write only `HISTORY.md` at the project root. Do not touch any other file from this skill.
 - Never create `HISTORY.md` from scratch — scaffolding a starter changelog is out of scope for `issue-flow init` / `update`.
 - If the confirm prompt in mode A or mode B is declined, leave `HISTORY.md` untouched and print a short "skipped changelog update" note. The rest of `/iflow-close` continues normally.
+
 - Preserve existing formatting conventions (bullet style, sentence case, trailing punctuation). Match the style of the nearest existing entries when in doubt.
 - The new bullet's `(#<N>)` suffix is always GitHub issue `#N`, matching the focus issue's number in `.issueflows/01-current-issues/issue<N>_original.md`.

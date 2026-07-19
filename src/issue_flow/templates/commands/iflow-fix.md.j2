@@ -62,7 +62,7 @@ If a proposed "fix" turns out to be a substantial feature or touches many unrela
 
 ## Phase 3 — finish
 
-When the user is done fixing, tell them to run **`/iflow-close`** to land the session (tests, optional version bump, status update, commit, push, PR). Do **not** auto-run it. After the PR merges, remind them to run `/iflow-cleanup`.
+{% if auto_close and "iflow_close" in included_skills %}When the user is done fixing, follow `{{ agent_dir }}/skills/iflow-close/SKILL.md` to land the session (close keeps its own confirms).{% else %}When the user is done fixing, tell them to run **`/iflow-close`** to land the session (tests, optional version bump, status update, commit, push, PR). Do **not** auto-run it.{% endif %}{% if remind_cleanup %} After the PR merges, remind them to run `/iflow-cleanup`.{% endif %}
 
 ## Constraints
 

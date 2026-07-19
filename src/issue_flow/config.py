@@ -11,17 +11,27 @@ import os
 from issue_flow import modes as modes_module
 from issue_flow.editors import DEFAULT_EDITOR, EditorProfile, get_profile
 from issue_flow.modes import (
+    DEFAULT_CONFIRM_VERSION_BUMP,
+    DEFAULT_AUTO_CLOSE,
     DEFAULT_CHECKS_WATCH_MINUTES,
+    DEFAULT_CONFIRM_CHANGELOG_UPDATE,
+    DEFAULT_AUTO_SWITCHBACK,
+    DEFAULT_CYCLE_MAX_ISSUES,
     DEFAULT_DEEP_MODEL_LABEL,
     DEFAULT_FAST_MODEL_LABEL,
     DEFAULT_LABEL_FLOWS,
     DEFAULT_LINGUIST_ATTRIBUTES,
     DEFAULT_MODE,
     DEFAULT_MODEL_LABEL_FLOWS,
+    DEFAULT_PR_MERGE_METHOD,
+    DEFAULT_REMIND_CLEANUP,
+    DEFAULT_RUFF_AUTOFIX,
     DEFAULT_SKILL_LEVEL,
     DEFAULT_STEP_DIRECTIVES,
+    DEFAULT_SUGGEST_GRAPHIFY,
     DEFAULT_YOLO_LABEL,
     Mode,
+    normalize_pr_merge_method,
 )
 from issue_flow import step_profiles as step_profiles_module
 
@@ -271,6 +281,94 @@ class Settings:
             return env.strip()
         return DEFAULT_SKILL_LEVEL
 
+    def resolve_remind_cleanup(self, project_root: Path) -> bool:
+        """Resolve whether skills remind the user to run ``/iflow-cleanup``."""
+        persisted = modes_module.read_remind_cleanup(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        return _env_flag("ISSUEFLOW_REMIND_CLEANUP", default=DEFAULT_REMIND_CLEANUP)
+
+    def resolve_suggest_graphify(self, project_root: Path) -> bool:
+        """Resolve whether skills soft-suggest graphify skim/rebuild."""
+        persisted = modes_module.read_suggest_graphify(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        return _env_flag("ISSUEFLOW_SUGGEST_GRAPHIFY", default=DEFAULT_SUGGEST_GRAPHIFY)
+
+    def resolve_auto_switchback(self, project_root: Path) -> bool:
+        """Resolve whether ``/iflow-close`` switches back to the default branch."""
+        persisted = modes_module.read_auto_switchback(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        return _env_flag("ISSUEFLOW_AUTO_SWITCHBACK", default=DEFAULT_AUTO_SWITCHBACK)
+
+    def resolve_pr_merge_method(self, project_root: Path) -> str:
+        """Resolve the ``gh pr merge`` method for yolo close (squash/merge/rebase)."""
+        persisted = modes_module.read_pr_merge_method(self.config_path(project_root))
+        if persisted:
+            return persisted
+        normalized = normalize_pr_merge_method(os.getenv("ISSUEFLOW_PR_MERGE_METHOD"))
+        if normalized:
+            return normalized
+        return DEFAULT_PR_MERGE_METHOD
+
+    def resolve_cycle_max_issues(self, project_root: Path) -> int:
+        """Resolve the default ``/iflow-cycle`` queue safety cap.
+
+        Order: persisted ``.issueflows/config.toml [issueflow].cycle_max_issues`` >
+        ``ISSUEFLOW_CYCLE_MAX_ISSUES`` env/``.env`` > ``10``. Non-positive or
+        unparseable values fall through to the next layer, then the default.
+        """
+        persisted = modes_module.read_cycle_max_issues(self.config_path(project_root))
+        if persisted is not None and persisted > 0:
+            return persisted
+        env = os.getenv("ISSUEFLOW_CYCLE_MAX_ISSUES")
+        if env and env.strip():
+            try:
+                value = int(env.strip())
+            except ValueError:
+                value = 0
+            if value > 0:
+                return value
+        return DEFAULT_CYCLE_MAX_ISSUES
+
+    def resolve_confirm_version_bump(self, project_root: Path) -> bool:
+        """Resolve whether non-yolo close asks about a version bump when unset."""
+        persisted = modes_module.read_confirm_version_bump(
+            self.config_path(project_root)
+        )
+        if persisted is not None:
+            return persisted
+        return _env_flag(
+            "ISSUEFLOW_CONFIRM_VERSION_BUMP", default=DEFAULT_CONFIRM_VERSION_BUMP
+        )
+
+    def resolve_ruff_autofix(self, project_root: Path) -> bool:
+        """Resolve whether start/close run ``ruff check --fix`` / ``ruff format``."""
+        persisted = modes_module.read_ruff_autofix(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        return _env_flag("ISSUEFLOW_RUFF_AUTOFIX", default=DEFAULT_RUFF_AUTOFIX)
+
+    def resolve_auto_close(self, project_root: Path) -> bool:
+        """Resolve whether start/fix chain into ``/iflow-close`` when ready to ship."""
+        persisted = modes_module.read_auto_close(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        return _env_flag("ISSUEFLOW_AUTO_CLOSE", default=DEFAULT_AUTO_CLOSE)
+
+    def resolve_confirm_changelog_update(self, project_root: Path) -> bool:
+        """Resolve whether ``/iflow-close`` confirms before writing the changelog."""
+        persisted = modes_module.read_confirm_changelog_update(
+            self.config_path(project_root)
+        )
+        if persisted is not None:
+            return persisted
+        return _env_flag(
+            "ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE",
+            default=DEFAULT_CONFIRM_CHANGELOG_UPDATE,
+        )
+
     def resolve_canonical_format(self, project_root: Path) -> bool:
         """Return whether the project uses the canonical agent store in git."""
         persisted = modes_module.read_canonical_format(self.config_path(project_root))
@@ -321,6 +419,16 @@ class Settings:
                 parsed = 0
             if parsed > 0:
                 checks_watch_minutes = parsed
+        cycle_max_raw = os.getenv("ISSUEFLOW_CYCLE_MAX_ISSUES")
+        cycle_max_issues = DEFAULT_CYCLE_MAX_ISSUES
+        if cycle_max_raw and cycle_max_raw.strip():
+            try:
+                parsed_cycle = int(cycle_max_raw.strip())
+            except ValueError:
+                parsed_cycle = 0
+            if parsed_cycle > 0:
+                cycle_max_issues = parsed_cycle
+        pr_merge = normalize_pr_merge_method(os.getenv("ISSUEFLOW_PR_MERGE_METHOD"))
         return {
             "mode": mode.strip() if mode and mode.strip() else DEFAULT_MODE,
             "skill_level": (
@@ -358,6 +466,28 @@ class Settings:
             "linguist_attributes": _env_flag(
                 "ISSUEFLOW_LINGUIST_ATTRIBUTES",
                 default=DEFAULT_LINGUIST_ATTRIBUTES,
+            ),
+            "remind_cleanup": _env_flag(
+                "ISSUEFLOW_REMIND_CLEANUP", default=DEFAULT_REMIND_CLEANUP
+            ),
+            "suggest_graphify": _env_flag(
+                "ISSUEFLOW_SUGGEST_GRAPHIFY", default=DEFAULT_SUGGEST_GRAPHIFY
+            ),
+            "auto_switchback": _env_flag(
+                "ISSUEFLOW_AUTO_SWITCHBACK", default=DEFAULT_AUTO_SWITCHBACK
+            ),
+            "pr_merge_method": pr_merge or DEFAULT_PR_MERGE_METHOD,
+            "cycle_max_issues": cycle_max_issues,
+            "confirm_version_bump": _env_flag(
+                "ISSUEFLOW_CONFIRM_VERSION_BUMP", default=DEFAULT_CONFIRM_VERSION_BUMP
+            ),
+            "ruff_autofix": _env_flag(
+                "ISSUEFLOW_RUFF_AUTOFIX", default=DEFAULT_RUFF_AUTOFIX
+            ),
+            "auto_close": _env_flag("ISSUEFLOW_AUTO_CLOSE", default=DEFAULT_AUTO_CLOSE),
+            "confirm_changelog_update": _env_flag(
+                "ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE",
+                default=DEFAULT_CONFIRM_CHANGELOG_UPDATE,
             ),
         }
 
@@ -422,6 +552,17 @@ class Settings:
                 self.config_path(project_root)
             ),
             "skill_level": skill_level,
+            "remind_cleanup": self.resolve_remind_cleanup(project_root),
+            "suggest_graphify": self.resolve_suggest_graphify(project_root),
+            "auto_switchback": self.resolve_auto_switchback(project_root),
+            "pr_merge_method": self.resolve_pr_merge_method(project_root),
+            "cycle_max_issues": self.resolve_cycle_max_issues(project_root),
+            "confirm_version_bump": self.resolve_confirm_version_bump(project_root),
+            "ruff_autofix": self.resolve_ruff_autofix(project_root),
+            "auto_close": self.resolve_auto_close(project_root),
+            "confirm_changelog_update": self.resolve_confirm_changelog_update(
+                project_root
+            ),
         }
 
 

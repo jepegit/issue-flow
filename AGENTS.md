@@ -379,8 +379,9 @@ When an editor workspace contains **multiple sibling repositories**, each with i
 ### Branch hygiene
 
 - Do issue work on an **issue branch** named like `<N>-<short-slug>`, not on the default branch.
-- Before starting or continuing work on an issue branch, run `git fetch --prune` and check where the branch sits relative to `origin/<default>` (ahead/behind). A branch that is "several commits ahead" after a merged PR usually means the PR was squash-merged and the local branch is stale.
-- **Assume squash-merges on GitHub.** After a PR merges: run **`/iflow-cleanup`** — it switches to the default branch, runs `git pull --ff-only`, `git fetch --prune`, and deletes merged local branches with `git branch -d <branch>` under a single consolidated confirm (never `-D` automatically). `/iflow-close` no longer does this step itself.
+- Before starting or continuing work on an issue branch, run `git fetch --prune` and check where the branch sits relative to `origin/<default>` (ahead/behind). A branch that is "several commits ahead" after a merged PR usually means the PR was merged (this project uses **`squash`**) and the local branch is stale.
+- **Assume `squash` merges on GitHub.** After a PR merges: run **`/iflow-cleanup`** — it switches to the default branch, runs `git pull --ff-only`, `git fetch --prune`, and deletes merged local branches with `git branch -d <branch>` under a single consolidated confirm (never `-D` automatically). `/iflow-close` no longer does this step itself.
+
 - If an issue is already archived under `.issueflows/02-partly-solved-issues` or `.issueflows/03-solved-issues`, the matching local branch is stale; don't resume work on it silently — switch back to the default branch and, if the issue really needs re-opening, do it deliberately through `/iflow-init` (which will ask for a second confirmation).
 
 

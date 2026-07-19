@@ -52,6 +52,18 @@ DEFAULT_FAST_MODEL_LABEL = "fast"
 # Optional managed `.gitattributes` for GitHub Linguist (opt-in; default off).
 DEFAULT_LINGUIST_ATTRIBUTES = False
 
+# Skill-behaviour knobs (baked into templates on ``issue-flow update``).
+DEFAULT_REMIND_CLEANUP = True
+DEFAULT_SUGGEST_GRAPHIFY = True
+DEFAULT_AUTO_SWITCHBACK = True
+DEFAULT_PR_MERGE_METHOD = "squash"
+ALLOWED_PR_MERGE_METHODS = frozenset({"squash", "merge", "rebase"})
+DEFAULT_CYCLE_MAX_ISSUES = 10
+DEFAULT_CONFIRM_VERSION_BUMP = False
+DEFAULT_RUFF_AUTOFIX = True
+DEFAULT_AUTO_CLOSE = False
+DEFAULT_CONFIRM_CHANGELOG_UPDATE = True
+
 # GitHub sync defaults (``.issueflows/`` folder → labels / milestones).
 DEFAULT_SYNC_ENABLED = True
 DEFAULT_SYNC_LABEL_PREFIX = "status:"
@@ -410,6 +422,127 @@ def read_fast_model_label(cfg_path: Path) -> str | None:
     return None
 
 
+def normalize_pr_merge_method(value: str | None) -> str | None:
+    """Return a canonical merge method, or ``None`` when unset/invalid."""
+    if value is None:
+        return None
+    cleaned = str(value).strip().lower()
+    if cleaned in ALLOWED_PR_MERGE_METHODS:
+        return cleaned
+    return None
+
+
+def read_remind_cleanup(cfg_path: Path) -> bool | None:
+    """Return the persisted ``[issueflow].remind_cleanup`` flag."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "remind_cleanup" in section:
+        return bool(section.get("remind_cleanup"))
+    return None
+
+
+def read_suggest_graphify(cfg_path: Path) -> bool | None:
+    """Return the persisted ``[issueflow].suggest_graphify`` flag."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "suggest_graphify" in section:
+        return bool(section.get("suggest_graphify"))
+    return None
+
+
+def read_auto_switchback(cfg_path: Path) -> bool | None:
+    """Return the persisted ``[issueflow].auto_switchback`` flag."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "auto_switchback" in section:
+        return bool(section.get("auto_switchback"))
+    return None
+
+
+def read_pr_merge_method(cfg_path: Path) -> str | None:
+    """Return persisted ``[issueflow].pr_merge_method``, or ``None`` if unset/invalid."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict):
+        return normalize_pr_merge_method(
+            str(section["pr_merge_method"])
+            if "pr_merge_method" in section
+            and section.get("pr_merge_method") is not None
+            else None
+        )
+    return None
+
+
+def read_cycle_max_issues(cfg_path: Path) -> int | None:
+    """Return persisted ``[issueflow].cycle_max_issues``, or ``None`` if unset.
+
+    Returns the raw integer when present (including non-positive values) so
+    callers can clamp. Non-integer values are treated as unset.
+    """
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if not isinstance(section, dict) or "cycle_max_issues" not in section:
+        return None
+    value = section.get("cycle_max_issues")
+    if isinstance(value, bool) or not isinstance(value, int):
+        return None
+    return value
+
+
+def read_confirm_version_bump(cfg_path: Path) -> bool | None:
+    """Return the persisted ``[issueflow].confirm_version_bump`` flag."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "confirm_version_bump" in section:
+        return bool(section.get("confirm_version_bump"))
+    return None
+
+
+def read_ruff_autofix(cfg_path: Path) -> bool | None:
+    """Return the persisted ``[issueflow].ruff_autofix`` flag."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "ruff_autofix" in section:
+        return bool(section.get("ruff_autofix"))
+    return None
+
+
+def read_auto_close(cfg_path: Path) -> bool | None:
+    """Return the persisted ``[issueflow].auto_close`` flag."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "auto_close" in section:
+        return bool(section.get("auto_close"))
+    return None
+
+
+def read_confirm_changelog_update(cfg_path: Path) -> bool | None:
+    """Return the persisted ``[issueflow].confirm_changelog_update`` flag."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "confirm_changelog_update" in section:
+        return bool(section.get("confirm_changelog_update"))
+    return None
+
+
 def read_sync_settings(cfg_path: Path) -> dict[str, object] | None:
     """Return ``[issueflow.sync]`` from ``config.toml``, or ``None`` if unset."""
     if not cfg_path.is_file():
@@ -562,6 +695,15 @@ def write_default_config(
     deep_model_label: str = DEFAULT_DEEP_MODEL_LABEL,
     fast_model_label: str = DEFAULT_FAST_MODEL_LABEL,
     linguist_attributes: bool = DEFAULT_LINGUIST_ATTRIBUTES,
+    remind_cleanup: bool = DEFAULT_REMIND_CLEANUP,
+    suggest_graphify: bool = DEFAULT_SUGGEST_GRAPHIFY,
+    auto_switchback: bool = DEFAULT_AUTO_SWITCHBACK,
+    pr_merge_method: str = DEFAULT_PR_MERGE_METHOD,
+    cycle_max_issues: int = DEFAULT_CYCLE_MAX_ISSUES,
+    confirm_version_bump: bool = DEFAULT_CONFIRM_VERSION_BUMP,
+    ruff_autofix: bool = DEFAULT_RUFF_AUTOFIX,
+    auto_close: bool = DEFAULT_AUTO_CLOSE,
+    confirm_changelog_update: bool = DEFAULT_CONFIRM_CHANGELOG_UPDATE,
     overwrite: bool = False,
 ) -> bool:
     """Create (or, with ``overwrite``, refresh) the project's ``config.toml``.
@@ -604,6 +746,15 @@ def write_default_config(
         section["deep_model_label"] = deep_model_label
         section["fast_model_label"] = fast_model_label
         section["linguist_attributes"] = linguist_attributes
+        section["remind_cleanup"] = remind_cleanup
+        section["suggest_graphify"] = suggest_graphify
+        section["auto_switchback"] = auto_switchback
+        section["pr_merge_method"] = pr_merge_method
+        section["cycle_max_issues"] = cycle_max_issues
+        section["confirm_version_bump"] = confirm_version_bump
+        section["ruff_autofix"] = ruff_autofix
+        section["auto_close"] = auto_close
+        section["confirm_changelog_update"] = confirm_changelog_update
     else:
         doc = tomlkit.document()
         doc.add(
@@ -630,6 +781,15 @@ def write_default_config(
             deep_model_label,
             fast_model_label,
             linguist_attributes,
+            remind_cleanup,
+            suggest_graphify,
+            auto_switchback,
+            pr_merge_method,
+            cycle_max_issues,
+            confirm_version_bump,
+            ruff_autofix,
+            auto_close,
+            confirm_changelog_update,
         )
 
     cfg_path.write_text(tomlkit.dumps(doc), encoding="utf-8")
@@ -649,6 +809,15 @@ def _commented_issueflow_table(
     deep_model_label: str,
     fast_model_label: str,
     linguist_attributes: bool,
+    remind_cleanup: bool,
+    suggest_graphify: bool,
+    auto_switchback: bool,
+    pr_merge_method: str,
+    cycle_max_issues: int,
+    confirm_version_bump: bool,
+    ruff_autofix: bool,
+    auto_close: bool,
+    confirm_changelog_update: bool,
 ) -> tomlkit.items.Table:
     """Build a fresh ``[issueflow]`` table with explanatory comments per key."""
     table = tomlkit.table()
@@ -735,4 +904,68 @@ def _commented_issueflow_table(
         )
     )
     table["linguist_attributes"] = linguist_attributes
+    table.add(tomlkit.nl())
+    table.add(
+        tomlkit.comment(
+            "Remind the user to run /iflow-cleanup after close / cycle "
+            "(true/false). Re-run 'issue-flow update' after changing."
+        )
+    )
+    table["remind_cleanup"] = remind_cleanup
+    table.add(
+        tomlkit.comment(
+            "Soft-suggest skimming GRAPH_REPORT.md / rebuilding graphify "
+            "(true/false). Never auto-runs graphify. Re-run 'issue-flow update'."
+        )
+    )
+    table["suggest_graphify"] = suggest_graphify
+    table.add(
+        tomlkit.comment(
+            "After /iflow-close opens a PR, switch back to the default branch "
+            "when the tree is clean (true/false). false ≈ always 'stay'."
+        )
+    )
+    table["auto_switchback"] = auto_switchback
+    table.add(
+        tomlkit.comment(
+            "gh pr merge method for yolo close: 'squash', 'merge', or 'rebase'."
+        )
+    )
+    table["pr_merge_method"] = pr_merge_method
+    table.add(
+        tomlkit.comment(
+            "Default /iflow-cycle queue safety cap (raise per run with max:<n>)."
+        )
+    )
+    table["cycle_max_issues"] = cycle_max_issues
+    table.add(
+        tomlkit.comment(
+            "When true, /iflow-start (and /iflow-fix end) chain into "
+            "/iflow-close automatically once work is ready to ship "
+            "(default false). Close keeps its own confirms."
+        )
+    )
+    table["auto_close"] = auto_close
+    table.add(
+        tomlkit.comment(
+            "When true, non-yolo /iflow-close confirms once about a version "
+            "bump if the user did not pass a bump token (default false)."
+        )
+    )
+    table["confirm_version_bump"] = confirm_version_bump
+    table.add(
+        tomlkit.comment(
+            "When true, /iflow-close shows the changelog diff and confirms "
+            "once before writing (default true). false = write without "
+            "asking (same as yolo's history behaviour). nohistory still skips."
+        )
+    )
+    table["confirm_changelog_update"] = confirm_changelog_update
+    table.add(
+        tomlkit.comment(
+            "When ruff is present, run ruff check --fix + ruff format from "
+            "/iflow-start and /iflow-close (true/false)."
+        )
+    )
+    table["ruff_autofix"] = ruff_autofix
     return table

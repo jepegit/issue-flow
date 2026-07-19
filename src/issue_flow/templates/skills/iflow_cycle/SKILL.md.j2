@@ -21,7 +21,7 @@ Use only when every queued issue is genuinely yolo-fit (small, low-risk, well-sp
 - **`epic <N> [stage <k>]`** — the current stage of epic `<N>` (or stage `<k>`).
 - **`resume`** — pick up an interrupted cycle from its state file (see **Resuming** below).
 - **`onfail:stop`** (default) / **`onfail:skip`** — failure policy (see step 7).
-- **`max:<n>`** — raise the safety cap (default 10) for this run.
+- **`max:<n>`** — raise the safety cap (default {{ cycle_max_issues }}) for this run.
 - **`stay`** — forward `stay` to each close so the working copy stays on each issue branch (rarely wanted in a cycle).
 
 {% set iflow_step = "cycle" %}
@@ -36,7 +36,7 @@ Use only when every queued issue is genuinely yolo-fit (small, low-risk, well-sp
 
 1. **Resolve the queue.** Run `issue-flow agent queue --label {{ yolo_label }} --json` when the alias applied, else `issue-flow agent queue <spec> --json` (numbers, `--label`, or `--epic`). Use its `queue` (ordered), `blocked`, and `skipped_closed` output as the source of truth — do not re-derive the order by hand. If it reports a dependency `cycle`, **stop** and show it; nothing runs. If the CLI is unavailable, fall back to reading the issues and ordering by `Depends on #N` lines yourself, but prefer the CLI. An empty queue → report “nothing to queue” and stop (no confirm needed).
 
-2. **Cap check.** If the ordered queue is longer than **10** and the input did not pass `max:<n>` raising the limit, **stop** and ask the user to confirm a larger run explicitly. Long unattended runs compound risk.
+2. **Cap check.** If the ordered queue is longer than **{{ cycle_max_issues }}** and the input did not pass `max:<n>` raising the limit, **stop** and ask the user to confirm a larger run explicitly. Long unattended runs compound risk.
 
 3. **One consolidated confirm** (the only planned interruption). Present, in normal prose:
    - the **ordered** queue (numbers + titles), and which issues are **skipped** (closed) or **blocked** (open dependency outside the queue) with the reason;
@@ -65,7 +65,7 @@ Use only when every queued issue is genuinely yolo-fit (small, low-risk, well-sp
 
 8. **Finish.** When the queue is exhausted (or halted), finalize `cycle_status.md` (mark it `- [x] Done`) and move it to `{{ issueflows_dir }}/{{ solved_folder }}/cycle_status_<YYYY-MM-DD>.md` so it is archived, not re-detected as in-flight.
 
-9. **Batch report.** Summarize the whole run: per issue — number, title, PR URL, merge result (merged / queued via `--auto` / failed-and-skipped / not reached), and duration if tracked; then the queue items **skipped** (closed), **blocked** (with blockers), and — on a halt — the **stop reason** and which issues were **not reached**. End by reminding the user to run `/iflow-cleanup` once to prune the merged local branches.
+9. **Batch report.** Summarize the whole run: per issue — number, title, PR URL, merge result (merged / queued via `--auto` / failed-and-skipped / not reached), and duration if tracked; then the queue items **skipped** (closed), **blocked** (with blockers), and — on a halt — the **stop reason** and which issues were **not reached**.{% if remind_cleanup %} End by reminding the user to run `/iflow-cleanup` once to prune the merged local branches.{% endif %}
 
 ## Resuming
 

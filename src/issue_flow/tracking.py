@@ -365,8 +365,7 @@ def audit_issueflows(
                     code="missing_tree_folder",
                     severity=SEVERITY_INFO,
                     message=(
-                        f"Expected folder {name!r} is missing under "
-                        f"{base.name}/."
+                        f"Expected folder {name!r} is missing under {base.name}/."
                     ),
                     repairable=True,
                     suggested_command="issue-flow doctor --fix",
@@ -392,9 +391,7 @@ def audit_issueflows(
         )
 
     current_groups = group_issue_files(current_dir)
-    focus_number = (
-        focus.number if focus.resolved_via != "ambiguous" else None
-    )
+    focus_number = focus.number if focus.resolved_via != "ambiguous" else None
 
     if focus_number is not None:
         for number, group in sorted(current_groups.items()):
@@ -537,9 +534,7 @@ def plan_repairs(
         for name in expected_subdirs
         if not (base / name).is_dir()
     ]
-    sweep_moves = plan_sweep(
-        current_dir, partly_dir, solved_dir, except_number=focus
-    )
+    sweep_moves = plan_sweep(current_dir, partly_dir, solved_dir, except_number=focus)
     return RepairPlan(focus=focus, mkdirs=mkdirs, sweep_moves=sweep_moves), None
 
 

@@ -38,7 +38,9 @@ Use this skill to update the project's changelog file (default **`{{ history_fil
 
    Summary = `log "..."` override if provided, else the issue title with sentence case, trailing period trimmed before the `.` we add.
 3. Append the bullet to the end of the Unreleased bullet list. Preserve existing formatting (blank lines, list markers). Do not reorder existing entries.
-4. Show the user the proposed diff of `{{ history_file }}` and confirm once before writing.
+{% if confirm_changelog_update %}4. Show the user the proposed diff of `{{ history_file }}` and confirm once before writing.
+{% else %}4. Write the change without a confirm prompt (`confirm_changelog_update` is false; same as the `yolo` token's history behaviour). Still report what was written.
+{% endif %}
 
 ### B. Version bump happened — promote `[Unreleased]` to a new release section
 
@@ -59,8 +61,9 @@ Only runs when step 2 of `/iflow-close` actually changed `pyproject.toml` to a n
    - <new bullet for this issue> (#N)
    ```
 
-6. Show the user the proposed diff and confirm once before writing.
-
+{% if confirm_changelog_update %}6. Show the user the proposed diff and confirm once before writing.
+{% else %}6. Write the change without a confirm prompt (`confirm_changelog_update` is false). Still report what was written.
+{% endif %}
 ## Staging
 
 When `/iflow-close` reaches its commit step:
@@ -72,6 +75,7 @@ When `/iflow-close` reaches its commit step:
 
 - Read/write only `{{ history_file }}` at the project root. Do not touch any other file from this skill.
 - Never create `{{ history_file }}` from scratch — scaffolding a starter changelog is out of scope for `issue-flow init` / `update`.
-- If the confirm prompt in mode A or mode B is declined, leave `{{ history_file }}` untouched and print a short "skipped changelog update" note. The rest of `/iflow-close` continues normally.
+{% if confirm_changelog_update %}- If the confirm prompt in mode A or mode B is declined, leave `{{ history_file }}` untouched and print a short "skipped changelog update" note. The rest of `/iflow-close` continues normally.
+{% endif %}
 - Preserve existing formatting conventions (bullet style, sentence case, trailing punctuation). Match the style of the nearest existing entries when in doubt.
 - The new bullet's `(#<N>)` suffix is always GitHub issue `#N`, matching the focus issue's number in `{{ issueflows_dir }}/{{ current_issues_folder }}/issue<N>_original.md`.

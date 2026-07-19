@@ -35,6 +35,15 @@ _MODE_CONTEXT = {
     "deep_model_label": "deep",
     "fast_model_label": "fast",
     "step_profiles": dict(PACKAGED_DEFAULTS),
+    "remind_cleanup": True,
+    "suggest_graphify": True,
+    "auto_switchback": True,
+    "pr_merge_method": "squash",
+    "cycle_max_issues": 10,
+    "confirm_version_bump": False,
+    "ruff_autofix": True,
+    "auto_close": False,
+    "confirm_changelog_update": True,
 }
 
 
@@ -455,6 +464,54 @@ def test_issue_close_yolo_token_merges_and_pulls() -> None:
         assert "branch deletion stays in `/iflow-cleanup`" in rendered.lower(), (
             template_name
         )
+
+
+def test_close_bakes_pr_merge_method_and_gates_cleanup_reminder() -> None:
+    """pr_merge_method and remind_cleanup gate close skill wording."""
+    on = render_template(
+        "skills/iflow_close/SKILL.md.j2",
+        {**_default_context(), "pr_merge_method": "merge", "remind_cleanup": True},
+    )
+    assert "gh pr merge <number> --merge" in on
+    assert "/iflow-cleanup" in on
+    off = render_template(
+        "skills/iflow_close/SKILL.md.j2",
+        {**_default_context(), "remind_cleanup": False, "ruff_autofix": False},
+    )
+    assert "ruff check --fix" not in off
+    # Still mentions cleanup skill ownership, but step 10/11 reminder is gated.
+    assert "Tell the user to run **`/iflow-cleanup`**" not in off
+
+
+def test_cycle_bakes_max_issues() -> None:
+    rendered = render_template(
+        "skills/iflow_cycle/SKILL.md.j2",
+        {**_default_context(), "cycle_max_issues": 20},
+    )
+    assert "longer than **20**" in rendered
+    assert "default 20" in rendered
+
+
+def test_start_auto_close_chains_into_close() -> None:
+    off = render_template("skills/iflow_start/SKILL.md.j2", _default_context())
+    assert "tell the user to run `/iflow-close`" in off
+    on = render_template(
+        "skills/iflow_start/SKILL.md.j2",
+        {**_default_context(), "auto_close": True},
+    )
+    assert "follow" in on and "iflow-close/SKILL.md" in on
+    assert "tell the user to run `/iflow-close`" not in on
+
+
+def test_history_confirm_changelog_update_gate() -> None:
+    on = render_template("skills/iflow_history_update/SKILL.md.j2", _default_context())
+    assert "confirm once before writing" in on
+    off = render_template(
+        "skills/iflow_history_update/SKILL.md.j2",
+        {**_default_context(), "confirm_changelog_update": False},
+    )
+    assert "without a confirm prompt" in off
+    assert "confirm once before writing" not in off
 
 
 def test_issue_close_bakes_checks_watch_minutes_override() -> None:

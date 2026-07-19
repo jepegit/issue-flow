@@ -52,7 +52,9 @@ def test_convert_to_canonical_prunes_editor_dirs(tmp_path: Path) -> None:
 
     run_convert(tmp_path, to="canonical", force=True, prune_other=True)
 
-    assert (tmp_path / ".issueflows" / "agent" / "skills" / "iflow-init" / "SKILL.md").is_file()
+    assert (
+        tmp_path / ".issueflows" / "agent" / "skills" / "iflow-init" / "SKILL.md"
+    ).is_file()
     assert not (tmp_path / ".cursor").exists()
 
 
