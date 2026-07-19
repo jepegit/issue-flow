@@ -1,6 +1,6 @@
 # Issue #181 — status
 
-- [ ] Done
+- [x] Done
 
 ## What's done
 
@@ -10,7 +10,8 @@
 - Cross-links: `/iflow`, fix, epic, review; rules body; workflow doc; README.
 - Design note: `.issueflows/04-designs-and-guides/create-non-epic-issue.md`.
 - Tests + ruff green (`544` passed).
+- HISTORY.md Unreleased bullet; landed via `/iflow-close`.
 
 ## Remaining work
 
-- `/iflow-close` — changelog/status finalize, commit/push/PR polish if needed.
+- None.
