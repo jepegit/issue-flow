@@ -63,6 +63,15 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "fast_model_label",
         "step_profiles",
         "skill_level",
+        "remind_cleanup",
+        "suggest_graphify",
+        "auto_switchback",
+        "pr_merge_method",
+        "cycle_max_issues",
+        "confirm_version_bump",
+        "ruff_autofix",
+        "auto_close",
+        "confirm_changelog_update",
     }
     assert set(context.keys()) == expected_keys
 
@@ -340,6 +349,80 @@ def test_checks_watch_minutes_nonpositive_falls_back(
     monkeypatch.setenv("ISSUEFLOW_CHECKS_WATCH_MINUTES", "-3")
     settings = Settings()
     assert settings.resolve_checks_watch_minutes(tmp_path) == 15
+
+
+def test_skill_behaviour_knob_defaults(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    for key in (
+        "ISSUEFLOW_REMIND_CLEANUP",
+        "ISSUEFLOW_SUGGEST_GRAPHIFY",
+        "ISSUEFLOW_AUTO_SWITCHBACK",
+        "ISSUEFLOW_PR_MERGE_METHOD",
+        "ISSUEFLOW_CYCLE_MAX_ISSUES",
+        "ISSUEFLOW_CONFIRM_VERSION_BUMP",
+        "ISSUEFLOW_RUFF_AUTOFIX",
+        "ISSUEFLOW_AUTO_CLOSE",
+        "ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE",
+    ):
+        monkeypatch.delenv(key, raising=False)
+    settings = Settings()
+    assert settings.resolve_remind_cleanup(tmp_path) is True
+    assert settings.resolve_suggest_graphify(tmp_path) is True
+    assert settings.resolve_auto_switchback(tmp_path) is True
+    assert settings.resolve_pr_merge_method(tmp_path) == "squash"
+    assert settings.resolve_cycle_max_issues(tmp_path) == 10
+    assert settings.resolve_confirm_version_bump(tmp_path) is False
+    assert settings.resolve_ruff_autofix(tmp_path) is True
+    assert settings.resolve_auto_close(tmp_path) is False
+    assert settings.resolve_confirm_changelog_update(tmp_path) is True
+
+
+def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
+    _write_config(
+        tmp_path,
+        "[issueflow]\n"
+        "remind_cleanup = false\n"
+        "suggest_graphify = false\n"
+        "auto_switchback = false\n"
+        'pr_merge_method = "rebase"\n'
+        "cycle_max_issues = 25\n"
+        "confirm_version_bump = true\n"
+        "ruff_autofix = false\n"
+        "auto_close = true\n"
+        "confirm_changelog_update = false\n",
+    )
+    settings = Settings()
+    assert settings.resolve_remind_cleanup(tmp_path) is False
+    assert settings.resolve_suggest_graphify(tmp_path) is False
+    assert settings.resolve_auto_switchback(tmp_path) is False
+    assert settings.resolve_pr_merge_method(tmp_path) == "rebase"
+    assert settings.resolve_cycle_max_issues(tmp_path) == 25
+    assert settings.resolve_confirm_version_bump(tmp_path) is True
+    assert settings.resolve_ruff_autofix(tmp_path) is False
+    assert settings.resolve_auto_close(tmp_path) is True
+    assert settings.resolve_confirm_changelog_update(tmp_path) is False
+
+
+def test_pr_merge_method_invalid_falls_back(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    _write_config(tmp_path, '[issueflow]\npr_merge_method = "fast-forward"\n')
+    monkeypatch.setenv("ISSUEFLOW_PR_MERGE_METHOD", "nope")
+    settings = Settings()
+    assert settings.resolve_pr_merge_method(tmp_path) == "squash"
+
+
+def test_cycle_max_issues_nonpositive_falls_back(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    _write_config(tmp_path, "[issueflow]\ncycle_max_issues = 0\n")
+    monkeypatch.setenv("ISSUEFLOW_CYCLE_MAX_ISSUES", "-1")
+    settings = Settings()
+    assert settings.resolve_cycle_max_issues(tmp_path) == 10
 
 
 def test_step_directives_on_by_default(

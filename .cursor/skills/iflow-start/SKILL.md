@@ -83,9 +83,10 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
    - **Ruff (when present).** If the project uses ruff (`[tool.ruff]` in `pyproject.toml`, ruff in dev dependencies, or `.issueflows/04-designs-and-guides/python-quality-tools.md` exists), run auto-fix lint after substantive code changes — e.g. `uv run ruff check --fix …` then `uv run ruff format …` (match paths to what the project documents).
    - **Toolbox** — Before writing a one-off helper script, check `.issueflows/00-tools/` (start with its `README.md` index) for an existing tool. If you build something reusable during this issue, save it into `.issueflows/00-tools/` and add a one-line entry to that README's index (name, what it does, when to use it) for the next agent.
    - If `.issueflows/04-designs-and-guides/this-project.md` exists, read it for project-specific context before implementing; then skim relevant design docs under `.issueflows/04-designs-and-guides/`.
+   - **Knowledge graph (optional).** If `graphify-out/GRAPH_REPORT.md` exists, skim it before grepping — god-nodes and surprising connections often point at the files you'll touch. If structure changed materially since the last build, *suggest* `/iflow-graphify` (do not run it automatically). If `graphify-out/` is absent, ignore this bullet.
    - As you iterate, re-read and keep `issue<N>_status.md` current — move items between **What's done** and **Remaining work**, leaving `- [ ] Done` unchecked until fully resolved.
 
-8. **Hand off** — When the implementation is ready to ship, tell the user to run `/iflow-close` (optionally with `bump`/`patch`/`minor`/`major`). Parking work mid-stream goes through `/iflow-pause`.
+8. **Hand off** — When the implementation is ready to ship: tell the user to run `/iflow-close` (optionally with `bump`/`patch`/`minor`/`major`). Parking work mid-stream goes through `/iflow-pause`.
 
 9. **Reporting** — Summarize what changed, what remains, and where the issue docs live. Include any branch warnings from step 2, any group moves from step 3, and whether the plan was followed or explicitly skipped.
 

@@ -487,9 +487,9 @@ def test_init_cycle_skill_is_batch_yolo_with_stop_rule(tmp_path: Path) -> None:
 def test_init_review_skill_hints_cycle_yolo(tmp_path: Path) -> None:
     """iflow-review report should point at /iflow-cycle yolo for batch runs."""
     run_init(tmp_path)
-    content = (
-        tmp_path / ".cursor" / "skills" / "iflow-review" / "SKILL.md"
-    ).read_text(encoding="utf-8")
+    content = (tmp_path / ".cursor" / "skills" / "iflow-review" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
     assert "/iflow-cycle yolo" in content
 
 
@@ -537,9 +537,9 @@ def test_init_cycle_skill_has_state_file_resume_and_onfail(tmp_path: Path) -> No
 def test_init_status_skill_mentions_in_flight_cycle(tmp_path: Path) -> None:
     """iflow-status skill should surface an in-flight cycle."""
     run_init(tmp_path)
-    content = (
-        tmp_path / ".cursor" / "skills" / "iflow-status" / "SKILL.md"
-    ).read_text(encoding="utf-8")
+    content = (tmp_path / ".cursor" / "skills" / "iflow-status" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
     assert "cycle_status.md" in content
     assert "cycle_active" in content
 

@@ -1591,6 +1591,15 @@ def _clear_issueflow_env(monkeypatch: pytest.MonkeyPatch) -> None:
         "ISSUEFLOW_YOLO_LABEL",
         "ISSUEFLOW_CHECKS_WATCH_MINUTES",
         "ISSUEFLOW_LINGUIST_ATTRIBUTES",
+        "ISSUEFLOW_REMIND_CLEANUP",
+        "ISSUEFLOW_SUGGEST_GRAPHIFY",
+        "ISSUEFLOW_AUTO_SWITCHBACK",
+        "ISSUEFLOW_PR_MERGE_METHOD",
+        "ISSUEFLOW_CYCLE_MAX_ISSUES",
+        "ISSUEFLOW_CONFIRM_VERSION_BUMP",
+        "ISSUEFLOW_RUFF_AUTOFIX",
+        "ISSUEFLOW_AUTO_CLOSE",
+        "ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE",
     ):
         monkeypatch.delenv(var, raising=False)
 
@@ -1621,6 +1630,15 @@ def test_config_add_creates_defaults(
     assert payload["yolo_label"] == "yolo"
     assert payload["checks_watch_minutes"] == 15
     assert payload["linguist_attributes"] is False
+    assert payload["remind_cleanup"] is True
+    assert payload["suggest_graphify"] is True
+    assert payload["auto_switchback"] is True
+    assert payload["pr_merge_method"] == "squash"
+    assert payload["cycle_max_issues"] == 10
+    assert payload["confirm_version_bump"] is False
+    assert payload["ruff_autofix"] is True
+    assert payload["auto_close"] is False
+    assert payload["confirm_changelog_update"] is True
 
     cfg = tmp_path / ".issueflows" / "config.toml"
     assert cfg.is_file()
@@ -1632,6 +1650,9 @@ def test_config_add_creates_defaults(
     assert data["issueflow"]["yolo_label"] == "yolo"
     assert data["issueflow"]["checks_watch_minutes"] == 15
     assert data["issueflow"]["linguist_attributes"] is False
+    assert data["issueflow"]["remind_cleanup"] is True
+    assert data["issueflow"]["pr_merge_method"] == "squash"
+    assert data["issueflow"]["cycle_max_issues"] == 10
 
 
 def test_config_add_reads_env(

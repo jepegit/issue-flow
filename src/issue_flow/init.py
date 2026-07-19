@@ -47,6 +47,15 @@ _DOTENV_KEYS: tuple[tuple[str, str], ...] = (
     ("ISSUEFLOW_SKILL_LEVEL", "standard"),
     ("ISSUEFLOW_CAVEMAN_DEFAULT", "false"),
     ("ISSUEFLOW_GRILL_ME_DEFAULT", "false"),
+    ("ISSUEFLOW_REMIND_CLEANUP", "true"),
+    ("ISSUEFLOW_SUGGEST_GRAPHIFY", "true"),
+    ("ISSUEFLOW_AUTO_SWITCHBACK", "true"),
+    ("ISSUEFLOW_PR_MERGE_METHOD", "squash"),
+    ("ISSUEFLOW_CYCLE_MAX_ISSUES", "10"),
+    ("ISSUEFLOW_CONFIRM_VERSION_BUMP", "false"),
+    ("ISSUEFLOW_RUFF_AUTOFIX", "true"),
+    ("ISSUEFLOW_AUTO_CLOSE", "false"),
+    ("ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE", "true"),
 )
 _DOTENV_SECTION_HEADER = "# --- issue-flow: optional environment variables ---\n"
 

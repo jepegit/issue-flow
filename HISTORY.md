@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- **More config settings (#182).** Add skill-behaviour knobs (`remind_cleanup`, `suggest_graphify`, `auto_switchback`, `auto_close`, `confirm_version_bump`, `confirm_changelog_update`, `pr_merge_method`, `cycle_max_issues`, `ruff_autofix`) baked at `issue-flow update`, with docs and naming consistency.
+
 ## [0.4.5] - 2026-07-18
 
 - **Review docs (#179).** Document epics, cycles, and reviews with examples in the scaffolded workflow doc, site home recipes, README off-path lists, and config cross-links; patch release.

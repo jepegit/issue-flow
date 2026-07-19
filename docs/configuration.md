@@ -46,10 +46,13 @@ issue-flow config add --force    # regenerate its [issueflow] keys in place
 
 It writes the keys issue-flow actually reads from `config.toml` — `mode`,
 `skill_level`, `caveman_default`, `grill_me_default`, `label_flows`,
-`yolo_label`, `step_directives`, `model_label_flows`, `deep_model_label`,
-`fast_model_label`, `linguist_attributes` — taking each value from its
-`ISSUEFLOW_*` env var / `.env` when set, otherwise the issue-flow default. The
-other `ISSUEFLOW_*` settings are **environment-only** and are deliberately
+`yolo_label`, `checks_watch_minutes`, `step_directives`, `model_label_flows`,
+`deep_model_label`, `fast_model_label`, `linguist_attributes`,
+`remind_cleanup`, `suggest_graphify`, `auto_switchback`, `pr_merge_method`,
+`cycle_max_issues`, `confirm_version_bump`, `ruff_autofix`, `auto_close`,
+`confirm_changelog_update` — taking each value from its `ISSUEFLOW_*` env var / `.env`
+when set, otherwise the issue-flow default.
+The other `ISSUEFLOW_*` settings are **environment-only** and are deliberately
 *not* written to `config.toml` (putting them there would have no effect). An
 existing file is left untouched unless `--force` is passed, in which case the
 keys are upserted while your comments and `[modes.*]` tables are preserved.
@@ -234,3 +237,40 @@ Re-run `issue-flow update` (or `init`) after enabling. The writer is
 idempotent: it appends a `# BEGIN issue-flow linguist` … `# END` marker block
 once and never rewrites user rules outside those markers. Turning the flag
 back to `false` leaves an existing managed block in place (no auto-delete).
+
+## Skill-behaviour knobs
+
+Lifecycle skills can be tuned with additional `[issueflow]` keys (baked at
+`issue-flow update`; same precedence as other toggles):
+
+| Key | Default | Effect |
+| --- | --- | --- |
+| `remind_cleanup` | `true` | Remind the user to run `/iflow-cleanup` after close / cycle / dispatcher state D |
+| `suggest_graphify` | `true` | Soft-suggest skimming `GRAPH_REPORT.md` / rebuilding graphify (never auto-runs) |
+| `auto_switchback` | `true` | After `/iflow-close` opens a PR, switch to the default branch when clean (`false` ≈ always `stay`) |
+| `pr_merge_method` | `"squash"` | Yolo close merge flag: `squash`, `merge`, or `rebase` |
+| `cycle_max_issues` | `10` | Default `/iflow-cycle` queue safety cap (raise per run with `max:<n>`) |
+| `confirm_version_bump` | `false` | When `true`, non-yolo close asks once about a version bump if none was requested |
+| `ruff_autofix` | `true` | When ruff is present, run `ruff check --fix` + `ruff format` from start/close |
+| `auto_close` | `false` | When `true`, `/iflow-start` (and `/iflow-fix` end) chain into `/iflow-close` when work is ready to ship; close keeps its own confirms |
+| `confirm_changelog_update` | `true` | When `true`, `/iflow-close` shows the changelog diff and confirms once before writing; `false` writes without asking (`nohistory` still skips) |
+
+```toml
+[issueflow]
+remind_cleanup = true
+suggest_graphify = true
+auto_switchback = true
+pr_merge_method = "squash"
+cycle_max_issues = 10
+confirm_version_bump = false
+ruff_autofix = true
+auto_close = false
+confirm_changelog_update = true
+```
+
+Env fallbacks: `ISSUEFLOW_REMIND_CLEANUP`, `ISSUEFLOW_SUGGEST_GRAPHIFY`,
+`ISSUEFLOW_AUTO_SWITCHBACK`, `ISSUEFLOW_PR_MERGE_METHOD`,
+`ISSUEFLOW_CYCLE_MAX_ISSUES`, `ISSUEFLOW_CONFIRM_VERSION_BUMP`,
+`ISSUEFLOW_RUFF_AUTOFIX`, `ISSUEFLOW_AUTO_CLOSE`,
+`ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE`. Re-run `issue-flow update` after changing any of
+these so skills and rules re-render.

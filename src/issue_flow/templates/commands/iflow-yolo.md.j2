@@ -59,12 +59,13 @@ Once the preflight has passed and the user confirmed:
 
 4. **Tests again.** Re-run `uv run pytest`. If anything fails, **stop**. Do not commit, push, or open a PR. Tell the user what failed and point at the work in progress.
 
-5. **`/iflow-close yolo`** — run the close flow with the `yolo` token (plus any forwarded `bump`/`patch`/`minor`/`major`, `log`, `nohistory`, `draft`, `stay` tokens). The `yolo` token makes close hands-off: it writes the `{{ history_file }}` bullet without a confirm prompt, reuses an open PR via `gh pr list` when present, **merges** with `gh pr merge --squash` (on pending checks: `gh pr checks --watch --fail-fast` for up to **{{ checks_watch_minutes }}** minutes, then retry; `--squash --auto` only as last resort when the cap elapses or checks never register), and then switches back to the default branch and runs `git pull --ff-only` so the merged commit lands locally. Do **not** chain `/iflow-cleanup` automatically — local branch deletion stays a user decision. Note: `draft` conflicts with the auto-merge; when the user passed `draft`, skip the merge step and say so.
+5. **`/iflow-close yolo`** — run the close flow with the `yolo` token (plus any forwarded `bump`/`patch`/`minor`/`major`, `log`, `nohistory`, `draft`, `stay` tokens). The `yolo` token makes close hands-off: it writes the `{{ history_file }}` bullet without a confirm prompt, reuses an open PR via `gh pr list` when present, **merges** with `gh pr merge --{{ pr_merge_method }}` (on pending checks: `gh pr checks --watch --fail-fast` for up to **{{ checks_watch_minutes }}** minutes, then retry; `--{{ pr_merge_method }} --auto` only as last resort when the cap elapses or checks never register), and then{% if auto_switchback %} switches back to the default branch and runs `git pull --ff-only` so the merged commit lands locally{% else %} stays on the issue branch (`auto_switchback` is off){% endif %}. Do **not** chain `/iflow-cleanup` automatically — local branch deletion stays a user decision. Note: `draft` conflicts with the auto-merge; when the user passed `draft`, skip the merge step and say so.
 
 ## Post-run
 
 - Report the PR URL, the merge result (merged, or queued via `--auto`), and the final branch. By default `/iflow-close yolo` merges the PR and switches back to the default branch with a pull; forwarded `stay` text leaves the user on the issue branch instead.
-- Remind them that `/iflow-cleanup` will delete the now-merged local branch when they are ready.
+{% if remind_cleanup %}- Remind them that `/iflow-cleanup` will delete the now-merged local branch when they are ready.
+{% endif %}
 
 ## Output
 
