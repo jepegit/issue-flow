@@ -45,3 +45,4 @@ Follow this skill to **run post-merge branch hygiene** after a PR has been merge
 - Never delete the default branch.
 - If anything is ambiguous (detached HEAD, multiple remotes, missing tracking info), report and stop rather than guess.
 - Do not open or update PRs. Do not bump version fields — pyproject bumps belong to `/iflow-close`. The only version action allowed here is creating a release tag that `/iflow-close` **planned** (tag-derived strategy), inside the consolidated confirm.
+- Do **not** offer to update `{{ history_file }}` / CHANGELOG here — that belongs in `/iflow-close` before the PR.

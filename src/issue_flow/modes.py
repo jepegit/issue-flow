@@ -62,7 +62,7 @@ DEFAULT_CYCLE_MAX_ISSUES = 10
 DEFAULT_CONFIRM_VERSION_BUMP = False
 DEFAULT_RUFF_AUTOFIX = True
 DEFAULT_AUTO_CLOSE = False
-DEFAULT_CONFIRM_CHANGELOG_UPDATE = True
+DEFAULT_CONFIRM_CHANGELOG_UPDATE = False
 
 # GitHub sync defaults (``.issueflows/`` folder → labels / milestones).
 DEFAULT_SYNC_ENABLED = True
@@ -956,8 +956,9 @@ def _commented_issueflow_table(
     table.add(
         tomlkit.comment(
             "When true, /iflow-close shows the changelog diff and confirms "
-            "once before writing (default true). false = write without "
-            "asking (same as yolo's history behaviour). nohistory still skips."
+            "once before writing (default false). false = write without "
+            "asking so the bullet lands in the PR (same as yolo's history "
+            "behaviour). nohistory still skips."
         )
     )
     table["confirm_changelog_update"] = confirm_changelog_update

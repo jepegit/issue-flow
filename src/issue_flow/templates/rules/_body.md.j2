@@ -129,7 +129,7 @@ The full slash-command lifecycle is:
 2. **`/iflow-plan`** — design the approach in `issue<N>_plan.md` and get explicit confirmation before any code changes.
 3. **`/iflow-build`** — implement the confirmed plan. Asks to run `/iflow-plan` first if the plan file is missing.
 4. **`/iflow-pause`** *(optional)* — park work mid-stream: update status, move the issue group to `{{ partly_solved_folder }}`, optional WIP commit.
-5. **`/iflow-close`** — tests, optional `uv version --bump`, status update, commit, push, PR. Does not delete branches.
+5. **`/iflow-close`** — tests, optional `uv version --bump`, **changelog/`{{ history_file }}` update (in the PR commit)**, status update, commit, push, PR. Does not delete branches. Never offer a HISTORY/CHANGELOG update after the PR is open or merged; use `nohistory` only to skip intentionally.
 6. **`/iflow-cleanup`** — post-merge: switch to default, `git pull --ff-only`, `git fetch --prune`, `git branch -d` on merged local branches under a single consolidated confirm. Never `-D`.
 
 `/iflow-yolo` chains `init → plan → build → close yolo` for small, low-risk issues with up-front safeguards (clean tree, passing tests, single consolidated confirm). Its close step is hands-off: changelog decided without a prompt, PR merged (`gh pr merge --squash`; on pending checks may `gh pr checks --watch` then retry, with `--auto` as last resort), then default-branch switch + pull.

@@ -376,7 +376,7 @@ def test_skill_behaviour_knob_defaults(
     assert settings.resolve_confirm_version_bump(tmp_path) is False
     assert settings.resolve_ruff_autofix(tmp_path) is True
     assert settings.resolve_auto_close(tmp_path) is False
-    assert settings.resolve_confirm_changelog_update(tmp_path) is True
+    assert settings.resolve_confirm_changelog_update(tmp_path) is False
 
 
 def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
