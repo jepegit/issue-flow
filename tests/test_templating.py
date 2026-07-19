@@ -506,14 +506,30 @@ def test_start_auto_close_chains_into_close() -> None:
 
 
 def test_history_confirm_changelog_update_gate() -> None:
-    on = render_template("skills/iflow_history_update/SKILL.md.j2", _default_context())
+    on = render_template(
+        "skills/iflow_history_update/SKILL.md.j2",
+        {**_default_context(), "confirm_changelog_update": True},
+    )
     assert "confirm once before writing" in on
+    assert "**stop**" in on
+    assert "nohistory" in on
     off = render_template(
         "skills/iflow_history_update/SKILL.md.j2",
         {**_default_context(), "confirm_changelog_update": False},
     )
     assert "without a confirm prompt" in off
     assert "confirm once before writing" not in off
+
+
+def test_changelog_timing_forbids_post_merge_updates() -> None:
+    """Close/history/cleanup must keep HISTORY in the PR commit, not after merge."""
+    ctx = {**_default_context(), "confirm_changelog_update": False}
+    history = render_template("skills/iflow_history_update/SKILL.md.j2", ctx)
+    close = render_template("skills/iflow_close/SKILL.md.j2", ctx)
+    cleanup = render_template("skills/iflow_cleanup/SKILL.md.j2", ctx)
+    assert "after the PR is open or merged" in history
+    assert "Changelog timing" in close
+    assert "Do **not** offer to update" in cleanup
 
 
 def test_issue_close_bakes_checks_watch_minutes_override() -> None:

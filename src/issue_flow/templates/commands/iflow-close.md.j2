@@ -42,9 +42,10 @@ Other optional notes still apply: branch name, PR title, draft PR, skip issue do
    - If step 2 did **not** bump (or plan) a version, append a bullet to the existing `## [Unreleased]` section: `- <summary>. (#<N>)`.
    - If step 2 **did** bump or plan a version, promote `## [Unreleased]` to `## [<new_version>] - <YYYY-MM-DD>` (for tag-derived projects use the planned tag's version), prepend a fresh empty `## [Unreleased]` above it, and put the new bullet inside the just-closed release section.
    - If `{{ history_file }}` does not exist at the project root, skip this step with a short note and continue. Never create it here.
-{% if confirm_changelog_update %}   - Show the proposed diff and confirm once before writing. If declined, leave `{{ history_file }}` untouched and move on.
-{% else %}   - Write without a confirm prompt (`confirm_changelog_update` is false). Still report what was written.
+{% if confirm_changelog_update %}   - Show the proposed diff and confirm once before writing. If declined, **stop** — offer write / revise / `nohistory` / abort; do not continue to commit or PR without an explicit choice.
+{% else %}   - Write without a confirm prompt (`confirm_changelog_update` is false) so the bullet lands in the PR commit. Still report what was written.
 {% endif %}   - **`yolo` input:** do not ask — decide yourself and write the bullet (issue title, or the `log "..."` text) directly. `nohistory` still skips the step entirely.
+   - **Never** propose updating `{{ history_file }}` after the PR is open or merged.
 
 4. **Issue tracking in the repo** (see project rules under `{{ issueflows_dir }}/{{ current_issues_folder }}`)
    - Update the status file for this issue: clear checklist, remaining work, and use `- [x] Done` only when fully resolved.
@@ -89,6 +90,12 @@ Other optional notes still apply: branch name, PR title, draft PR, skip issue do
    - If step 8 switched back to the default branch, switch to the PR branch again before making review fixes.
 {% if remind_cleanup %}   - Once the PR is merged, run **`/iflow-cleanup`** to switch back to the default branch, `git pull --ff-only`, `git fetch --prune`, and delete local branches whose commits are already in the default branch (single consolidated confirm — which, for tag-derived projects, also offers to create the release tag planned in step 2). `/iflow-close` no longer does post-merge cleanup itself.
 {% endif %}
+## Constraints
+
+- **Changelog timing:** unless `nohistory`, write `{{ history_file }}` in step 3 and stage it in the close commit that feeds the PR. Never offer a HISTORY/CHANGELOG update after the PR is open or merged.
+{% if confirm_changelog_update %}- If the changelog confirm is declined, **stop** until the user chooses write / revise / `nohistory` / abort — do not silent-skip and continue.
+{% endif %}- Never delete branches from `/iflow-close`. Branch deletion belongs to `/iflow-cleanup`.
+
 ## Output
 
 Summarize what was committed, pushed, the PR URL (or next step if blocked), and whether the working copy switched back to the default branch or stayed on the issue branch. With the `yolo` input, also report the merge result (merged, or queued via `--auto`).{% if remind_cleanup %} Remind the user to run `/iflow-cleanup` after the PR merges (or right away when yolo already merged it).{% endif %}

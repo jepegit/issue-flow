@@ -24,7 +24,7 @@ templates by hand.
 | `auto_switchback` | `true` | After PR, switch to default when clean (`false` ≈ always `stay`) |
 | `auto_close` | `false` | `/iflow-start` / `/iflow-fix` end chain into `/iflow-close` when ready |
 | `confirm_version_bump` | `false` | Non-yolo close confirms once about bump when unset |
-| `confirm_changelog_update` | `true` | Changelog diff confirm before write; `false` = write without ask |
+| `confirm_changelog_update` | `false` | Changelog diff confirm before write; `false` = write without ask (bullet lands in the PR). Decline (when true) **stops** close — no silent skip. |
 | `pr_merge_method` | `"squash"` | Yolo `gh pr merge --{squash\|merge\|rebase}` |
 | `cycle_max_issues` | `10` | `/iflow-cycle` safety cap before `max:<n>` |
 | `ruff_autofix` | `true` | Gate ruff `--fix` / format in start/close |
@@ -32,8 +32,12 @@ templates by hand.
 **Consistency.** `auto_close` only skips the handoff pause; close still honours
 `confirm_*`, `auto_switchback`, `remind_cleanup`, `pr_merge_method`, etc.
 Gated on `iflow_close` in the active mode. Does **not** imply yolo / auto-merge.
-`confirm_changelog_update = false` matches yolo's no-prompt history write;
-`nohistory` still skips the step entirely.
+`confirm_changelog_update = false` (default) matches yolo's no-prompt history
+write so the bullet is always in the PR commit; `nohistory` still skips.
+When confirm is on and declined, close **stops** (write / revise /
+`nohistory` / abort) — never silent-skip and continue. Never offer a
+HISTORY/CHANGELOG update after the PR is open or merged (see
+[changelog-timing.md](./changelog-timing.md)).
 
 **Alternatives considered.**
 

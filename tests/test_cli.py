@@ -1638,7 +1638,7 @@ def test_config_add_creates_defaults(
     assert payload["confirm_version_bump"] is False
     assert payload["ruff_autofix"] is True
     assert payload["auto_close"] is False
-    assert payload["confirm_changelog_update"] is True
+    assert payload["confirm_changelog_update"] is False
 
     cfg = tmp_path / ".issueflows" / "config.toml"
     assert cfg.is_file()

@@ -75,8 +75,8 @@
     "semantic_hash": ""
   },
   "src/issue_flow/modes.py": {
-    "mtime": 1784491062.7847178,
-    "ast_hash": "ad241e57ead878f7050ccae8aef344c9",
+    "mtime": 1784493680.079484,
+    "ast_hash": "ad6ed4b13e2ec52e7b6576c7bfcfc9a1",
     "semantic_hash": ""
   },
   "src/issue_flow/project.py": {
@@ -125,12 +125,12 @@
     "semantic_hash": ""
   },
   "src/issue_flow/templating.py": {
-    "mtime": 1784491448.343726,
+    "mtime": 1784493061.14255,
     "ast_hash": "3124916ae094e7a5626de77fcaeee0f6",
     "semantic_hash": ""
   },
   "src/issue_flow/tracking.py": {
-    "mtime": 1784491062.7847178,
+    "mtime": 1784493061.14255,
     "ast_hash": "e998d9db72f98f905c7482f939c1a42d",
     "semantic_hash": ""
   },
@@ -150,13 +150,13 @@
     "semantic_hash": ""
   },
   "tests/test_cli.py": {
-    "mtime": 1784491062.7847178,
-    "ast_hash": "a1a2a9dc03d26c560ced611ca222da16",
+    "mtime": 1784493709.8993754,
+    "ast_hash": "17c68046ea36d43a0fef1f846861d1c7",
     "semantic_hash": ""
   },
   "tests/test_config.py": {
-    "mtime": 1784491062.7847178,
-    "ast_hash": "b79e760b29640dc698240aa1e6f218a8",
+    "mtime": 1784493709.8993754,
+    "ast_hash": "9665f4fccb1cb5ef6b79d2bae315bb41",
     "semantic_hash": ""
   },
   "tests/test_convert.py": {
@@ -190,7 +190,7 @@
     "semantic_hash": ""
   },
   "tests/test_init.py": {
-    "mtime": 1784491062.7847178,
+    "mtime": 1784493061.14255,
     "ast_hash": "ce7066abe58a81d777ad9d55c4edfbc7",
     "semantic_hash": ""
   },
@@ -205,7 +205,7 @@
     "semantic_hash": ""
   },
   "tests/test_modes.py": {
-    "mtime": 1784491062.7847178,
+    "mtime": 1784493061.14255,
     "ast_hash": "8f04895c4d3f10c46debbb8156bf2558",
     "semantic_hash": ""
   },
@@ -235,12 +235,12 @@
     "semantic_hash": ""
   },
   "tests/test_templating.py": {
-    "mtime": 1784491517.4197152,
-    "ast_hash": "c67dc3f4ae2cc4dc785d00b64701b701",
+    "mtime": 1784493714.8993576,
+    "ast_hash": "34bae4c16aaa246a630e0c6bb6d4c380",
     "semantic_hash": ""
   },
   "tests/test_tracking.py": {
-    "mtime": 1784491062.7847178,
+    "mtime": 1784493061.14655,
     "ast_hash": "6bbb95d7ed3dfee62707a8923e22643b",
     "semantic_hash": ""
   },
@@ -397,21 +397,6 @@
   ".issueflows/00-tools/README.md": {
     "mtime": 1784491062.7807178,
     "ast_hash": "8a2aabea0c37797fc3b5ffc8898bcb45",
-    "semantic_hash": ""
-  },
-  ".issueflows/01-current-issues/issue181_original.md": {
-    "mtime": 1784491146.1476808,
-    "ast_hash": "f3cb3cb90b358f75dd6c3423ebcceebc",
-    "semantic_hash": ""
-  },
-  ".issueflows/01-current-issues/issue181_plan.md": {
-    "mtime": 1784491263.3283617,
-    "ast_hash": "076fbb2a45e4ee1bfb0a4f63f3934f63",
-    "semantic_hash": ""
-  },
-  ".issueflows/01-current-issues/issue181_status.md": {
-    "mtime": 1784491562.343545,
-    "ast_hash": "2d3cd43cfc7b8de8016d5ab95bb40ee6",
     "semantic_hash": ""
   },
   ".issueflows/03-solved-issues/2026-07-12_archived_issues.md": {
@@ -675,7 +660,7 @@
     "semantic_hash": ""
   },
   ".issueflows/04-designs-and-guides/create-non-epic-issue.md": {
-    "mtime": 1784491500.3237145,
+    "mtime": 1784492178.5614564,
     "ast_hash": "55aa9fe0099aa9060706e013765cd7d4",
     "semantic_hash": ""
   },
@@ -700,7 +685,7 @@
     "semantic_hash": ""
   },
   ".issueflows/04-designs-and-guides/grill-me-skill.md": {
-    "mtime": 1784491062.7847178,
+    "mtime": 1784493061.13855,
     "ast_hash": "683543747a2fab330765d6530e66073b",
     "semantic_hash": ""
   },
@@ -735,7 +720,7 @@
     "semantic_hash": ""
   },
   ".issueflows/04-designs-and-guides/multi-repo-workspaces.md": {
-    "mtime": 1784491062.7847178,
+    "mtime": 1784493061.13855,
     "ast_hash": "5314b4690b29241330e1f2643cb1fa10",
     "semantic_hash": ""
   },
@@ -765,8 +750,8 @@
     "semantic_hash": ""
   },
   ".issueflows/04-designs-and-guides/skill-behaviour-knobs.md": {
-    "mtime": 1784491062.7847178,
-    "ast_hash": "512a5124bdf2a18b10ac3faa25cc67c9",
+    "mtime": 1784493703.931397,
+    "ast_hash": "ed660bdb5115c072205ff2edc22dcd85",
     "semantic_hash": ""
   },
   ".issueflows/04-designs-and-guides/slash-less-invocation.md": {
@@ -780,7 +765,7 @@
     "semantic_hash": ""
   },
   ".issueflows/04-designs-and-guides/this-project.md": {
-    "mtime": 1784491062.7847178,
+    "mtime": 1784493061.13855,
     "ast_hash": "87705f88452491adbf128e6a3ba09d0f",
     "semantic_hash": ""
   },
@@ -790,17 +775,17 @@
     "semantic_hash": ""
   },
   "AGENTS.md": {
-    "mtime": 1784491062.7847178,
+    "mtime": 1784493061.13855,
     "ast_hash": "500e43b663359640109374f5a594f5bd",
     "semantic_hash": ""
   },
   "HISTORY.md": {
-    "mtime": 1784491062.7847178,
-    "ast_hash": "f7ca5dd88b2803407912878f71e89870",
+    "mtime": 1784493061.13855,
+    "ast_hash": "886fc6db9b69e6ca6a398ab392c46f5d",
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1784491500.3437147,
+    "mtime": 1784493061.13855,
     "ast_hash": "085d8c5341267fc4a3a0d9e1c1225279",
     "semantic_hash": ""
   },
@@ -820,8 +805,8 @@
     "semantic_hash": ""
   },
   "docs/configuration.md": {
-    "mtime": 1784491062.7807178,
-    "ast_hash": "e955338fc360ad04e57d58e84ce29ded",
+    "mtime": 1784493714.9113574,
+    "ast_hash": "4c81db0f74c6463d0950b5ecd64948cd",
     "semantic_hash": ""
   },
   "docs/developing.md": {
@@ -835,17 +820,17 @@
     "semantic_hash": ""
   },
   "docs/graphify.md": {
-    "mtime": 1784491062.7807178,
+    "mtime": 1784493061.13855,
     "ast_hash": "d6526a733f082e0a3f6a13c9a4900ad0",
     "semantic_hash": ""
   },
   "docs/index.md": {
-    "mtime": 1784491062.7807178,
+    "mtime": 1784493061.13855,
     "ast_hash": "2625d1dd089a6db4b93c1f9dfce85496",
     "semantic_hash": ""
   },
   "docs/issue-workflow.md": {
-    "mtime": 1784491062.7807178,
+    "mtime": 1784493061.13855,
     "ast_hash": "7a7d736a3820616a3cc58b16f1ce5f46",
     "semantic_hash": ""
   },
@@ -867,6 +852,41 @@
   "docs/static/images/logo-white.svg": {
     "mtime": 1784491062.7807178,
     "ast_hash": "5059485e01cdbd9e4254a7626d202ff8",
+    "semantic_hash": ""
+  },
+  ".issueflows/01-current-issues/issue171_original.md": {
+    "mtime": 1784493392.672683,
+    "ast_hash": "81147f02d282e9cba90a582438ac52cb",
+    "semantic_hash": ""
+  },
+  ".issueflows/01-current-issues/issue171_plan.md": {
+    "mtime": 1784493560.6759453,
+    "ast_hash": "4a8fc9baf41c3466cf91a0f9998ea03e",
+    "semantic_hash": ""
+  },
+  ".issueflows/01-current-issues/issue171_status.md": {
+    "mtime": 1784493721.7993329,
+    "ast_hash": "26e4e2a9e22c230a15300b87a4c8ff82",
+    "semantic_hash": ""
+  },
+  ".issueflows/03-solved-issues/issue181_original.md": {
+    "mtime": 1784492178.5614564,
+    "ast_hash": "f3cb3cb90b358f75dd6c3423ebcceebc",
+    "semantic_hash": ""
+  },
+  ".issueflows/03-solved-issues/issue181_plan.md": {
+    "mtime": 1784492178.5614564,
+    "ast_hash": "076fbb2a45e4ee1bfb0a4f63f3934f63",
+    "semantic_hash": ""
+  },
+  ".issueflows/03-solved-issues/issue181_status.md": {
+    "mtime": 1784492178.5614564,
+    "ast_hash": "74237690e233220bbfdd6e7cda0ff75c",
+    "semantic_hash": ""
+  },
+  ".issueflows/04-designs-and-guides/changelog-timing.md": {
+    "mtime": 1784493703.7193978,
+    "ast_hash": "fc9a7950266dfffdff8dd6df22896cd2",
     "semantic_hash": ""
   }
 }

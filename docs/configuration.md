@@ -253,7 +253,7 @@ Lifecycle skills can be tuned with additional `[issueflow]` keys (baked at
 | `confirm_version_bump` | `false` | When `true`, non-yolo close asks once about a version bump if none was requested |
 | `ruff_autofix` | `true` | When ruff is present, run `ruff check --fix` + `ruff format` from start/close |
 | `auto_close` | `false` | When `true`, `/iflow-start` (and `/iflow-fix` end) chain into `/iflow-close` when work is ready to ship; close keeps its own confirms |
-| `confirm_changelog_update` | `true` | When `true`, `/iflow-close` shows the changelog diff and confirms once before writing; `false` writes without asking (`nohistory` still skips) |
+| `confirm_changelog_update` | `false` | When `true`, `/iflow-close` shows the changelog diff and confirms once before writing (decline **stops** close); `false` writes without asking so the bullet lands in the PR (`nohistory` still skips) |
 
 ```toml
 [issueflow]
@@ -265,7 +265,7 @@ cycle_max_issues = 10
 confirm_version_bump = false
 ruff_autofix = true
 auto_close = false
-confirm_changelog_update = true
+confirm_changelog_update = false
 ```
 
 Env fallbacks: `ISSUEFLOW_REMIND_CLEANUP`, `ISSUEFLOW_SUGGEST_GRAPHIFY`,
