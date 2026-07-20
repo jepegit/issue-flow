@@ -2,9 +2,9 @@
 
 These functions back ``issue-flow status`` (human-facing, top-level) and the
 ``issue-flow agent ...`` sub-commands (``state`` / ``preflight`` / ``switchback`` /
-``version-plan`` / ``resolve`` / ``sweep`` / ``archive`` / ``capture``) that
-exist so AI agents can ask the tool for a deterministic answer instead of
-re-deriving lifecycle state by hand on every run.
+``branches`` / ``version-plan`` / ``resolve`` / ``sweep`` / ``archive`` /
+``capture``) that exist so AI agents can ask the tool for a deterministic
+answer instead of re-deriving lifecycle state by hand on every run.
 
 Each ``run_*`` returns a process exit code and emits either a short human
 report (via :class:`rich.console.Console`) or a stable JSON object on stdout
@@ -172,6 +172,214 @@ def run_preflight(project_root: Path, console: Console, as_json: bool) -> int:
     for note in notes:
         console.print(f"  [yellow]warn[/yellow]  {note}")
     return 0
+
+
+# ---------------------------------------------------------------------------
+# agent branches (remote audit for ``/iflow-cleanup include GitHub``)
+# ---------------------------------------------------------------------------
+
+
+def _pr_bucket(
+    prs: list[dict[str, Any]] | None,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Split PR dicts into (open, merged) summary rows."""
+    open_prs: list[dict[str, Any]] = []
+    merged_prs: list[dict[str, Any]] = []
+    if not prs:
+        return open_prs, merged_prs
+    for pr in prs:
+        if not isinstance(pr, dict):
+            continue
+        row = {
+            "number": pr.get("number"),
+            "title": pr.get("title"),
+            "url": pr.get("url"),
+            "state": pr.get("state"),
+            "mergedAt": pr.get("mergedAt"),
+        }
+        state = str(pr.get("state") or "").upper()
+        if state == "OPEN":
+            open_prs.append(row)
+        elif state == "MERGED" or pr.get("mergedAt"):
+            merged_prs.append(row)
+    return open_prs, merged_prs
+
+
+def run_branches(
+    project_root: Path,
+    console: Console,
+    as_json: bool,
+    *,
+    fetch: bool = True,
+    commit_limit: int = 20,
+) -> int:
+    """Classify ``origin/*`` remotes as deletable / unique-work / skipped.
+
+    Read-only: never deletes remotes. Agents use the JSON payload for the
+    Phase B confirm in ``/iflow-cleanup include GitHub``.
+    """
+    notes: list[str] = []
+    remote = gitutils.remote_owner_repo(project_root)
+    repo = f"{remote[0]}/{remote[1]}" if remote else None
+    payload: dict[str, Any] = {
+        "git_available": gitutils.git_available(),
+        "gh_available": gitutils.gh_available(),
+        "repo": repo,
+        "default_branch": None,
+        "fetched": False,
+        "deletable": [],
+        "unique_work": [],
+        "skipped": [],
+        "notes": notes,
+    }
+
+    def emit(exit_code: int) -> int:
+        if as_json:
+            _emit_json(console, payload)
+            return exit_code
+        return _render_branches_text(console, payload, exit_code)
+
+    if not gitutils.git_available():
+        notes.append("git is not on PATH")
+        return emit(1)
+
+    if fetch:
+        payload["fetched"] = gitutils.fetch_prune(project_root)
+        if not payload["fetched"]:
+            notes.append("git fetch --prune failed or was skipped")
+
+    default = gitutils.default_branch(project_root)
+    payload["default_branch"] = default
+    names = gitutils.list_origin_branches(project_root)
+    if names is None:
+        notes.append("could not list origin/* remote-tracking branches")
+        return emit(1)
+
+    current = gitutils.current_branch(project_root)
+
+    for name in sorted(names):
+        if name == default:
+            payload["skipped"].append({"name": name, "reason": "default branch"})
+            continue
+
+        protected = gitutils.branch_is_protected(project_root, name, repo)
+        if protected is True:
+            payload["skipped"].append(
+                {"name": name, "reason": "GitHub protected branch"}
+            )
+            continue
+
+        prs = gitutils.gh_prs_for_head(project_root, name, repo)
+        if prs is None and gitutils.gh_available():
+            notes.append(f"gh pr list failed for head {name}")
+        open_prs, merged_prs = _pr_bucket(prs)
+
+        unique = gitutils.cherry_unique_count(project_root, default, name)
+        if unique is None:
+            payload["skipped"].append(
+                {
+                    "name": name,
+                    "reason": f"could not compare to origin/{default}",
+                }
+            )
+            continue
+
+        if open_prs:
+            commits = gitutils.unique_commit_onelines(
+                project_root, default, name, limit=commit_limit
+            )
+            shortstat = gitutils.unique_diff_shortstat(project_root, default, name)
+            payload["unique_work"].append(
+                {
+                    "name": name,
+                    "unique_commits": unique,
+                    "commits": commits or [],
+                    "shortstat": shortstat or "",
+                    "open_prs": open_prs,
+                    "merged_prs": merged_prs,
+                    "reason": "open pull request on this head",
+                }
+            )
+            continue
+
+        if unique == 0:
+            reason = f"fully merged into origin/{default}"
+            if merged_prs:
+                reason += " (merged PR on GitHub)"
+            entry: dict[str, Any] = {
+                "name": name,
+                "reason": reason,
+                "merged_prs": merged_prs,
+            }
+            if current and name == current:
+                entry["note"] = (
+                    "matches current local branch name; delete remote only "
+                    "after Phase A local cleanup if desired"
+                )
+            payload["deletable"].append(entry)
+            continue
+
+        commits = gitutils.unique_commit_onelines(
+            project_root, default, name, limit=commit_limit
+        )
+        shortstat = gitutils.unique_diff_shortstat(project_root, default, name)
+        payload["unique_work"].append(
+            {
+                "name": name,
+                "unique_commits": unique,
+                "commits": commits or [],
+                "shortstat": shortstat or "",
+                "open_prs": open_prs,
+                "merged_prs": merged_prs,
+                "reason": f"{unique} commit(s) not in origin/{default}",
+            }
+        )
+
+    return emit(0)
+
+
+def _render_branches_text(
+    console: Console, payload: dict[str, Any], exit_code: int
+) -> int:
+    if exit_code != 0 and not payload.get("default_branch"):
+        for note in payload.get("notes") or []:
+            console.print(f"[yellow]{escape(str(note))}[/yellow]")
+        return exit_code
+
+    default = payload.get("default_branch") or "?"
+    repo = payload.get("repo") or "(unknown repo)"
+    console.print(
+        f"Remote branch audit for [bold]{escape(str(repo))}[/bold] "
+        f"vs origin/{escape(str(default))}:"
+    )
+    deletable = payload.get("deletable") or []
+    unique = payload.get("unique_work") or []
+    skipped = payload.get("skipped") or []
+    console.print(
+        f"  [green]deletable[/green] {len(deletable)}  ·  "
+        f"[cyan]unique work[/cyan] {len(unique)}  ·  "
+        f"[dim]skipped[/dim] {len(skipped)}"
+    )
+    for item in deletable:
+        console.print(
+            f"  [green]deletable[/green]  {escape(str(item.get('name')))} — "
+            f"{escape(str(item.get('reason')))}"
+        )
+    for item in unique:
+        console.print(
+            f"  [cyan]unique[/cyan]     {escape(str(item.get('name')))} — "
+            f"{escape(str(item.get('reason')))}"
+        )
+        for line in (item.get("commits") or [])[:5]:
+            console.print(f"               {escape(str(line))}")
+    for item in skipped:
+        console.print(
+            f"  [dim]skipped[/dim]    {escape(str(item.get('name')))} — "
+            f"{escape(str(item.get('reason')))}"
+        )
+    for note in payload.get("notes") or []:
+        console.print(f"  [yellow]note[/yellow]  {escape(str(note))}")
+    return exit_code
 
 
 # ---------------------------------------------------------------------------

@@ -28,7 +28,7 @@ It also seeds `{{ issueflows_dir }}/{{ tools_folder }}/README.md` — the index 
 | `/iflow-build` | `{% if commands_supported %}iflow-build.md{% else %}iflow-build/SKILL.md{% endif %}` | Implement the confirmed plan (no planning step of its own any more). |
 | `/iflow-pause` | `{% if commands_supported %}iflow-pause.md{% else %}iflow-pause/SKILL.md{% endif %}` | Park work safely: update status, move the issue group to `{{ partly_solved_folder }}/`, optional WIP commit and branch switch. |
 | `/iflow-close` | `{% if commands_supported %}iflow-close.md{% else %}iflow-close/SKILL.md{% endif %}` | Finish: tests, optional semver bump (`uv version --bump …`), `{{ history_file }}` update, issue-folder housekeeping, commit, push, PR, and switch back to default when clean unless `stay` is passed. |
-| `/iflow-cleanup` | `{% if commands_supported %}iflow-cleanup.md{% else %}iflow-cleanup/SKILL.md{% endif %}` | Post-merge hygiene: switch to default, `git pull --ff-only`, `git fetch --prune`, delete merged local branches (single consolidated confirm). |
+| `/iflow-cleanup` | `{% if commands_supported %}iflow-cleanup.md{% else %}iflow-cleanup/SKILL.md{% endif %}` | Post-merge hygiene: switch to default, `git pull --ff-only`, `git fetch --prune`, delete merged local branches (single consolidated confirm). Optional `include GitHub` runs a remote-branch audit (second confirm). |
 | `/iflow-yolo` | `{% if commands_supported %}iflow-yolo.md{% else %}iflow-yolo/SKILL.md{% endif %}` | All-in-one for small, low-risk issues: chains `init → plan → build → close` with up-front safeguards and a single confirmation. |
 | `/iflow-fix` | `{% if commands_supported %}iflow-fix.md{% else %}iflow-fix/SKILL.md{% endif %}` | **Off-path.** Interactive iterative-fixes session: create one issue + long-lived branch, then loop over many small fixes (short plan each, recorded in `issue<N>_status.md`), ending with `/iflow-close`. |
 | `/iflow-issue` | `{% if commands_supported %}iflow-issue.md{% else %}iflow-issue/SKILL.md{% endif %}` | **Off-path.** Create one well-specified normal GitHub issue (context / spec / acceptance), then optionally branch + `/iflow-init` into the standard lifecycle. Epic anchors: `/iflow-issue epic …`. |
@@ -59,7 +59,7 @@ It also seeds `{{ issueflows_dir }}/{{ tools_folder }}/README.md` — the index 
 | `iflow-build` | `iflow build`, `iflow-build`, `/iflow-build` | Implement from `{{ issueflows_dir }}/{{ current_issues_folder }}/`. |
 | `iflow-pause` | `iflow pause`, `iflow-pause`, `/iflow-pause` | Park work in `{{ partly_solved_folder }}/`. |
 | `iflow-close` | `iflow close`, `iflow-close`, `/iflow-close` | Tests, bump, commit, push, PR. |
-| `iflow-cleanup` | `iflow cleanup`, `iflow-cleanup`, `/iflow-cleanup` | Post-merge branch cleanup. |
+| `iflow-cleanup` | `iflow cleanup`, `iflow-cleanup`, `/iflow-cleanup` | Post-merge branch cleanup; optional `include GitHub` remote audit. |
 | `iflow-yolo` | `iflow yolo`, `iflow-yolo`, `/iflow-yolo` | Chain `init → plan → build → close`. |
 | `iflow-fix` | `iflow fix`, `iflow-fix`, `/iflow-fix` | Interactive iterative-fixes session. Off-path. |
 | `iflow-issue` | `iflow issue`, `iflow-issue`, `/iflow-issue` | Create one well-specified normal GitHub issue. Off-path. |
@@ -239,19 +239,20 @@ The bump runs **after** tests and **before** issue-folder moves and **before** c
 
 ## 6. `/iflow-cleanup` — post-merge branch hygiene
 
-**When:** The PR opened by `/iflow-close` has merged on GitHub.
+**When:** The PR opened by `/iflow-close` has merged on GitHub. (The optional GitHub remote audit can also run when you only want a remote-branch report.)
 
-**What you pass:** Nothing (acts on the current branch) or an explicit branch name.
+**What you pass:** Nothing (acts on the current branch), an explicit branch name, and/or a GitHub-audit token such as `include GitHub` / `with github` / `github`.
 
 **What the assistant does:**
 
 1. Detects the default branch.
 2. Detects merge state via `gh pr view` (falls back to `git cherry origin/<default> <branch>` to catch squash-merges).
-3. If **not merged**: reminds you to stay off the default for unrelated work and re-run after merge.
+3. If **not merged**: reminds you to stay off the default for unrelated work and re-run after merge (Phase A stops; Phase B may still run if a GitHub-audit token was present).
 4. If **merged**: one consolidated yes/no prompt covering `git switch <default>`, `git pull --ff-only`, `git fetch --prune`, and `git branch -d` on every local branch whose tip is already reachable from the default (including squash-merged ones). Never `-D`; if `-d` refuses, reports and moves on.
 5. Optional safe folder sweep: moves any `issue<N>_*` group whose status file says `- [x] Done` to `{{ issueflows_dir }}/{{ solved_folder }}/`.
+6. **Optional Phase B (`include GitHub`):** run `issue-flow agent branches --json` (or the manual `git`/`gh` fallback) to classify `origin/*` as deletable / unique work / skipped; summarise unique commits; then a **second** confirm for optional `git push origin --delete` on deletable remotes and/or a findings issue via `gh issue create`. Never `--force`; never delete the default.
 
-**Result:** Working tree on the default, merged local branches deleted (with consent), folders tidy.
+**Result:** Working tree on the default, merged local branches deleted (with consent), folders tidy; when Phase B ran, remote audit report plus any consented remote deletes / findings issue.
 
 ---
 

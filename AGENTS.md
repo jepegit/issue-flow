@@ -240,6 +240,8 @@ When the user message is **exactly** one of these forms, or **starts with** it f
 
 | `iflow archive`, `iflow-archive`, `/iflow-archive`, `/iflow archive` | `iflow-archive` |
 
+| `iflow build`, `iflow-build`, `/iflow-build`, `/iflow build` | `iflow-build` |
+
 | `iflow cleanup`, `iflow-cleanup`, `/iflow-cleanup`, `/iflow cleanup` | `iflow-cleanup` |
 
 | `iflow close`, `iflow-close`, `/iflow-close`, `/iflow close` | `iflow-close` |
@@ -256,6 +258,8 @@ When the user message is **exactly** one of these forms, or **starts with** it f
 
 | `iflow init`, `iflow-init`, `/iflow-init`, `/iflow init` | `iflow-init` |
 
+| `iflow issue`, `iflow-issue`, `/iflow-issue`, `/iflow issue` | `iflow-issue` |
+
 | `iflow pause`, `iflow-pause`, `/iflow-pause`, `/iflow pause` | `iflow-pause` |
 
 | `iflow pick`, `iflow-pick`, `/iflow-pick`, `/iflow pick` | `iflow-pick` |
@@ -263,8 +267,6 @@ When the user message is **exactly** one of these forms, or **starts with** it f
 | `iflow plan`, `iflow-plan`, `/iflow-plan`, `/iflow plan` | `iflow-plan` |
 
 | `iflow review`, `iflow-review`, `/iflow-review`, `/iflow review` | `iflow-review` |
-
-| `iflow build`, `iflow-build`, `/iflow-build`, `/iflow build` | `iflow-build` |
 
 | `iflow status`, `iflow-status`, `/iflow-status`, `/iflow status` | `iflow-status` |
 
@@ -285,8 +287,8 @@ The full slash-command lifecycle is:
 2. **`/iflow-plan`** — design the approach in `issue<N>_plan.md` and get explicit confirmation before any code changes.
 3. **`/iflow-build`** — implement the confirmed plan. Asks to run `/iflow-plan` first if the plan file is missing.
 4. **`/iflow-pause`** *(optional)* — park work mid-stream: update status, move the issue group to `02-partly-solved-issues`, optional WIP commit.
-5. **`/iflow-close`** — tests, optional `uv version --bump`, status update, commit, push, PR. Does not delete branches.
-6. **`/iflow-cleanup`** — post-merge: switch to default, `git pull --ff-only`, `git fetch --prune`, `git branch -d` on merged local branches under a single consolidated confirm. Never `-D`.
+5. **`/iflow-close`** — tests, optional `uv version --bump`, **changelog/`HISTORY.md` update (in the PR commit)**, status update, commit, push, PR. Does not delete branches. Never offer a HISTORY/CHANGELOG update after the PR is open or merged; use `nohistory` only to skip intentionally.
+6. **`/iflow-cleanup`** — post-merge: switch to default, `git pull --ff-only`, `git fetch --prune`, `git branch -d` on merged local branches under a single consolidated confirm. Never `-D`. Trailing `include GitHub` (or similar) adds a remote-branch audit with a second confirm for optional remote deletes / findings issue.
 
 `/iflow-yolo` chains `init → plan → build → close yolo` for small, low-risk issues with up-front safeguards (clean tree, passing tests, single consolidated confirm). Its close step is hands-off: changelog decided without a prompt, PR merged (`gh pr merge --squash`; on pending checks may `gh pr checks --watch` then retry, with `--auto` as last resort), then default-branch switch + pull.
 
@@ -299,6 +301,8 @@ Lifecycle skills include a **`### MODEL & EXECUTION DIRECTIVE`** section that te
 
 
 `/iflow-fix` opens an interactive iterative-fixes session: it creates one GitHub issue + long-lived branch, then loops over many small fixes (each gets a short plan and is implemented only on confirmation, recorded as a dated bullet in `issue<N>_status.md`), and ends with `/iflow-close`. It is off-path (never auto-dispatched); while a session is active, drive it with `/iflow-fix` + `/iflow-close`, not `/iflow`.
+
+`/iflow-issue` creates **one well-specified normal GitHub issue** (context / spec / acceptance criteria), then optionally branches and runs `/iflow-init` into the standard lifecycle. It fills the gap between `/iflow-fix` (iterative small-fixes) and `/iflow-epic` (multi-issue staged work). Off-path (never auto-dispatched). For an epic anchor: `/iflow-issue epic <intent>`.
 
 `/iflow-status` prints a **read-only** overview of where every issue stands — the local tracking state under `.issueflows/` (focus / parked / solved) plus open GitHub issues cross-referenced against it. It is off-path (never auto-dispatched) and changes nothing.
 

@@ -316,3 +316,82 @@ def test_pull_ff_only_reports_refusal(
 def test_subprocess_import_is_available() -> None:
     """Guard against accidentally dropping the subprocess import."""
     assert gitutils.subprocess is subprocess
+
+
+# ---------------------------------------------------------------------------
+# remote branch audit helpers
+# ---------------------------------------------------------------------------
+
+
+def test_list_origin_branches_strips_prefix(
+    monkeypatch: pytest.MonkeyPatch, all_tools_present: None
+) -> None:
+    monkeypatch.setattr(
+        gitutils.subprocess,
+        "run",
+        _fake_runner(
+            {
+                ("git", "for-each-ref"): _FakeProc(
+                    stdout="origin/HEAD\norigin/main\norigin/feat\norigin\n"
+                )
+            }
+        ),
+    )
+    assert gitutils.list_origin_branches(Path(".")) == ["main", "feat"]
+
+
+def test_cherry_unique_count_counts_plus_lines(
+    monkeypatch: pytest.MonkeyPatch, all_tools_present: None
+) -> None:
+    monkeypatch.setattr(
+        gitutils.subprocess,
+        "run",
+        _fake_runner(
+            {("git", "cherry"): _FakeProc(stdout="- abc\n+ def\n+ ghi\n- jkl\n")}
+        ),
+    )
+    assert gitutils.cherry_unique_count(Path("."), "main", "feat") == 2
+
+
+def test_unique_commit_onelines_splits(
+    monkeypatch: pytest.MonkeyPatch, all_tools_present: None
+) -> None:
+    monkeypatch.setattr(
+        gitutils.subprocess,
+        "run",
+        _fake_runner(
+            {("git", "log"): _FakeProc(stdout="abc Fix bug\ndef Add feature\n")}
+        ),
+    )
+    assert gitutils.unique_commit_onelines(Path("."), "main", "feat") == [
+        "abc Fix bug",
+        "def Add feature",
+    ]
+
+
+def test_gh_prs_for_head_parses_json(
+    monkeypatch: pytest.MonkeyPatch, all_tools_present: None
+) -> None:
+    payload = (
+        '[{"number": 1, "title": "T", "state": "OPEN", "url": "u", "mergedAt": null}]'
+    )
+    monkeypatch.setattr(
+        gitutils.subprocess,
+        "run",
+        _fake_runner({("gh", "pr", "list"): _FakeProc(stdout=payload)}),
+    )
+    data = gitutils.gh_prs_for_head(Path("."), "feat", "octo/repo")
+    assert data is not None
+    assert data[0]["number"] == 1
+    assert data[0]["state"] == "OPEN"
+
+
+def test_branch_is_protected_true(
+    monkeypatch: pytest.MonkeyPatch, all_tools_present: None
+) -> None:
+    monkeypatch.setattr(
+        gitutils.subprocess,
+        "run",
+        _fake_runner({("gh", "api"): _FakeProc(stdout="true")}),
+    )
+    assert gitutils.branch_is_protected(Path("."), "main", "octo/repo") is True
