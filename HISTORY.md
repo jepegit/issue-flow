@@ -9,14 +9,13 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+## [0.4.5] - 2026-07-20
+
 - **GitHub remote branch audit in `/iflow-cleanup` (#163).** Opt-in `include GitHub` Phase B classifies `origin/*` remotes; `issue-flow agent branches` returns JSON; second confirm for remote deletes and optional findings issue.
 - **Changelog timing (#171).** Default `confirm_changelog_update` to false so HISTORY lands in the close/PR commit; decline blocks close; forbid post-merge changelog offers.
 - **Rename `/iflow-start` → `/iflow-build` (#183).** Post-plan implement step renamed; `agent state` stage is `build`; old scaffolds pruned on `issue-flow update`. Hard cut (no `iflow start` alias).
 - Add `/iflow-issue` to create one well-specified normal GitHub issue (optional branch + `/iflow-init`; epic-anchor mode). (#181)
 - **More config settings (#182).** Add skill-behaviour knobs (`remind_cleanup`, `suggest_graphify`, `auto_switchback`, `auto_close`, `confirm_version_bump`, `confirm_changelog_update`, `pr_merge_method`, `cycle_max_issues`, `ruff_autofix`) baked at `issue-flow update`, with docs and naming consistency.
-
-## [0.4.5] - 2026-07-18
-
 - **Review docs (#179).** Document epics, cycles, and reviews with examples in the scaffolded workflow doc, site home recipes, README off-path lists, and config cross-links; patch release.
 
 - **Auto-process all yolo issues (#175).** `/iflow-cycle yolo` aliases `label:<yolo_label>`; documents sequential merge-to-default conflict stance; `/iflow-review` hints the batch path.
