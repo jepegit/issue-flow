@@ -468,3 +468,150 @@ def gh_milestone_titles(cwd: Path, repo: str | None = None) -> list[str] | None:
     if not out:
         return []
     return [line.strip().strip('"') for line in out.splitlines() if line.strip()]
+
+
+# ---------------------------------------------------------------------------
+# Remote branch audit helpers (``/iflow-cleanup include GitHub``)
+# ---------------------------------------------------------------------------
+
+
+def list_origin_branches(cwd: Path) -> list[str] | None:
+    """Short names of ``origin/*`` remote-tracking branches (no ``HEAD``).
+
+    Returns ``None`` when git is unavailable or the query fails; an empty
+    list when the remote has no branches yet.
+    """
+    out = _stdout(
+        [
+            GIT,
+            "for-each-ref",
+            "--format=%(refname:short)",
+            "refs/remotes/origin",
+        ],
+        cwd,
+    )
+    if out is None:
+        return None
+    names: list[str] = []
+    for line in out.splitlines():
+        ref = line.strip()
+        if not ref or ref == "origin" or ref == "origin/HEAD":
+            continue
+        name = ref.removeprefix("origin/")
+        if name and name != "HEAD":
+            names.append(name)
+    return names
+
+
+def cherry_unique_count(cwd: Path, default: str, branch: str) -> int | None:
+    """Count commits on ``origin/<branch>`` not in ``origin/<default>``.
+
+    Uses ``git cherry origin/<default> origin/<branch>``: lines starting with
+    ``+`` are unique; ``-`` means already in the upstream. Returns ``None``
+    when the comparison cannot be made.
+    """
+    result = _run(
+        [GIT, "cherry", f"origin/{default}", f"origin/{branch}"],
+        cwd,
+    )
+    if result is None or result.returncode != 0:
+        return None
+    return sum(1 for line in result.stdout.splitlines() if line.startswith("+"))
+
+
+def unique_commit_onelines(
+    cwd: Path, default: str, branch: str, *, limit: int = 20
+) -> list[str] | None:
+    """``git log --oneline`` for commits on ``origin/<branch>`` not in default."""
+    if limit < 1:
+        limit = 20
+    out = _stdout(
+        [
+            GIT,
+            "log",
+            "--oneline",
+            f"origin/{default}..origin/{branch}",
+            f"-{limit}",
+        ],
+        cwd,
+    )
+    if out is None:
+        return None
+    if not out:
+        return []
+    return [line.strip() for line in out.splitlines() if line.strip()]
+
+
+def unique_diff_shortstat(cwd: Path, default: str, branch: str) -> str | None:
+    """``git diff --shortstat`` between ``origin/<default>...origin/<branch>``."""
+    out = _stdout(
+        [
+            GIT,
+            "diff",
+            "--shortstat",
+            f"origin/{default}...origin/{branch}",
+        ],
+        cwd,
+    )
+    if out is None:
+        return None
+    return out
+
+
+def gh_prs_for_head(
+    cwd: Path,
+    head: str,
+    repo: str | None = None,
+    *,
+    limit: int = 20,
+) -> list[dict[str, Any]] | None:
+    """PRs whose head ref is ``head`` (any state), or ``None`` if ``gh`` fails."""
+    argv = [
+        GH,
+        "pr",
+        "list",
+        "--state",
+        "all",
+        "--head",
+        head,
+        "--limit",
+        str(limit),
+        "--json",
+        "number,title,state,url,mergedAt",
+    ]
+    if repo:
+        argv += ["--repo", repo]
+    out = _stdout(argv, cwd)
+    if out is None:
+        return None
+    try:
+        data = json.loads(out)
+    except json.JSONDecodeError:
+        return None
+    return data if isinstance(data, list) else None
+
+
+def branch_is_protected(cwd: Path, branch: str, repo: str | None = None) -> bool | None:
+    """Whether GitHub marks ``branch`` as protected.
+
+    Returns ``None`` when the API call fails (callers treat as unknown and
+    rely on push-delete failure reporting per the #163 plan).
+    """
+    if repo and "/" in repo:
+        owner, name = repo.split("/", 1)
+    else:
+        remote = remote_owner_repo(cwd)
+        if remote is None:
+            return None
+        owner, name = remote
+    argv = [
+        GH,
+        "api",
+        f"repos/{owner}/{name}/branches/{branch}",
+        "--jq",
+        ".protected",
+    ]
+    out = _stdout(argv, cwd)
+    if out is None:
+        return None
+    return out.strip().lower() == "true"

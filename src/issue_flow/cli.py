@@ -22,7 +22,8 @@ agent_app = typer.Typer(
         "Agent-facing helpers that read the .issueflows/ tree and git/gh so "
         "AI agents get deterministic answers instead of re-deriving lifecycle "
         "state by hand. All are read-only except `sweep`, `archive`, `capture`, "
-        "`switchback`, `repair`, and `label-apply`."
+        "`switchback`, `repair`, and `label-apply`. `branches` is read-only "
+        "(remote audit only; deletes stay in `/iflow-cleanup`)."
     ),
 )
 
@@ -445,6 +446,41 @@ def agent_switchback(
     from issue_flow.agent import run_switchback
 
     raise typer.Exit(code=run_switchback(project_dir, _console, json_output))
+
+
+@agent_app.command("branches")
+def agent_branches(
+    project_dir: Path = _PROJECT_DIR_ARGUMENT,
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+    no_fetch: bool = typer.Option(
+        False,
+        "--no-fetch",
+        help="Skip `git fetch --prune` before classifying remotes.",
+    ),
+    commit_limit: int = typer.Option(
+        20,
+        "--commit-limit",
+        help="Max `git log --oneline` lines per unique-work branch.",
+    ),
+) -> None:
+    """Classify origin/* remotes: deletable vs unique work vs skipped.
+
+    Read-only helper for ``/iflow-cleanup include GitHub``. Never deletes
+    remote branches — the skill owns confirm + ``git push origin --delete``.
+    """
+    from issue_flow.agent import run_branches
+
+    raise typer.Exit(
+        code=run_branches(
+            project_dir,
+            _console,
+            json_output,
+            fetch=not no_fetch,
+            commit_limit=commit_limit,
+        )
+    )
 
 
 @agent_app.command("version-plan")

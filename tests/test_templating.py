@@ -358,6 +358,17 @@ def test_issue_cleanup_describes_post_merge_branch_cleanup() -> None:
     assert (
         "-D" not in rendered or "Never use `-D`" in rendered or "Never `-D`" in rendered
     )
+    assert "include GitHub" in rendered or "include github" in rendered
+    assert "Phase B" in rendered
+    assert "agent branches" in rendered
+    assert "git push origin --delete" in rendered
+    assert "--force" in rendered
+    skill = render_template("skills/iflow_cleanup/SKILL.md.j2", _default_context())
+    assert "include github" in skill.lower()
+    assert (
+        "Second consolidated confirm" in skill or "second consolidated confirm" in skill
+    )
+    assert "issue-flow agent branches" in skill
 
 
 def test_issue_start_requires_or_offers_plan() -> None:

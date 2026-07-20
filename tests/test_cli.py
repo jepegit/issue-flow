@@ -292,6 +292,7 @@ def test_agent_help_lists_subcommands(runner: CliRunner) -> None:
         "state",
         "preflight",
         "switchback",
+        "branches",
         "resolve",
         "sweep",
         "audit",
@@ -458,6 +459,86 @@ def test_agent_preflight_json_handles_missing_git(
     assert result.exit_code == 0, result.output
     payload = _json(result.stdout)
     assert payload["git_available"] is False
+
+
+def test_agent_branches_json_classifies_remotes(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from issue_flow import gitutils as gitutils_module
+
+    monkeypatch.setattr(gitutils_module, "git_available", lambda: True)
+    monkeypatch.setattr(gitutils_module, "gh_available", lambda: True)
+    monkeypatch.setattr(gitutils_module, "fetch_prune", lambda _cwd: True)
+    monkeypatch.setattr(gitutils_module, "default_branch", lambda _cwd: "main")
+    monkeypatch.setattr(gitutils_module, "current_branch", lambda _cwd: "main")
+    monkeypatch.setattr(
+        gitutils_module, "remote_owner_repo", lambda _cwd: ("octo", "repo")
+    )
+    monkeypatch.setattr(
+        gitutils_module,
+        "list_origin_branches",
+        lambda _cwd: ["main", "merged-feat", "wip", "protected-x"],
+    )
+    monkeypatch.setattr(
+        gitutils_module,
+        "branch_is_protected",
+        lambda _cwd, name, _repo=None: name == "protected-x",
+    )
+
+    def _cherry(_cwd: Path, _default: str, branch: str) -> int | None:
+        return {"merged-feat": 0, "wip": 2}.get(branch)
+
+    monkeypatch.setattr(gitutils_module, "cherry_unique_count", _cherry)
+    monkeypatch.setattr(
+        gitutils_module,
+        "unique_commit_onelines",
+        lambda _cwd, _d, _b, limit=20: ["abc WIP commit"],
+    )
+    monkeypatch.setattr(
+        gitutils_module, "unique_diff_shortstat", lambda _cwd, _d, _b: " 1 file changed"
+    )
+
+    def _prs(_cwd: Path, head: str, _repo: str | None = None, limit: int = 20):
+        if head == "wip":
+            return [
+                {
+                    "number": 9,
+                    "title": "WIP",
+                    "state": "OPEN",
+                    "url": "https://example/9",
+                    "mergedAt": None,
+                }
+            ]
+        if head == "merged-feat":
+            return [
+                {
+                    "number": 8,
+                    "title": "Done",
+                    "state": "MERGED",
+                    "url": "https://example/8",
+                    "mergedAt": "2026-01-01T00:00:00Z",
+                }
+            ]
+        return []
+
+    monkeypatch.setattr(gitutils_module, "gh_prs_for_head", _prs)
+
+    result = runner.invoke(
+        app, ["agent", "branches", str(tmp_path), "--json", "--no-fetch"]
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["repo"] == "octo/repo"
+    assert payload["default_branch"] == "main"
+    assert payload["fetched"] is False
+    deletable_names = {item["name"] for item in payload["deletable"]}
+    unique_names = {item["name"] for item in payload["unique_work"]}
+    skipped_names = {item["name"] for item in payload["skipped"]}
+    assert deletable_names == {"merged-feat"}
+    assert unique_names == {"wip"}
+    assert "main" in skipped_names
+    assert "protected-x" in skipped_names
 
 
 def test_agent_switchback_refuses_dirty_tree(

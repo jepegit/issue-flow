@@ -9,13 +9,13 @@ issue-flow-version: 0.4.2a4
 
 # issue-flow — epic planning (`/iflow-epic`)
 
-Follow this skill to plan a change that is **too large for one issue**: divide it into sequential **stages**, each stage into **manageable issues** that flow through the normal lifecycle (`/iflow-init` → `/iflow-plan` → `/iflow-start` → `/iflow-close`).
+Follow this skill to plan a change that is **too large for one issue**: divide it into sequential **stages**, each stage into **manageable issues** that flow through the normal lifecycle (`/iflow-init` → `/iflow-plan` → `/iflow-build` → `/iflow-close`).
 
 The surface has two actions. **Drafting** (the default) is write-free on GitHub: its deliverable is `.issueflows/05-epics/epic<N>_plan.md`, and it never creates GitHub issues, labels, or milestones. **`publish`** is the single exception — it turns a *confirmed* plan into real GitHub issues, stage by stage, behind one consolidated confirm.
 
 ## Input
 
-- **`<N>`** — the GitHub issue number of the **epic anchor** (an umbrella issue describing the large change). Required: an epic without an anchor has nowhere to track progress. If no anchor issue exists yet, stop and ask the user to create one (title prefixed `Epic:`, label `epic` when available) — creating it is the user's call, not this skill's.
+- **`<N>`** — the GitHub issue number of the **epic anchor** (an umbrella issue describing the large change). Required: an epic without an anchor has nowhere to track progress. If no anchor issue exists yet, stop and point the user at **`/iflow-issue epic <intent>`** (creates the anchor with an `Epic:` title and the `epic` label when present) — then re-run `/iflow-epic <N>` with the new number.
 - **`publish [stage <k>]`** — run the publish action (below) instead of drafting. Without a stage number, the earliest stage with unpublished specs is chosen.
 - Optional free text — extra context, constraints, or a proposed stage split to seed the draft.
 
