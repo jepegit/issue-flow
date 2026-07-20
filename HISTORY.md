@@ -9,6 +9,7 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- **GitHub remote branch audit in `/iflow-cleanup` (#163).** Opt-in `include GitHub` Phase B classifies `origin/*` remotes; `issue-flow agent branches` returns JSON; second confirm for remote deletes and optional findings issue.
 - **Changelog timing (#171).** Default `confirm_changelog_update` to false so HISTORY lands in the close/PR commit; decline blocks close; forbid post-merge changelog offers.
 - **Rename `/iflow-start` → `/iflow-build` (#183).** Post-plan implement step renamed; `agent state` stage is `build`; old scaffolds pruned on `issue-flow update`. Hard cut (no `iflow start` alias).
 - Add `/iflow-issue` to create one well-specified normal GitHub issue (optional branch + `/iflow-init`; epic-anchor mode). (#181)
