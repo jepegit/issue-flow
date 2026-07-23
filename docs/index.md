@@ -90,10 +90,10 @@ Plus a few off-path commands (never auto-dispatched): `/iflow-pick` (choose the
 next issue), `/iflow-pause` (park work), `/iflow-yolo` (hands-off chain for
 small issues), `/iflow-fix` (iterative fixes session), `/iflow-status`
 (read-only overview), `/iflow-epic` (staged epic plan + publish),
-`/iflow-cycle` (batch yolo queue), `/iflow-auto` (unattended epic stage),
-`/iflow-review` (label open issues), `/iflow-doctor` (scaffold health check),
-and `/iflow-archive` (condense the solved archive). The full lifecycle is
-described in [The workflow](issue-workflow.md).
+`/iflow-cycle` (batch yolo queue), `/iflow-auto` (unattended epic stage +
+adversarial review), `/iflow-review` (label open issues), `/iflow-doctor`
+(scaffold health check), and `/iflow-archive` (condense the solved archive).
+The full lifecycle is described in [The workflow](issue-workflow.md).
 
 ## Recipes
 

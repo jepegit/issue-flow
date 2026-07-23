@@ -9,6 +9,7 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- `/iflow-auto` adversarial inter-epoch review (`review`; reopen/create + auto_status outcomes). (#202)
 - Stage 1 advanced auto mode tests/docs coverage (`/iflow-auto`, knobs, Goal/Model markers). (#195)
 - `/iflow-auto` orchestrator skill skeleton (cycle stage, `auto_status.md`, stub adversarial). (#194)
 - Epic plan Goal/Model markers in epicplan + /iflow-epic publish bodies. (#193)

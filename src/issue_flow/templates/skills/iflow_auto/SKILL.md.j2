@@ -2,7 +2,7 @@
 name: iflow-auto
 description: >-
   Unattended large-change orchestrator over a confirmed epic: cycle a stage,
-  record auto_status, stub adversarial gate (Stage 2). Overnight confirm first.
+  record auto_status, run adversarial inter-epoch review. Overnight confirm first.
 disable-model-invocation: true
 ---
 
@@ -10,10 +10,11 @@ disable-model-invocation: true
 
 Follow this skill to run an **unattended large-change flow** over a confirmed
 epic: select a stage, drive it through `/iflow-cycle`, record durable state in
-`auto_status.md`, then (Stage 2) run the adversarial inter-epoch gate.
+`auto_status.md`, then run the adversarial inter-epoch gate (`review`).
 {% if commands_supported %} Matches `{{ agent_dir }}/{{ commands_dir }}/iflow-auto.md`.{% endif %}
 
-Contract: `{{ issueflows_dir }}/{{ designs_folder }}/advanced-auto-mode.md`.
+Contract: `{{ issueflows_dir }}/{{ designs_folder }}/advanced-auto-mode.md`
+(criteria table + outcomes).
 
 ## Input
 
@@ -23,6 +24,8 @@ Contract: `{{ issueflows_dir }}/{{ designs_folder }}/advanced-auto-mode.md`.
   stage (`issue-flow agent epic-status <N> --json` → `current_stage`).
 - **`loops:<n>`** — override adversarial loop budget for this run (baked default
   **{{ auto_adversarial_loops }}** from `[issueflow].auto_adversarial_loops`).
+- **`review`** — run only the adversarial procedure for epic `<N>` (and optional
+  `stage <k>`); skip cycle unless a full auto run is also intended.
 - **`status`** — print `auto_status.md` / epic-status and stop (no confirm).
 - **`dry-run`** — resolve stage + queue, show what would run, stop (no confirm).
 
@@ -32,7 +35,7 @@ Contract: `{{ issueflows_dir }}/{{ designs_folder }}/advanced-auto-mode.md`.
 {% include "skills/_model_directive.md.j2" %}
 
 {% include "skills/_resolve_project_root.md.j2" %}
-## Instructions (Stage 1 skeleton)
+## Instructions
 
 1. **Resolve epic.** Require `{{ issueflows_dir }}/{{ epics_folder }}/epic<N>_plan.md`
    with `Status: confirmed`. Run `issue-flow agent epic-status <N> --json`. If
@@ -48,34 +51,60 @@ Contract: `{{ issueflows_dir }}/{{ designs_folder }}/advanced-auto-mode.md`.
    (`issue-flow agent queue --epic <N> --json`), budget, and path of
    `auto_status.md` if present; **stop** without confirm or writes.
 
-5. **Overnight confirm** (only planned interruption). Present in normal prose:
-   epic `#<N>`, stage index + title, ordered queue (numbers + titles), that
-   each issue runs full yolo + auto-merge via `/iflow-cycle`, loop budget, and
-   that adversarial review is a **stub** until Stage 2. Require explicit yes.
+5. **`review`-only path.** If `review` is present and this is not a full
+   overnight run: jump to **Adversarial procedure** (step 9). If
+   `auto_status.md` lacks overnight authorization for this epic/stage, present
+   one confirm (epic, stage, that create/reopen may happen) before proceeding.
 
-6. **Write / update `auto_status.md`** at
+6. **Overnight confirm** (full auto; only planned interruption). Present in
+   normal prose: epic `#<N>`, stage index + title, ordered queue (numbers +
+   titles), that each issue runs full yolo + auto-merge via `/iflow-cycle`,
+   loop budget, and that adversarial review may **reopen or create** GitHub
+   issues under that confirm. Require explicit yes.
+
+7. **Write / update `auto_status.md`** at
    `{{ issueflows_dir }}/{{ current_issues_folder }}/auto_status.md`:
-   epic, stage, loop count (`0` at start), budget, ISO timestamp, last outcome
-   `pending`. Not an `issue<N>_*` group — sweeps leave it alone.
+   epic, stage, loop count (`0` at start of full run), budget, ISO timestamp,
+   last outcome `pending`, and note overnight authorization. Not an
+   `issue<N>_*` group — sweeps leave it alone.
 
-7. **Run the stage via `/iflow-cycle`.** Follow
+8. **Run the stage via `/iflow-cycle`.** Follow
    `{{ agent_dir }}/skills/iflow-cycle/SKILL.md` for `epic <N>` (the CLI queues
    the current stage). The overnight confirm above covers cycle's consolidated
    confirm — do not re-ask. Honour cycle stop conditions and `onfail:stop`.
+   Update `auto_status.md` with the cycle outcome.
 
-8. **After cycle finishes the stage queue:** update `auto_status.md` with the
-   cycle outcome. Then run the **adversarial stub**: report
-   "adversarial review not implemented (Stage 2 of epic #169); not advancing
-   automatically" and **stop**. Do not invent reopen/create logic here.
+9. **Adversarial procedure** (after cycle, or via `review`):
 
-9. **Report.** Epic, stage, cycle results (PR URLs / merges), `auto_status.md`
-   path, reminder that Stage 2 will own the real adversarial gate + loop ask
-   UX. Remind `/iflow-cleanup` after merges.
+   a. Gather evidence (read-only first): stage issues + states from
+      `epic-status`; merged PR titles/bodies via `gh pr list` /
+      `gh pr view --repo <owner/repo>` for those issues; epic `## Goal` /
+      Constraints and stage Goal / paragraph from `epic<N>_plan.md`.
+   b. Apply the criteria table in
+      `{{ issueflows_dir }}/{{ designs_folder }}/advanced-auto-mode.md`
+      (stage goal, epic progress, spec honesty, blast radius).
+   c. If **clear**: set `last_outcome: adversarial_clear` and a short findings
+      summary in `auto_status.md`. **Do not** start stage `k+1` here (gate:
+      later Stage 2 work). **Do not** re-run cycle or ask for more loops here
+      (loop ask UX: later Stage 2 work).
+   d. If **gaps**: for each finding, prefer `gh issue reopen <M> --repo
+      <owner/repo>` plus a comment with concrete remaining acceptance when an
+      existing stage issue owns the gap; otherwise `gh issue create --repo
+      <owner/repo>` with Spec, Goal, **`Model: deep`**, `Depends on`, and
+      `Part of epic #<N>.` — no new label in v1. Record numbers + notes in
+      `auto_status.md` with `last_outcome: adversarial_findings`.
+   e. No extra user prompts while acting under overnight / review confirm.
+
+10. **Report.** Epic, stage, cycle results (if any), adversarial outcome +
+    issue numbers, `auto_status.md` path. Note that loop re-queue / budget-ask
+    and next-epoch gating are separate follow-ups. Remind `/iflow-cleanup`
+    after merges.
 
 ## Constraints
 
 - **Off-path:** `/iflow` never auto-dispatches here.
 - Do not weaken yolo/cycle safeguards.
 - Do not run `/iflow-cleanup` from this skill.
-- Do not implement real adversarial reopen/create in Stage 1 — stub only.
+- Do not implement loop re-queue / budget-exhausted ask or next-epoch advance
+  in this skill beyond recording outcomes — those are separate issues.
 - Compose `/iflow-epic` + `/iflow-cycle` + `/iflow-yolo`; do not fork them.
