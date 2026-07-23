@@ -32,9 +32,13 @@ The exact semantics and the default rule live in `.cursor/skills/iflow-version-b
 
 - **`stay`**, **`stay on branch`**, **`don't switch`**, or **`dont switch to main`** → after the PR step, stay on the issue branch instead of switching back to the default branch.
 
+## Draft PR token (command input)
+
+- **`draft`** → when creating a PR in step 8, use `gh pr create --draft`. If an open PR already exists, leave it draft (do not mark ready). **`draft` skips yolo merge** entirely (step 8a).
+
 ## Hands-off token (command input)
 
-- **`yolo`** (used by `/iflow-yolo`) → close the loop without user input: write the `HISTORY.md` bullet without a confirm prompt (step 3), **merge the PR** right after opening it (step 8a), then switch back to the default branch and `git pull --ff-only` (step 9, unless `stay` was also passed).
+- **`yolo`** (used by `/iflow-yolo`) → close the loop without user input: write the `HISTORY.md` bullet without a confirm prompt (step 3), **merge the PR** right after opening/updating it (step 8a), then switch back to the default branch and `git pull --ff-only` (step 9, unless `stay` was also passed).
 
 
 **Invoke:** type `iflow close` in chat, or `/iflow-close` from the slash menu (`iflow-close` also works).
@@ -83,7 +87,7 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 
 2. **Optional version bump** — If the user asked for a bump (see above), follow `.cursor/skills/iflow-version-bump/SKILL.md` — it resolves the project's **release strategy** first (the "Release & version bump" section of `.issueflows/04-designs-and-guides/this-project.md`, else `pyproject.toml` detection, else the uv default). **Static version:** run `uv version --bump <level>`. **Git-tag derived:** edit nothing — compute and report the **planned tag** (e.g. `v1.0.4a3`), record it in the status file, and defer creating it until after the merge (step 9 with `yolo`, else `/iflow-cleanup`). If neither strategy applies, skip and continue.
 
-3. **Update `HISTORY.md`** — Unless the user passed `nohistory`, follow `.cursor/skills/iflow-history-update/SKILL.md`. If step 2 did not bump (or plan) a version, append a bullet to the `## [Unreleased]` section. If step 2 bumped or planned a version, promote `## [Unreleased]` to `## [<new_version>] - <YYYY-MM-DD>` (for tag-derived projects use the planned tag's version) and open a fresh empty `## [Unreleased]` above it. Write without a confirm prompt (`confirm_changelog_update` is false) so the bullet is in the PR commit. Skip with a note if `HISTORY.md` does not exist at the project root. With the `yolo` token, do not ask — decide yourself and write the bullet (issue title, or `log "..."` text) directly. **Never** propose a changelog update after the PR is open or merged.
+3. **Update `HISTORY.md`** — Unless the user passed `nohistory`, follow `.cursor/skills/iflow-history-update/SKILL.md`. If step 2 did not bump (or plan) a version, append a bullet to the `## [Unreleased]` section. If step 2 bumped or planned a version, promote `## [Unreleased]` to `## [<new_version>] - <YYYY-MM-DD>` (for tag-derived projects use the planned tag's version) and open a fresh empty `## [Unreleased]` above it. Write without a confirm prompt (`confirm_changelog_update` is false) so the bullet is in the PR commit. Skip with a note if `HISTORY.md` does not exist at the project root. With the `yolo` token, do not ask — decide yourself and write the bullet (issue title, or `log "..."` text) directly. Write this step **even when a draft PR already exists** from `/iflow-build` early PR — the bullet must land in the close commit that updates that PR. **Never** propose a changelog update *after close finishes* (PR already updated/merged) or after merge.
 
 4. **Issue tracking** — Under `.issueflows/01-current-issues/`, update the status file: remaining work, checklists, and **`- [x] Done`** only when the issue is fully resolved. If fully resolved, move that issue's markdown files (`issue<n>_*`) to `.issueflows/03-solved-issues/`. If partially resolved, move to `.issueflows/02-partly-solved-issues/`. Follow any stricter rules in `.cursor/rules/issueflow-rules.mdc` if present.
 
@@ -94,16 +98,17 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 7. **Push** — Push to the remote the project uses (typically `origin`).
 
 8. **Pull request** — Against the default branch; always pass `--repo <owner/repo>`.
-   - **List before create.** Run `gh pr list --repo <owner/repo> --head <branch> --state open --json number,url,title,isDraft`. If an open PR already exists for this head, **update** it (title/body as needed) instead of opening a second one. Otherwise `gh pr create`. Body should explain the change, how to test, and link the GitHub issue (`Closes #n` / `Refs #n`).
+   - **List before create.** Run `gh pr list --repo <owner/repo> --head <branch> --state open --json number,url,title,isDraft`. If an open PR already exists for this head (including a draft from `/iflow-build` early PR), **update** it (title/body as needed; prefer `Closes #n` when shipping) instead of opening a second one. Otherwise `gh pr create` — add `--draft` when the user passed the `draft` token. Body should explain the change, how to test, and link the GitHub issue (`Closes #n` / `Refs #n`).
+   - **Ready from draft (when not `draft`).** If the open PR is still a draft and the user did **not** pass `draft`, mark it ready for review (`gh pr ready <number> --repo <owner/repo>`) before the checks snapshot / yolo merge.
    - **Checks snapshot.** After the PR exists, run `gh pr checks <number> --repo <owner/repo>` and report pass / fail / pending. "CI is green" means this command exits 0 (or JSON buckets are all `pass` / `skipping`). Without `yolo`, prefer this one-shot list; offer `gh pr checks <number> --repo <owner/repo> --watch --fail-fast` only when the user wants to wait in-session, and still honour the **15-minute** wall-clock cap (agent-enforced — `gh` has no max-duration flag).
 
 8a. **Merge the PR (`yolo` token only)** — Never `--delete-branch`; branch deletion stays in `/iflow-cleanup`. Without the `yolo` token, skip this step — merging stays a user decision (step 10). With `yolo`:
-   1. Try `gh pr merge <number> --squash` immediately (repos with no required checks stay fast).
-   2. If GitHub refuses for pending/required checks: run `gh pr checks <number> --repo <owner/repo> --watch --fail-fast` under a hard wall-clock budget of **15 minutes** (baked from `[issueflow].checks_watch_minutes` / `ISSUEFLOW_CHECKS_WATCH_MINUTES`, default 15; agent stops the watch when the cap hits).
-   3. Watch succeeds (exit 0) within the cap → retry `gh pr merge <number> --squash`.
-   4. Watch fails (red / `--fail-fast`) → stop hands-off behaviour, leave the PR open, report failing check links.
-   5. Cap elapses while still pending, or checks never register / watch unavailable → last resort `gh pr merge <number> --squash --auto`, report the merge as queued, continue. If even `--auto` fails, stop hands-off, report the error, leave the PR open.
-   6. `draft` still skips merge entirely.
+   1. If the user passed `draft`, **skip merge entirely** and say so.
+   2. Try `gh pr merge <number> --squash` immediately (repos with no required checks stay fast).
+   3. If GitHub refuses for pending/required checks: run `gh pr checks <number> --repo <owner/repo> --watch --fail-fast` under a hard wall-clock budget of **15 minutes** (baked from `[issueflow].checks_watch_minutes` / `ISSUEFLOW_CHECKS_WATCH_MINUTES`, default 15; agent stops the watch when the cap hits).
+   4. Watch succeeds (exit 0) within the cap → retry `gh pr merge <number> --squash`.
+   5. Watch fails (red / `--fail-fast`) → stop hands-off behaviour, leave the PR open, report failing check links.
+   6. Cap elapses while still pending, or checks never register / watch unavailable → last resort `gh pr merge <number> --squash --auto`, report the merge as queued, continue. If even `--auto` fails, stop hands-off, report the error, leave the PR open.
 
 9. **Switch back when safe** — If the input included `stay`, `stay on branch`, `don't switch`, or `dont switch to main`, stay on the issue branch and report that opt-out. Otherwise, after the PR is open or updated:
    - **CLI fast path (preferred).** If the `issue-flow` CLI is on `PATH`, run `issue-flow agent switchback --json`. It performs this whole step deterministically: refuses while the working tree is dirty (listing the paths), else switches to the detected default branch and runs `git pull --ff-only`. On exit 1, report its `notes` to the user and stop — do not force anything.
@@ -120,4 +125,4 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 - Do not skip failing tests without the user's explicit agreement.
 - Prefer focused commits; do not rewrite unrelated history unless asked.
 - Never delete branches from `/iflow-close`. Branch deletion belongs to `/iflow-cleanup`.
-- **Changelog timing:** unless `nohistory`, the `HISTORY.md` bullet must be written in step 3 and staged in the close commit that feeds the PR. Never offer a HISTORY/CHANGELOG update after the PR is open or merged.
+- **Changelog timing:** unless `nohistory`, the `HISTORY.md` bullet must be written in step 3 and staged in the close commit that feeds (or updates) the PR — including when a draft was opened earlier via `/iflow-build` early PR. Never offer a HISTORY/CHANGELOG update after close has finished or after merge.

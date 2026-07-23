@@ -240,6 +240,8 @@ When the user message is **exactly** one of these forms, or **starts with** it f
 
 | `iflow archive`, `iflow-archive`, `/iflow-archive`, `/iflow archive` | `iflow-archive` |
 
+| `iflow auto`, `iflow-auto`, `/iflow-auto`, `/iflow auto` | `iflow-auto` |
+
 | `iflow build`, `iflow-build`, `/iflow-build`, `/iflow build` | `iflow-build` |
 
 | `iflow cleanup`, `iflow-cleanup`, `/iflow-cleanup`, `/iflow cleanup` | `iflow-cleanup` |
@@ -287,7 +289,7 @@ The full slash-command lifecycle is:
 2. **`/iflow-plan`** — design the approach in `issue<N>_plan.md` and get explicit confirmation before any code changes.
 3. **`/iflow-build`** — implement the confirmed plan. Asks to run `/iflow-plan` first if the plan file is missing.
 4. **`/iflow-pause`** *(optional)* — park work mid-stream: update status, move the issue group to `02-partly-solved-issues`, optional WIP commit.
-5. **`/iflow-close`** — tests, optional `uv version --bump`, **changelog/`HISTORY.md` update (in the PR commit)**, status update, commit, push, PR. Does not delete branches. Never offer a HISTORY/CHANGELOG update after the PR is open or merged; use `nohistory` only to skip intentionally.
+5. **`/iflow-close`** — tests, optional `uv version --bump`, **changelog/`HISTORY.md` update (in the PR commit)**, status update, commit, push, PR. Does not delete branches. Never offer a HISTORY/CHANGELOG update after close finishes or after merge; use `nohistory` only to skip intentionally. (A draft opened earlier via `/iflow-build` early PR does not skip the close HISTORY step.)
 6. **`/iflow-cleanup`** — post-merge: switch to default, `git pull --ff-only`, `git fetch --prune`, `git branch -d` on merged local branches under a single consolidated confirm. Never `-D`. Trailing `include GitHub` (or similar) adds a remote-branch audit with a second confirm for optional remote deletes / findings issue.
 
 `/iflow-yolo` chains `init → plan → build → close yolo` for small, low-risk issues with up-front safeguards (clean tree, passing tests, single consolidated confirm). Its close step is hands-off: changelog decided without a prompt, PR merged (`gh pr merge --squash`; on pending checks may `gh pr checks --watch` then retry, with `--auto` as last resort), then default-branch switch + pull.
@@ -313,6 +315,8 @@ Lifecycle skills include a **`### MODEL & EXECUTION DIRECTIVE`** section that te
 `/iflow-epic <N>` plans a change **too large for one issue** as a staged epic: it drafts `.issueflows/05-epics/epic<N>_plan.md` (anchored to GitHub issue `<N>`), dividing the work into sequential stages of manageable issue specs with explicit dependencies and a per-issue yolo-fitness judgment. Drafting writes nothing on GitHub; **`/iflow-epic <N> publish [stage <k>]`** creates a confirmed stage's issues behind one consolidated confirm (yolo labels per the recorded judgment, task list maintained on the anchor issue, `Published: #<M>` recorded back into the plan so re-runs are idempotent). Off-path (never auto-dispatched); epics decompose into the normal single-issue lifecycle, never around it.
 
 `/iflow-cycle <queue-spec>` processes **many issues hands-off in a row** under a single up-front confirmation — the batch equivalent of `/iflow-yolo`. It resolves a queue via `issue-flow agent queue` (explicit numbers, `label:<L>`, or `epic <N> [stage <k>]`), then runs each issue through the full yolo chain (PR auto-merged), interrupting you only when input is **strictly necessary** (unfixable failure, refused merge / non-fast-forward pull, ambiguous or not-actually-small spec, or anything outside the confirmed queue). It stops the whole cycle on the first such condition, leaving the repo clean on the default branch. **All yolo-labelled issues:** `/iflow-cycle yolo` (alias for `label:yolo`). Off-path (never auto-dispatched); never weakens a yolo safeguard to keep moving.
+
+`/iflow-auto <N>` runs an **unattended large-change** path over a confirmed epic: select a stage, drive it via `/iflow-cycle`, record `auto_status.md`, then adversarial inter-epoch review (`review` token; may reopen/create issues under the overnight confirm). On findings, honour the loop budget (re-queue + re-review, or **stop and ask**: accept / grant N more loops / abort). Advance to stage `k+1` only when stage `k` is clear (`epic-status` done + no open blockers); otherwise `epoch_gated`. Budget baked as **2** (`loops:<n>` overrides). Off-path (never auto-dispatched). See `.issueflows/04-designs-and-guides/advanced-auto-mode.md`.
 
 `/iflow-archive` condenses old solved issue groups under `.issueflows/03-solved-issues/` into a single dated `YYYY-MM-DD_archived_issues.md` summary file (recording the pre-archive git ref for recovery via `git show <ref>:<path>`), then deletes the original `issue<N>_*` files. It is off-path and destructive: nothing is deleted before one consolidated confirmation.
 

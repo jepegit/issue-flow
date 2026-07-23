@@ -52,6 +52,12 @@ After resolution, treat the result as `<project_root>` and `<owner/repo>`:
 
 When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read it for layout and cross-repo guidance.
 
+## Early PR tokens (command input)
+
+- **`early`** or **`pr`** → open a draft PR during this build after the first successful push (force on for this run).
+- **`noearly`** → skip early PR for this run even when `[issueflow].early_pr` is true.
+- Precedence: trailing token > baked `early_pr` (currently **False**) > default `false`.
+
 ## Instructions
 
 > **CLI fast path (optional).** If the `issue-flow` CLI is on `PATH`, use
@@ -86,9 +92,16 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
    - **Knowledge graph (optional).** If `graphify-out/GRAPH_REPORT.md` exists, skim it before grepping — god-nodes and surprising connections often point at the files you'll touch. If structure changed materially since the last build, *suggest* `/iflow-graphify` (do not run it automatically). If `graphify-out/` is absent, ignore this bullet.
    - As you iterate, re-read and keep `issue<N>_status.md` current — move items between **What's done** and **Remaining work**, leaving `- [ ] Done` unchecked until fully resolved.
 
-8. **Hand off** — When the implementation is ready to ship: tell the user to run `/iflow-close` (optionally with `bump`/`patch`/`minor`/`major`). Parking work mid-stream goes through `/iflow-pause`.
+8. **Early pull request (optional)** — After the **first successful push** of the issue branch (or when the branch already has a remote tip and no open PR), decide whether to open a PR now using the Early PR tokens above. When early PR is on:
+   - Require an issue-style branch matching `^\d+-.+` (never the default branch) with a remote tracking ref.
+   - Always pass `--repo <owner/repo>`. **List before create:** `gh pr list --repo <owner/repo> --head <branch> --state open --json number,url,title,isDraft`. If an open PR exists, note it and skip creating a second one.
+   - Otherwise create a **draft**: `gh pr create --draft --repo <owner/repo> …` with a WIP-friendly body and **`Refs #N`** (not `Closes #N` yet).
+   - Record `PR: <url> (#<n>, draft)` in `issue<N>_status.md`.
+   - Do **not** write `HISTORY.md` here — `/iflow-close` owns the changelog bullet (even while a draft PR exists).
 
-9. **Reporting** — Summarize what changed, what remains, and where the issue docs live. Include any branch warnings from step 2, any group moves from step 3, and whether the plan was followed or explicitly skipped.
+9. **Hand off** — When the implementation is ready to ship: tell the user to run `/iflow-close` (optionally with `bump`/`patch`/`minor`/`major`). Parking work mid-stream goes through `/iflow-pause`.
+
+10. **Reporting** — Summarize what changed, what remains, and where the issue docs live. Include any branch warnings from step 2, any group moves from step 3, whether an early PR was opened/reused, and whether the plan was followed or explicitly skipped.
 
 ## Constraints
 

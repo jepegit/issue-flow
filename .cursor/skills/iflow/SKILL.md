@@ -94,7 +94,7 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 
 ## Constraints
 
-- Never auto-dispatch to `/iflow-pick`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-review`, `/iflow-epic`, or `/iflow-cycle`.
+- Never auto-dispatch to `/iflow-pick`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-review`, `/iflow-epic`, `/iflow-cycle`, or `/iflow-auto`.
 - If the focus issue cannot be resolved (multiple groups, branch ambiguous), stop and ask.
 - Do not modify files beyond what the downstream command would normally modify. `/iflow` itself writes nothing — all file changes come from the dispatched command.
 - Dispatch to at most one command per `/iflow` invocation.

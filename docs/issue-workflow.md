@@ -16,10 +16,10 @@ It also seeds `.issueflows/00-tools/README.md` — the index of the project's **
 | Entry point | File | Role |
 |--------|------|------|
 | `/iflow-pick` | `iflow-pick/SKILL.md` | **Front door.** Help choose the next issue (parked work first, else ranked open GitHub issues), create the branch, and run `/iflow-init`. Off-path; never auto-dispatched. |
-| `/iflow` | `iflow/SKILL.md` | **Smart dispatcher.** Detect current state and run `/iflow-init`, `/iflow-plan`, `/iflow-build`, or `/iflow-close` automatically. Never auto-dispatches to pick / pause / cleanup / yolo / fix / issue / status / archive / epic / cycle / graphify. |
+| `/iflow` | `iflow/SKILL.md` | **Smart dispatcher.** Detect current state and run `/iflow-init`, `/iflow-plan`, `/iflow-build`, or `/iflow-close` automatically. Never auto-dispatches to pick / pause / cleanup / yolo / fix / issue / status / archive / epic / cycle / auto / graphify. |
 | `/iflow-init` | `iflow-init/SKILL.md` | Pull an issue from GitHub into the repo as a local markdown file and tidy older current issues. |
 | `/iflow-plan` | `iflow-plan/SKILL.md` | Write a structured `issue<N>_plan.md` and get explicit user confirmation before any code is touched. |
-| `/iflow-build` | `iflow-build/SKILL.md` | Implement the confirmed plan (no planning step of its own any more). |
+| `/iflow-build` | `iflow-build/SKILL.md` | Implement the confirmed plan (no planning step of its own any more). Optional early draft PR (`early_pr` / trailing `early`). |
 | `/iflow-pause` | `iflow-pause/SKILL.md` | Park work safely: update status, move the issue group to `02-partly-solved-issues/`, optional WIP commit and branch switch. |
 | `/iflow-close` | `iflow-close/SKILL.md` | Finish: tests, optional semver bump (`uv version --bump …`), `HISTORY.md` update, issue-folder housekeeping, commit, push, PR, and switch back to default when clean unless `stay` is passed. |
 | `/iflow-cleanup` | `iflow-cleanup/SKILL.md` | Post-merge hygiene: switch to default, `git pull --ff-only`, `git fetch --prune`, delete merged local branches (single consolidated confirm). Optional `include GitHub` runs a remote-branch audit (second confirm). |
@@ -32,7 +32,7 @@ It also seeds `.issueflows/00-tools/README.md` — the index of the project's **
 | `/iflow-archive` | `iflow-archive/SKILL.md` | **Off-path, destructive (gated).** Condense old solved issue groups into a dated `YYYY-MM-DD_archived_issues.md` summary (recording the pre-archive git ref for recovery), then delete the original files after one consolidated confirm. |
 | `/iflow-epic` | `iflow-epic/SKILL.md` | **Off-path.** Plan a larger change as a staged epic: `05-epics/epic<N>_plan.md` divides the work into stages of manageable issue specs (dependencies + per-issue yolo judgment). Drafting writes nothing on GitHub; `publish [stage <k>]` creates a confirmed stage's issues behind one consolidated confirm and maintains a task list on the anchor issue. |
 | `/iflow-cycle` | `iflow-cycle/SKILL.md` | **Off-path.** Process a queue of yolo-fit issues hands-off in a row under one up-front confirm — the batch equivalent of `/iflow-yolo`. Resolves the queue via `issue-flow agent queue`, runs each issue through the full yolo chain (PR auto-merged), and stops only when input is strictly necessary. **All yolo-labelled issues:** `/iflow-cycle yolo` (alias for `label:yolo`). |
-| `/iflow-auto` | `iflow-auto/SKILL.md` | **Off-path.** Unattended large-change orchestrator over a confirmed epic: cycle, adversarial review, loop budget, next-epoch gate when clear. |
+| `/iflow-auto` | `iflow-auto/SKILL.md` | **Off-path.** Unattended large-change orchestrator over a confirmed epic: cycle a stage via `/iflow-cycle`, record `auto_status.md`, run adversarial review (`review`; may reopen/create). Loop budget **2** (`[issueflow].auto_adversarial_loops`); override `loops:<n>`. See `.issueflows/04-designs-and-guides/advanced-auto-mode.md`. |
 | `/iflow-graphify` | `iflow-graphify/SKILL.md` | **Off-path.** Rebuild the [graphify](https://iflow-graphify.net) knowledge graph (`graphify-out/graph.html`, `GRAPH_REPORT.md`, `graph.json`). Wraps `issue-flow graphify` / `graphify`. Optional: only meaningful when `graphifyy` is installed. |
 
 
@@ -169,7 +169,7 @@ All workflows that touch git also run a short **branch-status preflight**: `git 
 
 **When:** The issue has a confirmed `issue<N>_plan.md` (from `/iflow-plan`) and you are ready to code.
 
-**What you pass:** Optional implementation hints.
+**What you pass:** Optional implementation hints. Early-PR tokens: `early` / `pr` (force on), `noearly` (force off). Precedence: trailing > baked `[issueflow].early_pr` (default **False**) > `false`.
 
 **What the assistant does:**
 
@@ -179,8 +179,9 @@ All workflows that touch git also run a short **branch-status preflight**: `git 
 4. **Plan precondition** — reads `issue<N>_plan.md`. If missing, asks the user to choose: run `/iflow-plan` now, proceed without a plan (note in status file), or abort. Does **not** hard-stop.
 5. **Seeds `issue<N>_status.md` up front** (unchecked `- [ ] Done`, **What's done** / **Remaining work**) and keeps it current as work progresses — it lives *during* the work, not just at close.
 6. **Implements** the plan, using `.issueflows/04-designs-and-guides/this-project.md` and relevant design docs for project context when present. Reuses helpers from `.issueflows/00-tools/` and contributes new reusable ones back there.
+7. **Early pull request (optional)** — when early PR is on, after the first successful push: `gh pr list` then `gh pr create --draft` with `Refs #N`; record the PR in the status file. Does **not** write `HISTORY.md` (close owns that).
 
-**Result:** Implementation aligned with the confirmed plan and project rules (tests with `uv run`, dependency management with `uv`, etc.).
+**Result:** Implementation aligned with the confirmed plan and project rules (tests with `uv run`, dependency management with `uv`, etc.), optionally with a draft PR already open.
 
 ---
 
@@ -212,6 +213,7 @@ All workflows that touch git also run a short **branch-status preflight**: `git 
 - `/iflow-close nohistory` (or `skip history`) — skip the `HISTORY.md` update step for this run.
 - `/iflow-close log "one-line summary"` (or `note "..."`) — override the `HISTORY.md` bullet summary instead of using the GitHub issue title.
 - `/iflow-close stay` (or `stay on branch`, `don't switch`, `dont switch to main`) — skip the safe default-branch switch after the PR step.
+- `/iflow-close draft` — create with `gh pr create --draft` (or leave an existing PR draft); skips yolo merge.
 
 The bump runs **after** tests and **before** issue-folder moves and **before** commit / push / PR so the PR includes the new version. If `pyproject.toml` has no bumpable version, the assistant skips the bump and continues.
 
@@ -219,11 +221,11 @@ The bump runs **after** tests and **before** issue-folder moves and **before** c
 
 1. **Sanity check** — e.g. `uv run pytest`, review the diff.
 2. **Optional version bump** — if requested, follow `.cursor/skills/iflow-version-bump/SKILL.md`. It resolves the project's **release strategy** first (the "Release & version bump" section of `.issueflows/04-designs-and-guides/this-project.md`, else `pyproject.toml` detection): static versions are bumped with `uv version --bump …` from the project root; **git-tag derived** versions (setuptools-scm and friends) get a **planned tag** instead — created after the merge (by `/iflow-cleanup`, or the yolo close's post-merge step), never on the issue branch.
-3. **Update `HISTORY.md`** — unless `nohistory` was passed, follow `.cursor/skills/iflow-history-update/SKILL.md`. Append a bullet to `## [Unreleased]` (no bump) or promote `## [Unreleased]` to `## [<new_version>] - <YYYY-MM-DD>` and open a fresh empty `## [Unreleased]` above it (with bump). The bullet is staged in the **same commit** that feeds the PR — never offered after the PR is open or merged. With `confirm_changelog_update = false` (the default), the assistant writes without asking (same as the `yolo` token's history behaviour). If `HISTORY.md` is missing at the project root, the step is skipped with a note — never auto-created.
+3. **Update `HISTORY.md`** — unless `nohistory` was passed, follow `.cursor/skills/iflow-history-update/SKILL.md`. Append a bullet to `## [Unreleased]` (no bump) or promote `## [Unreleased]` to `## [<new_version>] - <YYYY-MM-DD>` and open a fresh empty `## [Unreleased]` above it (with bump). The bullet is staged in the **same commit** that feeds (or updates) the PR — including when a draft was opened earlier via `/iflow-build` early PR. Never offered after close finishes or after merge. With `confirm_changelog_update = false` (the default), the assistant writes without asking (same as the `yolo` token's history behaviour). If `HISTORY.md` is missing at the project root, the step is skipped with a note — never auto-created.
 4. **Issue folders** — update status markdown; use `- [x] Done` only when fully resolved. Move completed issue files from `.issueflows/01-current-issues/` to `.issueflows/03-solved-issues/`, or partly done work to `.issueflows/02-partly-solved-issues/`.
 5. **Commit** — focused staging and a clear message (include `pyproject.toml` / `uv.lock` if the bump changed them, and `HISTORY.md` when step 3 updated it). Sync with the default branch using `git pull --ff-only`.
 6. **Push** — to your usual remote (e.g. `origin`).
-7. **Pull request** — `gh pr list --head <branch>` first (reuse an open PR); else create. Afterward, snapshot CI with `gh pr checks`. Link the GitHub issue (`Closes #n` / `Refs #n`).
+7. **Pull request** — `gh pr list --head <branch>` first (reuse an open PR, including an early draft); else `gh pr create` (with `--draft` when the `draft` token was passed). Mark ready from draft when not keeping `draft`. Afterward, snapshot CI with `gh pr checks`. Link the GitHub issue (`Closes #n` / `Refs #n`).
 8. **Switch back when safe** — unless `stay` / `don't switch` was passed, run `git status --porcelain`; if clean, `git switch <default>` and `git pull --ff-only`; if dirty, stay put and report why switching is unsafe.
 9. **After review** — if switched back, return to the PR branch before review fixes; merge when approved and `gh pr checks` is green; once the PR merges, run `/iflow-cleanup` for the post-merge tidy-up. With `yolo`, close may `gh pr checks --watch` (budget: `checks_watch_minutes`, default 15) before merge, falling back to `--auto` only when the cap elapses.
 
@@ -456,7 +458,28 @@ iflow cycle yolo
 
 ---
 
-## 15. `/iflow-archive` — condense the solved-issues archive (destructive, gated)
+## 15. `/iflow-auto` — unattended large-change orchestration
+
+**When:** You have a **confirmed** epic plan and want overnight hands-off progress through a stage, then an adversarial inter-epoch review.
+
+**What you pass:** epic `<N>`, optional `stage <k>`, optional `loops:<n>`, `review` (adversarial only), or `status` / `dry-run`.
+
+**What the assistant does:**
+
+1. Require `epic<N>_plan.md` with `Status: confirmed`; resolve stage via `epic-status`.
+2. Resolve loop budget (`loops:<n>` > baked `auto_adversarial_loops` > 2).
+3. Overnight confirm once (authorizes cycle auto-merge **and** adversarial reopen/create), then write `auto_status.md` and run `/iflow-cycle` for that stage.
+4. Run adversarial review against epic/stage goals (criteria in `advanced-auto-mode.md`); record `adversarial_clear` or `adversarial_findings` in `auto_status.md`. Standalone: `/iflow-auto <N> review`.
+5. **Loop control:** on findings, increment `loop_count`; if open work remains and `loop_count` < budget, re-queue via `/iflow-cycle` and re-review; when budget exhausted, **stop and ask** (accept / grant N more loops / abort).
+6. **Next-epoch gate:** start stage `k+1` only when `epic-status` marks stage `k` `done` and no open blockers remain in `auto_status.md`; otherwise `epoch_gated`. When clear, may continue to the next unfinished stage under the same overnight confirm.
+
+**Off-path:** `/iflow` never auto-dispatches to `/iflow-auto`. See `04-designs-and-guides/advanced-auto-mode.md`.
+
+**Result:** Stage queue processed via cycle; durable `auto_status.md`; adversarial pass may reopen/create blockers; loops honour `auto_adversarial_loops` / `loops:<n>`; epochs advance only when the queue is clear.
+
+---
+
+## 16. `/iflow-archive` — condense the solved-issues archive (destructive, gated)
 
 **When:** `.issueflows/03-solved-issues/` has grown large and most of its `issue<N>_*` groups are no longer worth keeping as individual files.
 

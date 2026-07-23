@@ -87,7 +87,7 @@ When `/iflow-close` reaches its commit step:
 
 - Read/write only `HISTORY.md` at the project root. Do not touch any other file from this skill.
 - Never create `HISTORY.md` from scratch — scaffolding a starter changelog is out of scope for `issue-flow init` / `update`.
-- **Timing:** this skill runs only from `/iflow-close` step 3 (before commit / push / PR). **Never** propose updating `HISTORY.md` after the PR is open or merged.
+- **Timing:** this skill runs only from `/iflow-close` step 3 (before commit / push / PR update). Write even when a draft PR already exists from `/iflow-build` early PR. **Never** propose updating `HISTORY.md` after close has finished or after merge.
 
 - Preserve existing formatting conventions (bullet style, sentence case, trailing punctuation). Match the style of the nearest existing entries when in doubt.
 - The new bullet's `(#<N>)` suffix is always GitHub issue `#N`, matching the focus issue's number in `.issueflows/01-current-issues/issue<N>_original.md`.
