@@ -1991,7 +1991,8 @@ def _print_config_guide(console: Console, cfg_path: Path) -> None:
     console.print(
         "  [dim]- [bold]pr_merge_method[/bold]: squash|merge|rebase for yolo "
         "close (default squash); [bold]cycle_max_issues[/bold]: /iflow-cycle "
-        "queue cap (default 10).[/dim]"
+        "queue cap (default 10); [bold]auto_adversarial_loops[/bold]: "
+        "/iflow-auto inter-epoch budget (default 2; trailing loops:<n>).[/dim]"
     )
     console.print(
         "  [dim]Other ISSUEFLOW_* settings are environment-only (set them in "

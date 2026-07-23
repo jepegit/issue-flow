@@ -68,6 +68,7 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "auto_switchback",
         "pr_merge_method",
         "cycle_max_issues",
+        "auto_adversarial_loops",
         "confirm_version_bump",
         "ruff_autofix",
         "auto_close",
@@ -362,6 +363,7 @@ def test_skill_behaviour_knob_defaults(
         "ISSUEFLOW_AUTO_SWITCHBACK",
         "ISSUEFLOW_PR_MERGE_METHOD",
         "ISSUEFLOW_CYCLE_MAX_ISSUES",
+        "ISSUEFLOW_AUTO_ADVERSARIAL_LOOPS",
         "ISSUEFLOW_CONFIRM_VERSION_BUMP",
         "ISSUEFLOW_RUFF_AUTOFIX",
         "ISSUEFLOW_AUTO_CLOSE",
@@ -375,6 +377,7 @@ def test_skill_behaviour_knob_defaults(
     assert settings.resolve_auto_switchback(tmp_path) is True
     assert settings.resolve_pr_merge_method(tmp_path) == "squash"
     assert settings.resolve_cycle_max_issues(tmp_path) == 10
+    assert settings.resolve_auto_adversarial_loops(tmp_path) == 2
     assert settings.resolve_confirm_version_bump(tmp_path) is False
     assert settings.resolve_ruff_autofix(tmp_path) is True
     assert settings.resolve_auto_close(tmp_path) is False
@@ -391,6 +394,7 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
         "auto_switchback = false\n"
         'pr_merge_method = "rebase"\n'
         "cycle_max_issues = 25\n"
+        "auto_adversarial_loops = 4\n"
         "confirm_version_bump = true\n"
         "ruff_autofix = false\n"
         "auto_close = true\n"
@@ -403,6 +407,7 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
     assert settings.resolve_auto_switchback(tmp_path) is False
     assert settings.resolve_pr_merge_method(tmp_path) == "rebase"
     assert settings.resolve_cycle_max_issues(tmp_path) == 25
+    assert settings.resolve_auto_adversarial_loops(tmp_path) == 4
     assert settings.resolve_confirm_version_bump(tmp_path) is True
     assert settings.resolve_ruff_autofix(tmp_path) is False
     assert settings.resolve_auto_close(tmp_path) is True

@@ -59,6 +59,7 @@ DEFAULT_AUTO_SWITCHBACK = True
 DEFAULT_PR_MERGE_METHOD = "squash"
 ALLOWED_PR_MERGE_METHODS = frozenset({"squash", "merge", "rebase"})
 DEFAULT_CYCLE_MAX_ISSUES = 10
+DEFAULT_AUTO_ADVERSARIAL_LOOPS = 2
 DEFAULT_CONFIRM_VERSION_BUMP = False
 DEFAULT_RUFF_AUTOFIX = True
 DEFAULT_AUTO_CLOSE = False
@@ -500,6 +501,24 @@ def read_cycle_max_issues(cfg_path: Path) -> int | None:
     return value
 
 
+def read_auto_adversarial_loops(cfg_path: Path) -> int | None:
+    """Return persisted ``[issueflow].auto_adversarial_loops``, or ``None``.
+
+    Returns the raw integer when present (including non-positive values) so
+    callers can clamp. Non-integer values are treated as unset.
+    """
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if not isinstance(section, dict) or "auto_adversarial_loops" not in section:
+        return None
+    value = section.get("auto_adversarial_loops")
+    if isinstance(value, bool) or not isinstance(value, int):
+        return None
+    return value
+
+
 def read_confirm_version_bump(cfg_path: Path) -> bool | None:
     """Return the persisted ``[issueflow].confirm_version_bump`` flag."""
     if not cfg_path.is_file():
@@ -712,6 +731,7 @@ def write_default_config(
     auto_switchback: bool = DEFAULT_AUTO_SWITCHBACK,
     pr_merge_method: str = DEFAULT_PR_MERGE_METHOD,
     cycle_max_issues: int = DEFAULT_CYCLE_MAX_ISSUES,
+    auto_adversarial_loops: int = DEFAULT_AUTO_ADVERSARIAL_LOOPS,
     confirm_version_bump: bool = DEFAULT_CONFIRM_VERSION_BUMP,
     ruff_autofix: bool = DEFAULT_RUFF_AUTOFIX,
     auto_close: bool = DEFAULT_AUTO_CLOSE,
@@ -764,6 +784,7 @@ def write_default_config(
         section["auto_switchback"] = auto_switchback
         section["pr_merge_method"] = pr_merge_method
         section["cycle_max_issues"] = cycle_max_issues
+        section["auto_adversarial_loops"] = auto_adversarial_loops
         section["confirm_version_bump"] = confirm_version_bump
         section["ruff_autofix"] = ruff_autofix
         section["auto_close"] = auto_close
@@ -800,6 +821,7 @@ def write_default_config(
             auto_switchback,
             pr_merge_method,
             cycle_max_issues,
+            auto_adversarial_loops,
             confirm_version_bump,
             ruff_autofix,
             auto_close,
@@ -829,6 +851,7 @@ def _commented_issueflow_table(
     auto_switchback: bool,
     pr_merge_method: str,
     cycle_max_issues: int,
+    auto_adversarial_loops: int,
     confirm_version_bump: bool,
     ruff_autofix: bool,
     auto_close: bool,
@@ -954,6 +977,13 @@ def _commented_issueflow_table(
         )
     )
     table["cycle_max_issues"] = cycle_max_issues
+    table.add(
+        tomlkit.comment(
+            "Default /iflow-auto inter-epoch adversarial loop budget "
+            "(override per run with loops:<n>). Re-run 'issue-flow update'."
+        )
+    )
+    table["auto_adversarial_loops"] = auto_adversarial_loops
     table.add(
         tomlkit.comment(
             "When true, /iflow-build (and /iflow-fix end) chain into "

@@ -9,6 +9,7 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- Config knob `auto_adversarial_loops` for /iflow-auto loop budget. (#192)
 - Design doc for advanced auto mode contract. (#191)
 
 - Create pull request early. (#99)

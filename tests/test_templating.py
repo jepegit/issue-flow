@@ -40,6 +40,7 @@ _MODE_CONTEXT = {
     "auto_switchback": True,
     "pr_merge_method": "squash",
     "cycle_max_issues": 10,
+    "auto_adversarial_loops": 2,
     "confirm_version_bump": False,
     "ruff_autofix": True,
     "auto_close": False,
@@ -504,6 +505,16 @@ def test_cycle_bakes_max_issues() -> None:
     )
     assert "longer than **20**" in rendered
     assert "default 20" in rendered
+
+
+def test_workflow_doc_bakes_auto_adversarial_loops() -> None:
+    rendered = render_template(
+        "docs/issue-workflow.md.j2",
+        {**_default_context(), "auto_adversarial_loops": 5},
+    )
+    assert "auto_adversarial_loops" in rendered
+    assert "**5**" in rendered
+    assert "loops:<n>" in rendered
 
 
 def test_start_auto_close_chains_into_close() -> None:

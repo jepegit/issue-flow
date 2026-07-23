@@ -311,6 +311,7 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
         DEFAULT_AUTO_SWITCHBACK,
         DEFAULT_CONFIRM_CHANGELOG_UPDATE,
         DEFAULT_CYCLE_MAX_ISSUES,
+        DEFAULT_AUTO_ADVERSARIAL_LOOPS,
         DEFAULT_PR_MERGE_METHOD,
         DEFAULT_REMIND_CLEANUP,
         DEFAULT_RUFF_AUTOFIX,
@@ -321,6 +322,7 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
         read_auto_switchback,
         read_confirm_changelog_update,
         read_cycle_max_issues,
+        read_auto_adversarial_loops,
         read_pr_merge_method,
         read_remind_cleanup,
         read_ruff_autofix,
@@ -332,6 +334,7 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
     assert read_auto_switchback(cfg) is DEFAULT_AUTO_SWITCHBACK
     assert read_pr_merge_method(cfg) == DEFAULT_PR_MERGE_METHOD
     assert read_cycle_max_issues(cfg) == DEFAULT_CYCLE_MAX_ISSUES
+    assert read_auto_adversarial_loops(cfg) == DEFAULT_AUTO_ADVERSARIAL_LOOPS
     assert read_confirm_version_bump(cfg) is DEFAULT_CONFIRM_VERSION_BUMP
     assert read_ruff_autofix(cfg) is DEFAULT_RUFF_AUTOFIX
     assert read_auto_close(cfg) is DEFAULT_AUTO_CLOSE

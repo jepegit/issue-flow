@@ -1716,6 +1716,7 @@ def test_config_add_creates_defaults(
     assert payload["auto_switchback"] is True
     assert payload["pr_merge_method"] == "squash"
     assert payload["cycle_max_issues"] == 10
+    assert payload["auto_adversarial_loops"] == 2
     assert payload["confirm_version_bump"] is False
     assert payload["ruff_autofix"] is True
     assert payload["auto_close"] is False
@@ -1735,6 +1736,7 @@ def test_config_add_creates_defaults(
     assert data["issueflow"]["remind_cleanup"] is True
     assert data["issueflow"]["pr_merge_method"] == "squash"
     assert data["issueflow"]["cycle_max_issues"] == 10
+    assert data["issueflow"]["auto_adversarial_loops"] == 2
     assert data["issueflow"]["early_pr"] is False
 
 
