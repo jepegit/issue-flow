@@ -17,6 +17,7 @@ from issue_flow.modes import (
     DEFAULT_CONFIRM_CHANGELOG_UPDATE,
     DEFAULT_EARLY_PR,
     DEFAULT_AUTO_SWITCHBACK,
+    DEFAULT_AUTO_ADVERSARIAL_LOOPS,
     DEFAULT_CYCLE_MAX_ISSUES,
     DEFAULT_DEEP_MODEL_LABEL,
     DEFAULT_FAST_MODEL_LABEL,
@@ -333,6 +334,28 @@ class Settings:
                 return value
         return DEFAULT_CYCLE_MAX_ISSUES
 
+    def resolve_auto_adversarial_loops(self, project_root: Path) -> int:
+        """Resolve the default ``/iflow-auto`` adversarial loop budget.
+
+        Order: persisted ``[issueflow].auto_adversarial_loops`` >
+        ``ISSUEFLOW_AUTO_ADVERSARIAL_LOOPS`` env > ``2``. Non-positive or
+        unparseable values fall through to the next layer, then the default.
+        """
+        persisted = modes_module.read_auto_adversarial_loops(
+            self.config_path(project_root)
+        )
+        if persisted is not None and persisted > 0:
+            return persisted
+        env = os.getenv("ISSUEFLOW_AUTO_ADVERSARIAL_LOOPS")
+        if env and env.strip():
+            try:
+                value = int(env.strip())
+            except ValueError:
+                value = 0
+            if value > 0:
+                return value
+        return DEFAULT_AUTO_ADVERSARIAL_LOOPS
+
     def resolve_confirm_version_bump(self, project_root: Path) -> bool:
         """Resolve whether non-yolo close asks about a version bump when unset."""
         persisted = modes_module.read_confirm_version_bump(
@@ -436,6 +459,15 @@ class Settings:
                 parsed_cycle = 0
             if parsed_cycle > 0:
                 cycle_max_issues = parsed_cycle
+        loops_raw = os.getenv("ISSUEFLOW_AUTO_ADVERSARIAL_LOOPS")
+        auto_adversarial_loops = DEFAULT_AUTO_ADVERSARIAL_LOOPS
+        if loops_raw and loops_raw.strip():
+            try:
+                parsed_loops = int(loops_raw.strip())
+            except ValueError:
+                parsed_loops = 0
+            if parsed_loops > 0:
+                auto_adversarial_loops = parsed_loops
         pr_merge = normalize_pr_merge_method(os.getenv("ISSUEFLOW_PR_MERGE_METHOD"))
         return {
             "mode": mode.strip() if mode and mode.strip() else DEFAULT_MODE,
@@ -486,6 +518,7 @@ class Settings:
             ),
             "pr_merge_method": pr_merge or DEFAULT_PR_MERGE_METHOD,
             "cycle_max_issues": cycle_max_issues,
+            "auto_adversarial_loops": auto_adversarial_loops,
             "confirm_version_bump": _env_flag(
                 "ISSUEFLOW_CONFIRM_VERSION_BUMP", default=DEFAULT_CONFIRM_VERSION_BUMP
             ),
@@ -566,6 +599,7 @@ class Settings:
             "auto_switchback": self.resolve_auto_switchback(project_root),
             "pr_merge_method": self.resolve_pr_merge_method(project_root),
             "cycle_max_issues": self.resolve_cycle_max_issues(project_root),
+            "auto_adversarial_loops": self.resolve_auto_adversarial_loops(project_root),
             "confirm_version_bump": self.resolve_confirm_version_bump(project_root),
             "ruff_autofix": self.resolve_ruff_autofix(project_root),
             "auto_close": self.resolve_auto_close(project_root),
