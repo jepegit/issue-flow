@@ -59,13 +59,14 @@ Plus a few off-path commands:
 - `/iflow-status` — **read-only** overview of where every issue stands: the local tracking state (focus / parked / solved) plus open GitHub issues cross-referenced against it. Pass `local` to skip the GitHub query. Changes nothing; off-path; never auto-dispatched.
 - `/iflow-epic` — plan a change too large for one issue as staged specs under `.issueflows/05-epics/`; `publish` creates a confirmed stage's GitHub issues behind one confirm. Off-path; never auto-dispatched.
 - `/iflow-cycle` — batch-process a queue of yolo-fit issues under one up-front confirm (`yolo` / `label:<L>` / numbers / `epic <N>`). Off-path; never auto-dispatched.
+- `/iflow-auto` — unattended large-change orchestrator over a confirmed epic (cycle a stage, record `auto_status.md`, stub adversarial gate until Stage 2). Off-path; never auto-dispatched.
 - `/iflow-review` — review open GitHub issues and apply workflow labels (v1: the configured `yolo` label) behind one consolidated confirm. Off-path; never auto-dispatched.
 - `/iflow-doctor` — scaffold health check (missing skills/commands, stale config). Off-path; never auto-dispatched.
 - `/iflow-archive` — **condense the solved archive (destructive, gated)**: summarises selected `issue<N>_*` groups under `03-solved-issues/` into a dated `YYYY-MM-DD_archived_issues.md` file. The summary records the pre-archive git ref so every original file stays recoverable (`git show <ref>:<path>`). Deletes the source files only after one consolidated confirm. Default: archive all but the **5 most recent** solved groups; pass `keep <K>`, an explicit list of issue numbers, or `all`. Requires a **clean working tree**. Off-path; never auto-dispatched.
 
 See the [docs](https://issue-flow.readthedocs.io/) for worked recipes (review → cycle, epic publish, cycle queues).
 
-The **Agent Skills** under `.cursor/skills/` carry the workflows for on-demand use with `/iflow-pick`, `/iflow`, `/iflow-init`, `/iflow-plan`, `/iflow-build`, `/iflow-pause`, `/iflow-close`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-status`, `/iflow-epic`, `/iflow-cycle`, `/iflow-review`, `/iflow-doctor`, `/iflow-archive`, `@iflow-version-bump` when you need only the bump steps, or `@iflow-history-update` when you need only the changelog update (see [Cursor Agent Skills](https://cursor.com/help/customization/skills)).
+The **Agent Skills** under `.cursor/skills/` carry the workflows for on-demand use with `/iflow-pick`, `/iflow`, `/iflow-init`, `/iflow-plan`, `/iflow-build`, `/iflow-pause`, `/iflow-close`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-status`, `/iflow-epic`, `/iflow-cycle`, `/iflow-auto`, `/iflow-review`, `/iflow-doctor`, `/iflow-archive`, `@iflow-version-bump` when you need only the bump steps, or `@iflow-history-update` when you need only the changelog update (see [Cursor Agent Skills](https://cursor.com/help/customization/skills)).
 
 ## Prerequisites
 
@@ -212,6 +213,7 @@ Plus a few off-path commands (never auto-dispatched):
 - `/iflow-status` — **read-only** overview of where every issue stands, locally and on GitHub.
 - `/iflow-epic` — staged epic plan + publish; decomposes into normal single-issue work.
 - `/iflow-cycle` — batch yolo queue (`yolo` / `label:<L>` / numbers / epic).
+- `/iflow-auto` — unattended epic stage via `/iflow-cycle` + stub adversarial gate.
 - `/iflow-review` — propose and apply workflow labels on open issues (v1: `yolo`).
 - `/iflow-doctor` — scaffold health check.
 - `/iflow-archive` — condense old solved-issue files into a dated summary (destructive, gated behind one consolidated confirm; originals stay recoverable via git).

@@ -9,6 +9,7 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- `/iflow-auto` orchestrator skill skeleton (cycle stage, `auto_status.md`, stub adversarial). (#194)
 - Epic plan Goal/Model markers in epicplan + /iflow-epic publish bodies. (#193)
 - Config knob `auto_adversarial_loops` for /iflow-auto loop budget. (#192)
 - Design doc for advanced auto mode contract. (#191)
