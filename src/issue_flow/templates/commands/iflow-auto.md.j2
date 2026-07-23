@@ -1,8 +1,8 @@
 # Advanced auto — unattended epic orchestration
 
 `/iflow-auto` runs a confirmed epic stage hands-off via `/iflow-cycle`, records
-`auto_status.md`, and runs the adversarial inter-epoch review (reopen/create
-under the overnight confirm).
+`auto_status.md`, runs adversarial inter-epoch review (reopen/create under the
+overnight confirm), then honours the loop budget (re-queue or stop-and-ask).
 
 See `{{ issueflows_dir }}/{{ designs_folder }}/advanced-auto-mode.md`.
 
@@ -26,5 +26,5 @@ Follow `{{ agent_dir }}/skills/iflow-auto/SKILL.md` verbatim.
 ## Constraints
 
 - Off-path; never auto-dispatched by `/iflow`.
-- Adversarial review may reopen or create issues; loop re-queue / next-epoch
-  gate are separate follow-ups.
+- Budget ask options: accept / grant N more loops / abort.
+- Next-epoch gate is a separate follow-up.

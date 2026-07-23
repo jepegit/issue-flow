@@ -2,7 +2,7 @@
 name: iflow-auto
 description: >-
   Unattended large-change orchestrator over a confirmed epic: cycle a stage,
-  record auto_status, run adversarial inter-epoch review. Overnight confirm first.
+  record auto_status, adversarial review, loop-budget re-queue or ask.
 disable-model-invocation: true
 ---
 
@@ -10,11 +10,12 @@ disable-model-invocation: true
 
 Follow this skill to run an **unattended large-change flow** over a confirmed
 epic: select a stage, drive it through `/iflow-cycle`, record durable state in
-`auto_status.md`, then run the adversarial inter-epoch gate (`review`).
+`auto_status.md`, run adversarial inter-epoch review (`review`), then honour
+the adversarial **loop budget** (re-queue or stop-and-ask).
 {% if commands_supported %} Matches `{{ agent_dir }}/{{ commands_dir }}/iflow-auto.md`.{% endif %}
 
 Contract: `{{ issueflows_dir }}/{{ designs_folder }}/advanced-auto-mode.md`
-(criteria table + outcomes).
+(criteria table, budget, outcomes).
 
 ## Input
 
@@ -48,7 +49,7 @@ Contract: `{{ issueflows_dir }}/{{ designs_folder }}/advanced-auto-mode.md`
    **{{ auto_adversarial_loops }}** > default 2. Record the effective budget.
 
 4. **`status` / `dry-run`.** If either token is present: show epic, stage, queue
-   (`issue-flow agent queue --epic <N> --json`), budget, and path of
+   (`issue-flow agent queue --epic <N> --json`), budget, loop count from
    `auto_status.md` if present; **stop** without confirm or writes.
 
 5. **`review`-only path.** If `review` is present and this is not a full
@@ -56,16 +57,17 @@ Contract: `{{ issueflows_dir }}/{{ designs_folder }}/advanced-auto-mode.md`
    `auto_status.md` lacks overnight authorization for this epic/stage, present
    one confirm (epic, stage, that create/reopen may happen) before proceeding.
 
-6. **Overnight confirm** (full auto; only planned interruption). Present in
-   normal prose: epic `#<N>`, stage index + title, ordered queue (numbers +
-   titles), that each issue runs full yolo + auto-merge via `/iflow-cycle`,
-   loop budget, and that adversarial review may **reopen or create** GitHub
-   issues under that confirm. Require explicit yes.
+6. **Overnight confirm** (full auto; only planned interruption before the
+   budget ask). Present in normal prose: epic `#<N>`, stage index + title,
+   ordered queue (numbers + titles), that each issue runs full yolo +
+   auto-merge via `/iflow-cycle`, **loop budget**, and that adversarial review
+   may **reopen or create** GitHub issues under that confirm. Require explicit
+   yes.
 
 7. **Write / update `auto_status.md`** at
    `{{ issueflows_dir }}/{{ current_issues_folder }}/auto_status.md`:
-   epic, stage, loop count (`0` at start of full run), budget, ISO timestamp,
-   last outcome `pending`, and note overnight authorization. Not an
+   epic, stage, `loop_count` (`0` at start of full run), `budget`, ISO
+   timestamp, last outcome `pending`, overnight authorization. Not an
    `issue<N>_*` group — sweeps leave it alone.
 
 8. **Run the stage via `/iflow-cycle`.** Follow
@@ -84,27 +86,45 @@ Contract: `{{ issueflows_dir }}/{{ designs_folder }}/advanced-auto-mode.md`
       `{{ issueflows_dir }}/{{ designs_folder }}/advanced-auto-mode.md`
       (stage goal, epic progress, spec honesty, blast radius).
    c. If **clear**: set `last_outcome: adversarial_clear` and a short findings
-      summary in `auto_status.md`. **Do not** start stage `k+1` here (gate:
-      later Stage 2 work). **Do not** re-run cycle or ask for more loops here
-      (loop ask UX: later Stage 2 work).
+      summary in `auto_status.md`. **Do not** start stage `k+1` here (next-epoch
+      gate is a separate follow-up). Proceed to step 11 report.
    d. If **gaps**: for each finding, prefer `gh issue reopen <M> --repo
       <owner/repo>` plus a comment with concrete remaining acceptance when an
       existing stage issue owns the gap; otherwise `gh issue create --repo
       <owner/repo>` with Spec, Goal, **`Model: deep`**, `Depends on`, and
       `Part of epic #<N>.` — no new label in v1. Record numbers + notes in
       `auto_status.md` with `last_outcome: adversarial_findings`.
-   e. No extra user prompts while acting under overnight / review confirm.
+   e. No extra user prompts while acting under overnight / review confirm
+      (except the budget ask in step 10).
 
-10. **Report.** Epic, stage, cycle results (if any), adversarial outcome +
-    issue numbers, `auto_status.md` path. Note that loop re-queue / budget-ask
-    and next-epoch gating are separate follow-ups. Remind `/iflow-cleanup`
-    after merges.
+10. **Loop control** (only after `adversarial_findings`):
+
+    a. Increment `loop_count` in `auto_status.md` by 1 for this adversarial pass.
+    b. Collect open work: reopened stage issues + newly created inter-epoch
+       blockers still open (from the findings list / `epic-status`).
+    c. If open work remains and `loop_count` **<** `budget`: re-queue those
+       issue numbers via `/iflow-cycle` (explicit numbers; overnight confirm
+       already covers cycle confirms — do not re-ask), then **return to step 9**
+       (adversarial procedure). Keep yolo/cycle safeguards.
+    d. If open work remains and `loop_count` **>=** `budget`: set
+       `last_outcome: budget_ask` and **stop and ask** in normal prose — three
+       options only:
+       - **accept** current implementation (record `accepted`; do not re-queue)
+       - **grant N more loops** (raise effective `budget` by N for this run;
+         clear `budget_ask`; continue from 10c)
+       - **abort** (record `aborted`; stop)
+    e. If no open work remains after findings were addressed by a prior loop,
+       treat as clear for loop purposes and go to step 11.
+
+11. **Report.** Epic, stage, cycle results (if any), adversarial outcome +
+    issue numbers, `loop_count` / `budget`, `auto_status.md` path. Note that
+    next-epoch gating is a separate follow-up. Remind `/iflow-cleanup` after
+    merges.
 
 ## Constraints
 
 - **Off-path:** `/iflow` never auto-dispatches here.
 - Do not weaken yolo/cycle safeguards.
 - Do not run `/iflow-cleanup` from this skill.
-- Do not implement loop re-queue / budget-exhausted ask or next-epoch advance
-  in this skill beyond recording outcomes — those are separate issues.
+- Do not advance to stage `k+1` here — next-epoch gate is separate.
 - Compose `/iflow-epic` + `/iflow-cycle` + `/iflow-yolo`; do not fork them.

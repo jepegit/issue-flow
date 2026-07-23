@@ -66,6 +66,13 @@ After each inter-epoch adversarial pass, if work remains and the counter is
 below the budget, re-queue and re-run adversarial. When the budget is spent,
 **stop and ask**: accept current implementation / grant `N` more loops / abort.
 
+**Manual scenario (budget ask):** overnight confirm with budget `2`; stage cycle
+merges; adversarial pass finds gaps → reopen/create → `loop_count` becomes `1`;
+cycle those issues again → adversarial again → still gaps → `loop_count` `2`
+equals budget → **stop and ask** (accept / grant more loops / abort). Accept
+leaves findings as-is; grant `N` raises the effective budget for this run and
+continues; abort stops without advancing the epoch.
+
 ### Durable state
 
 `.issueflows/01-current-issues/auto_status.md` (name fixed here) records:
@@ -109,12 +116,15 @@ Created blockers include **`Model: deep`**, clear Spec/Goal, resolved
 
 **`auto_status.md` outcomes:**
 
-- `adversarial_clear` — findings empty; do not start the next stage here
-  (advance / loop wiring: later Stage 2 issues)
-- `adversarial_findings` — list reopened/created numbers + short gap notes
+- `adversarial_clear` — findings empty; hand off to next-epoch gate (separate)
+- `adversarial_findings` — list reopened/created numbers + short gap notes;
+  then **loop control** (increment `loop_count`, re-queue or budget ask)
+- `budget_ask` — loop budget exhausted; waiting on user (accept / grant / abort)
+- `accepted` / `aborted` — user answered the budget ask
 
 Standalone `/iflow-auto <N> review` without a prior overnight authorization in
-`auto_status.md` asks once (same confirm shape), then proceeds.
+`auto_status.md` asks once (same confirm shape), then proceeds. Loop control
+still applies after findings when a budget is recorded.
 
 ### Stop conditions (unattended)
 

@@ -478,11 +478,12 @@ iflow cycle yolo
 2. Resolve loop budget (`loops:<n>` > baked `auto_adversarial_loops` > 2).
 3. Overnight confirm once (authorizes cycle auto-merge **and** adversarial reopen/create), then write `auto_status.md` and run `/iflow-cycle` for that stage.
 4. Run adversarial review against epic/stage goals (criteria in `advanced-auto-mode.md`); record `adversarial_clear` or `adversarial_findings` in `auto_status.md`. Standalone: `/iflow-auto <N> review`.
-5. Loop re-queue / budget-exhausted ask and next-epoch gating are separate follow-ups — this skill records outcomes and stops.
+5. **Loop control:** on findings, increment `loop_count`; if open work remains and `loop_count` < budget, re-queue via `/iflow-cycle` and re-review; when budget exhausted, **stop and ask** (accept / grant N more loops / abort).
+6. Next-epoch gating (do not start stage `k+1` while work remains) is a separate follow-up.
 
 **Off-path:** `/iflow` never auto-dispatches to `/iflow-auto`. See `{{ designs_folder }}/advanced-auto-mode.md`.
 
-**Result:** Stage queue processed via cycle; durable `auto_status.md`; adversarial pass may reopen or create blocker issues.
+**Result:** Stage queue processed via cycle; durable `auto_status.md`; adversarial pass may reopen/create blockers; loops honour `auto_adversarial_loops` / `loops:<n>`.
 
 ---
 

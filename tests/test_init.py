@@ -504,6 +504,9 @@ def test_init_scaffolds_iflow_auto_skeleton(tmp_path: Path) -> None:
     assert "adversarial_findings" in content
     assert "gh issue reopen" in content
     assert "loops:<n>" in content
+    assert "Loop control" in content
+    assert "budget_ask" in content
+    assert "grant N more loops" in content
     assert "dry-run" in content
     assert "/iflow-cycle" in content
     assert "review" in content
