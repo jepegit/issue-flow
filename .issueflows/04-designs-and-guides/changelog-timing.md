@@ -18,8 +18,11 @@ so PRs could land without a bullet — inviting a post-merge ask.
    confirm gate.
 3. **Decline is blocking** (when confirm is on) — stop close; offer write /
    revise / `nohistory` / abort. No silent skip-and-continue.
-4. **Never post-merge** — close, history-update, cleanup, and rules forbid
-   offering a HISTORY/CHANGELOG update after the PR is open or merged.
+4. **Never post-close / post-merge** — close, history-update, cleanup, and
+   rules forbid offering a HISTORY/CHANGELOG update after close has finished
+   or after merge. A draft opened earlier via `/iflow-build` early PR does
+   **not** skip close's HISTORY step — the bullet still lands in the close
+   commit that updates that PR (see [early-pr.md](./early-pr.md)).
 
 ## Link
 

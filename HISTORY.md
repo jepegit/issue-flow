@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- Create pull request early. (#99)
+
 ## [0.4.5] - 2026-07-20
 
 - **GitHub remote branch audit in `/iflow-cleanup` (#163).** Opt-in `include GitHub` Phase B classifies `origin/*` remotes; `issue-flow agent branches` returns JSON; second confirm for remote deletes and optional findings issue.

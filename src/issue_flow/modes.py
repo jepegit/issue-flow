@@ -62,6 +62,7 @@ DEFAULT_CYCLE_MAX_ISSUES = 10
 DEFAULT_CONFIRM_VERSION_BUMP = False
 DEFAULT_RUFF_AUTOFIX = True
 DEFAULT_AUTO_CLOSE = False
+DEFAULT_EARLY_PR = False
 DEFAULT_CONFIRM_CHANGELOG_UPDATE = False
 
 # GitHub sync defaults (``.issueflows/`` folder → labels / milestones).
@@ -532,6 +533,17 @@ def read_auto_close(cfg_path: Path) -> bool | None:
     return None
 
 
+def read_early_pr(cfg_path: Path) -> bool | None:
+    """Return the persisted ``[issueflow].early_pr`` flag."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "early_pr" in section:
+        return bool(section.get("early_pr"))
+    return None
+
+
 def read_confirm_changelog_update(cfg_path: Path) -> bool | None:
     """Return the persisted ``[issueflow].confirm_changelog_update`` flag."""
     if not cfg_path.is_file():
@@ -703,6 +715,7 @@ def write_default_config(
     confirm_version_bump: bool = DEFAULT_CONFIRM_VERSION_BUMP,
     ruff_autofix: bool = DEFAULT_RUFF_AUTOFIX,
     auto_close: bool = DEFAULT_AUTO_CLOSE,
+    early_pr: bool = DEFAULT_EARLY_PR,
     confirm_changelog_update: bool = DEFAULT_CONFIRM_CHANGELOG_UPDATE,
     overwrite: bool = False,
 ) -> bool:
@@ -754,6 +767,7 @@ def write_default_config(
         section["confirm_version_bump"] = confirm_version_bump
         section["ruff_autofix"] = ruff_autofix
         section["auto_close"] = auto_close
+        section["early_pr"] = early_pr
         section["confirm_changelog_update"] = confirm_changelog_update
     else:
         doc = tomlkit.document()
@@ -789,6 +803,7 @@ def write_default_config(
             confirm_version_bump,
             ruff_autofix,
             auto_close,
+            early_pr,
             confirm_changelog_update,
         )
 
@@ -817,6 +832,7 @@ def _commented_issueflow_table(
     confirm_version_bump: bool,
     ruff_autofix: bool,
     auto_close: bool,
+    early_pr: bool,
     confirm_changelog_update: bool,
 ) -> tomlkit.items.Table:
     """Build a fresh ``[issueflow]`` table with explanatory comments per key."""
@@ -946,6 +962,14 @@ def _commented_issueflow_table(
         )
     )
     table["auto_close"] = auto_close
+    table.add(
+        tomlkit.comment(
+            "When true, /iflow-build opens a draft PR after the first push "
+            "(default false). Trailing early/pr force on; noearly forces off. "
+            "Re-run 'issue-flow update' after changing."
+        )
+    )
+    table["early_pr"] = early_pr
     table.add(
         tomlkit.comment(
             "When true, non-yolo /iflow-close confirms once about a version "

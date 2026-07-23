@@ -1719,6 +1719,7 @@ def test_config_add_creates_defaults(
     assert payload["confirm_version_bump"] is False
     assert payload["ruff_autofix"] is True
     assert payload["auto_close"] is False
+    assert payload["early_pr"] is False
     assert payload["confirm_changelog_update"] is False
 
     cfg = tmp_path / ".issueflows" / "config.toml"
@@ -1734,6 +1735,7 @@ def test_config_add_creates_defaults(
     assert data["issueflow"]["remind_cleanup"] is True
     assert data["issueflow"]["pr_merge_method"] == "squash"
     assert data["issueflow"]["cycle_max_issues"] == 10
+    assert data["issueflow"]["early_pr"] is False
 
 
 def test_config_add_reads_env(

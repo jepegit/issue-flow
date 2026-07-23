@@ -43,6 +43,7 @@ _MODE_CONTEXT = {
     "confirm_version_bump": False,
     "ruff_autofix": True,
     "auto_close": False,
+    "early_pr": False,
     "confirm_changelog_update": True,
 }
 
@@ -516,6 +517,37 @@ def test_start_auto_close_chains_into_close() -> None:
     assert "tell the user to run `/iflow-close`" not in on
 
 
+def test_build_early_pr_step_and_tokens() -> None:
+    """Build always documents early-PR tokens; baked early_pr appears in text."""
+    off = render_template("skills/iflow_build/SKILL.md.j2", _default_context())
+    assert "Early PR tokens" in off
+    assert "`early`" in off and "`noearly`" in off
+    assert "gh pr create --draft" in off
+    assert "Refs #N" in off
+    assert "currently **False**" in off or "currently **false**" in off
+    on = render_template(
+        "skills/iflow_build/SKILL.md.j2",
+        {**_default_context(), "early_pr": True},
+    )
+    assert "currently **True**" in on or "currently **true**" in on
+    cmd = render_template("commands/iflow-build.md.j2", _default_context())
+    assert "Early pull request (optional)" in cmd
+    assert "gh pr list" in cmd
+
+
+def test_close_formalizes_draft_and_early_pr_reuse() -> None:
+    rendered = render_template("skills/iflow_close/SKILL.md.j2", _default_context())
+    assert "Draft PR token" in rendered
+    assert "gh pr create --draft" in rendered
+    assert "gh pr ready" in rendered
+    assert "early pr" in rendered.lower()
+    assert "skip merge entirely" in rendered.lower()
+    cmd = render_template("commands/iflow-close.md.j2", _default_context())
+    assert "`draft`" in cmd
+    assert "gh pr create --draft" in cmd
+    assert "gh pr ready" in cmd
+
+
 def test_history_confirm_changelog_update_gate() -> None:
     on = render_template(
         "skills/iflow_history_update/SKILL.md.j2",
@@ -538,7 +570,8 @@ def test_changelog_timing_forbids_post_merge_updates() -> None:
     history = render_template("skills/iflow_history_update/SKILL.md.j2", ctx)
     close = render_template("skills/iflow_close/SKILL.md.j2", ctx)
     cleanup = render_template("skills/iflow_cleanup/SKILL.md.j2", ctx)
-    assert "after the PR is open or merged" in history
+    assert "after close has finished or after merge" in history
+    assert "early PR" in history
     assert "Changelog timing" in close
     assert "Do **not** offer to update" in cleanup
 
