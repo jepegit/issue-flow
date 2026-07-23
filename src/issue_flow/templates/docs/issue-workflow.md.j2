@@ -479,11 +479,11 @@ iflow cycle yolo
 3. Overnight confirm once (authorizes cycle auto-merge **and** adversarial reopen/create), then write `auto_status.md` and run `/iflow-cycle` for that stage.
 4. Run adversarial review against epic/stage goals (criteria in `advanced-auto-mode.md`); record `adversarial_clear` or `adversarial_findings` in `auto_status.md`. Standalone: `/iflow-auto <N> review`.
 5. **Loop control:** on findings, increment `loop_count`; if open work remains and `loop_count` < budget, re-queue via `/iflow-cycle` and re-review; when budget exhausted, **stop and ask** (accept / grant N more loops / abort).
-6. Next-epoch gating (do not start stage `k+1` while work remains) is a separate follow-up.
+6. **Next-epoch gate:** start stage `k+1` only when `epic-status` marks stage `k` `done` and no open blockers remain in `auto_status.md`; otherwise `epoch_gated`. When clear, may continue to the next unfinished stage under the same overnight confirm.
 
 **Off-path:** `/iflow` never auto-dispatches to `/iflow-auto`. See `{{ designs_folder }}/advanced-auto-mode.md`.
 
-**Result:** Stage queue processed via cycle; durable `auto_status.md`; adversarial pass may reopen/create blockers; loops honour `auto_adversarial_loops` / `loops:<n>`.
+**Result:** Stage queue processed via cycle; durable `auto_status.md`; adversarial pass may reopen/create blockers; loops honour `auto_adversarial_loops` / `loops:<n>`; epochs advance only when the queue is clear.
 
 ---
 

@@ -2,7 +2,7 @@
 name: iflow-auto
 description: >-
   Unattended large-change orchestrator over a confirmed epic: cycle a stage,
-  record auto_status, adversarial review, loop-budget re-queue or ask.
+  adversarial review, loop budget, next-epoch gate when the queue is clear.
 disable-model-invocation: true
 ---
 
@@ -86,8 +86,7 @@ Contract: `{{ issueflows_dir }}/{{ designs_folder }}/advanced-auto-mode.md`
       `{{ issueflows_dir }}/{{ designs_folder }}/advanced-auto-mode.md`
       (stage goal, epic progress, spec honesty, blast radius).
    c. If **clear**: set `last_outcome: adversarial_clear` and a short findings
-      summary in `auto_status.md`. **Do not** start stage `k+1` here (next-epoch
-      gate is a separate follow-up). Proceed to step 11 report.
+      summary in `auto_status.md`. Proceed to **Next-epoch gate** (step 11).
    d. If **gaps**: for each finding, prefer `gh issue reopen <M> --repo
       <owner/repo>` plus a comment with concrete remaining acceptance when an
       existing stage issue owns the gap; otherwise `gh issue create --repo
@@ -115,16 +114,31 @@ Contract: `{{ issueflows_dir }}/{{ designs_folder }}/advanced-auto-mode.md`
        - **abort** (record `aborted`; stop)
     e. If no open work remains after findings were addressed by a prior loop,
        treat as clear for loop purposes and go to step 11.
+    f. After user **accept**, still run step 11 (gate will refuse advance if
+       open work remains).
 
-11. **Report.** Epic, stage, cycle results (if any), adversarial outcome +
-    issue numbers, `loop_count` / `budget`, `auto_status.md` path. Note that
-    next-epoch gating is a separate follow-up. Remind `/iflow-cleanup` after
-    merges.
+11. **Next-epoch gate** (after `adversarial_clear`, loops drained with no open
+    work, or budget **accept**):
+
+    a. Re-run `issue-flow agent epic-status <N> --json`. Stage `k` is clear
+       only when that stage's `done` is true **and** no open inter-epoch
+       blocker numbers remain in `auto_status.md` findings.
+    b. If **not** clear: set `last_outcome: epoch_gated`, list open numbers /
+       blockers, **do not** start stage `k+1`, go to step 12.
+    c. If clear and a later unfinished published stage exists: under the same
+       overnight authorization, set `auto_status.md` stage to that index,
+       reset `loop_count` to `0`, `last_outcome: pending`, and **return to
+       step 2** (select/run that stage). Do not re-ask overnight confirm.
+    d. If every published stage is done: set `last_outcome: complete`.
+
+12. **Report.** Epic, stage, cycle results (if any), adversarial outcome +
+    issue numbers, `loop_count` / `budget`, gate result, `auto_status.md`
+    path. Remind `/iflow-cleanup` after merges.
 
 ## Constraints
 
 - **Off-path:** `/iflow` never auto-dispatches here.
 - Do not weaken yolo/cycle safeguards.
 - Do not run `/iflow-cleanup` from this skill.
-- Do not advance to stage `k+1` here — next-epoch gate is separate.
+- Never start stage `k+1` while stage `k` is not clear (`epoch_gated`).
 - Compose `/iflow-epic` + `/iflow-cycle` + `/iflow-yolo`; do not fork them.

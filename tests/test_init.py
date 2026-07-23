@@ -507,6 +507,8 @@ def test_init_scaffolds_iflow_auto_skeleton(tmp_path: Path) -> None:
     assert "Loop control" in content
     assert "budget_ask" in content
     assert "grant N more loops" in content
+    assert "Next-epoch gate" in content
+    assert "epoch_gated" in content
     assert "dry-run" in content
     assert "/iflow-cycle" in content
     assert "review" in content
