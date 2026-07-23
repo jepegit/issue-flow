@@ -134,3 +134,47 @@ def test_later_section_is_ignored(tmp_path: Path) -> None:
 
 def test_missing_file_returns_none(tmp_path: Path) -> None:
     assert parse_epic_plan(tmp_path / "epic1_plan.md") is None
+
+
+def test_parse_stage_and_issue_goal_and_model(tmp_path: Path) -> None:
+    text = """# Epic #10: Markers
+
+Status: confirmed
+
+## Stage 1 — foundation
+
+Prove markers.
+- Goal: Stage goal text
+
+### Issue: With markers
+
+- Spec: Do the thing.
+- Goal: Issue goal text
+- Model: deep
+- Depends on: none
+- yolo: no
+
+### Issue: Defaults
+
+- Spec: Old-style.
+- Depends on: none
+- yolo: yes
+"""
+    plan = parse_epic_plan(_write_plan(tmp_path, text))
+    assert plan is not None
+    stage = plan.stages[0]
+    assert stage.goal == "Stage goal text"
+    assert stage.issues[0].goal == "Issue goal text"
+    assert stage.issues[0].model == "deep"
+    assert stage.issues[1].goal is None
+    assert stage.issues[1].model == "default"
+
+
+def test_old_plans_without_goal_model_still_parse(tmp_path: Path) -> None:
+    plan = parse_epic_plan(_write_plan(tmp_path))
+    assert plan is not None
+    for stage in plan.stages:
+        assert stage.goal is None
+        for spec in stage.issues:
+            assert spec.goal is None
+            assert spec.model == "default"

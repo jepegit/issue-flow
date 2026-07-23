@@ -836,6 +836,8 @@ def run_epic_status(
                     ],
                     "blocked_by": blocked_by,
                     "yolo": spec.yolo,
+                    "goal": spec.goal,
+                    "model": spec.model,
                 }
             )
             if state != "closed":
@@ -844,6 +846,7 @@ def run_epic_status(
             {
                 "index": stage.index,
                 "title": stage.title,
+                "goal": stage.goal,
                 "issues": issues,
                 "done": done,
             }

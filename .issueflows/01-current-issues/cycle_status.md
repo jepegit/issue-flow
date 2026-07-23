@@ -7,8 +7,8 @@
 
 ## Queue
 
-- [x] #191 — Design doc — advanced auto mode contract — merged https://github.com/jepegit/issue-flow/pull/196
-- [x] #192 — Config knobs for adversarial loop budget — in-progress close
-- [ ] #193 — Epic plan markers — Stage Goal + issue Goal/Model — pending
-- [ ] #194 — `/iflow-auto` orchestrator skill (skeleton) — pending
-- [ ] #195 — Stage 1 tests and HISTORY — pending
+- [x] #191 — merged https://github.com/jepegit/issue-flow/pull/196
+- [x] #192 — merged https://github.com/jepegit/issue-flow/pull/197
+- [x] #193 — in-progress close
+- [ ] #194 — pending
+- [ ] #195 — pending
