@@ -2,10 +2,11 @@
 
 The ``/iflow-epic`` skill drafts a plan whose structure is a deliberate
 machine-readable contract (stages, ``### Issue:`` specs, ``Depends on:`` /
-``yolo:`` / ``Published: #<M>`` lines). This module encodes that contract
-once, so ``issue-flow agent epic-status`` (and later ``agent queue``) can
-give deterministic answers instead of every agent re-parsing markdown by
-hand. Read-only: nothing here writes files or talks to GitHub.
+``yolo:`` / ``Published: #<M>`` / optional ``Goal:`` / ``Model:`` lines). This
+module encodes that contract once, so ``issue-flow agent epic-status`` (and
+later ``agent queue``) can give deterministic answers instead of every agent
+re-parsing markdown by hand. Read-only: nothing here writes files or talks to
+GitHub.
 """
 
 from __future__ import annotations
@@ -23,8 +24,12 @@ _ISSUE_RE = re.compile(r"^###\s+Issue:\s*(.*)$")
 _PUBLISHED_RE = re.compile(r"^-\s*Published:\s*#(\d+)\s*$")
 _DEPENDS_RE = re.compile(r"^-\s*Depends on:\s*(.*)$")
 _YOLO_RE = re.compile(r"^-\s*yolo:\s*(yes|no)\b", re.IGNORECASE)
+_GOAL_RE = re.compile(r"^-\s*Goal:\s*(.*)$", re.IGNORECASE)
+_MODEL_RE = re.compile(r"^-\s*Model:\s*(deep|fast|default)\b", re.IGNORECASE)
 _DEP_NUMBER_RE = re.compile(r"#(\d+)")
 _DEP_PLACEHOLDER_RE = re.compile(r"stage\s+(\d+)\s+issue\s+(\d+)", re.IGNORECASE)
+
+ALLOWED_MODELS = frozenset({"deep", "fast", "default"})
 
 
 @dataclass
@@ -38,12 +43,15 @@ class IssueSpec:
     depends_on: list[int] = field(default_factory=list)
     placeholder_deps: list[tuple[int, int]] = field(default_factory=list)
     yolo: bool = False
+    goal: str | None = None
+    model: str = "default"
 
 
 @dataclass
 class Stage:
     index: int
     title: str
+    goal: str | None = None
     issues: list[IssueSpec] = field(default_factory=list)
 
 
@@ -79,7 +87,9 @@ def parse_epic_plan(path: Path) -> EpicPlan | None:
     """Parse an epic plan file, or ``None`` when unreadable.
 
     Lenient by design: unknown lines are ignored, so hand-edited prose never
-    breaks parsing — only the marker lines above carry meaning.
+    breaks parsing — only the marker lines above carry meaning. Plans without
+    ``Goal:`` / ``Model:`` markers still parse (``goal`` stays ``None``,
+    ``model`` defaults to ``default``).
     """
     try:
         text = path.read_text(encoding="utf-8")
@@ -135,7 +145,21 @@ def parse_epic_plan(path: Path) -> EpicPlan | None:
             current_stage.issues.append(current_issue)
             continue
 
+        goal_match = _GOAL_RE.match(stripped)
+        if goal_match:
+            goal_text = goal_match.group(1).strip() or None
+            if current_issue is not None:
+                current_issue.goal = goal_text
+            else:
+                current_stage.goal = goal_text
+            continue
+
         if current_issue is None:
+            continue
+
+        model_match = _MODEL_RE.match(stripped)
+        if model_match:
+            current_issue.model = model_match.group(1).lower()
             continue
 
         published_match = _PUBLISHED_RE.match(stripped)

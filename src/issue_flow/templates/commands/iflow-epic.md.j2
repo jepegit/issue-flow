@@ -21,7 +21,7 @@ Run this when a change is **too large for one issue**: it drafts a staged plan �
 The full playbook lives in `{{ agent_dir }}/skills/iflow-epic/SKILL.md` — follow it. In short:
 
 1. **Gather context (read-only):** the anchor issue (`gh issue view <N>`), relevant `{{ issueflows_dir }}/{{ designs_folder }}/` docs, `graphify-out/GRAPH_REPORT.md` when present.
-2. **Draft** `epic<N>_plan.md`: Goal / Constraints / Stages; each stage holds `### Issue:` specs with a self-contained spec paragraph, explicit `Depends on:` lines (`#<M>`, or `stage <j> issue <k>` placeholders for unpublished issues), and a per-issue **yolo-fitness judgment**.
+2. **Draft** `epic<N>_plan.md`: Goal / Constraints / Stages (each with `- Goal:`); each stage holds `### Issue:` specs with Spec, `- Goal:`, `- Model: deep|fast|default`, explicit `Depends on:` lines (`#<M>`, or `stage <j> issue <k>` placeholders), and a per-issue **yolo-fitness judgment**. Publish copies Goal + Model into GitHub issue bodies.
 3. **Sizing rules:** one issue = one branch = one PR (~a day or less), crisp acceptance criteria, dependencies explicit. Detail at most 2–3 stages; sketch the rest under `## Later (unstaged)`.
 4. **Review with the user** and iterate; on confirmation flip `Status: draft` to `Status: confirmed`.
 5. **Stop** — creating issues is the `publish` action, with its own confirm.
