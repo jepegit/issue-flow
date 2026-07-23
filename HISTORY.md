@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- Design doc for advanced auto mode contract. (#191)
+
 - Create pull request early. (#99)
 
 ## [0.4.5] - 2026-07-20
