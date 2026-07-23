@@ -1,7 +1,8 @@
 # Advanced auto — unattended epic orchestration
 
 `/iflow-auto` runs a confirmed epic stage hands-off via `/iflow-cycle`, records
-`auto_status.md`, and (until Stage 2) stubs the adversarial inter-epoch gate.
+`auto_status.md`, and runs the adversarial inter-epoch review (reopen/create
+under the overnight confirm).
 
 See `{{ issueflows_dir }}/{{ designs_folder }}/advanced-auto-mode.md`.
 
@@ -15,6 +16,7 @@ See `{{ issueflows_dir }}/{{ designs_folder }}/advanced-auto-mode.md`.
 - **`stage <k>`** — optional; else earliest unfinished published stage.
 - **`loops:<n>`** — override adversarial loop budget (baked default
   **{{ auto_adversarial_loops }}**).
+- **`review`** — adversarial procedure only (`/iflow-auto <N> review`).
 - **`status`** / **`dry-run`** — report only; no confirm / no writes beyond reads.
 
 ## Steps
@@ -24,4 +26,5 @@ Follow `{{ agent_dir }}/skills/iflow-auto/SKILL.md` verbatim.
 ## Constraints
 
 - Off-path; never auto-dispatched by `/iflow`.
-- Stage 1: adversarial step is a stub — do not reopen or create issues here.
+- Adversarial review may reopen or create issues; loop re-queue / next-epoch
+  gate are separate follow-ups.

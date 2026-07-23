@@ -38,7 +38,7 @@ It also seeds `{{ issueflows_dir }}/{{ tools_folder }}/README.md` — the index 
 | `/iflow-archive` | `{% if commands_supported %}iflow-archive.md{% else %}iflow-archive/SKILL.md{% endif %}` | **Off-path, destructive (gated).** Condense old solved issue groups into a dated `YYYY-MM-DD_archived_issues.md` summary (recording the pre-archive git ref for recovery), then delete the original files after one consolidated confirm. |
 | `/iflow-epic` | `{% if commands_supported %}iflow-epic.md{% else %}iflow-epic/SKILL.md{% endif %}` | **Off-path.** Plan a larger change as a staged epic: `{{ epics_folder }}/epic<N>_plan.md` divides the work into stages of manageable issue specs (dependencies + per-issue yolo judgment). Drafting writes nothing on GitHub; `publish [stage <k>]` creates a confirmed stage's issues behind one consolidated confirm and maintains a task list on the anchor issue. |
 | `/iflow-cycle` | `{% if commands_supported %}iflow-cycle.md{% else %}iflow-cycle/SKILL.md{% endif %}` | **Off-path.** Process a queue of yolo-fit issues hands-off in a row under one up-front confirm — the batch equivalent of `/iflow-yolo`. Resolves the queue via `issue-flow agent queue`, runs each issue through the full yolo chain (PR auto-merged), and stops only when input is strictly necessary. **All yolo-labelled issues:** `/iflow-cycle yolo` (alias for `label:{{ yolo_label }}`). |
-| `/iflow-auto` | `{% if commands_supported %}iflow-auto.md{% else %}iflow-auto/SKILL.md{% endif %}` | **Off-path.** Unattended large-change orchestrator over a confirmed epic: cycle a stage via `/iflow-cycle`, record `auto_status.md`, stub adversarial gate (Stage 2). Loop budget **{{ auto_adversarial_loops }}** (`[issueflow].auto_adversarial_loops`); override `loops:<n>`. See `{{ issueflows_dir }}/{{ designs_folder }}/advanced-auto-mode.md`. |
+| `/iflow-auto` | `{% if commands_supported %}iflow-auto.md{% else %}iflow-auto/SKILL.md{% endif %}` | **Off-path.** Unattended large-change orchestrator over a confirmed epic: cycle a stage via `/iflow-cycle`, record `auto_status.md`, run adversarial review (`review`; may reopen/create). Loop budget **{{ auto_adversarial_loops }}** (`[issueflow].auto_adversarial_loops`); override `loops:<n>`. See `{{ issueflows_dir }}/{{ designs_folder }}/advanced-auto-mode.md`. |
 | `/iflow-graphify` | `{% if commands_supported %}iflow-graphify.md{% else %}iflow-graphify/SKILL.md{% endif %}` | **Off-path.** Rebuild the [graphify](https://iflow-graphify.net) knowledge graph (`graphify-out/graph.html`, `GRAPH_REPORT.md`, `graph.json`). Wraps `issue-flow graphify` / `graphify`. Optional: only meaningful when `graphifyy` is installed. |
 
 {% if commands_supported -%}
@@ -69,7 +69,7 @@ It also seeds `{{ issueflows_dir }}/{{ tools_folder }}/README.md` — the index 
 | `iflow-review` | `iflow review`, `iflow-review`, `/iflow-review` | Review open issues and apply labels (v1: yolo). Off-path. |
 | `iflow-epic` | `iflow epic`, `iflow-epic`, `/iflow-epic` | Staged epic plan + publish. Off-path. |
 | `iflow-cycle` | `iflow cycle`, `iflow-cycle`, `/iflow-cycle` | Batch yolo queue (`yolo` / `label:<L>` / numbers / epic). Off-path. |
-| `iflow-auto` | `iflow auto`, `iflow-auto`, `/iflow-auto` | Unattended epic orchestration (cycle stage + stub adversarial). Off-path. |
+| `iflow-auto` | `iflow auto`, `iflow-auto`, `/iflow-auto` | Unattended epic orchestration (cycle stage + adversarial `review`). Off-path. |
 | `iflow-archive` | `iflow archive`, `iflow-archive`, `/iflow-archive` | Condense solved archive. Off-path; destructive. |
 | `iflow-version-bump` | `@iflow-version-bump` (often used from `/iflow-close`) | Strategy-aware version bump: static `[project]` versions via `uv version --bump <level>` (any uv level: `major`/`minor`/`patch`/`stable`/`alpha`/`beta`/`rc`/`post`/`dev`); git-tag-derived versions via a planned post-merge tag. The project's own "Release & version bump" section in `this-project.md` wins; a bare `bump` stays on the current pre-release channel. |
 | `iflow-history-update` | `@iflow-history-update` (used from `/iflow-close`) | Append an entry to `## [Unreleased]` in `{{ history_file }}`, or promote it to a new `## [x.y.z] - YYYY-MM-DD` release section when a version bump happened. |
@@ -466,22 +466,23 @@ iflow cycle yolo
 
 ---
 
-## 15. `/iflow-auto` — unattended large-change orchestration (skeleton)
+## 15. `/iflow-auto` — unattended large-change orchestration
 
-**When:** You have a **confirmed** epic plan and want overnight hands-off progress through a stage (and, later, adversarial inter-epoch review).
+**When:** You have a **confirmed** epic plan and want overnight hands-off progress through a stage, then an adversarial inter-epoch review.
 
-**What you pass:** epic `<N>`, optional `stage <k>`, optional `loops:<n>`, or `status` / `dry-run`.
+**What you pass:** epic `<N>`, optional `stage <k>`, optional `loops:<n>`, `review` (adversarial only), or `status` / `dry-run`.
 
-**What the assistant does (Stage 1 skeleton):**
+**What the assistant does:**
 
 1. Require `epic<N>_plan.md` with `Status: confirmed`; resolve stage via `epic-status`.
 2. Resolve loop budget (`loops:<n>` > baked `auto_adversarial_loops` > 2).
-3. Overnight confirm once, then write `auto_status.md` and run `/iflow-cycle` for that stage.
-4. Stub the adversarial gate ("not implemented — Stage 2"); do not reopen/create issues here.
+3. Overnight confirm once (authorizes cycle auto-merge **and** adversarial reopen/create), then write `auto_status.md` and run `/iflow-cycle` for that stage.
+4. Run adversarial review against epic/stage goals (criteria in `advanced-auto-mode.md`); record `adversarial_clear` or `adversarial_findings` in `auto_status.md`. Standalone: `/iflow-auto <N> review`.
+5. Loop re-queue / budget-exhausted ask and next-epoch gating are separate follow-ups — this skill records outcomes and stops.
 
 **Off-path:** `/iflow` never auto-dispatches to `/iflow-auto`. See `{{ designs_folder }}/advanced-auto-mode.md`.
 
-**Result:** Stage queue processed via cycle; durable `auto_status.md`; adversarial work deferred to Stage 2.
+**Result:** Stage queue processed via cycle; durable `auto_status.md`; adversarial pass may reopen or create blocker issues.
 
 ---
 
@@ -544,7 +545,7 @@ Detours:
   /iflow-review — review open issues and apply labels (v1: yolo)
   /iflow-epic   — stage a large change; publish stages as real issues
   /iflow-cycle yolo — auto-process all open issues with the configured yolo label
-  /iflow-auto <N> — unattended epic stage via cycle + stub adversarial (Stage 1)
+  /iflow-auto <N> — unattended epic stage via cycle + adversarial review
   /iflow-archive — condense old solved issues into a dated summary file (gated deletion)
 ```
 

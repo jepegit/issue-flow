@@ -494,16 +494,19 @@ def test_init_review_skill_hints_cycle_yolo(tmp_path: Path) -> None:
 
 
 def test_init_scaffolds_iflow_auto_skeleton(tmp_path: Path) -> None:
-    """Standard init installs /iflow-auto with Stage 1 stub + auto_status."""
+    """Standard init installs /iflow-auto with adversarial review + auto_status."""
     run_init(tmp_path)
     skill = tmp_path / ".cursor" / "skills" / "iflow-auto" / "SKILL.md"
     assert skill.is_file()
     content = skill.read_text(encoding="utf-8")
     assert "auto_status.md" in content
-    assert "adversarial review not implemented" in content
+    assert "adversarial_clear" in content
+    assert "adversarial_findings" in content
+    assert "gh issue reopen" in content
     assert "loops:<n>" in content
     assert "dry-run" in content
     assert "/iflow-cycle" in content
+    assert "review" in content
     # Simple mode excludes the auto surface.
     run_init(tmp_path, mode="simple", force=True)
     assert not (tmp_path / ".cursor" / "skills" / "iflow-auto").exists()

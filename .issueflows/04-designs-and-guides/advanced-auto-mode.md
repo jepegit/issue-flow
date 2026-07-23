@@ -89,6 +89,33 @@ Hints are advisory for agents; Stage 1 does not enforce labels. Optional later
 tie-in to `deep_model_label` / `fast_model_label` (see
 [step-model-directives.md](./step-model-directives.md)).
 
+### Adversarial review (inter-epoch)
+
+Run after a stage's `/iflow-cycle` finishes (or via `/iflow-auto <N> review`).
+Judgment stays in the agent skill; no separate CLI judge. Writes (reopen /
+create) are authorized by the overnight confirm — **no mid-budget prompts**.
+
+| Check | Pass when | Fail → action |
+|-------|-----------|---------------|
+| Stage goal met | Merged PRs for the stage's published issues collectively satisfy the Stage Goal / stage paragraph | Reopen incomplete issues and/or create inter-epoch blocker issues |
+| Epic goal progress | No clear regression vs epic `## Goal` / Constraints | Same |
+| Spec honesty | Landed work matches each issue Spec / Goal (no silent scope cut) | Reopen with concrete remaining acceptance |
+| Blast radius | No unplanned shared-file / API breaks outside the stage queue | Create blocker issue(s) with Spec + `Depends on` + `Part of epic #<N>` |
+
+**Actions:** prefer `gh issue reopen <M>` (+ comment) when an existing stage
+issue still owns the gap; `gh issue create` only for cross-cutting / new work.
+Created blockers include **`Model: deep`**, clear Spec/Goal, resolved
+`Depends on`, and `Part of epic #<N>.` — **no new label** in v1 (avoid sprawl).
+
+**`auto_status.md` outcomes:**
+
+- `adversarial_clear` — findings empty; do not start the next stage here
+  (advance / loop wiring: later Stage 2 issues)
+- `adversarial_findings` — list reopened/created numbers + short gap notes
+
+Standalone `/iflow-auto <N> review` without a prior overnight authorization in
+`auto_status.md` asks once (same confirm shape), then proceeds.
+
 ### Stop conditions (unattended)
 
 Same floor as `/iflow-cycle` / `/iflow-yolo`: unfixable test/lint failure,

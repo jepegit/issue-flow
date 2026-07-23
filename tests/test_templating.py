@@ -526,12 +526,19 @@ def test_iflow_auto_skill_skeleton_renders() -> None:
     assert "iflow-auto" in COMMAND_NAMES
     skill = render_template("skills/iflow_auto/SKILL.md.j2", _default_context())
     assert "auto_status.md" in skill
-    assert "adversarial review not implemented" in skill
+    assert "adversarial review not implemented" not in skill
+    assert "adversarial_clear" in skill
+    assert "adversarial_findings" in skill
+    assert "gh issue reopen" in skill
+    assert "gh issue create" in skill
+    assert "Model: deep" in skill
+    assert "`review`" in skill or "**`review`**" in skill
     assert "loops:<n>" in skill
     assert str(_default_context()["auto_adversarial_loops"]) in skill
     cmd = render_template("commands/iflow-auto.md.j2", _default_context())
     assert "iflow-auto/SKILL.md" in cmd
-    assert "Stage 1" in cmd
+    assert "review" in cmd
+    assert "stub" not in cmd.lower()
 
 
 def test_iflow_lists_auto_as_off_path() -> None:
