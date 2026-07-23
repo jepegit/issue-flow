@@ -117,8 +117,8 @@ def test_resolve_output_path() -> None:
 
 
 def test_manifest_entry_count() -> None:
-    # Cursor is skills-first: 1 rule + 1 doc + 23 skills = 25
-    assert len(TEMPLATE_MANIFEST) == 25
+    # Cursor is skills-first: 1 rule + 1 doc + 24 skills = 26
+    assert len(TEMPLATE_MANIFEST) == 26
 
 
 def _resolved_paths(profile_id: str) -> set[str]:
@@ -138,7 +138,7 @@ def _resolved_paths(profile_id: str) -> set[str]:
 def test_build_manifest_cursor_matches_default() -> None:
     """The default TEMPLATE_MANIFEST is the cursor profile manifest."""
     assert build_manifest(EDITORS["cursor"]) == TEMPLATE_MANIFEST
-    assert len(build_manifest(EDITORS["cursor"])) == 25
+    assert len(build_manifest(EDITORS["cursor"])) == 26
 
 
 def test_build_manifest_cursor_has_skills_and_rules_but_no_commands() -> None:
@@ -153,15 +153,15 @@ def test_build_manifest_cursor_has_skills_and_rules_but_no_commands() -> None:
 
 
 def test_build_manifest_codex_has_skills_and_docs_but_no_commands() -> None:
-    """Codex: skills (23) + docs (1), no slash commands and no rules extra."""
+    """Codex: skills (24) + docs (1), no slash commands and no rules extra."""
     manifest = build_manifest(get_profile("codex"))
     template_names = [name for name, _ in manifest]
     assert not any(name.startswith("commands/") for name in template_names)
-    assert sum(name.startswith("skills/") for name in template_names) == 23
+    assert sum(name.startswith("skills/") for name in template_names) == 24
     assert "docs/issue-workflow.md.j2" in template_names
     # No .mdc / CLAUDE.md rules extra for Codex.
     assert not any(name.startswith("rules/") for name in template_names)
-    assert len(manifest) == 24
+    assert len(manifest) == 25
 
 
 def test_build_manifest_opencode_uses_singular_command_dir() -> None:
@@ -235,6 +235,8 @@ def test_manifest_has_expected_skills() -> None:
         "iflow_issue",
         "iflow_status",
         "iflow_archive",
+        "iflow_cycle",
+        "iflow_auto",
         "iflow_version_bump",
         "iflow_history_update",
         "iflow_graphify",
@@ -260,6 +262,8 @@ def test_claude_manifest_has_expected_commands() -> None:
         "iflow-status",
         "iflow-doctor",
         "iflow-archive",
+        "iflow-cycle",
+        "iflow-auto",
         "iflow-graphify",
     ):
         assert f"commands/{command}.md.j2" in template_names
@@ -515,6 +519,30 @@ def test_workflow_doc_bakes_auto_adversarial_loops() -> None:
     assert "auto_adversarial_loops" in rendered
     assert "**5**" in rendered
     assert "loops:<n>" in rendered
+
+
+def test_iflow_auto_skill_skeleton_renders() -> None:
+    assert "iflow_auto" in SKILL_DIRS
+    assert "iflow-auto" in COMMAND_NAMES
+    skill = render_template("skills/iflow_auto/SKILL.md.j2", _default_context())
+    assert "auto_status.md" in skill
+    assert "adversarial review not implemented" in skill
+    assert "loops:<n>" in skill
+    assert str(_default_context()["auto_adversarial_loops"]) in skill
+    cmd = render_template("commands/iflow-auto.md.j2", _default_context())
+    assert "iflow-auto/SKILL.md" in cmd
+    assert "Stage 1" in cmd
+
+
+def test_iflow_lists_auto_as_off_path() -> None:
+    """/iflow and its skill must list /iflow-auto among the explicit-only commands."""
+    cmd = render_template("commands/iflow.md.j2", _default_context())
+    skill = render_template("skills/iflow_iflow/SKILL.md.j2", _default_context())
+    assert "/iflow-auto" in cmd
+    assert "/iflow-auto" in skill
+    rules = render_template("rules/AGENTS.md.j2", _default_context())
+    assert "/iflow-auto" in rules
+    assert "auto_status.md" in rules
 
 
 def test_start_auto_close_chains_into_close() -> None:

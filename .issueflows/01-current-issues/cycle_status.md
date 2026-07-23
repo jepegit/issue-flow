@@ -9,6 +9,6 @@
 
 - [x] #191 — merged https://github.com/jepegit/issue-flow/pull/196
 - [x] #192 — merged https://github.com/jepegit/issue-flow/pull/197
-- [x] #193 — in-progress close
-- [ ] #194 — pending
+- [x] #193 — merged https://github.com/jepegit/issue-flow/pull/198
+- [ ] #194 — in-progress close
 - [ ] #195 — pending

@@ -32,6 +32,7 @@ It also seeds `.issueflows/00-tools/README.md` — the index of the project's **
 | `/iflow-archive` | `iflow-archive/SKILL.md` | **Off-path, destructive (gated).** Condense old solved issue groups into a dated `YYYY-MM-DD_archived_issues.md` summary (recording the pre-archive git ref for recovery), then delete the original files after one consolidated confirm. |
 | `/iflow-epic` | `iflow-epic/SKILL.md` | **Off-path.** Plan a larger change as a staged epic: `05-epics/epic<N>_plan.md` divides the work into stages of manageable issue specs (dependencies + per-issue yolo judgment). Drafting writes nothing on GitHub; `publish [stage <k>]` creates a confirmed stage's issues behind one consolidated confirm and maintains a task list on the anchor issue. |
 | `/iflow-cycle` | `iflow-cycle/SKILL.md` | **Off-path.** Process a queue of yolo-fit issues hands-off in a row under one up-front confirm — the batch equivalent of `/iflow-yolo`. Resolves the queue via `issue-flow agent queue`, runs each issue through the full yolo chain (PR auto-merged), and stops only when input is strictly necessary. **All yolo-labelled issues:** `/iflow-cycle yolo` (alias for `label:yolo`). |
+| `/iflow-auto` | `iflow-auto/SKILL.md` | **Off-path.** Unattended large-change orchestrator over a confirmed epic: cycle a stage via `/iflow-cycle`, record `auto_status.md`, stub adversarial gate (Stage 2). |
 | `/iflow-graphify` | `iflow-graphify/SKILL.md` | **Off-path.** Rebuild the [graphify](https://iflow-graphify.net) knowledge graph (`graphify-out/graph.html`, `GRAPH_REPORT.md`, `graph.json`). Wraps `issue-flow graphify` / `graphify`. Optional: only meaningful when `graphifyy` is installed. |
 
 
@@ -60,6 +61,7 @@ It also seeds `.issueflows/00-tools/README.md` — the index of the project's **
 | `iflow-review` | `iflow review`, `iflow-review`, `/iflow-review` | Review open issues and apply labels (v1: yolo). Off-path. |
 | `iflow-epic` | `iflow epic`, `iflow-epic`, `/iflow-epic` | Staged epic plan + publish. Off-path. |
 | `iflow-cycle` | `iflow cycle`, `iflow-cycle`, `/iflow-cycle` | Batch yolo queue (`yolo` / `label:<L>` / numbers / epic). Off-path. |
+| `iflow-auto` | `iflow auto`, `iflow-auto`, `/iflow-auto` | Unattended epic orchestration (cycle stage + stub adversarial). Off-path. |
 | `iflow-archive` | `iflow archive`, `iflow-archive`, `/iflow-archive` | Condense solved archive. Off-path; destructive. |
 | `iflow-version-bump` | `@iflow-version-bump` (often used from `/iflow-close`) | Strategy-aware version bump: static `[project]` versions via `uv version --bump <level>` (any uv level: `major`/`minor`/`patch`/`stable`/`alpha`/`beta`/`rc`/`post`/`dev`); git-tag-derived versions via a planned post-merge tag. The project's own "Release & version bump" section in `this-project.md` wins; a bare `bump` stays on the current pre-release channel. |
 | `iflow-history-update` | `@iflow-history-update` (used from `/iflow-close`) | Append an entry to `## [Unreleased]` in `HISTORY.md`, or promote it to a new `## [x.y.z] - YYYY-MM-DD` release section when a version bump happened. |
@@ -120,7 +122,7 @@ All workflows that touch git also run a short **branch-status preflight**: `git 
 
 **Focus-issue resolution:** prefer the leading digits of the current branch when it matches `^<N>-.+`; else the single group in `.issueflows/01-current-issues/`; else ask.
 
-**Not auto-dispatched:** `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-status`, `/iflow-doctor`, `/iflow-review`, `/iflow-epic`, `/iflow-cycle`, and `/iflow-archive`. `/iflow` will mention them in its output when relevant (e.g. "after the PR merges, run `/iflow-cleanup`") but never picks them for you.
+**Not auto-dispatched:** `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-status`, `/iflow-doctor`, `/iflow-review`, `/iflow-epic`, `/iflow-cycle`, `/iflow-auto`, and `/iflow-archive`. `/iflow` will mention them in its output when relevant (e.g. "after the PR merges, run `/iflow-cleanup`") but never picks them for you.
 
 **Result:** One of the four linear commands runs, with its own normal checkpoints intact.
 
@@ -513,6 +515,7 @@ Detours:
   /iflow-review — review open issues and apply labels (v1: yolo)
   /iflow-epic   — stage a large change; publish stages as real issues
   /iflow-cycle yolo — auto-process all open issues with the configured yolo label
+  /iflow-auto <N> — unattended epic stage via cycle + stub adversarial (Stage 1)
   /iflow-archive — condense old solved issues into a dated summary file (gated deletion)
 ```
 
