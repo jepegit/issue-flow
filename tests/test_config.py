@@ -435,6 +435,25 @@ def test_cycle_max_issues_nonpositive_falls_back(
     assert settings.resolve_cycle_max_issues(tmp_path) == 10
 
 
+def test_auto_adversarial_loops_env_override(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    monkeypatch.setenv("ISSUEFLOW_AUTO_ADVERSARIAL_LOOPS", "7")
+    settings = Settings()
+    assert settings.resolve_auto_adversarial_loops(tmp_path) == 7
+
+
+def test_auto_adversarial_loops_nonpositive_falls_back(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    _write_config(tmp_path, "[issueflow]\nauto_adversarial_loops = 0\n")
+    monkeypatch.setenv("ISSUEFLOW_AUTO_ADVERSARIAL_LOOPS", "-3")
+    settings = Settings()
+    assert settings.resolve_auto_adversarial_loops(tmp_path) == 2
+
+
 def test_step_directives_on_by_default(
     tmp_path: Path,
     monkeypatch: "pytest.MonkeyPatch",  # noqa: F821

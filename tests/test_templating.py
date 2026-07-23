@@ -808,6 +808,17 @@ def test_iflow_cycle_documents_yolo_alias() -> None:
     assert "label:fast-track" in rules
 
 
+def test_iflow_epic_documents_goal_and_model_markers() -> None:
+    """Epic skill/command must document Stage/issue Goal and Model markers (#193)."""
+    skill = render_template("skills/iflow_epic/SKILL.md.j2", _default_context())
+    cmd = render_template("commands/iflow-epic.md.j2", _default_context())
+    for rendered in (skill, cmd):
+        assert "- Goal:" in rendered
+        assert "Model:" in rendered
+        assert "deep" in rendered and "fast" in rendered and "default" in rendered
+    assert "Copied into the GitHub issue body" in skill or "copied into" in skill.lower()
+
+
 def test_iflow_lists_review_as_off_path() -> None:
     """/iflow must list /iflow-review among the explicit-only commands."""
     cmd = render_template("commands/iflow.md.j2", _default_context())

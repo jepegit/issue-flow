@@ -125,7 +125,7 @@
     "semantic_hash": ""
   },
   "src/issue_flow/templating.py": {
-    "mtime": 1784811640.5506833,
+    "mtime": 1784811825.063955,
     "ast_hash": "06c1773668b7412741aaa71e68c7f09b",
     "semantic_hash": ""
   },
@@ -155,8 +155,8 @@
     "semantic_hash": ""
   },
   "tests/test_config.py": {
-    "mtime": 1784811517.7057295,
-    "ast_hash": "51616c8c1a03055973f22f0d12c50b20",
+    "mtime": 1784811860.1281796,
+    "ast_hash": "8c763310fa3b3ce081c1a0ced745b6bd",
     "semantic_hash": ""
   },
   "tests/test_convert.py": {
@@ -190,8 +190,8 @@
     "semantic_hash": ""
   },
   "tests/test_init.py": {
-    "mtime": 1784792079.8638022,
-    "ast_hash": "ea4f04d96a42cd52c7756e644d27acee",
+    "mtime": 1784811860.1281796,
+    "ast_hash": "39ec46c42f9ff7a18581dfa8526322ab",
     "semantic_hash": ""
   },
   "tests/test_init_skill_level.py": {
@@ -220,8 +220,8 @@
     "semantic_hash": ""
   },
   "tests/test_step_profiles.py": {
-    "mtime": 1784792079.8638022,
-    "ast_hash": "b30c60c4f42af82579d55fe61bc1b866",
+    "mtime": 1784811860.0921793,
+    "ast_hash": "b838616b5f06c7bf6744fcfd62422598",
     "semantic_hash": ""
   },
   "tests/test_sync.py": {
@@ -235,8 +235,8 @@
     "semantic_hash": ""
   },
   "tests/test_templating.py": {
-    "mtime": 1784811746.5954344,
-    "ast_hash": "84ab9207aa70b1ed941427ce839b9c16",
+    "mtime": 1784811873.680265,
+    "ast_hash": "f0ecb9ac39bc19c6d199db837af88aaa",
     "semantic_hash": ""
   },
   "tests/test_tracking.py": {
@@ -745,8 +745,8 @@
     "semantic_hash": ""
   },
   ".issueflows/04-designs-and-guides/skill-behaviour-knobs.md": {
-    "mtime": 1784811396.9406817,
-    "ast_hash": "16596cb39c7d9468d0f8e8c7f0834229",
+    "mtime": 1784811873.668265,
+    "ast_hash": "ee8428362176d7dc4d31d625f562895a",
     "semantic_hash": ""
   },
   ".issueflows/04-designs-and-guides/slash-less-invocation.md": {
@@ -775,12 +775,12 @@
     "semantic_hash": ""
   },
   "HISTORY.md": {
-    "mtime": 1784811754.047485,
-    "ast_hash": "4683d447699c3e6fe70caa0ac2828db5",
+    "mtime": 1784811873.680265,
+    "ast_hash": "ca1b2bab5be56c9676be728da09bf459",
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1784811746.9954371,
+    "mtime": 1784811825.0599551,
     "ast_hash": "4bfb666f1c9af140a1eec4824163a7ad",
     "semantic_hash": ""
   },
@@ -800,8 +800,8 @@
     "semantic_hash": ""
   },
   "docs/configuration.md": {
-    "mtime": 1784792079.859802,
-    "ast_hash": "25c11d699468c2f5be69e169b82c2974",
+    "mtime": 1784811873.6322649,
+    "ast_hash": "011357d2fa41aaa7af05cd12e4fbe263",
     "semantic_hash": ""
   },
   "docs/developing.md": {
@@ -820,12 +820,12 @@
     "semantic_hash": ""
   },
   "docs/index.md": {
-    "mtime": 1784811746.5714343,
+    "mtime": 1784811825.0599551,
     "ast_hash": "e1d1004886525fa42e178fdcae172c9e",
     "semantic_hash": ""
   },
   "docs/issue-workflow.md": {
-    "mtime": 1784811789.823725,
+    "mtime": 1784811825.0599551,
     "ast_hash": "8310233fa625dc5396e4858f2fe0b7e2",
     "semantic_hash": ""
   },
@@ -920,8 +920,8 @@
     "semantic_hash": ""
   },
   ".issueflows/01-current-issues/cycle_status.md": {
-    "mtime": 1784811789.4797227,
-    "ast_hash": "70d947ea950f15f69c61a228a1e20698",
+    "mtime": 1784811911.0164971,
+    "ast_hash": "d271742e63d21f300962790a52b717ba",
     "semantic_hash": ""
   },
   ".issueflows/03-solved-issues/issue163_original.md": {
@@ -985,17 +985,17 @@
     "semantic_hash": ""
   },
   ".issueflows/03-solved-issues/issue194_original.md": {
-    "mtime": 1784811620.3465328,
+    "mtime": 1784811825.0599551,
     "ast_hash": "7458584995ff21a2a0bd27621bb592ba",
     "semantic_hash": ""
   },
   ".issueflows/03-solved-issues/issue194_plan.md": {
-    "mtime": 1784811746.5874343,
+    "mtime": 1784811825.0599551,
     "ast_hash": "827a023f8be75e15bc92df24b9af121a",
     "semantic_hash": ""
   },
   ".issueflows/03-solved-issues/issue194_status.md": {
-    "mtime": 1784811746.6074345,
+    "mtime": 1784811825.0599551,
     "ast_hash": "e71c5c108c8bbfc8016139d2ba28bfa4",
     "semantic_hash": ""
   },
@@ -1027,6 +1027,21 @@
   ".issueflows/05-epics/epic169_plan.md": {
     "mtime": 1784810680.5100026,
     "ast_hash": "baba8e072a11de83914434b657807020",
+    "semantic_hash": ""
+  },
+  ".issueflows/03-solved-issues/issue195_original.md": {
+    "mtime": 1784811836.5640292,
+    "ast_hash": "a42c3a3f0c1c95c0068d57e245768b2f",
+    "semantic_hash": ""
+  },
+  ".issueflows/03-solved-issues/issue195_plan.md": {
+    "mtime": 1784811853.8481398,
+    "ast_hash": "ab66d831dc9cbb9115b69559cb07816a",
+    "semantic_hash": ""
+  },
+  ".issueflows/03-solved-issues/issue195_status.md": {
+    "mtime": 1784811911.0164971,
+    "ast_hash": "d9b7e7fd1f529c4946d106a5641a3333",
     "semantic_hash": ""
   }
 }
