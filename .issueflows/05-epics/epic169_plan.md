@@ -124,6 +124,7 @@ spawn blockers, honour the loop budget, and only then allow the next epoch.
   skill authoring issue itself.
 - Depends on: stage 1 issue 4
 - yolo: no — highest product risk; judgment-heavy
+- Published: #202
 
 ### Issue: Wire loop budget + ask UX into `/iflow-auto`
 
@@ -135,6 +136,7 @@ spawn blockers, honour the loop budget, and only then allow the next epoch.
   wording; manual scenario documented in design doc.
 - Depends on: stage 1 issue 2, stage 2 issue 1
 - yolo: yes — once adversarial skill + design UX exist, wiring is patterned
+- Published: #203
 
 ### Issue: Gate next epoch on clear queue
 
@@ -144,6 +146,7 @@ spawn blockers, honour the loop budget, and only then allow the next epoch.
   by tests or deterministic CLI checks; design doc updated.
 - Depends on: stage 2 issue 1
 - yolo: yes — mostly composition of existing queue/epic-status
+- Published: #204
 
 ## Later (unstaged)
 
