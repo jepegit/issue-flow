@@ -7,5 +7,5 @@
 
 ## Queue
 
-- [x] #203 — Wire loop budget + ask UX into `/iflow-auto` — in-progress close
-- [ ] #204 — Gate next epoch on clear queue — pending
+- [x] #203 — merged https://github.com/jepegit/issue-flow/pull/207
+- [x] #204 — Gate next epoch on clear queue — in-progress close

@@ -9,6 +9,7 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- `/iflow-auto` next-epoch gate (advance only when stage clear; `epoch_gated`). (#204)
 - `/iflow-auto` loop budget control (re-queue + stop-and-ask: accept / grant / abort). (#203)
 - `/iflow-auto` adversarial inter-epoch review (`review`; reopen/create + auto_status outcomes). (#202)
 - Stage 1 advanced auto mode tests/docs coverage (`/iflow-auto`, knobs, Goal/Model markers). (#195)

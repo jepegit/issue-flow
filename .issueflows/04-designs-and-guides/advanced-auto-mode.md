@@ -126,6 +126,19 @@ Standalone `/iflow-auto <N> review` without a prior overnight authorization in
 `auto_status.md` asks once (same confirm shape), then proceeds. Loop control
 still applies after findings when a budget is recorded.
 
+### Next-epoch gate
+
+Before starting stage `k+1`, require stage `k` **clear**:
+
+- `issue-flow agent epic-status <N> --json`: stage `k` has `done: true` (all
+  published issues closed), and
+- no open inter-epoch blocker numbers still listed in `auto_status.md` findings
+
+If not clear: set `last_outcome: epoch_gated`, report open numbers, **do not**
+start `k+1`. If clear and a later unfinished published stage exists, continue
+under the same overnight authorization (reset `loop_count` for the new epoch).
+If every published stage is done: `last_outcome: complete`.
+
 ### Stop conditions (unattended)
 
 Same floor as `/iflow-cycle` / `/iflow-yolo`: unfixable test/lint failure,

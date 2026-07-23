@@ -539,11 +539,15 @@ def test_iflow_auto_skill_skeleton_renders() -> None:
     assert "grant N more loops" in skill
     assert "accept" in skill and "abort" in skill
     assert "loop_count" in skill
+    assert "Next-epoch gate" in skill
+    assert "epoch_gated" in skill
+    assert "complete" in skill
     assert str(_default_context()["auto_adversarial_loops"]) in skill
     cmd = render_template("commands/iflow-auto.md.j2", _default_context())
     assert "iflow-auto/SKILL.md" in cmd
     assert "review" in cmd
     assert "grant N more loops" in cmd
+    assert "epoch_gated" in cmd
     assert "stub" not in cmd.lower()
 
 
