@@ -10,6 +10,8 @@
 - `/iflow-close` draft token formalized (`--draft`, `gh pr ready`, skip yolo merge)
 - Yolo/docs/rules/history-update cross-refs; design docs `early-pr.md` + knobs/changelog updates
 - Tests + `verify_scaffold.py` markers; `uv run pytest` green (553)
+- PR: https://github.com/jepegit/issue-flow/pull/190 (#190, draft)
+  (branch renamed to `cursor/99-create-pr-early-dc9b` for cloud agent prefix)
 
 ## Remaining work
 
