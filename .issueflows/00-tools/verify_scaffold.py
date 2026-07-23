@@ -147,8 +147,17 @@ def main() -> int:
         for rel in CLOSE_SURFACES:
             _check(project / rel, "gh pr merge", True, rel)
             _check(project / rel, "--squash --auto", True, rel)
+            _check(project / rel, "gh pr create --draft", True, rel)
         for rel in YOLO_SURFACES:
             _check(project / rel, "/iflow-close yolo", True, rel)
+        for rel in (
+            ".cursor/skills/iflow-build/SKILL.md",
+            ".cursor/commands/iflow-build.md",
+        ):
+            path = project / rel
+            if path.is_file():
+                _check(path, "Early pull request", True, rel)
+                _check(path, "gh pr create --draft", True, rel)
 
         print("\n[2/3] label_flows = false → routing text disappears")
         _set_config(project, label_flows=False)

@@ -12,6 +12,12 @@ The issue should already be explained in `{{ issueflows_dir }}/{{ current_issues
 
 If additional input is added, use that as implementation hints (scope, constraints, design preferences). It does **not** replace the plan file — update `issue<N>_plan.md` via `/iflow-plan` first if the plan itself needs to change.
 
+**Early PR tokens** (same line):
+
+- **`early`** or **`pr`** — open a draft PR after the first successful push (force on).
+- **`noearly`** — skip early PR for this run even when `[issueflow].early_pr` is true.
+- Precedence: trailing token > baked `early_pr` (currently **{{ early_pr }}**) > default `false`.
+
 ## Steps
 
 > **CLI fast path (optional).** If the `issue-flow` CLI is on `PATH`, use
@@ -59,8 +65,15 @@ If additional input is added, use that as implementation hints (scope, constrain
 
 4. **Keep the status file current.** As you iterate, re-read and update `issue<N>_status.md`: move items between **What's done** and **Remaining work** so the file always reflects reality. Leave the `- [ ] Done` checkbox unchecked until the issue is fully resolved. Iterating agents (and `/iflow-pause` / `/iflow-close`) rely on this for accurate context.
 
-5. **Hand off.** When the implementation is ready to ship:{% if auto_close and "iflow_close" in included_skills %} follow `{{ agent_dir }}/skills/iflow-close/SKILL.md` immediately (forward any trailing `bump`/`patch`/`minor`/`major` / `stay` / `nohistory` tokens). Close keeps its own confirms — this flag only skips the "please run `/iflow-close`" pause. If work is **not** ready (failing tests, open remaining work, user asked to park), do **not** chain — use `/iflow-pause` or stop and report.{% else %} tell the user to run `/iflow-close` (optionally with `bump`/`patch`/`minor`/`major`).{% endif %} Parking work mid-stream goes through `/iflow-pause`.
+5. **Early pull request (optional).** After the **first successful push** of the issue branch (or when the branch already has a remote tip and no open PR), decide whether to open a PR now using the Early PR tokens above. When early PR is on:
+   - Require an issue-style branch matching `^\d+-.+` (never the default branch) with a remote tracking ref.
+   - Always pass `--repo <owner/repo>`. **List before create:** `gh pr list --repo <owner/repo> --head <branch> --state open --json number,url,title,isDraft`. If an open PR exists, note it and skip creating a second one.
+   - Otherwise create a **draft**: `gh pr create --draft --repo <owner/repo> …` with a WIP-friendly body and **`Refs #N`** (not `Closes #N` yet).
+   - Record `PR: <url> (#<n>, draft)` in `issue<N>_status.md`.
+   - Do **not** write `{{ history_file }}` here — `/iflow-close` owns the changelog bullet (even while a draft PR exists).
+
+6. **Hand off.** When the implementation is ready to ship:{% if auto_close and "iflow_close" in included_skills %} follow `{{ agent_dir }}/skills/iflow-close/SKILL.md` immediately (forward any trailing `bump`/`patch`/`minor`/`major` / `stay` / `nohistory` / `draft` tokens). Close keeps its own confirms — this flag only skips the "please run `/iflow-close`" pause. If work is **not** ready (failing tests, open remaining work, user asked to park), do **not** chain — use `/iflow-pause` or stop and report.{% else %} tell the user to run `/iflow-close` (optionally with `bump`/`patch`/`minor`/`major`).{% endif %} Parking work mid-stream goes through `/iflow-pause`.
 
 ## Output
 
-Summarize what was implemented, how it matches the plan, what remains, and any branch / sweep warnings surfaced during the preflight.
+Summarize what was implemented, how it matches the plan, what remains, whether an early PR was opened/reused, and any branch / sweep warnings surfaced during the preflight.

@@ -1982,7 +1982,8 @@ def _print_config_guide(console: Console, cfg_path: Path) -> None:
     )
     console.print(
         "  [dim]- [bold]remind_cleanup[/bold] / [bold]suggest_graphify[/bold]; "
-        "[bold]auto_switchback[/bold] / [bold]auto_close[/bold]; "
+        "[bold]auto_switchback[/bold] / [bold]auto_close[/bold] / "
+        "[bold]early_pr[/bold]; "
         "[bold]confirm_version_bump[/bold] / [bold]confirm_changelog_update[/bold]; "
         "[bold]ruff_autofix[/bold]: skill-behaviour toggles; re-run "
         "'issue-flow update' so skills re-render.[/dim]"

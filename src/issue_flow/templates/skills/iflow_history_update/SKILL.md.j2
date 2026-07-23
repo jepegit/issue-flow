@@ -75,7 +75,7 @@ When `/iflow-close` reaches its commit step:
 
 - Read/write only `{{ history_file }}` at the project root. Do not touch any other file from this skill.
 - Never create `{{ history_file }}` from scratch — scaffolding a starter changelog is out of scope for `issue-flow init` / `update`.
-- **Timing:** this skill runs only from `/iflow-close` step 3 (before commit / push / PR). **Never** propose updating `{{ history_file }}` after the PR is open or merged.
+- **Timing:** this skill runs only from `/iflow-close` step 3 (before commit / push / PR update). Write even when a draft PR already exists from `/iflow-build` early PR. **Never** propose updating `{{ history_file }}` after close has finished or after merge.
 {% if confirm_changelog_update %}- If the confirm prompt in mode A or mode B is declined, leave `{{ history_file }}` untouched and **stop** `/iflow-close` until the user chooses write / revise / `nohistory` / abort. Do not continue to commit or PR without an explicit choice.
 {% endif %}
 - Preserve existing formatting conventions (bullet style, sentence case, trailing punctuation). Match the style of the nearest existing entries when in doubt.

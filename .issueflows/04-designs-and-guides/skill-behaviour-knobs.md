@@ -14,6 +14,7 @@ templates by hand.
 |---------|------|
 | Soft nudges (`verb_object`) | `remind_cleanup`, `suggest_graphify` |
 | Auto behaviours (`auto_*`) | `auto_switchback`, `auto_close` |
+| Timing / PR | `early_pr` |
 | Confirm gates (`confirm_*`) | `confirm_version_bump`, `confirm_changelog_update` |
 | Tool / value | `ruff_autofix`, `pr_merge_method`, `cycle_max_issues` |
 
@@ -23,6 +24,7 @@ templates by hand.
 | `suggest_graphify` | `true` | Soft GRAPH_REPORT / rebuild suggestions (never auto-run) |
 | `auto_switchback` | `true` | After PR, switch to default when clean (`false` ≈ always `stay`) |
 | `auto_close` | `false` | `/iflow-build` / `/iflow-fix` end chain into `/iflow-close` when ready |
+| `early_pr` | `false` | `/iflow-build` opens a draft PR after the first push; trailing `early`/`pr` / `noearly` override per run |
 | `confirm_version_bump` | `false` | Non-yolo close confirms once about bump when unset |
 | `confirm_changelog_update` | `false` | Changelog diff confirm before write; `false` = write without ask (bullet lands in the PR). Decline (when true) **stops** close — no silent skip. |
 | `pr_merge_method` | `"squash"` | Yolo `gh pr merge --{squash\|merge\|rebase}` |

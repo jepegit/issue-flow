@@ -71,6 +71,7 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "confirm_version_bump",
         "ruff_autofix",
         "auto_close",
+        "early_pr",
         "confirm_changelog_update",
     }
     assert set(context.keys()) == expected_keys
@@ -364,6 +365,7 @@ def test_skill_behaviour_knob_defaults(
         "ISSUEFLOW_CONFIRM_VERSION_BUMP",
         "ISSUEFLOW_RUFF_AUTOFIX",
         "ISSUEFLOW_AUTO_CLOSE",
+        "ISSUEFLOW_EARLY_PR",
         "ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE",
     ):
         monkeypatch.delenv(key, raising=False)
@@ -376,6 +378,7 @@ def test_skill_behaviour_knob_defaults(
     assert settings.resolve_confirm_version_bump(tmp_path) is False
     assert settings.resolve_ruff_autofix(tmp_path) is True
     assert settings.resolve_auto_close(tmp_path) is False
+    assert settings.resolve_early_pr(tmp_path) is False
     assert settings.resolve_confirm_changelog_update(tmp_path) is False
 
 
@@ -391,6 +394,7 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
         "confirm_version_bump = true\n"
         "ruff_autofix = false\n"
         "auto_close = true\n"
+        "early_pr = true\n"
         "confirm_changelog_update = false\n",
     )
     settings = Settings()
@@ -402,6 +406,7 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
     assert settings.resolve_confirm_version_bump(tmp_path) is True
     assert settings.resolve_ruff_autofix(tmp_path) is False
     assert settings.resolve_auto_close(tmp_path) is True
+    assert settings.resolve_early_pr(tmp_path) is True
     assert settings.resolve_confirm_changelog_update(tmp_path) is False
 
 

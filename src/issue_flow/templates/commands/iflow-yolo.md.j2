@@ -18,7 +18,8 @@ Same as `/iflow-init` (issue number, URL, or empty to infer from the branch). Op
 - `nohistory` / `skip history` — forwarded to `/iflow-close` to skip the `{{ history_file }}` update step.
 - `log "..."` / `note "..."` — forwarded to `/iflow-close` as the `{{ history_file }}` bullet summary.
 - `stay` / `stay on branch` / `don't switch` / `dont switch to main` — forwarded to `/iflow-close` to stay on the issue branch after the PR step.
-- `draft` — open a draft PR in `/iflow-close`.
+- `draft` — open/keep a draft PR in `/iflow-close` (skips yolo merge).
+- `early` / `pr` / `noearly` — forwarded to `/iflow-build` to force early draft PR on/off for this run.
 - Free-form notes — used as the plan/commit context.
 
 ## Preflight (abort on any failure)
@@ -55,11 +56,11 @@ Once the preflight has passed and the user confirmed:
 
 2. **`/iflow-plan`** — auto-confirmed. Write a **short** `issue<N>_plan.md` (Goal + Approach + Files to touch + Test strategy). Do not stop for user confirmation; the consolidated confirm above already covered it. For trivial yolo scope, prior-art discovery may be abbreviated to a quick grep (skip graph skim); the full checklist still applies to normal `/iflow-plan`. If the scope check reveals the change is not actually small (touches many unrelated files, mixes refactors, etc.), **abort** the yolo chain and tell the user to run the commands individually.
 
-3. **`/iflow-build`** — implement the plan. No additional plan-mode prompt.
+3. **`/iflow-build`** — implement the plan. No additional plan-mode prompt. Forward `early` / `pr` / `noearly` when present. When early PR is on, build may open a **draft** PR after the first push; close reuses it.
 
-4. **Tests again.** Re-run `uv run pytest`. If anything fails, **stop**. Do not commit, push, or open a PR. Tell the user what failed and point at the work in progress.
+4. **Tests again.** Re-run `uv run pytest`. If anything fails, **stop**. Do not commit, push, or open a PR (an early draft from step 3 may already exist — leave it). Tell the user what failed and point at the work in progress.
 
-5. **`/iflow-close yolo`** — run the close flow with the `yolo` token (plus any forwarded `bump`/`patch`/`minor`/`major`, `log`, `nohistory`, `draft`, `stay` tokens). The `yolo` token makes close hands-off: it writes the `{{ history_file }}` bullet without a confirm prompt, reuses an open PR via `gh pr list` when present, **merges** with `gh pr merge --{{ pr_merge_method }}` (on pending checks: `gh pr checks --watch --fail-fast` for up to **{{ checks_watch_minutes }}** minutes, then retry; `--{{ pr_merge_method }} --auto` only as last resort when the cap elapses or checks never register), and then{% if auto_switchback %} switches back to the default branch and runs `git pull --ff-only` so the merged commit lands locally{% else %} stays on the issue branch (`auto_switchback` is off){% endif %}. Do **not** chain `/iflow-cleanup` automatically — local branch deletion stays a user decision. Note: `draft` conflicts with the auto-merge; when the user passed `draft`, skip the merge step and say so.
+5. **`/iflow-close yolo`** — run the close flow with the `yolo` token (plus any forwarded `bump`/`patch`/`minor`/`major`, `log`, `nohistory`, `draft`, `stay` tokens). The `yolo` token makes close hands-off: it writes the `{{ history_file }}` bullet without a confirm prompt, reuses an open PR via `gh pr list` when present (including an early draft), marks ready when not `draft`, **merges** with `gh pr merge --{{ pr_merge_method }}` (on pending checks: `gh pr checks --watch --fail-fast` for up to **{{ checks_watch_minutes }}** minutes, then retry; `--{{ pr_merge_method }} --auto` only as last resort when the cap elapses or checks never register), and then{% if auto_switchback %} switches back to the default branch and runs `git pull --ff-only` so the merged commit lands locally{% else %} stays on the issue branch (`auto_switchback` is off){% endif %}. Do **not** chain `/iflow-cleanup` automatically — local branch deletion stays a user decision. Note: `draft` conflicts with the auto-merge; when the user passed `draft`, skip the merge step and say so.
 
 ## Post-run
 

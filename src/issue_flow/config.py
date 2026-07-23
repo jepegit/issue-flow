@@ -15,6 +15,7 @@ from issue_flow.modes import (
     DEFAULT_AUTO_CLOSE,
     DEFAULT_CHECKS_WATCH_MINUTES,
     DEFAULT_CONFIRM_CHANGELOG_UPDATE,
+    DEFAULT_EARLY_PR,
     DEFAULT_AUTO_SWITCHBACK,
     DEFAULT_CYCLE_MAX_ISSUES,
     DEFAULT_DEEP_MODEL_LABEL,
@@ -357,6 +358,13 @@ class Settings:
             return persisted
         return _env_flag("ISSUEFLOW_AUTO_CLOSE", default=DEFAULT_AUTO_CLOSE)
 
+    def resolve_early_pr(self, project_root: Path) -> bool:
+        """Resolve whether ``/iflow-build`` opens a draft PR after the first push."""
+        persisted = modes_module.read_early_pr(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        return _env_flag("ISSUEFLOW_EARLY_PR", default=DEFAULT_EARLY_PR)
+
     def resolve_confirm_changelog_update(self, project_root: Path) -> bool:
         """Resolve whether ``/iflow-close`` confirms before writing the changelog."""
         persisted = modes_module.read_confirm_changelog_update(
@@ -485,6 +493,7 @@ class Settings:
                 "ISSUEFLOW_RUFF_AUTOFIX", default=DEFAULT_RUFF_AUTOFIX
             ),
             "auto_close": _env_flag("ISSUEFLOW_AUTO_CLOSE", default=DEFAULT_AUTO_CLOSE),
+            "early_pr": _env_flag("ISSUEFLOW_EARLY_PR", default=DEFAULT_EARLY_PR),
             "confirm_changelog_update": _env_flag(
                 "ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE",
                 default=DEFAULT_CONFIRM_CHANGELOG_UPDATE,
@@ -560,6 +569,7 @@ class Settings:
             "confirm_version_bump": self.resolve_confirm_version_bump(project_root),
             "ruff_autofix": self.resolve_ruff_autofix(project_root),
             "auto_close": self.resolve_auto_close(project_root),
+            "early_pr": self.resolve_early_pr(project_root),
             "confirm_changelog_update": self.resolve_confirm_changelog_update(
                 project_root
             ),
