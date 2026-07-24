@@ -9,8 +9,10 @@
   `preflight`, `switchback`, `branches`, `version-plan`, `sweep`.
 - Tests updated to `-C`; regression test for sweep `-C` (#211 recipe).
 - `docs/cli.md` synopsis + `agentic-cli.md` constraint note.
+- `uv run pytest` — 563 passed; ruff clean.
+- Smoke: `agent sweep --except 211 -C /workspace --dry-run --json` exits 0.
+- Draft PR: https://github.com/jepegit/issue-flow/pull/212 (#212, draft)
 
 ## Remaining work
 
-- Full `uv run pytest` + smoke `agent sweep -C`.
-- `/iflow-close` when green.
+- `/iflow-close` (HISTORY + merge-ready PR).
