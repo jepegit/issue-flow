@@ -830,7 +830,8 @@ def config_add(
     ``label_flows``, ``yolo_label``, ``checks_watch_minutes``,
     ``step_directives``, ``model_label_flows``, ``deep_model_label``,
     ``fast_model_label``, ``linguist_attributes``, ``remind_cleanup``,
-    ``suggest_graphify``, ``auto_switchback``, ``pr_merge_method``,
+    ``suggest_graphify``, ``auto_graphify_on_plan``, ``auto_switchback``,
+    ``pr_merge_method``,
     ``cycle_max_issues``, ``auto_adversarial_loops``, ``confirm_version_bump``,
     ``ruff_autofix``, ``auto_close``, ``early_pr``, ``confirm_changelog_update``
     — taking each from its ``ISSUEFLOW_*`` env var when set, else the default.

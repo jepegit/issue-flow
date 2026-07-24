@@ -37,6 +37,7 @@ _MODE_CONTEXT = {
     "step_profiles": dict(PACKAGED_DEFAULTS),
     "remind_cleanup": True,
     "suggest_graphify": True,
+    "auto_graphify_on_plan": False,
     "auto_switchback": True,
     "pr_merge_method": "squash",
     "cycle_max_issues": 10,
@@ -407,6 +408,23 @@ def test_issue_plan_includes_prior_art_discovery() -> None:
     skill = render_template("skills/iflow_plan/SKILL.md.j2", _default_context())
     assert "Prior-art discovery" in skill or "Prior art" in skill
     assert "### Prior art" in skill
+
+
+def test_iflow_plan_auto_graphify_on_plan_gated() -> None:
+    """Issue #214: plan auto-runs graphify only when auto_graphify_on_plan is true."""
+    off_cmd = render_template("commands/iflow-plan.md.j2", _default_context())
+    off_skill = render_template("skills/iflow_plan/SKILL.md.j2", _default_context())
+    assert "auto_graphify_on_plan = true" not in off_cmd
+    assert "auto_graphify_on_plan = true" not in off_skill
+
+    on_ctx = {**_default_context(), "auto_graphify_on_plan": True}
+    on_cmd = render_template("commands/iflow-plan.md.j2", on_ctx)
+    on_skill = render_template("skills/iflow_plan/SKILL.md.j2", on_ctx)
+    assert "auto_graphify_on_plan = true" in on_cmd
+    assert "issue-flow graphify -C <project_root>" in on_cmd
+    assert "auto_graphify_on_plan = true" in on_skill
+    assert "issue-flow graphify -C <project_root>" in on_skill
+    assert "Do **not** auto-run `extract`" in on_skill
 
 
 def test_templates_reference_project_brief() -> None:
@@ -833,7 +851,9 @@ def test_iflow_epic_documents_goal_and_model_markers() -> None:
         assert "- Goal:" in rendered
         assert "Model:" in rendered
         assert "deep" in rendered and "fast" in rendered and "default" in rendered
-    assert "Copied into the GitHub issue body" in skill or "copied into" in skill.lower()
+    assert (
+        "Copied into the GitHub issue body" in skill or "copied into" in skill.lower()
+    )
 
 
 def test_iflow_lists_review_as_off_path() -> None:

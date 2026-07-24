@@ -27,7 +27,9 @@ Follow this skill to **design the approach** for the focus issue before touching
 1. **Find the focus issue.** Look in `{{ issueflows_dir }}/{{ current_issues_folder }}/` for `issue<N>_original.md`. If it is missing or multiple groups are ambiguous, **stop** and ask. Suggest `/iflow-init` first.
 
 2. **Branch status preflight** (non-destructive). Detect the default branch (prefer `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`, else `git symbolic-ref --quiet --short refs/remotes/origin/HEAD`, else `main`). Run `git fetch --prune`. Report current branch, clean/dirty working tree, and ahead/behind vs `origin/<default>`. If on the default branch, suggest creating an issue branch (`git switch -c <N>-<short-slug>`) but do **not** auto-run it — planning itself does not require a branch switch.
-
+{% if auto_graphify_on_plan %}
+2.5 **Refresh knowledge graph (configured).** This project has `auto_graphify_on_plan = true`. Before prior-art discovery, run `issue-flow graphify -C <project_root>` (default AST `update`, no LLM key). If `graphify` is missing or the command exits non-zero, **report the failure and continue** — do not block planning; fall back to grep-only prior art. Do **not** auto-run `extract` (needs an API key).
+{% endif %}
 3. **Read context.** Load `issue<N>_original.md` and any existing `issue<N>_status.md`. If `{{ issueflows_dir }}/{{ designs_folder }}/this-project.md` exists, read it for project-specific context, then skim `{{ issueflows_dir }}/{{ designs_folder }}/` for relevant design docs.
 
 4. **Prior-art discovery** (before drafting the plan):

@@ -55,6 +55,7 @@ DEFAULT_LINGUIST_ATTRIBUTES = False
 # Skill-behaviour knobs (baked into templates on ``issue-flow update``).
 DEFAULT_REMIND_CLEANUP = True
 DEFAULT_SUGGEST_GRAPHIFY = True
+DEFAULT_AUTO_GRAPHIFY_ON_PLAN = False
 DEFAULT_AUTO_SWITCHBACK = True
 DEFAULT_PR_MERGE_METHOD = "squash"
 ALLOWED_PR_MERGE_METHODS = frozenset({"squash", "merge", "rebase"})
@@ -456,6 +457,17 @@ def read_suggest_graphify(cfg_path: Path) -> bool | None:
     return None
 
 
+def read_auto_graphify_on_plan(cfg_path: Path) -> bool | None:
+    """Return the persisted ``[issueflow].auto_graphify_on_plan`` flag."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "auto_graphify_on_plan" in section:
+        return bool(section.get("auto_graphify_on_plan"))
+    return None
+
+
 def read_auto_switchback(cfg_path: Path) -> bool | None:
     """Return the persisted ``[issueflow].auto_switchback`` flag."""
     if not cfg_path.is_file():
@@ -728,6 +740,7 @@ def write_default_config(
     linguist_attributes: bool = DEFAULT_LINGUIST_ATTRIBUTES,
     remind_cleanup: bool = DEFAULT_REMIND_CLEANUP,
     suggest_graphify: bool = DEFAULT_SUGGEST_GRAPHIFY,
+    auto_graphify_on_plan: bool = DEFAULT_AUTO_GRAPHIFY_ON_PLAN,
     auto_switchback: bool = DEFAULT_AUTO_SWITCHBACK,
     pr_merge_method: str = DEFAULT_PR_MERGE_METHOD,
     cycle_max_issues: int = DEFAULT_CYCLE_MAX_ISSUES,
@@ -781,6 +794,7 @@ def write_default_config(
         section["linguist_attributes"] = linguist_attributes
         section["remind_cleanup"] = remind_cleanup
         section["suggest_graphify"] = suggest_graphify
+        section["auto_graphify_on_plan"] = auto_graphify_on_plan
         section["auto_switchback"] = auto_switchback
         section["pr_merge_method"] = pr_merge_method
         section["cycle_max_issues"] = cycle_max_issues
@@ -818,6 +832,7 @@ def write_default_config(
             linguist_attributes,
             remind_cleanup,
             suggest_graphify,
+            auto_graphify_on_plan,
             auto_switchback,
             pr_merge_method,
             cycle_max_issues,
@@ -848,6 +863,7 @@ def _commented_issueflow_table(
     linguist_attributes: bool,
     remind_cleanup: bool,
     suggest_graphify: bool,
+    auto_graphify_on_plan: bool,
     auto_switchback: bool,
     pr_merge_method: str,
     cycle_max_issues: int,
@@ -958,6 +974,14 @@ def _commented_issueflow_table(
         )
     )
     table["suggest_graphify"] = suggest_graphify
+    table.add(
+        tomlkit.comment(
+            "When true, /iflow-plan runs 'issue-flow graphify' (AST update) "
+            "before prior-art discovery (true/false; default false). Missing "
+            "graphify → note and continue. Re-run 'issue-flow update'."
+        )
+    )
+    table["auto_graphify_on_plan"] = auto_graphify_on_plan
     table.add(
         tomlkit.comment(
             "After /iflow-close opens a PR, switch back to the default branch "
