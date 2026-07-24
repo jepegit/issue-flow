@@ -13,7 +13,7 @@ templates by hand.
 | Pattern | Keys |
 |---------|------|
 | Soft nudges (`verb_object`) | `remind_cleanup`, `suggest_graphify` |
-| Auto behaviours (`auto_*`) | `auto_switchback`, `auto_close` |
+| Auto behaviours (`auto_*`) | `auto_switchback`, `auto_close`, `auto_graphify_on_plan` |
 | Timing / PR | `early_pr` |
 | Auto / advanced | `auto_adversarial_loops` (see [advanced-auto-mode.md](./advanced-auto-mode.md)) |
 | Confirm gates (`confirm_*`) | `confirm_version_bump`, `confirm_changelog_update` |
@@ -23,6 +23,7 @@ templates by hand.
 |-----|---------|--------|
 | `remind_cleanup` | `true` | Soft reminders to run `/iflow-cleanup` after close / cycle / iflow-D |
 | `suggest_graphify` | `true` | Soft GRAPH_REPORT / rebuild suggestions (never auto-run) |
+| `auto_graphify_on_plan` | `false` | `/iflow-plan` runs `issue-flow graphify` (AST `update`) before prior-art; missing/fail → note + continue (issue #214) |
 | `auto_switchback` | `true` | After PR, switch to default when clean (`false` ≈ always `stay`) |
 | `auto_close` | `false` | `/iflow-build` / `/iflow-fix` end chain into `/iflow-close` when ready |
 | `early_pr` | `false` | `/iflow-build` opens a draft PR after the first push; trailing `early`/`pr` / `noearly` override per run |

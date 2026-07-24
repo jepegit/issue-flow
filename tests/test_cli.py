@@ -1745,6 +1745,7 @@ def test_config_add_creates_defaults(
     assert payload["linguist_attributes"] is False
     assert payload["remind_cleanup"] is True
     assert payload["suggest_graphify"] is True
+    assert payload["auto_graphify_on_plan"] is False
     assert payload["auto_switchback"] is True
     assert payload["pr_merge_method"] == "squash"
     assert payload["cycle_max_issues"] == 10

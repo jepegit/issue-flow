@@ -247,6 +247,7 @@ Lifecycle skills can be tuned with additional `[issueflow]` keys (baked at
 | --- | --- | --- |
 | `remind_cleanup` | `true` | Remind the user to run `/iflow-cleanup` after close / cycle / dispatcher state D |
 | `suggest_graphify` | `true` | Soft-suggest skimming `GRAPH_REPORT.md` / rebuilding graphify (never auto-runs) |
+| `auto_graphify_on_plan` | `false` | When `true`, `/iflow-plan` runs `issue-flow graphify` (AST `update`) before prior-art discovery; missing/failing graphify → note and continue |
 | `auto_switchback` | `true` | After `/iflow-close` opens a PR, switch to the default branch when clean (`false` ≈ always `stay`) |
 | `pr_merge_method` | `"squash"` | Yolo close merge flag: `squash`, `merge`, or `rebase` |
 | `cycle_max_issues` | `10` | Default `/iflow-cycle` queue safety cap (raise per run with `max:<n>`) |
@@ -261,6 +262,7 @@ Lifecycle skills can be tuned with additional `[issueflow]` keys (baked at
 [issueflow]
 remind_cleanup = true
 suggest_graphify = true
+auto_graphify_on_plan = false
 auto_switchback = true
 pr_merge_method = "squash"
 cycle_max_issues = 10
@@ -273,9 +275,9 @@ confirm_changelog_update = false
 ```
 
 Env fallbacks: `ISSUEFLOW_REMIND_CLEANUP`, `ISSUEFLOW_SUGGEST_GRAPHIFY`,
-`ISSUEFLOW_AUTO_SWITCHBACK`, `ISSUEFLOW_PR_MERGE_METHOD`,
-`ISSUEFLOW_CYCLE_MAX_ISSUES`, `ISSUEFLOW_AUTO_ADVERSARIAL_LOOPS`,
-`ISSUEFLOW_CONFIRM_VERSION_BUMP`, `ISSUEFLOW_RUFF_AUTOFIX`,
-`ISSUEFLOW_AUTO_CLOSE`, `ISSUEFLOW_EARLY_PR`,
+`ISSUEFLOW_AUTO_GRAPHIFY_ON_PLAN`, `ISSUEFLOW_AUTO_SWITCHBACK`,
+`ISSUEFLOW_PR_MERGE_METHOD`, `ISSUEFLOW_CYCLE_MAX_ISSUES`,
+`ISSUEFLOW_AUTO_ADVERSARIAL_LOOPS`, `ISSUEFLOW_CONFIRM_VERSION_BUMP`,
+`ISSUEFLOW_RUFF_AUTOFIX`, `ISSUEFLOW_AUTO_CLOSE`, `ISSUEFLOW_EARLY_PR`,
 `ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE`. Re-run `issue-flow update` after changing any of
 these so skills and rules re-render.

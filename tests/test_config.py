@@ -65,6 +65,7 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "skill_level",
         "remind_cleanup",
         "suggest_graphify",
+        "auto_graphify_on_plan",
         "auto_switchback",
         "pr_merge_method",
         "cycle_max_issues",
@@ -369,11 +370,13 @@ def test_skill_behaviour_knob_defaults(
         "ISSUEFLOW_AUTO_CLOSE",
         "ISSUEFLOW_EARLY_PR",
         "ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE",
+        "ISSUEFLOW_AUTO_GRAPHIFY_ON_PLAN",
     ):
         monkeypatch.delenv(key, raising=False)
     settings = Settings()
     assert settings.resolve_remind_cleanup(tmp_path) is True
     assert settings.resolve_suggest_graphify(tmp_path) is True
+    assert settings.resolve_auto_graphify_on_plan(tmp_path) is False
     assert settings.resolve_auto_switchback(tmp_path) is True
     assert settings.resolve_pr_merge_method(tmp_path) == "squash"
     assert settings.resolve_cycle_max_issues(tmp_path) == 10
@@ -391,6 +394,7 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
         "[issueflow]\n"
         "remind_cleanup = false\n"
         "suggest_graphify = false\n"
+        "auto_graphify_on_plan = true\n"
         "auto_switchback = false\n"
         'pr_merge_method = "rebase"\n'
         "cycle_max_issues = 25\n"
@@ -404,6 +408,7 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
     settings = Settings()
     assert settings.resolve_remind_cleanup(tmp_path) is False
     assert settings.resolve_suggest_graphify(tmp_path) is False
+    assert settings.resolve_auto_graphify_on_plan(tmp_path) is True
     assert settings.resolve_auto_switchback(tmp_path) is False
     assert settings.resolve_pr_merge_method(tmp_path) == "rebase"
     assert settings.resolve_cycle_max_issues(tmp_path) == 25

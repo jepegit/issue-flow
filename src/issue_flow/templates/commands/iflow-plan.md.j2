@@ -28,7 +28,9 @@ Optional free-form text after the command. Examples:
    - Run `git fetch --prune`.
    - Report current branch, clean/dirty working tree (`git status --porcelain`), and ahead/behind counts vs `origin/<default>` (`git rev-list --left-right --count origin/<default>...HEAD`).
    - If on the default branch, note it and suggest creating an issue branch (`git switch -c <N>-<short-slug>`) — do **not** auto-run it. Planning itself does not require a branch switch.
-
+{% if auto_graphify_on_plan %}
+0.6 **Refresh knowledge graph (configured).** This project has `auto_graphify_on_plan = true`. Before prior-art discovery, run `issue-flow graphify -C <project_root>` (default AST `update`, no LLM key). If `graphify` is missing or the command exits non-zero, **report the failure and continue** — do not block planning; fall back to grep-only prior art. Do **not** auto-run `extract` (needs an API key).
+{% endif %}
 1. **Read the issue.** Load `issue<N>_original.md` and any existing `issue<N>_status.md`. Do not rewrite them from this command.
 
 1.5 **Consult existing designs / guides.** If `{{ issueflows_dir }}/{{ designs_folder }}/this-project.md` exists, read it first for project-specific context. Then skim `{{ issueflows_dir }}/{{ designs_folder }}/` for design docs, design decisions, or documented good practices that touch the area you're about to plan. When relevant docs exist, cite them in the plan so the approach stays consistent with prior decisions.

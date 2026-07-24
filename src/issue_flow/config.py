@@ -16,6 +16,7 @@ from issue_flow.modes import (
     DEFAULT_CHECKS_WATCH_MINUTES,
     DEFAULT_CONFIRM_CHANGELOG_UPDATE,
     DEFAULT_EARLY_PR,
+    DEFAULT_AUTO_GRAPHIFY_ON_PLAN,
     DEFAULT_AUTO_SWITCHBACK,
     DEFAULT_AUTO_ADVERSARIAL_LOOPS,
     DEFAULT_CYCLE_MAX_ISSUES,
@@ -297,6 +298,17 @@ class Settings:
             return persisted
         return _env_flag("ISSUEFLOW_SUGGEST_GRAPHIFY", default=DEFAULT_SUGGEST_GRAPHIFY)
 
+    def resolve_auto_graphify_on_plan(self, project_root: Path) -> bool:
+        """Resolve whether ``/iflow-plan`` auto-runs ``issue-flow graphify``."""
+        persisted = modes_module.read_auto_graphify_on_plan(
+            self.config_path(project_root)
+        )
+        if persisted is not None:
+            return persisted
+        return _env_flag(
+            "ISSUEFLOW_AUTO_GRAPHIFY_ON_PLAN", default=DEFAULT_AUTO_GRAPHIFY_ON_PLAN
+        )
+
     def resolve_auto_switchback(self, project_root: Path) -> bool:
         """Resolve whether ``/iflow-close`` switches back to the default branch."""
         persisted = modes_module.read_auto_switchback(self.config_path(project_root))
@@ -513,6 +525,10 @@ class Settings:
             "suggest_graphify": _env_flag(
                 "ISSUEFLOW_SUGGEST_GRAPHIFY", default=DEFAULT_SUGGEST_GRAPHIFY
             ),
+            "auto_graphify_on_plan": _env_flag(
+                "ISSUEFLOW_AUTO_GRAPHIFY_ON_PLAN",
+                default=DEFAULT_AUTO_GRAPHIFY_ON_PLAN,
+            ),
             "auto_switchback": _env_flag(
                 "ISSUEFLOW_AUTO_SWITCHBACK", default=DEFAULT_AUTO_SWITCHBACK
             ),
@@ -596,6 +612,7 @@ class Settings:
             "skill_level": skill_level,
             "remind_cleanup": self.resolve_remind_cleanup(project_root),
             "suggest_graphify": self.resolve_suggest_graphify(project_root),
+            "auto_graphify_on_plan": self.resolve_auto_graphify_on_plan(project_root),
             "auto_switchback": self.resolve_auto_switchback(project_root),
             "pr_merge_method": self.resolve_pr_merge_method(project_root),
             "cycle_max_issues": self.resolve_cycle_max_issues(project_root),

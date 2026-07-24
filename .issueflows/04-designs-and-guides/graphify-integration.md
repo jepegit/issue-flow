@@ -82,6 +82,14 @@ What we deliberately **do not** ship:
 - If we add `issue-flow status` (already on the README's Future plans), it could surface graph freshness (`graphify-out/manifest.json` mtime vs source tree) without re-implementing graphify's freshness check.
 - If multi-tool support lands (Claude Code, Windsurf, etc.), `register_with_cursor` should grow a sibling `register_with_<tool>` that calls `graphify <tool> install`.
 
+## Opt-in plan-time refresh (issue #214)
+
+`suggest_graphify` stays a soft nudge and still never auto-runs. Projects that
+gitignore `graphify-out/` can set `auto_graphify_on_plan = true` under
+`[issueflow]` so `/iflow-plan` runs `issue-flow graphify` (AST `update`) before
+prior-art discovery. Default remains `false`. Missing or failing graphify does
+not block planning.
+
 ## Correction (2026-05-14): graphify is subcommand-based
 
 The original implementation assumed `graphify <path> [flags…]` was the canonical "build" invocation, modeled on tools like `ruff` or `pyright`. **It is not.** The `graphify` CLI is dispatch-based — every action is a subcommand (`extract <path>`, `update <path>`, `watch <path>`, `cluster-only <path>`, …) and there is no top-level "scan this folder" mode. Running `graphify C:\some\dir` fails with `unknown command 'C:\some\dir'`. The published `/build` doc, the rules entry, the cursor-issue-workflow doc, and the README all advertised non-existent flags (`--update`, `--no-viz`, `--mode deep`, `--watch`, `--cluster-only`) that are actually subcommands or per-subcommand flags.

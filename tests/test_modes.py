@@ -315,6 +315,7 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
         DEFAULT_PR_MERGE_METHOD,
         DEFAULT_REMIND_CLEANUP,
         DEFAULT_RUFF_AUTOFIX,
+        DEFAULT_AUTO_GRAPHIFY_ON_PLAN,
         DEFAULT_SUGGEST_GRAPHIFY,
         read_confirm_version_bump,
         read_auto_close,
@@ -326,11 +327,13 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
         read_pr_merge_method,
         read_remind_cleanup,
         read_ruff_autofix,
+        read_auto_graphify_on_plan,
         read_suggest_graphify,
     )
 
     assert read_remind_cleanup(cfg) is DEFAULT_REMIND_CLEANUP
     assert read_suggest_graphify(cfg) is DEFAULT_SUGGEST_GRAPHIFY
+    assert read_auto_graphify_on_plan(cfg) is DEFAULT_AUTO_GRAPHIFY_ON_PLAN
     assert read_auto_switchback(cfg) is DEFAULT_AUTO_SWITCHBACK
     assert read_pr_merge_method(cfg) == DEFAULT_PR_MERGE_METHOD
     assert read_cycle_max_issues(cfg) == DEFAULT_CYCLE_MAX_ISSUES
