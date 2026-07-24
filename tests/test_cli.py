@@ -321,7 +321,7 @@ def test_agent_state_json_reports_stage(
     monkeypatch.setattr(gitutils_module, "current_branch", lambda _cwd: None)
     _seed_issue(tmp_path, 5, plan=True)
 
-    result = runner.invoke(app, ["agent", "state", str(tmp_path), "--json"])
+    result = runner.invoke(app, ["agent", "state", "-C", str(tmp_path), "--json"])
 
     assert result.exit_code == 0, result.output
     payload = _json(result.stdout)
@@ -336,7 +336,8 @@ def test_agent_sweep_dry_run_does_not_move(runner: CliRunner, tmp_path: Path) ->
     _seed_issue(tmp_path, 2, status="- [ ] Done\n")
 
     result = runner.invoke(
-        app, ["agent", "sweep", str(tmp_path), "--except", "2", "--dry-run", "--json"]
+        app,
+        ["agent", "sweep", "-C", str(tmp_path), "--except", "2", "--dry-run", "--json"],
     )
 
     assert result.exit_code == 0, result.output
@@ -355,7 +356,9 @@ def test_agent_sweep_applies_moves(runner: CliRunner, tmp_path: Path) -> None:
     _seed_issue(tmp_path, 1, status="- [x] Done\n")
     _seed_issue(tmp_path, 9)  # focus, kept
 
-    result = runner.invoke(app, ["agent", "sweep", str(tmp_path), "--except", "9"])
+    result = runner.invoke(
+        app, ["agent", "sweep", "-C", str(tmp_path), "--except", "9"]
+    )
 
     assert result.exit_code == 0, result.output
     cur = tmp_path / ".issueflows" / "01-current-issues"
@@ -363,6 +366,27 @@ def test_agent_sweep_applies_moves(runner: CliRunner, tmp_path: Path) -> None:
     assert not (cur / "issue1_original.md").exists()
     assert (solved / "issue1_original.md").exists()
     assert (cur / "issue9_original.md").exists()
+
+
+def test_agent_sweep_accepts_project_dir_option(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    """Regression #211: skills pass -C; sweep must not reject it."""
+    help_result = runner.invoke(app, ["agent", "sweep", "--help"])
+    assert help_result.exit_code == 0
+    plain = _plain(help_result.stdout)
+    assert "--project-dir" in plain
+    assert "-C" in plain
+
+    _seed_issue(tmp_path, 3)
+    result = runner.invoke(
+        app,
+        ["agent", "sweep", "--except", "3", "-C", str(tmp_path), "--dry-run", "--json"],
+    )
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["except"] == 3
+    assert payload["moves"] == []
 
 
 def test_doctor_json_clean(runner: CliRunner, tmp_path: Path) -> None:
@@ -454,7 +478,7 @@ def test_agent_preflight_json_handles_missing_git(
 
     monkeypatch.setattr(gitutils_module, "git_available", lambda: False)
 
-    result = runner.invoke(app, ["agent", "preflight", str(tmp_path), "--json"])
+    result = runner.invoke(app, ["agent", "preflight", "-C", str(tmp_path), "--json"])
 
     assert result.exit_code == 0, result.output
     payload = _json(result.stdout)
@@ -524,7 +548,7 @@ def test_agent_branches_json_classifies_remotes(
     monkeypatch.setattr(gitutils_module, "gh_prs_for_head", _prs)
 
     result = runner.invoke(
-        app, ["agent", "branches", str(tmp_path), "--json", "--no-fetch"]
+        app, ["agent", "branches", "-C", str(tmp_path), "--json", "--no-fetch"]
     )
 
     assert result.exit_code == 0, result.output
@@ -559,7 +583,7 @@ def test_agent_switchback_refuses_dirty_tree(
     monkeypatch.setattr(gitutils_module, "switch_branch", explode)
     monkeypatch.setattr(gitutils_module, "pull_ff_only", explode)
 
-    result = runner.invoke(app, ["agent", "switchback", str(tmp_path), "--json"])
+    result = runner.invoke(app, ["agent", "switchback", "-C", str(tmp_path), "--json"])
 
     assert result.exit_code == 1, result.output
     payload = _json(result.stdout)
@@ -590,7 +614,7 @@ def test_agent_switchback_switches_and_pulls_when_clean(
         lambda _cwd: (calls.append("pull"), (True, None))[1],
     )
 
-    result = runner.invoke(app, ["agent", "switchback", str(tmp_path), "--json"])
+    result = runner.invoke(app, ["agent", "switchback", "-C", str(tmp_path), "--json"])
 
     assert result.exit_code == 0, result.output
     payload = _json(result.stdout)
@@ -617,7 +641,7 @@ def test_agent_switchback_already_on_default_still_pulls(
     monkeypatch.setattr(gitutils_module, "switch_branch", explode)
     monkeypatch.setattr(gitutils_module, "pull_ff_only", lambda _cwd: (True, None))
 
-    result = runner.invoke(app, ["agent", "switchback", str(tmp_path), "--json"])
+    result = runner.invoke(app, ["agent", "switchback", "-C", str(tmp_path), "--json"])
 
     assert result.exit_code == 0, result.output
     payload = _json(result.stdout)
@@ -644,7 +668,7 @@ def test_agent_switchback_reports_ff_refusal(
         lambda _cwd: (False, "fatal: Not possible to fast-forward"),
     )
 
-    result = runner.invoke(app, ["agent", "switchback", str(tmp_path), "--json"])
+    result = runner.invoke(app, ["agent", "switchback", "-C", str(tmp_path), "--json"])
 
     assert result.exit_code == 1, result.output
     payload = _json(result.stdout)
@@ -660,7 +684,7 @@ def test_agent_switchback_missing_git_exits_nonzero(
 
     monkeypatch.setattr(gitutils_module, "git_available", lambda: False)
 
-    result = runner.invoke(app, ["agent", "switchback", str(tmp_path), "--json"])
+    result = runner.invoke(app, ["agent", "switchback", "-C", str(tmp_path), "--json"])
 
     assert result.exit_code == 1, result.output
     payload = _json(result.stdout)
@@ -904,7 +928,7 @@ def test_agent_version_plan_static_project(runner: CliRunner, tmp_path: Path) ->
     )
 
     result = runner.invoke(
-        app, ["agent", "version-plan", str(tmp_path), "--bump", "beta", "--json"]
+        app, ["agent", "version-plan", "-C", str(tmp_path), "--bump", "beta", "--json"]
     )
 
     assert result.exit_code == 0, result.output
@@ -927,7 +951,9 @@ def test_agent_version_plan_tag_project_defaults_to_channel(
     )
     monkeypatch.setattr(gitutils_module, "latest_tag", lambda _cwd: "v1.0.4a2")
 
-    result = runner.invoke(app, ["agent", "version-plan", str(tmp_path), "--json"])
+    result = runner.invoke(
+        app, ["agent", "version-plan", "-C", str(tmp_path), "--json"]
+    )
 
     assert result.exit_code == 0, result.output
     payload = _json(result.stdout)
@@ -951,7 +977,9 @@ def test_agent_version_plan_tag_project_without_tags_fails(
     )
     monkeypatch.setattr(gitutils_module, "latest_tag", lambda _cwd: None)
 
-    result = runner.invoke(app, ["agent", "version-plan", str(tmp_path), "--json"])
+    result = runner.invoke(
+        app, ["agent", "version-plan", "-C", str(tmp_path), "--json"]
+    )
 
     assert result.exit_code == 1
     payload = _json(result.stdout)
@@ -962,7 +990,9 @@ def test_agent_version_plan_tag_project_without_tags_fails(
 def test_agent_version_plan_unknown_strategy_fails(
     runner: CliRunner, tmp_path: Path
 ) -> None:
-    result = runner.invoke(app, ["agent", "version-plan", str(tmp_path), "--json"])
+    result = runner.invoke(
+        app, ["agent", "version-plan", "-C", str(tmp_path), "--json"]
+    )
 
     assert result.exit_code == 1
     payload = _json(result.stdout)
@@ -983,7 +1013,9 @@ def test_agent_version_plan_flags_filled_brief(
         encoding="utf-8",
     )
 
-    result = runner.invoke(app, ["agent", "version-plan", str(tmp_path), "--json"])
+    result = runner.invoke(
+        app, ["agent", "version-plan", "-C", str(tmp_path), "--json"]
+    )
 
     assert result.exit_code == 0, result.output
     payload = _json(result.stdout)

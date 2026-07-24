@@ -53,6 +53,19 @@ _PROJECT_DIR_ARGUMENT = typer.Argument(
     resolve_path=True,
 )
 
+# Agent subcommands take -C/--project-dir (same shape as capture/archive/resolve)
+# so multi-root skill recipes can pass -C uniformly. Top-level init/update/
+# status/doctor keep the positional Argument form above.
+_PROJECT_DIR_OPTION = typer.Option(
+    Path("."),
+    "--project-dir",
+    "-C",
+    help="Project root directory (defaults to current directory).",
+    exists=True,
+    file_okay=False,
+    resolve_path=True,
+)
+
 _EDITOR_HELP = (
     "AI coding tool(s) to scaffold for. Repeatable; accepts "
     f"{', '.join(sorted(EDITORS))}, or 'all'. Defaults to 'cursor'."
@@ -368,7 +381,7 @@ def doctor(
 
 @agent_app.command("audit")
 def agent_audit(
-    project_dir: Path = _PROJECT_DIR_ARGUMENT,
+    project_dir: Path = _PROJECT_DIR_OPTION,
     json_output: bool = typer.Option(
         False, "--json", help="Emit a machine-readable JSON object."
     ),
@@ -381,7 +394,7 @@ def agent_audit(
 
 @agent_app.command("repair")
 def agent_repair(
-    project_dir: Path = _PROJECT_DIR_ARGUMENT,
+    project_dir: Path = _PROJECT_DIR_OPTION,
     except_number: int | None = typer.Option(
         None,
         "--except",
@@ -405,7 +418,7 @@ def agent_repair(
 
 @agent_app.command("state")
 def agent_state(
-    project_dir: Path = _PROJECT_DIR_ARGUMENT,
+    project_dir: Path = _PROJECT_DIR_OPTION,
     json_output: bool = typer.Option(
         False, "--json", help="Emit a machine-readable JSON object."
     ),
@@ -418,7 +431,7 @@ def agent_state(
 
 @agent_app.command("preflight")
 def agent_preflight(
-    project_dir: Path = _PROJECT_DIR_ARGUMENT,
+    project_dir: Path = _PROJECT_DIR_OPTION,
     json_output: bool = typer.Option(
         False, "--json", help="Emit a machine-readable JSON object."
     ),
@@ -431,7 +444,7 @@ def agent_preflight(
 
 @agent_app.command("switchback")
 def agent_switchback(
-    project_dir: Path = _PROJECT_DIR_ARGUMENT,
+    project_dir: Path = _PROJECT_DIR_OPTION,
     json_output: bool = typer.Option(
         False, "--json", help="Emit a machine-readable JSON object."
     ),
@@ -450,7 +463,7 @@ def agent_switchback(
 
 @agent_app.command("branches")
 def agent_branches(
-    project_dir: Path = _PROJECT_DIR_ARGUMENT,
+    project_dir: Path = _PROJECT_DIR_OPTION,
     json_output: bool = typer.Option(
         False, "--json", help="Emit a machine-readable JSON object."
     ),
@@ -485,7 +498,7 @@ def agent_branches(
 
 @agent_app.command("version-plan")
 def agent_version_plan(
-    project_dir: Path = _PROJECT_DIR_ARGUMENT,
+    project_dir: Path = _PROJECT_DIR_OPTION,
     bump: list[str] = typer.Option(
         [],
         "--bump",
@@ -699,7 +712,7 @@ def agent_resolve(
 
 @agent_app.command("sweep")
 def agent_sweep(
-    project_dir: Path = _PROJECT_DIR_ARGUMENT,
+    project_dir: Path = _PROJECT_DIR_OPTION,
     except_number: int | None = typer.Option(
         None,
         "--except",
