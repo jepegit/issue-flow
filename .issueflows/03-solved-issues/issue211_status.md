@@ -1,6 +1,6 @@
 # Status: #211 — option C problem
 
-- [ ] Done
+- [x] Done
 
 ## What's done
 
@@ -11,8 +11,9 @@
 - `docs/cli.md` synopsis + `agentic-cli.md` constraint note.
 - `uv run pytest` — 563 passed; ruff clean.
 - Smoke: `agent sweep --except 211 -C /workspace --dry-run --json` exits 0.
-- Draft PR: https://github.com/jepegit/issue-flow/pull/212 (#212, draft)
+- Version bump `0.4.6` → `0.4.7`; HISTORY promoted.
+- Draft PR: https://github.com/jepegit/issue-flow/pull/212 (#212)
 
 ## Remaining work
 
-- `/iflow-close` (HISTORY + merge-ready PR).
+- None.
