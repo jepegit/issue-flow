@@ -28,6 +28,10 @@ Two new core modules back them:
 
 ## Key constraints (honour these in future work)
 
+- **Uniform `-C` / `--project-dir` on every `agent` subcommand** (issue #211).
+  Skills tell agents to pass `-C <project_root>` after `agent resolve`; do not
+  reintroduce a positional project-dir Argument on new `agent` commands.
+  Top-level `status` / `doctor` / `init` / `update` may stay positional.
 - **CLI is optional, never assumed.** A scaffolded repo only has `issue-flow`
   if the user installed it. Skills/commands therefore use the CLI as a *fast
   path* and keep their manual steps as a fallback — mirror this for any new
