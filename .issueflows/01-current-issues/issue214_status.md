@@ -9,6 +9,7 @@
 - Gated `/iflow-plan` skill + command templates (AST `update`, fail-soft).
 - Docs (`configuration.md`) + design notes (skill-behaviour, graphify-integration).
 - Tests: config/modes/templating/cli; full suite 564 passed; ruff clean.
+- Draft PR: https://github.com/jepegit/issue-flow/pull/215 (#215, draft)
 
 ## Remaining work
 
