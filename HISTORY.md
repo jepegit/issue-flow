@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+## [0.4.7] - 2026-07-24
+
 - `/iflow-auto` next-epoch gate (advance only when stage clear; `epoch_gated`). (#204)
 - `/iflow-auto` loop budget control (re-queue + stop-and-ask: accept / grant / abort). (#203)
 - `/iflow-auto` adversarial inter-epoch review (`review`; reopen/create + auto_status outcomes). (#202)
@@ -19,6 +21,8 @@ than the GitHub release notes they link to.
 - Design doc for advanced auto mode contract. (#191)
 
 - Create pull request early. (#99)
+- **Uniform `-C` / `--project-dir` on leftover `agent` commands (#211).** `sweep`, `state`, `preflight`, `switchback`, `branches`, `version-plan`, `audit`, and `repair` accept `-C` like `capture`, so multi-root skill recipes stop failing with `No such option: -C`.
+
 
 ## [0.4.5] - 2026-07-20
 
