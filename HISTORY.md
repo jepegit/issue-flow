@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- **Opt-in `auto_graphify_on_plan` (#214).** When true, `/iflow-plan` runs `issue-flow graphify` (AST `update`) before prior-art discovery; missing/failing graphify notes and continues. Default false; coexists with soft `suggest_graphify`.
+
 ## [0.4.7] - 2026-07-24
 
 - `/iflow-auto` next-epoch gate (advance only when stage clear; `epoch_gated`). (#204)
