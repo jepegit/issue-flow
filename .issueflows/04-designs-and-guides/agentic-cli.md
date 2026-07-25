@@ -25,6 +25,10 @@ Two new core modules back them:
 - `gitutils.py` — best-effort `git`/`gh` wrappers following the `graphify.py`
   pattern (`shutil.which` -> argv list -> `subprocess.run(check=False)`),
   returning `None` when a tool is absent. **Never `shell=True`.**
+  Decode captured output as **UTF-8** with `errors="replace"` (issue #216):
+  locale decoding (Windows `cp1252`) crashes on UTF-8 `gh issue view` bodies,
+  and a failed reader can leave `stdout is None` — callers must not `.strip()`
+  a `None` stream.
 
 ## Key constraints (honour these in future work)
 

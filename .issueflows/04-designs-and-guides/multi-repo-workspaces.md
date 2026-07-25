@@ -29,8 +29,11 @@ Before any lifecycle command touches `git`, `gh`, or `.issueflows/`:
 4. Exactly one `.issueflows/` in the workspace → that root.
 5. **Ambiguous → ask**; never guess.
 
-After resolution, use `git -C <project_root> …`, `gh … --repo owner/name`, and
-paths under `<project_root>/.issueflows/`.
+After resolution, use `git -C <project_root> …`, an explicit repo on every `gh`
+call, and paths under `<project_root>/.issueflows/`. Most `gh` commands take
+`--repo owner/name`; **`gh repo view` is the exception** — repo is positional
+(`gh repo view owner/name …`). Do not write `gh repo view --repo …` (rejected
+flag; issue #216).
 
 ### Scoped Cursor rules
 

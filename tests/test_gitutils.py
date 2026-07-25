@@ -188,6 +188,53 @@ def test_run_returns_none_when_executable_missing(
     assert gitutils.gh_issue_view(1, Path(".")) is None
 
 
+def test_run_decodes_stdout_as_utf8_replace(
+    monkeypatch: pytest.MonkeyPatch, all_tools_present: None
+) -> None:
+    """Windows locale decoding must not be used for gh/git capture (#216)."""
+    seen: dict[str, Any] = {}
+
+    def capture_run(argv: list[str], **kwargs: Any) -> _FakeProc:
+        seen.update(kwargs)
+        return _FakeProc(stdout="ok\n")
+
+    monkeypatch.setattr(gitutils.subprocess, "run", capture_run)
+    assert gitutils._stdout(["git", "branch", "--show-current"], Path(".")) == "ok"
+    assert seen.get("text") is True
+    assert seen.get("encoding") == "utf-8"
+    assert seen.get("errors") == "replace"
+
+
+def test_stdout_none_when_captured_stdout_is_none(
+    monkeypatch: pytest.MonkeyPatch, all_tools_present: None
+) -> None:
+    """Decode-thread failures can leave CompletedProcess.stdout as None (#216)."""
+
+    class _NoneStdoutProc:
+        def __init__(self, returncode: int = 0) -> None:
+            self.returncode = returncode
+            self.stdout = None
+            self.stderr = None
+
+    monkeypatch.setattr(
+        gitutils.subprocess,
+        "run",
+        lambda *_a, **_kw: _NoneStdoutProc(0),
+    )
+    assert gitutils._stdout(["gh", "issue", "view", "1"], Path(".")) is None
+    assert gitutils.working_tree_clean(Path(".")) is True
+
+    monkeypatch.setattr(
+        gitutils.subprocess,
+        "run",
+        lambda *_a, **_kw: _NoneStdoutProc(1),
+    )
+    assert gitutils.switch_branch(Path("."), "main") == (
+        False,
+        "git switch main failed",
+    )
+
+
 def test_gh_issue_view_parses_json(
     monkeypatch: pytest.MonkeyPatch, all_tools_present: None
 ) -> None:
