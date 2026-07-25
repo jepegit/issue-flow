@@ -58,6 +58,10 @@ def _run(argv: list[str], cwd: Path) -> subprocess.CompletedProcess[str] | None:
     Returns ``None`` if the executable is missing or cannot be spawned;
     otherwise the completed process (even on a non-zero exit, so callers can
     inspect ``returncode``).
+
+    Always decode as UTF-8 with ``errors="replace"``. Relying on the locale
+    (Windows ``cp1252``) blows up on UTF-8 issue bodies from ``gh`` — see
+    issue #216.
     """
     if shutil.which(argv[0]) is None:
         return None
@@ -68,15 +72,24 @@ def _run(argv: list[str], cwd: Path) -> subprocess.CompletedProcess[str] | None:
             check=False,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
-    except OSError:
+    except (OSError, UnicodeError):
         return None
+
+
+def _stream_text(value: str | None) -> str:
+    """Strip a captured stream; treat ``None`` as empty (decode edge cases)."""
+    return (value or "").strip()
 
 
 def _stdout(argv: list[str], cwd: Path) -> str | None:
     """Return stripped stdout for a successful command, else ``None``."""
     result = _run(argv, cwd)
     if result is None or result.returncode != 0:
+        return None
+    if result.stdout is None:
         return None
     return result.stdout.strip()
 
@@ -145,7 +158,7 @@ def working_tree_clean(cwd: Path) -> bool | None:
     result = _run([GIT, "status", "--porcelain"], cwd)
     if result is None or result.returncode != 0:
         return None
-    return result.stdout.strip() == ""
+    return _stream_text(result.stdout) == ""
 
 
 def fetch_prune(cwd: Path) -> bool:
@@ -163,7 +176,8 @@ def dirty_paths(cwd: Path) -> list[str] | None:
     result = _run([GIT, "status", "--porcelain"], cwd)
     if result is None or result.returncode != 0:
         return None
-    return [line[3:].strip() for line in result.stdout.splitlines() if line.strip()]
+    stdout = result.stdout or ""
+    return [line[3:].strip() for line in stdout.splitlines() if line.strip()]
 
 
 def switch_branch(cwd: Path, branch: str) -> tuple[bool, str | None]:
@@ -172,7 +186,7 @@ def switch_branch(cwd: Path, branch: str) -> tuple[bool, str | None]:
     if result is None:
         return False, "git is not on PATH"
     if result.returncode != 0:
-        message = result.stderr.strip() or result.stdout.strip()
+        message = _stream_text(result.stderr) or _stream_text(result.stdout)
         return False, message or f"git switch {branch} failed"
     return True, None
 
@@ -187,7 +201,7 @@ def pull_ff_only(cwd: Path) -> tuple[bool, str | None]:
     if result is None:
         return False, "git is not on PATH"
     if result.returncode != 0:
-        message = result.stderr.strip() or result.stdout.strip()
+        message = _stream_text(result.stderr) or _stream_text(result.stdout)
         return False, message or "git pull --ff-only failed"
     return True, None
 
@@ -516,7 +530,8 @@ def cherry_unique_count(cwd: Path, default: str, branch: str) -> int | None:
     )
     if result is None or result.returncode != 0:
         return None
-    return sum(1 for line in result.stdout.splitlines() if line.startswith("+"))
+    stdout = result.stdout or ""
+    return sum(1 for line in stdout.splitlines() if line.startswith("+"))
 
 
 def unique_commit_onelines(
