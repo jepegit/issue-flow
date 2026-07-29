@@ -12,6 +12,7 @@
 - `dirty-issueflows.md` post-repair section; issue-workflow + `docs/cli.md` wording.
 - Dogfood: `uv tool install --force --editable .` + `issue-flow update`.
 - Tests: 572 passed; ruff clean.
+- PR: https://github.com/jepegit/issue-flow/pull/222 (#222, draft)
 
 ## Remaining work
 
