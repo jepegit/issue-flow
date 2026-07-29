@@ -833,7 +833,8 @@ def config_add(
     ``suggest_graphify``, ``auto_graphify_on_plan``, ``auto_switchback``,
     ``pr_merge_method``,
     ``cycle_max_issues``, ``auto_adversarial_loops``, ``confirm_version_bump``,
-    ``ruff_autofix``, ``auto_close``, ``early_pr``, ``confirm_changelog_update``
+    ``ruff_autofix``, ``auto_close``, ``auto_plan``, ``auto_build``,
+    ``early_pr``, ``confirm_changelog_update``
     — taking each from its ``ISSUEFLOW_*`` env var when set, else the default.
     Other ``ISSUEFLOW_*`` settings are environment-only and are not written
     here. Existing files are left untouched unless ``--force`` is passed.

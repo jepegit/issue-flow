@@ -73,6 +73,8 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "confirm_version_bump",
         "ruff_autofix",
         "auto_close",
+        "auto_plan",
+        "auto_build",
         "early_pr",
         "confirm_changelog_update",
     }
@@ -368,6 +370,8 @@ def test_skill_behaviour_knob_defaults(
         "ISSUEFLOW_CONFIRM_VERSION_BUMP",
         "ISSUEFLOW_RUFF_AUTOFIX",
         "ISSUEFLOW_AUTO_CLOSE",
+        "ISSUEFLOW_AUTO_PLAN",
+        "ISSUEFLOW_AUTO_BUILD",
         "ISSUEFLOW_EARLY_PR",
         "ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE",
         "ISSUEFLOW_AUTO_GRAPHIFY_ON_PLAN",
@@ -384,6 +388,8 @@ def test_skill_behaviour_knob_defaults(
     assert settings.resolve_confirm_version_bump(tmp_path) is False
     assert settings.resolve_ruff_autofix(tmp_path) is True
     assert settings.resolve_auto_close(tmp_path) is False
+    assert settings.resolve_auto_plan(tmp_path) is True
+    assert settings.resolve_auto_build(tmp_path) is True
     assert settings.resolve_early_pr(tmp_path) is False
     assert settings.resolve_confirm_changelog_update(tmp_path) is False
 
@@ -402,6 +408,8 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
         "confirm_version_bump = true\n"
         "ruff_autofix = false\n"
         "auto_close = true\n"
+        "auto_plan = false\n"
+        "auto_build = false\n"
         "early_pr = true\n"
         "confirm_changelog_update = false\n",
     )
@@ -416,6 +424,8 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
     assert settings.resolve_confirm_version_bump(tmp_path) is True
     assert settings.resolve_ruff_autofix(tmp_path) is False
     assert settings.resolve_auto_close(tmp_path) is True
+    assert settings.resolve_auto_plan(tmp_path) is False
+    assert settings.resolve_auto_build(tmp_path) is False
     assert settings.resolve_early_pr(tmp_path) is True
     assert settings.resolve_confirm_changelog_update(tmp_path) is False
 

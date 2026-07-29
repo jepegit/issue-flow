@@ -45,6 +45,8 @@ _MODE_CONTEXT = {
     "confirm_version_bump": False,
     "ruff_autofix": True,
     "auto_close": False,
+    "auto_plan": True,
+    "auto_build": True,
     "early_pr": False,
     "confirm_changelog_update": True,
 }
@@ -589,6 +591,42 @@ def test_start_auto_close_chains_into_close() -> None:
     )
     assert "follow" in on and "iflow-close/SKILL.md" in on
     assert "tell the user to run `/iflow-close`" not in on
+
+
+def test_pick_auto_plan_chains_into_plan() -> None:
+    """Issue #219: pick Phase 3 chains to plan when auto_plan is true."""
+    off = render_template(
+        "skills/iflow_pick/SKILL.md.j2",
+        {**_default_context(), "auto_plan": False},
+    )
+    assert "Ask** whether to continue with `/iflow-plan`" in off
+    assert "auto_plan = true" not in off
+    on = render_template("skills/iflow_pick/SKILL.md.j2", _default_context())
+    assert "auto_plan = true" in on
+    assert "noplan" in on
+    assert "Ask** whether to continue with `/iflow-plan`" not in on
+    cmd_on = render_template("commands/iflow-pick.md.j2", _default_context())
+    assert "auto_plan = true" in cmd_on
+    assert "`noplan`" in cmd_on
+
+
+def test_plan_auto_build_chains_into_build() -> None:
+    """Issue #219: plan Accept chains to build when auto_build is true."""
+    off = render_template(
+        "skills/iflow_plan/SKILL.md.j2",
+        {**_default_context(), "auto_build": False},
+    )
+    assert "Tell the user to run `/iflow-build`" in off or (
+        "Do **not** proceed to implementation from this skill" in off
+    )
+    assert "auto_build chained" not in off
+    on = render_template("skills/iflow_plan/SKILL.md.j2", _default_context())
+    assert "auto_build" in on and "nobuild" in on
+    assert "iflow-build" in on
+    assert "chained the handoff" in on
+    cmd_on = render_template("commands/iflow-plan.md.j2", _default_context())
+    assert "`nobuild`" in cmd_on
+    assert "auto_build chained" in cmd_on or "auto_build` chained" in cmd_on
 
 
 def test_build_early_pr_step_and_tokens() -> None:

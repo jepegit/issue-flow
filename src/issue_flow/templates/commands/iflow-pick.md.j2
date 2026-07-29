@@ -15,6 +15,7 @@ Optional free-form text after the command:
 - **No extra text** — survey candidates and ask which to pick.
 - **`fix`** — skip the survey and create a single new "general fixes" GitHub issue (small bug / typo / chore bucket), then work on it. A new issue is created **every time** `fix` is used.
 - **A hint** (e.g. `milestone v0.4`, `something about templating`, `the docs ones`) — used to bias the candidate ranking in Phase 1.
+- **`noplan`** — skip the `auto_plan` chain for this run (ask before `/iflow-plan` even when baked `auto_plan` is true).
 
 ## Phases
 
@@ -76,7 +77,11 @@ Optional free-form text after the command:
 
 ### Phase 3 — hand off to the standard flow
 
+{% if auto_plan and "iflow_plan" in included_skills %}
+1. The issue is now captured on a fresh branch. This project has `auto_plan = true` — **follow** `{{ agent_dir }}/{{ commands_dir }}/iflow-plan.md` (or the `iflow-plan` skill) immediately and note the chain. Trailing **`noplan`** skips once and falls back to asking.
+{% else %}
 1. The issue is now captured on a fresh branch. **Ask the user whether to continue with `/iflow-plan`** next (the usual next step). Do **not** auto-run it — make the handoff explicit so the user stays in control.
+{% endif %}
 {% if label_flows and "iflow-yolo" in included_commands %}
 2. **Exception:** when Phase 1 step 6 confirmed the `{{ yolo_label }}`-label yolo routing, skip this handoff — the `/iflow-yolo` chain (which includes its own `/iflow-init`) takes over after the branch is created.
 {% endif %}

@@ -13,7 +13,7 @@ templates by hand.
 | Pattern | Keys |
 |---------|------|
 | Soft nudges (`verb_object`) | `remind_cleanup`, `suggest_graphify` |
-| Auto behaviours (`auto_*`) | `auto_switchback`, `auto_close`, `auto_graphify_on_plan` |
+| Auto behaviours (`auto_*`) | `auto_switchback`, `auto_close`, `auto_plan`, `auto_build`, `auto_graphify_on_plan` |
 | Timing / PR | `early_pr` |
 | Auto / advanced | `auto_adversarial_loops` (see [advanced-auto-mode.md](./advanced-auto-mode.md)) |
 | Confirm gates (`confirm_*`) | `confirm_version_bump`, `confirm_changelog_update` |
@@ -26,6 +26,8 @@ templates by hand.
 | `auto_graphify_on_plan` | `false` | `/iflow-plan` runs `issue-flow graphify` (AST `update`) before prior-art; missing/fail → note + continue (issue #214) |
 | `auto_switchback` | `true` | After PR, switch to default when clean (`false` ≈ always `stay`) |
 | `auto_close` | `false` | `/iflow-build` / `/iflow-fix` end chain into `/iflow-close` when ready |
+| `auto_plan` | `true` | `/iflow-pick` chains into `/iflow-plan` after pick confirm + branch/init; trailing `noplan` skips once (issue #219) |
+| `auto_build` | `true` | `/iflow-plan` chains into `/iflow-build` on plan Accept; trailing `nobuild` skips once (issue #219) |
 | `early_pr` | `false` | `/iflow-build` opens a draft PR after the first push; trailing `early`/`pr` / `noearly` override per run |
 | `auto_adversarial_loops` | `2` | `/iflow-auto` inter-epoch adversarial loop budget; trailing `loops:<n>` overrides per run ([advanced-auto-mode.md](./advanced-auto-mode.md)) |
 | `confirm_version_bump` | `false` | Non-yolo close confirms once about bump when unset |
@@ -34,9 +36,12 @@ templates by hand.
 | `cycle_max_issues` | `10` | `/iflow-cycle` safety cap before `max:<n>` |
 | `ruff_autofix` | `true` | Gate ruff `--fix` / format in start/close |
 
-**Consistency.** `auto_close` only skips the handoff pause; close still honours
-`confirm_*`, `auto_switchback`, `remind_cleanup`, `pr_merge_method`, etc.
-Gated on `iflow_close` in the active mode. Does **not** imply yolo / auto-merge.
+**Consistency.** `auto_plan` / `auto_build` / `auto_close` are **independent** —
+each only skips its own next-step pause (pick confirm, plan Accept, and
+build-ready still gate). Mode-gated on `iflow_plan` / `iflow_build` /
+`iflow_close`. Do **not** imply yolo / auto-merge. One-shot skips: `noplan`,
+`nobuild`. `auto_close` still honours `confirm_*`, `auto_switchback`,
+`remind_cleanup`, `pr_merge_method`, etc.
 `confirm_changelog_update = false` (default) matches yolo's no-prompt history
 write so the bullet is always in the PR commit; `nohistory` still skips.
 When confirm is on and declined, close **stops** (write / revise /

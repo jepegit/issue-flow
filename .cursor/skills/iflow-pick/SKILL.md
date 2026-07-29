@@ -18,6 +18,7 @@ Do **not** use this skill from `/iflow`, `/iflow-build`, or `/iflow-close`. `/if
 - **(nothing)** — survey candidates and ask which to pick.
 - **`fix`** — create a **new** general-fixes GitHub issue (a fresh one every time) and use it.
 - **a hint** (milestone / label / topic) — bias the candidate ranking.
+- **`noplan`** — skip the `auto_plan` chain for this run (ask before `/iflow-plan` even when `auto_plan` is true).
 
 
 **Invoke:** type `iflow pick` in chat, or `/iflow-pick` from the slash menu (`iflow-pick` also works).
@@ -99,7 +100,9 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 
 ### Phase 3 — hand off
 
-1. **Ask** whether to continue with `/iflow-plan`. Do not auto-run it.
+
+1. **Chain into `/iflow-plan`** (this project has `auto_plan = true`). After Phase 2, follow the `iflow-plan` skill immediately — briefly note that `auto_plan` chained the handoff. Trailing **`noplan`** (or the user declining on confirm) skips the chain once and falls back to asking.
+
 
 2. **Exception:** when the `yolo`-label routing was confirmed in Phase 1, skip this handoff — the `iflow-yolo` chain (which includes `/iflow-init`) takes over after the branch is created.
 
@@ -111,3 +114,4 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 - Branch off the detected default; never force-push or delete branches from this skill.
 - **Phase B is out of scope**: no automated sub-issue creation or sibling parking under `02-partly-solved-issues/`. Only mention the option.
 - Delegate issue capture to `/iflow-init` rather than re-implementing it.
+- `auto_plan` only skips the post-init pause; pick confirm and yolo routing stay gated.

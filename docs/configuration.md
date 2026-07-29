@@ -50,7 +50,8 @@ It writes the keys issue-flow actually reads from `config.toml` — `mode`,
 `deep_model_label`, `fast_model_label`, `linguist_attributes`,
 `remind_cleanup`, `suggest_graphify`, `auto_switchback`, `pr_merge_method`,
 `cycle_max_issues`, `confirm_version_bump`, `ruff_autofix`, `auto_close`,
-`confirm_changelog_update` — taking each value from its `ISSUEFLOW_*` env var / `.env`
+`auto_plan`, `auto_build`, `confirm_changelog_update` — taking each value from
+its `ISSUEFLOW_*` env var / `.env`
 when set, otherwise the issue-flow default.
 The other `ISSUEFLOW_*` settings are **environment-only** and are deliberately
 *not* written to `config.toml` (putting them there would have no effect). An
@@ -255,6 +256,8 @@ Lifecycle skills can be tuned with additional `[issueflow]` keys (baked at
 | `confirm_version_bump` | `false` | When `true`, non-yolo close asks once about a version bump if none was requested |
 | `ruff_autofix` | `true` | When ruff is present, run `ruff check --fix` + `ruff format` from start/close |
 | `auto_close` | `false` | When `true`, `/iflow-build` (and `/iflow-fix` end) chain into `/iflow-close` when work is ready to ship; close keeps its own confirms |
+| `auto_plan` | `true` | When `true`, `/iflow-pick` chains into `/iflow-plan` after pick confirm + branch/init; trailing `noplan` skips once |
+| `auto_build` | `true` | When `true`, `/iflow-plan` chains into `/iflow-build` on plan Accept; trailing `nobuild` skips once |
 | `early_pr` | `false` | When `true`, `/iflow-build` opens a draft PR after the first push; trailing `early` / `pr` / `noearly` override per run |
 | `confirm_changelog_update` | `false` | When `true`, `/iflow-close` shows the changelog diff and confirms once before writing (decline **stops** close); `false` writes without asking so the bullet lands in the PR (`nohistory` still skips) |
 
@@ -270,6 +273,8 @@ auto_adversarial_loops = 2
 confirm_version_bump = false
 ruff_autofix = true
 auto_close = false
+auto_plan = true
+auto_build = true
 early_pr = false
 confirm_changelog_update = false
 ```
@@ -278,6 +283,7 @@ Env fallbacks: `ISSUEFLOW_REMIND_CLEANUP`, `ISSUEFLOW_SUGGEST_GRAPHIFY`,
 `ISSUEFLOW_AUTO_GRAPHIFY_ON_PLAN`, `ISSUEFLOW_AUTO_SWITCHBACK`,
 `ISSUEFLOW_PR_MERGE_METHOD`, `ISSUEFLOW_CYCLE_MAX_ISSUES`,
 `ISSUEFLOW_AUTO_ADVERSARIAL_LOOPS`, `ISSUEFLOW_CONFIRM_VERSION_BUMP`,
-`ISSUEFLOW_RUFF_AUTOFIX`, `ISSUEFLOW_AUTO_CLOSE`, `ISSUEFLOW_EARLY_PR`,
+`ISSUEFLOW_RUFF_AUTOFIX`, `ISSUEFLOW_AUTO_CLOSE`, `ISSUEFLOW_AUTO_PLAN`,
+`ISSUEFLOW_AUTO_BUILD`, `ISSUEFLOW_EARLY_PR`,
 `ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE`. Re-run `issue-flow update` after changing any of
 these so skills and rules re-render.

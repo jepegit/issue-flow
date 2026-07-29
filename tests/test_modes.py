@@ -306,7 +306,9 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
     assert read_linguist_attributes(cfg) is DEFAULT_LINGUIST_ATTRIBUTES
     from issue_flow.modes import (
         DEFAULT_CONFIRM_VERSION_BUMP,
+        DEFAULT_AUTO_BUILD,
         DEFAULT_AUTO_CLOSE,
+        DEFAULT_AUTO_PLAN,
         DEFAULT_EARLY_PR,
         DEFAULT_AUTO_SWITCHBACK,
         DEFAULT_CONFIRM_CHANGELOG_UPDATE,
@@ -318,7 +320,9 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
         DEFAULT_AUTO_GRAPHIFY_ON_PLAN,
         DEFAULT_SUGGEST_GRAPHIFY,
         read_confirm_version_bump,
+        read_auto_build,
         read_auto_close,
+        read_auto_plan,
         read_early_pr,
         read_auto_switchback,
         read_confirm_changelog_update,
@@ -341,6 +345,8 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
     assert read_confirm_version_bump(cfg) is DEFAULT_CONFIRM_VERSION_BUMP
     assert read_ruff_autofix(cfg) is DEFAULT_RUFF_AUTOFIX
     assert read_auto_close(cfg) is DEFAULT_AUTO_CLOSE
+    assert read_auto_plan(cfg) is DEFAULT_AUTO_PLAN
+    assert read_auto_build(cfg) is DEFAULT_AUTO_BUILD
     assert read_early_pr(cfg) is DEFAULT_EARLY_PR
     assert read_confirm_changelog_update(cfg) is DEFAULT_CONFIRM_CHANGELOG_UPDATE
 
