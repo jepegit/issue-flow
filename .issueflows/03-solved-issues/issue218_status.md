@@ -1,6 +1,6 @@
 # Status — Issue #218: doctor leftovers
 
-- [ ] Done
+- [x] Done
 
 ## What's done
 
@@ -12,8 +12,9 @@
 - `dirty-issueflows.md` post-repair section; issue-workflow + `docs/cli.md` wording.
 - Dogfood: `uv tool install --force --editable .` + `issue-flow update`.
 - Tests: 572 passed; ruff clean.
-- PR: https://github.com/jepegit/issue-flow/pull/222 (#222, draft)
+- HISTORY Unreleased bullet.
+- PR: https://github.com/jepegit/issue-flow/pull/222 (#222)
 
 ## Remaining work
 
-- HISTORY / version bump / ready-for-review via `/iflow-close`.
+- None.
