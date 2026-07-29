@@ -137,6 +137,34 @@ def test_init_force_preserves_existing_project_brief(tmp_path: Path) -> None:
     assert brief.read_text(encoding="utf-8") == custom
 
 
+def test_init_creates_essential_tests_designs(tmp_path: Path) -> None:
+    """init should seed essential-tests guide + test registry when missing."""
+    run_init(tmp_path)
+
+    designs = tmp_path / ".issueflows" / "04-designs-and-guides"
+    guide = designs / "essential-tests.md"
+    registry = designs / "test-registry.md"
+    assert guide.is_file()
+    assert "essential_tests" in guide.read_text(encoding="utf-8")
+    assert registry.is_file()
+    assert "Essential?" in registry.read_text(encoding="utf-8")
+
+
+def test_init_preserves_essential_tests_designs(tmp_path: Path) -> None:
+    """Re-running init must not clobber essential-tests / test-registry."""
+    run_init(tmp_path)
+    designs = tmp_path / ".issueflows" / "04-designs-and-guides"
+    guide = designs / "essential-tests.md"
+    registry = designs / "test-registry.md"
+    guide.write_text("# Custom essential guide\n", encoding="utf-8")
+    registry.write_text("# Custom registry\n", encoding="utf-8")
+
+    run_init(tmp_path)
+
+    assert guide.read_text(encoding="utf-8") == "# Custom essential guide\n"
+    assert registry.read_text(encoding="utf-8") == "# Custom registry\n"
+
+
 def test_init_creates_tools_readme(tmp_path: Path) -> None:
     """init should seed the 00-tools README index when missing."""
     run_init(tmp_path)

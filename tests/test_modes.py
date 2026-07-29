@@ -339,6 +339,14 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
         read_ruff_autofix,
         read_auto_graphify_on_plan,
         read_suggest_graphify,
+        DEFAULT_ESSENTIAL_TESTS,
+        DEFAULT_TEST_RUNNER,
+        DEFAULT_ESSENTIAL_MARKER,
+        DEFAULT_ESSENTIAL_REVIEW,
+        read_essential_tests,
+        read_test_runner,
+        read_essential_marker,
+        read_essential_review,
     )
 
     assert read_remind_cleanup(cfg) is DEFAULT_REMIND_CLEANUP
@@ -355,6 +363,10 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
     assert read_auto_build(cfg) is DEFAULT_AUTO_BUILD
     assert read_early_pr(cfg) is DEFAULT_EARLY_PR
     assert read_confirm_changelog_update(cfg) is DEFAULT_CONFIRM_CHANGELOG_UPDATE
+    assert read_essential_tests(cfg) is DEFAULT_ESSENTIAL_TESTS
+    assert read_test_runner(cfg) == DEFAULT_TEST_RUNNER
+    assert read_essential_marker(cfg) == DEFAULT_ESSENTIAL_MARKER
+    assert read_essential_review(cfg) == DEFAULT_ESSENTIAL_REVIEW
 
 
 def test_write_default_config_upserts_label_flow_keys(tmp_path: Path) -> None:

@@ -1,0 +1,19 @@
+{%- if essential_tests -%}
+{%- if test_runner != "pytest" %}
+> **Essential tests:** `test_runner={{ test_runner }}` is not supported (v1 =
+> pytest only). Skip essential review; invite a contribution to add this runner.
+{%- else %}
+### Essential tests review (`essential_tests = true`)
+
+Marker: `@pytest.mark.{{ essential_marker }}`. Contract:
+`{{ issueflows_dir }}/{{ designs_folder }}/essential-tests.md`. Registry:
+`{{ issueflows_dir }}/{{ designs_folder }}/test-registry.md`.
+
+1. Confirm `[tool.pytest.ini_options]` (or `pytest.ini`) registers marker
+   `{{ essential_marker }}`; if missing, add it (or ask) before marking tests.
+2. List tests **added or changed by this issue** only (diff / status). For each:
+   recommend mark vs leave unmarked; update the registry row; get confirm before
+   editing many files.
+3. Do **not** reclassify the whole suite here — that is `/iflow-doctor`.
+{%- endif %}
+{%- endif %}

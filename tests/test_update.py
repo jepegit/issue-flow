@@ -152,6 +152,38 @@ def test_update_preserves_project_brief(tmp_path: Path) -> None:
     assert brief.read_text(encoding="utf-8") == custom
 
 
+def test_update_creates_essential_tests_designs_when_missing(tmp_path: Path) -> None:
+    """update should recreate essential-tests guide / registry if missing."""
+    run_init(tmp_path)
+    designs = tmp_path / ".issueflows" / "04-designs-and-guides"
+    guide = designs / "essential-tests.md"
+    registry = designs / "test-registry.md"
+    guide.unlink()
+    registry.unlink()
+
+    run_update(tmp_path)
+
+    assert guide.is_file()
+    assert "essential_tests" in guide.read_text(encoding="utf-8")
+    assert registry.is_file()
+    assert "Essential?" in registry.read_text(encoding="utf-8")
+
+
+def test_update_preserves_essential_tests_designs(tmp_path: Path) -> None:
+    """update must not overwrite essential-tests guide or test registry."""
+    run_init(tmp_path)
+    designs = tmp_path / ".issueflows" / "04-designs-and-guides"
+    guide = designs / "essential-tests.md"
+    registry = designs / "test-registry.md"
+    guide.write_text("# Keep essential guide\n", encoding="utf-8")
+    registry.write_text("# Keep registry\n", encoding="utf-8")
+
+    run_update(tmp_path)
+
+    assert guide.read_text(encoding="utf-8") == "# Keep essential guide\n"
+    assert registry.read_text(encoding="utf-8") == "# Keep registry\n"
+
+
 def test_update_creates_tools_readme_when_missing(tmp_path: Path) -> None:
     """update should recreate the 00-tools README if it is missing."""
     run_init(tmp_path)

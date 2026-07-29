@@ -45,6 +45,18 @@ This is an **off-path** command — `/iflow` never auto-runs it.
    paths and commit — **no push**. On mixed dirt (any path outside
    `{{ issueflows_dir }}/`), report and do not offer this default.
 
+{%- if essential_tests %}
+
+6. **Essential tests audit** (optional; `essential_tests = true`) — only when
+   the user asks for a full-suite essential review. Do not run on every doctor
+   call. Marker `{{ essential_marker }}`; registry
+   `{{ issueflows_dir }}/{{ designs_folder }}/test-registry.md`; contract
+   `{{ issueflows_dir }}/{{ designs_folder }}/essential-tests.md`. Present
+   mark/unmark/registry proposals; apply only after one consolidated confirm.
+   {%- if test_runner != "pytest" %} Skip when `test_runner` is not pytest
+   (unsupported in v1).{%- endif %}
+{%- endif %}
+
 ## Constraints
 
 - Never delete issue markdown or merge duplicate groups automatically.

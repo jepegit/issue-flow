@@ -62,6 +62,27 @@ Do **not** auto-dispatch from `/iflow`, `/iflow-build`, or `/iflow-close`.
      dirt; do **not** offer the housekeeping default (user must sort code
      changes separately).
 
+{%- if essential_tests %}
+
+4. **Essential tests audit** (optional; this project has `essential_tests = true`) —
+   Only when the user asks for a full-suite essential review (or after folder
+   repair if they opt in). Do **not** run this on every doctor call by default.
+   {%- if test_runner != "pytest" %}
+   `test_runner={{ test_runner }}` is unsupported (v1 = pytest only) — skip and
+   invite a contribution.
+   {%- else %}
+   - Read `{{ issueflows_dir }}/{{ designs_folder }}/essential-tests.md` and
+     `{{ issueflows_dir }}/{{ designs_folder }}/test-registry.md`.
+   - Scan the pytest suite vs the registry: missing rows, marked-but-not-listed,
+     listed-but-unmarked, candidates to demote (suite growing too large), tests
+     created outside issue-flow.
+   - Present a consolidated proposal (mark / unmark / registry edits). Apply
+     only after one confirm. Prefer graphify when available to name code under
+     test; never silently rewrite unrelated tests.
+   - Marker name: `{{ essential_marker }}`.
+   {%- endif %}
+{%- endif %}
+
 ## Constraints
 
 - **Off-path** — never auto-dispatch from `/iflow` or other lifecycle steps.

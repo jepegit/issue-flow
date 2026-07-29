@@ -25,11 +25,14 @@ Other optional notes still apply: branch name, PR title, skip issue doc update, 
 ## Typical steps
 
 1. **Sanity check**
-   - Run tests and any checks you rely on (e.g. `uv run pytest`).
+   - Run tests and any checks you rely on (e.g. `uv run pytest`).{%- include "skills/_essential_tests_close_sanity.md.j2" %}
 {% if ruff_autofix %}   - **Ruff (when present).** If the project uses ruff (`[tool.ruff]` in `pyproject.toml`, ruff in dev dependencies, or `{{ issueflows_dir }}/{{ designs_folder }}/python-quality-tools.md` exists), run auto-fix lint through the documented Python runner before committing — e.g. `uv run ruff check --fix …` then `uv run ruff format …` (match paths to what the project documents).
 {% endif %}   - Skim the diff so the commit matches what you intend to ship.
    - Confirm that any design decisions or good-practices that emerged from this issue are captured under `{{ issueflows_dir }}/{{ designs_folder }}/` before committing. If something is missing, add it now (short markdown: context, decision, alternatives, link back to the issue).
 {% if suggest_graphify %}   - **Graph freshness (optional).** If this change touched the project's structure (new modules, big refactor, removed files) and `graphify-out/` exists, suggest the user run `/iflow-graphify` (default: `graphify update`, AST-only, no LLM key needed) before pushing so teammates pull a current `GRAPH_REPORT.md`. Do not run `/iflow-graphify` automatically — it is opt-in. Skip this bullet entirely if `graphify-out/` is not present.
+{% endif %}{%- if essential_tests and essential_review in ("close", "both") %}
+1a. **Essential tests review** — `essential_tests = true`, `essential_review = {{ essential_review }}`.
+{% include "skills/_essential_tests_review.md.j2" %}
 {% endif %}
 2. **Optional version bump** (only if the user asked for it in the command input{% if confirm_version_bump %}; without `yolo`, if they did not ask, ask once whether to bump{% endif %})
    - Read `{{ agent_dir }}/skills/iflow-version-bump/SKILL.md` and follow it — it resolves the project's **release strategy** first (the "Release & version bump" section of `{{ issueflows_dir }}/{{ designs_folder }}/this-project.md`, else `pyproject.toml` detection, else the uv default), and defines every supported level and the pre-release-aware default.

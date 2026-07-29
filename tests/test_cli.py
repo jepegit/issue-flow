@@ -1806,6 +1806,10 @@ def test_config_add_creates_defaults(
     assert payload["auto_close"] is False
     assert payload["early_pr"] is False
     assert payload["confirm_changelog_update"] is False
+    assert payload["essential_tests"] is False
+    assert payload["test_runner"] == "pytest"
+    assert payload["essential_marker"] == "essential"
+    assert payload["essential_review"] == "close"
 
     cfg = tmp_path / ".issueflows" / "config.toml"
     assert cfg.is_file()
@@ -1822,6 +1826,10 @@ def test_config_add_creates_defaults(
     assert data["issueflow"]["cycle_max_issues"] == 10
     assert data["issueflow"]["auto_adversarial_loops"] == 2
     assert data["issueflow"]["early_pr"] is False
+    assert data["issueflow"]["essential_tests"] is False
+    assert data["issueflow"]["test_runner"] == "pytest"
+    assert data["issueflow"]["essential_marker"] == "essential"
+    assert data["issueflow"]["essential_review"] == "close"
 
 
 def test_config_add_reads_env(

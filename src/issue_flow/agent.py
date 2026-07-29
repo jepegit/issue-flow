@@ -1994,7 +1994,9 @@ def _print_config_guide(console: Console, cfg_path: Path) -> None:
         "[bold]auto_plan[/bold] / [bold]auto_build[/bold] / "
         "[bold]early_pr[/bold]; "
         "[bold]confirm_version_bump[/bold] / [bold]confirm_changelog_update[/bold]; "
-        "[bold]ruff_autofix[/bold]: skill-behaviour toggles; re-run "
+        "[bold]ruff_autofix[/bold]; [bold]essential_tests[/bold] / "
+        "[bold]test_runner[/bold] / [bold]essential_marker[/bold] / "
+        "[bold]essential_review[/bold]: skill-behaviour toggles; re-run "
         "'issue-flow update' so skills re-render.[/dim]"
     )
     console.print(

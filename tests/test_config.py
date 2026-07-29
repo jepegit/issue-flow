@@ -77,6 +77,10 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "auto_build",
         "early_pr",
         "confirm_changelog_update",
+        "essential_tests",
+        "test_runner",
+        "essential_marker",
+        "essential_review",
     }
     assert set(context.keys()) == expected_keys
 
@@ -375,6 +379,10 @@ def test_skill_behaviour_knob_defaults(
         "ISSUEFLOW_EARLY_PR",
         "ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE",
         "ISSUEFLOW_AUTO_GRAPHIFY_ON_PLAN",
+        "ISSUEFLOW_ESSENTIAL_TESTS",
+        "ISSUEFLOW_TEST_RUNNER",
+        "ISSUEFLOW_ESSENTIAL_MARKER",
+        "ISSUEFLOW_ESSENTIAL_REVIEW",
     ):
         monkeypatch.delenv(key, raising=False)
     settings = Settings()
@@ -392,6 +400,10 @@ def test_skill_behaviour_knob_defaults(
     assert settings.resolve_auto_build(tmp_path) is True
     assert settings.resolve_early_pr(tmp_path) is False
     assert settings.resolve_confirm_changelog_update(tmp_path) is False
+    assert settings.resolve_essential_tests(tmp_path) is False
+    assert settings.resolve_test_runner(tmp_path) == "pytest"
+    assert settings.resolve_essential_marker(tmp_path) == "essential"
+    assert settings.resolve_essential_review(tmp_path) == "close"
 
 
 def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
@@ -411,7 +423,11 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
         "auto_plan = false\n"
         "auto_build = false\n"
         "early_pr = true\n"
-        "confirm_changelog_update = false\n",
+        "confirm_changelog_update = false\n"
+        "essential_tests = true\n"
+        'test_runner = "pytest"\n'
+        'essential_marker = "smoke"\n'
+        'essential_review = "both"\n',
     )
     settings = Settings()
     assert settings.resolve_remind_cleanup(tmp_path) is False
@@ -428,6 +444,10 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
     assert settings.resolve_auto_build(tmp_path) is False
     assert settings.resolve_early_pr(tmp_path) is True
     assert settings.resolve_confirm_changelog_update(tmp_path) is False
+    assert settings.resolve_essential_tests(tmp_path) is True
+    assert settings.resolve_test_runner(tmp_path) == "pytest"
+    assert settings.resolve_essential_marker(tmp_path) == "smoke"
+    assert settings.resolve_essential_review(tmp_path) == "both"
 
 
 def test_pr_merge_method_invalid_falls_back(

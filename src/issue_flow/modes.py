@@ -69,6 +69,14 @@ DEFAULT_AUTO_BUILD = True
 DEFAULT_EARLY_PR = False
 DEFAULT_CONFIRM_CHANGELOG_UPDATE = False
 
+# Essential-tests paradigm (pytest); opt-in, baked into close/build/doctor.
+DEFAULT_ESSENTIAL_TESTS = False
+DEFAULT_TEST_RUNNER = "pytest"
+DEFAULT_ESSENTIAL_MARKER = "essential"
+DEFAULT_ESSENTIAL_REVIEW = "close"
+ALLOWED_ESSENTIAL_REVIEWS = frozenset({"close", "build", "both", "never"})
+ALLOWED_TEST_RUNNERS = frozenset({"pytest"})
+
 # GitHub sync defaults (``.issueflows/`` folder → labels / milestones).
 DEFAULT_SYNC_ENABLED = True
 DEFAULT_SYNC_LABEL_PREFIX = "status:"
@@ -437,6 +445,28 @@ def normalize_pr_merge_method(value: str | None) -> str | None:
     return None
 
 
+def normalize_essential_review(value: str | None) -> str | None:
+    """Return a canonical essential-review timing, or ``None`` when unset/invalid."""
+    if value is None:
+        return None
+    cleaned = str(value).strip().lower()
+    if cleaned in ALLOWED_ESSENTIAL_REVIEWS:
+        return cleaned
+    return None
+
+
+def normalize_test_runner(value: str | None) -> str | None:
+    """Return a canonical test-runner id, or ``None`` when unset/empty.
+
+    Unknown runners are returned lowercased (skills treat non-``pytest`` as
+    unsupported) so a persisted value round-trips instead of falling back.
+    """
+    if value is None:
+        return None
+    cleaned = str(value).strip().lower()
+    return cleaned or None
+
+
 def read_remind_cleanup(cfg_path: Path) -> bool | None:
     """Return the persisted ``[issueflow].remind_cleanup`` flag."""
     if not cfg_path.is_file():
@@ -610,6 +640,62 @@ def read_confirm_changelog_update(cfg_path: Path) -> bool | None:
     return None
 
 
+def read_essential_tests(cfg_path: Path) -> bool | None:
+    """Return the persisted ``[issueflow].essential_tests`` flag."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "essential_tests" in section:
+        return bool(section.get("essential_tests"))
+    return None
+
+
+def read_test_runner(cfg_path: Path) -> str | None:
+    """Return persisted ``[issueflow].test_runner``, or ``None`` if unset."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "test_runner" in section:
+        return normalize_test_runner(
+            str(section["test_runner"])
+            if section.get("test_runner") is not None
+            else None
+        )
+    return None
+
+
+def read_essential_marker(cfg_path: Path) -> str | None:
+    """Return persisted ``[issueflow].essential_marker``, or ``None`` if unset."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "essential_marker" in section:
+        value = section.get("essential_marker")
+        if value is None:
+            return None
+        cleaned = str(value).strip()
+        return cleaned or None
+    return None
+
+
+def read_essential_review(cfg_path: Path) -> str | None:
+    """Return persisted ``[issueflow].essential_review``, or ``None`` if unset/invalid."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "essential_review" in section:
+        return normalize_essential_review(
+            str(section["essential_review"])
+            if section.get("essential_review") is not None
+            else None
+        )
+    return None
+
+
 def read_sync_settings(cfg_path: Path) -> dict[str, object] | None:
     """Return ``[issueflow.sync]`` from ``config.toml``, or ``None`` if unset."""
     if not cfg_path.is_file():
@@ -776,6 +862,10 @@ def write_default_config(
     auto_build: bool = DEFAULT_AUTO_BUILD,
     early_pr: bool = DEFAULT_EARLY_PR,
     confirm_changelog_update: bool = DEFAULT_CONFIRM_CHANGELOG_UPDATE,
+    essential_tests: bool = DEFAULT_ESSENTIAL_TESTS,
+    test_runner: str = DEFAULT_TEST_RUNNER,
+    essential_marker: str = DEFAULT_ESSENTIAL_MARKER,
+    essential_review: str = DEFAULT_ESSENTIAL_REVIEW,
     overwrite: bool = False,
 ) -> bool:
     """Create (or, with ``overwrite``, refresh) the project's ``config.toml``.
@@ -832,6 +922,10 @@ def write_default_config(
         section["auto_build"] = auto_build
         section["early_pr"] = early_pr
         section["confirm_changelog_update"] = confirm_changelog_update
+        section["essential_tests"] = essential_tests
+        section["test_runner"] = test_runner
+        section["essential_marker"] = essential_marker
+        section["essential_review"] = essential_review
     else:
         doc = tomlkit.document()
         doc.add(
@@ -872,6 +966,10 @@ def write_default_config(
             auto_build,
             early_pr,
             confirm_changelog_update,
+            essential_tests,
+            test_runner,
+            essential_marker,
+            essential_review,
         )
 
     cfg_path.write_text(tomlkit.dumps(doc), encoding="utf-8")
@@ -905,6 +1003,10 @@ def _commented_issueflow_table(
     auto_build: bool,
     early_pr: bool,
     confirm_changelog_update: bool,
+    essential_tests: bool,
+    test_runner: str,
+    essential_marker: str,
+    essential_review: str,
 ) -> tomlkit.items.Table:
     """Build a fresh ``[issueflow]`` table with explanatory comments per key."""
     table = tomlkit.table()
@@ -1095,4 +1197,32 @@ def _commented_issueflow_table(
         )
     )
     table["ruff_autofix"] = ruff_autofix
+    table.add(tomlkit.nl())
+    table.add(
+        tomlkit.comment(
+            "Opt-in essential-tests paradigm for pytest (true/false; default "
+            "false). When true, close/build/doctor skills triage "
+            "@pytest.mark.<essential_marker>. Re-run 'issue-flow update'."
+        )
+    )
+    table["essential_tests"] = essential_tests
+    table.add(
+        tomlkit.comment(
+            "Test runner for essential-tests (v1: only 'pytest' supported)."
+        )
+    )
+    table["test_runner"] = test_runner
+    table.add(
+        tomlkit.comment(
+            "pytest mark name for the essential suite (default 'essential')."
+        )
+    )
+    table["essential_marker"] = essential_marker
+    table.add(
+        tomlkit.comment(
+            "When to triage issue-touched tests: 'close', 'build', 'both', "
+            "or 'never' (default 'close'). Full-suite audit stays in doctor."
+        )
+    )
+    table["essential_review"] = essential_review
     return table
