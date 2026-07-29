@@ -10,6 +10,7 @@
 - `skill-behaviour-knobs.md` + `docs/configuration.md`.
 - `.issueflows/config.toml` explicit `auto_plan` / `auto_build`.
 - Dogfood `issue-flow update`; 574 tests passed.
+- PR: https://github.com/jepegit/issue-flow/pull/223 (#223, draft)
 
 ## Remaining work
 
