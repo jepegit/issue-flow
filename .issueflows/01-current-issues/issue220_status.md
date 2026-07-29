@@ -12,7 +12,8 @@
 - Tests updated (manifest counts, mode membership, render asserts).
 - `uv run pytest` (579 passed) + `ruff check` clean.
 - Re-ran `issue-flow update` so local `.cursor/skills/gh-ci` + managed blocks refresh.
+- Pushed branch; draft PR: https://github.com/jepegit/issue-flow/pull/225 (#225, draft)
 
 ## Remaining work
 
-- `/iflow-close`: HISTORY bullet, commit packaging, PR finalize (this build opens/pushes the PR first per cloud agent flow).
+- `/iflow-close`: HISTORY bullet, mark PR ready, finalize (Closes #220).
