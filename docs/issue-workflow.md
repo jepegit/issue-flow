@@ -94,7 +94,7 @@ All workflows that touch git also run a short **branch-status preflight**: `git 
 **What the assistant does (three phases):**
 
 1. **Choose.** Prefers parked work in `.issueflows/02-partly-solved-issues/`; otherwise lists open GitHub issues (`gh issue list`) ranked by **milestone**, **labels**, and **topical similarity** to recently solved issues, then asks you to confirm a pick from a short shortlist. `fix` skips the survey and creates a new `chore: general fixes` issue.
-2. **Branch.** Requires a clean tree, branches off the default with the GitHub numeric convention `git switch -c <N>-<short-slug>`, then runs the `/iflow-init` flow automatically for `<N>`.
+2. **Branch.** Requires a clean tree (or, when the only dirt is under `.issueflows/`, offers a default housekeeping commit first — typical after `/iflow-doctor`), then branches off the default with the GitHub numeric convention `git switch -c <N>-<short-slug>`, then runs the `/iflow-init` flow automatically for `<N>`.
 3. **Hand off.** Asks whether to continue with `/iflow-plan` (never auto-runs it).
 
 **Out of scope (Phase B follow-up):** automated breakdown of an over-large issue into sub-issues created on GitHub and parked under `02-partly-solved-issues/`. `/iflow-pick` only *mentions* the option for now.

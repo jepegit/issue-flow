@@ -35,13 +35,25 @@ This is an **off-path** command — `/iflow` never auto-runs it.
 
 4. Re-audit and summarize.
 
+5. **Housekeeping commit (default when issueflows-only dirty).** Doctor repair
+   never runs `git commit`. After a successful repair, if
+   `issue-flow agent preflight --json` (or `git status --porcelain`) shows a
+   dirty tree whose paths are **all** under `{{ issueflows_dir }}/`, list them,
+   propose
+   `chore: doctor housekeeping — archive/sweep {{ issueflows_dir }} groups`,
+   and ask for **one confirm** (recommended: yes). On yes: stage **only** those
+   paths and commit — **no push**. On mixed dirt (any path outside
+   `{{ issueflows_dir }}/`), report and do not offer this default.
+
 ## Constraints
 
 - Never delete issue markdown or merge duplicate groups automatically.
 - Never auto-dispatch `/iflow-doctor` from `/iflow`, `/iflow-build`, or
   `/iflow-close`.
 - Repair moves need explicit user confirmation.
+- Never auto-commit from the CLI; agent commits only after the step-5 confirm.
 
 ## Output
 
-Short sections: **Findings**, **Repair plan** (if applicable), **Result**.
+Short sections: **Findings**, **Repair plan** (if applicable), **Result**,
+**Housekeeping commit** (if applicable).

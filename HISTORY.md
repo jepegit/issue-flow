@@ -10,6 +10,7 @@ than the GitHub release notes they link to.
 ## [Unreleased]
 
 - **Opt-in `auto_graphify_on_plan` (#214).** When true, `/iflow-plan` runs `issue-flow graphify` (AST `update`) before prior-art discovery; missing/failing graphify notes and continues. Default false; coexists with soft `suggest_graphify`.
+- **Doctor leftovers default-commit (#218).** After `/iflow-doctor` repair (and at `/iflow-pick` Phase 2), treat issueflows-only dirty trees as a recommended housekeeping commit; `preflight --json` exposes `dirty_paths` / `issueflows_only`.
 
 ## [0.4.7] - 2026-07-24
 

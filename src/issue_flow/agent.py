@@ -130,6 +130,8 @@ def run_preflight(project_root: Path, console: Console, as_json: bool) -> int:
     branch = gitutils.current_branch(project_root)
     default = gitutils.default_branch(project_root)
     clean = gitutils.working_tree_clean(project_root)
+    dirty = gitutils.dirty_paths(project_root)
+    issueflows_only = gitutils.issueflows_only_dirty(dirty, settings.issueflows_dir)
     counts = gitutils.ahead_behind(project_root, default)
     issue_number = tracking.issue_number_from_branch(branch)
 
@@ -150,6 +152,8 @@ def run_preflight(project_root: Path, console: Console, as_json: bool) -> int:
         "current_branch": branch,
         "default_branch": default,
         "clean": clean,
+        "dirty_paths": dirty if dirty is not None else [],
+        "issueflows_only": issueflows_only,
         "ahead": counts[0] if counts else None,
         "behind": counts[1] if counts else None,
         "issue_number": issue_number,

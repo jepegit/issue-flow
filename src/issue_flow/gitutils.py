@@ -167,17 +167,75 @@ def fetch_prune(cwd: Path) -> bool:
     return result is not None and result.returncode == 0
 
 
+def _unquote_porcelain_path(path: str) -> str:
+    """Strip optional git porcelain double-quotes around a path."""
+    path = path.strip()
+    if len(path) >= 2 and path[0] == '"' and path[-1] == '"':
+        return path[1:-1]
+    return path
+
+
+def _paths_from_porcelain_line(line: str) -> list[str]:
+    """Extract path(s) from one ``git status --porcelain`` line.
+
+    Rename/copy lines use ``XY old -> new`` (both sides matter for
+    issueflows-only checks). Ordinary lines contribute a single path.
+    """
+    if not line.strip() or len(line) < 4:
+        return []
+    rest = line[3:].strip()
+    if " -> " in rest:
+        left, right = rest.split(" -> ", 1)
+        return [
+            _unquote_porcelain_path(left),
+            _unquote_porcelain_path(right),
+        ]
+    return [_unquote_porcelain_path(rest)]
+
+
 def dirty_paths(cwd: Path) -> list[str] | None:
     """Paths reported by ``git status --porcelain`` (empty list == clean).
 
-    Returns ``None`` when git is unavailable or the command fails, so callers
-    can distinguish "clean" from "unknown".
+    Rename/copy entries contribute **both** the old and new path. Returns
+    ``None`` when git is unavailable or the command fails, so callers can
+    distinguish "clean" from "unknown".
     """
     result = _run([GIT, "status", "--porcelain"], cwd)
     if result is None or result.returncode != 0:
         return None
     stdout = result.stdout or ""
-    return [line[3:].strip() for line in stdout.splitlines() if line.strip()]
+    paths: list[str] = []
+    for line in stdout.splitlines():
+        paths.extend(_paths_from_porcelain_line(line))
+    return paths
+
+
+def issueflows_only_dirty(
+    paths: list[str] | None,
+    issueflows_dir: str = ".issueflows",
+) -> bool | None:
+    """True when every dirty path lives under ``issueflows_dir``.
+
+    Empty ``paths`` is vacuously True (nothing outside the tree). ``None``
+    paths (git unknown) returns ``None`` so callers can degrade.
+    """
+    if paths is None:
+        return None
+    root = issueflows_dir.replace("\\", "/").strip()
+    while root.startswith("./"):
+        root = root[2:]
+    root = root.rstrip("/")
+    if not root:
+        return False
+    prefix = root + "/"
+    for raw in paths:
+        normalized = raw.replace("\\", "/").strip()
+        while normalized.startswith("./"):
+            normalized = normalized[2:]
+        if normalized == root or normalized.startswith(prefix):
+            continue
+        return False
+    return True
 
 
 def switch_branch(cwd: Path, branch: str) -> tuple[bool, str | None]:

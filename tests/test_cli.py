@@ -485,6 +485,57 @@ def test_agent_preflight_json_handles_missing_git(
     assert payload["git_available"] is False
 
 
+def test_agent_preflight_json_reports_issueflows_only_dirty(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from issue_flow import gitutils as gitutils_module
+
+    monkeypatch.setattr(gitutils_module, "git_available", lambda: True)
+    monkeypatch.setattr(gitutils_module, "fetch_prune", lambda _cwd: True)
+    monkeypatch.setattr(gitutils_module, "current_branch", lambda _cwd: "main")
+    monkeypatch.setattr(gitutils_module, "default_branch", lambda _cwd: "main")
+    monkeypatch.setattr(gitutils_module, "working_tree_clean", lambda _cwd: False)
+    monkeypatch.setattr(
+        gitutils_module,
+        "dirty_paths",
+        lambda _cwd: [".issueflows/03-solved-issues/issue1_original.md"],
+    )
+    monkeypatch.setattr(gitutils_module, "ahead_behind", lambda _cwd, _d: (0, 0))
+
+    result = runner.invoke(app, ["agent", "preflight", "-C", str(tmp_path), "--json"])
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["clean"] is False
+    assert payload["dirty_paths"] == [".issueflows/03-solved-issues/issue1_original.md"]
+    assert payload["issueflows_only"] is True
+
+
+def test_agent_preflight_json_issueflows_only_false_when_mixed(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from issue_flow import gitutils as gitutils_module
+
+    monkeypatch.setattr(gitutils_module, "git_available", lambda: True)
+    monkeypatch.setattr(gitutils_module, "fetch_prune", lambda _cwd: True)
+    monkeypatch.setattr(gitutils_module, "current_branch", lambda _cwd: "main")
+    monkeypatch.setattr(gitutils_module, "default_branch", lambda _cwd: "main")
+    monkeypatch.setattr(gitutils_module, "working_tree_clean", lambda _cwd: False)
+    monkeypatch.setattr(
+        gitutils_module,
+        "dirty_paths",
+        lambda _cwd: [".issueflows/x.md", "src/wip.py"],
+    )
+    monkeypatch.setattr(gitutils_module, "ahead_behind", lambda _cwd, _d: (0, 0))
+
+    result = runner.invoke(app, ["agent", "preflight", "-C", str(tmp_path), "--json"])
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["issueflows_only"] is False
+    assert "src/wip.py" in payload["dirty_paths"]
+
+
 def test_agent_branches_json_classifies_remotes(
     runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
