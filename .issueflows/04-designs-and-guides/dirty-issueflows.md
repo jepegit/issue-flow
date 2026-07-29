@@ -38,3 +38,23 @@ move whole groups using the same rules as `issue-flow agent sweep`.
 `/iflow-doctor` (off-path) runs audit, presents findings, and on confirmation
 applies `--fix`. Manual fallback steps live in the skill template when the CLI
 is not installed.
+
+## Post-repair git housekeeping (issue #218)
+
+`doctor --fix` / `agent repair` stay **filesystem-only** — they never run
+`git commit`. Repairs typically leave a dirty tree whose paths are all under
+`.issueflows/` (moved `issue<N>_*` groups).
+
+**Agent convention:**
+
+1. After a successful `/iflow-doctor` repair, if
+   `issue-flow agent preflight --json` reports `issueflows_only: true` (or every
+   porcelain path is under the configured issueflows dir), treat **commit
+   housekeeping** as the **recommended default** — one confirm, stage only
+   those paths, message like
+   `chore: doctor housekeeping — archive/sweep .issueflows groups`, **no push**.
+2. `/iflow-pick` Phase 2 uses the same rule when the tree is dirty: issueflows-only
+   → offer that default commit then continue; any path outside `.issueflows/` →
+   hard stop (commit/stash/abort), never “commit everything”.
+3. Never fold `src/` (or other non-issueflows paths) into the housekeeping
+   commit.

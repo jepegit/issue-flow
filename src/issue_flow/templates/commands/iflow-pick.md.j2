@@ -55,7 +55,20 @@ Optional free-form text after the command:
 
 ### Phase 2 — create the branch
 
-1. **Require a clean tree.** Run `git status --porcelain`. If anything is uncommitted, **stop** and ask the user to commit or stash first. Do not branch on top of unrelated changes.
+1. **Working-tree gate.** Prefer `issue-flow agent preflight --json`
+   (`clean` / `dirty_paths` / `issueflows_only`); else `git status --porcelain`
+   and treat the tree as issueflows-only when every path is under
+   `{{ issueflows_dir }}/`.
+   - **Clean** — continue.
+   - **Issueflows-only dirty** (e.g. leftover `/iflow-doctor` moves) — one
+     consolidated prompt; **recommended default** = commit housekeeping on the
+     **current** branch (`chore: doctor housekeeping — archive/sweep
+     {{ issueflows_dir }} groups`, or a short edit), then continue. Alternatives:
+     stash / abort. Stage **only** those paths; **no push**. Do not branch on
+     top of the dirty tree.
+   - **Mixed / code dirty** — **stop**; list paths outside
+     `{{ issueflows_dir }}/`; ask commit / stash / abort. Do not offer “commit
+     everything”.
 
 2. **Branch off the default.** Switch to the default branch and fast-forward if needed, then create the issue branch using GitHub's numeric convention `git switch -c <N>-<short-slug>` (leading issue number, then a short kebab-case slug derived from the title). Confirm the branch name with the user if the slug is non-obvious.
 

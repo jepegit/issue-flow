@@ -1,6 +1,6 @@
 # Status — Issue #216: possible bug in gitutils
 
-- [ ] Done
+- [x] Done
 
 ## What's done
 

@@ -80,7 +80,20 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 
 ### Phase 2 — create the branch
 
-1. **Require a clean tree** (`git status --porcelain`). If dirty, **stop** and ask the user to commit/stash.
+1. **Working-tree gate** — Prefer `issue-flow agent preflight --json` (fields
+   `clean`, `dirty_paths`, `issueflows_only`); else `git status --porcelain`
+   and treat paths as issueflows-only when every path is under
+   `.issueflows/`.
+   - **Clean** — continue.
+   - **Issueflows-only dirty** (typical after `/iflow-doctor` repair) — one
+     consolidated prompt with **commit housekeeping on the current branch** as
+     the **recommended default** (message pattern:
+     `chore: doctor housekeeping — archive/sweep .issueflows groups`,
+     or a short edit). Alternatives: stash / abort. On commit: stage **only**
+     those paths, commit, **no push**, then continue. Do not branch on top of
+     the dirty tree.
+   - **Mixed / code dirty** — **stop**; list non-`.issueflows/` paths;
+     ask commit / stash / abort. Do **not** auto-offer “commit everything”.
 2. **Branch off the default** — switch to default, fast-forward, then `git switch -c <N>-<short-slug>` (GitHub numeric convention). Confirm a non-obvious slug.
 3. **Run `/iflow-init`** for the now-known `<N>` by following the `iflow-init` skill. Do not duplicate its fetch/archive logic.
 

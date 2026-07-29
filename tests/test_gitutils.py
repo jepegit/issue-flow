@@ -306,6 +306,58 @@ def test_dirty_paths_none_when_git_missing(monkeypatch: pytest.MonkeyPatch) -> N
     assert gitutils.dirty_paths(Path(".")) is None
 
 
+def test_dirty_paths_expands_rename_both_sides(
+    monkeypatch: pytest.MonkeyPatch, all_tools_present: None
+) -> None:
+    monkeypatch.setattr(
+        gitutils.subprocess,
+        "run",
+        _fake_runner(
+            {
+                ("git", "status"): _FakeProc(
+                    stdout="R  .issueflows/02/a.md -> .issueflows/03/a.md\n"
+                )
+            }
+        ),
+    )
+    assert gitutils.dirty_paths(Path(".")) == [
+        ".issueflows/02/a.md",
+        ".issueflows/03/a.md",
+    ]
+
+
+def test_issueflows_only_dirty_empty_and_under_tree() -> None:
+    assert gitutils.issueflows_only_dirty([]) is True
+    assert (
+        gitutils.issueflows_only_dirty(
+            [".issueflows/01-current-issues/issue1_original.md"]
+        )
+        is True
+    )
+    assert gitutils.issueflows_only_dirty([".issueflows"]) is True
+
+
+def test_issueflows_only_dirty_rejects_outside_and_prefix_lookalikes() -> None:
+    assert (
+        gitutils.issueflows_only_dirty([".issueflows/x.md", "src/issue_flow/cli.py"])
+        is False
+    )
+    assert gitutils.issueflows_only_dirty(["issueflows_backup/x.md"]) is False
+    assert gitutils.issueflows_only_dirty(["not.issueflows/x.md"]) is False
+
+
+def test_issueflows_only_dirty_custom_dir_and_none() -> None:
+    assert (
+        gitutils.issueflows_only_dirty(["tracking/a.md"], issueflows_dir="tracking")
+        is True
+    )
+    assert (
+        gitutils.issueflows_only_dirty([".issueflows/a.md"], issueflows_dir="tracking")
+        is False
+    )
+    assert gitutils.issueflows_only_dirty(None) is None
+
+
 def test_switch_branch_success(
     monkeypatch: pytest.MonkeyPatch, all_tools_present: None
 ) -> None:
