@@ -17,6 +17,7 @@ Do **not** use this skill from `/iflow`, `/iflow-build`, or `/iflow-close`. `/if
 - **(nothing)** — survey candidates and ask which to pick.
 - **`fix`** — create a **new** general-fixes GitHub issue (a fresh one every time) and use it.
 - **a hint** (milestone / label / topic) — bias the candidate ranking.
+- **`noplan`** — skip the `auto_plan` chain for this run (ask before `/iflow-plan` even when `auto_plan` is true).
 
 {% set iflow_step = "pick" %}
 {% include "skills/_invocation_forms.md.j2" %}
@@ -65,7 +66,11 @@ Do **not** use this skill from `/iflow`, `/iflow-build`, or `/iflow-close`. `/if
 
 ### Phase 3 — hand off
 
+{% if auto_plan and "iflow_plan" in included_skills %}
+1. **Chain into `/iflow-plan`** (this project has `auto_plan = true`). After Phase 2, follow {% if commands_supported %}`{{ agent_dir }}/{{ commands_dir }}/iflow-plan.md` (or the `iflow-plan` skill){% else %}the `iflow-plan` skill{% endif %} immediately — briefly note that `auto_plan` chained the handoff. Trailing **`noplan`** (or the user declining on confirm) skips the chain once and falls back to asking.
+{% else %}
 1. **Ask** whether to continue with `/iflow-plan`. Do not auto-run it.
+{% endif %}
 {% if label_flows and "iflow-yolo" in included_commands %}
 2. **Exception:** when the `{{ yolo_label }}`-label routing was confirmed in Phase 1, skip this handoff — the `iflow-yolo` chain (which includes `/iflow-init`) takes over after the branch is created.
 {% endif %}
@@ -77,3 +82,4 @@ Do **not** use this skill from `/iflow`, `/iflow-build`, or `/iflow-close`. `/if
 - Branch off the detected default; never force-push or delete branches from this skill.
 - **Phase B is out of scope**: no automated sub-issue creation or sibling parking under `{{ partly_solved_folder }}/`. Only mention the option.
 - Delegate issue capture to `/iflow-init` rather than re-implementing it.
+- `auto_plan` only skips the post-init pause; pick confirm and yolo routing stay gated.

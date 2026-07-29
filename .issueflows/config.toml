@@ -2,3 +2,5 @@
 mode = "standard"
 caveman_default = true
 linguist_attributes = true
+auto_plan = true
+auto_build = true

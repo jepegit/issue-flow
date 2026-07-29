@@ -64,6 +64,8 @@ DEFAULT_AUTO_ADVERSARIAL_LOOPS = 2
 DEFAULT_CONFIRM_VERSION_BUMP = False
 DEFAULT_RUFF_AUTOFIX = True
 DEFAULT_AUTO_CLOSE = False
+DEFAULT_AUTO_PLAN = True
+DEFAULT_AUTO_BUILD = True
 DEFAULT_EARLY_PR = False
 DEFAULT_CONFIRM_CHANGELOG_UPDATE = False
 
@@ -564,6 +566,28 @@ def read_auto_close(cfg_path: Path) -> bool | None:
     return None
 
 
+def read_auto_plan(cfg_path: Path) -> bool | None:
+    """Return the persisted ``[issueflow].auto_plan`` flag."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "auto_plan" in section:
+        return bool(section.get("auto_plan"))
+    return None
+
+
+def read_auto_build(cfg_path: Path) -> bool | None:
+    """Return the persisted ``[issueflow].auto_build`` flag."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "auto_build" in section:
+        return bool(section.get("auto_build"))
+    return None
+
+
 def read_early_pr(cfg_path: Path) -> bool | None:
     """Return the persisted ``[issueflow].early_pr`` flag."""
     if not cfg_path.is_file():
@@ -748,6 +772,8 @@ def write_default_config(
     confirm_version_bump: bool = DEFAULT_CONFIRM_VERSION_BUMP,
     ruff_autofix: bool = DEFAULT_RUFF_AUTOFIX,
     auto_close: bool = DEFAULT_AUTO_CLOSE,
+    auto_plan: bool = DEFAULT_AUTO_PLAN,
+    auto_build: bool = DEFAULT_AUTO_BUILD,
     early_pr: bool = DEFAULT_EARLY_PR,
     confirm_changelog_update: bool = DEFAULT_CONFIRM_CHANGELOG_UPDATE,
     overwrite: bool = False,
@@ -802,6 +828,8 @@ def write_default_config(
         section["confirm_version_bump"] = confirm_version_bump
         section["ruff_autofix"] = ruff_autofix
         section["auto_close"] = auto_close
+        section["auto_plan"] = auto_plan
+        section["auto_build"] = auto_build
         section["early_pr"] = early_pr
         section["confirm_changelog_update"] = confirm_changelog_update
     else:
@@ -840,6 +868,8 @@ def write_default_config(
             confirm_version_bump,
             ruff_autofix,
             auto_close,
+            auto_plan,
+            auto_build,
             early_pr,
             confirm_changelog_update,
         )
@@ -871,6 +901,8 @@ def _commented_issueflow_table(
     confirm_version_bump: bool,
     ruff_autofix: bool,
     auto_close: bool,
+    auto_plan: bool,
+    auto_build: bool,
     early_pr: bool,
     confirm_changelog_update: bool,
 ) -> tomlkit.items.Table:
@@ -1016,6 +1048,22 @@ def _commented_issueflow_table(
         )
     )
     table["auto_close"] = auto_close
+    table.add(
+        tomlkit.comment(
+            "When true, /iflow-pick chains into /iflow-plan after pick confirm "
+            "+ branch/init (default true). Trailing noplan skips once. "
+            "Re-run 'issue-flow update' after changing."
+        )
+    )
+    table["auto_plan"] = auto_plan
+    table.add(
+        tomlkit.comment(
+            "When true, /iflow-plan chains into /iflow-build on plan Accept "
+            "(default true). Trailing nobuild skips once. Re-run "
+            "'issue-flow update' after changing."
+        )
+    )
+    table["auto_build"] = auto_build
     table.add(
         tomlkit.comment(
             "When true, /iflow-build opens a draft PR after the first push "

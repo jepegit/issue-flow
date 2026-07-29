@@ -16,6 +16,11 @@ Follow this skill to **design the approach** for the focus issue before touching
 {% include "skills/_model_directive.md.j2" %}
 
 {% include "skills/_resolve_project_root.md.j2" %}
+
+## Optional tokens (command input)
+
+- **`nobuild`** — skip the `auto_build` chain for this run (after Accept, ask / tell the user to run `/iflow-build` even when `auto_build` is true).
+
 ## Instructions
 
 > **CLI fast path (optional).** If the `issue-flow` CLI is on `PATH`, run
@@ -58,12 +63,21 @@ Follow this skill to **design the approach** for the focus issue before touching
 7. **Scope check.** If the plan is broad (many unrelated files, mixes refactors with feature work, multiple independent deliverables), propose splitting into smaller issues or phased PRs before finalizing the plan.
 
 8. **Confirm with the user.** Present the plan and **stop**. Accept one of: **Accept** (ready for `/iflow-build`), **Revise** (update `issue<N>_plan.md` in place and re-confirm), or **Abort**.
+{% if auto_build and "iflow_build" in included_skills %}
+   On **Accept** (and no trailing **`nobuild`**), follow {% if commands_supported %}`{{ agent_dir }}/{{ commands_dir }}/iflow-build.md` (or the `iflow-build` skill){% else %}the `iflow-build` skill{% endif %} immediately — briefly note that `auto_build` chained the handoff. Still write no code *before* Accept. With **`nobuild`**, or when the user only wants to park the accepted plan, tell them to run `/iflow-build` later instead of chaining.
+{% else %}
+   Do **not** proceed to implementation from this skill. Tell the user to run `/iflow-build` once they Accept.
+{% endif %}
 
 9. **Conflict on existing `issue<N>_plan.md`.** Do not overwrite silently. Offer: update in place (after review), keep both (`issue<N>_plan.v2.md`), or leave as is.
 
 ## Constraints
 
-- `/iflow-plan` is **read-only on source code**. The only file it writes is `{{ issueflows_dir }}/{{ current_issues_folder }}/issue<N>_plan.md`.
+- `/iflow-plan` is **read-only on source code** until Accept. The only file it writes before Accept is `{{ issueflows_dir }}/{{ current_issues_folder }}/issue<N>_plan.md`.
 - Do not move files between `01-` / `02-` / `03-` folders from `/iflow-plan`.
-- Do not run tests or package managers; that belongs to `/iflow-build` and `/iflow-close`.
+- Do not run tests or package managers from planning itself; that belongs to `/iflow-build` and `/iflow-close`.
+{% if auto_build and "iflow_build" in included_skills %}
+- `auto_build` only skips the post-Accept pause; Accept / Revise / Abort stay gated. Trailing `nobuild` skips the chain once.
+{% else %}
 - Do not proceed to implementation from this skill. Hand off to `/iflow-build` once the user confirms.
+{% endif %}

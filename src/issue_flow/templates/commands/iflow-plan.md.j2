@@ -12,6 +12,7 @@ Optional free-form text after the command. Examples:
 
 - **No extra text** — plan the focus issue using the `*_original.md` alone.
 - Short constraints / design hints (e.g. "stick to the existing logger", "split into two PRs") — incorporate into the plan.
+- **`nobuild`** — skip the `auto_build` chain for this run (after Accept, do not auto-start `/iflow-build`).
 
 ## Steps
 
@@ -83,11 +84,14 @@ Optional free-form text after the command. Examples:
 4. **Scope check.** If the plan is broad (many unrelated files, several independent deliverables, or mixes refactors with feature work), **propose splitting** into smaller issues or phased PRs and ask the user before continuing.
 
 5. **Confirm with the user.** Present the plan and **stop**. Ask one of:
-   - **Accept** — the plan is good; next run `/iflow-build` to implement it.
+   - **Accept** — the plan is good; ready for `/iflow-build`.
    - **Revise** — call out sections to change; update `issue<N>_plan.md` in place and re-confirm.
    - **Abort** — remove `issue<N>_plan.md` (with the user's OK) or leave it as a draft.
-
+{% if auto_build and "iflow_build" in included_skills %}
+   On **Accept** (unless trailing **`nobuild`**), follow `{{ agent_dir }}/{{ commands_dir }}/iflow-build.md` (or the `iflow-build` skill) immediately and note that `auto_build` chained the handoff. Write no code before Accept.
+{% else %}
    Do **not** proceed to implementation from `/iflow-plan`. That belongs to `/iflow-build`.
+{% endif %}
 
 6. **If `issue<N>_plan.md` already exists.** Do not overwrite silently. Ask whether to:
    - **Update in place** (replace after the user sees the new content).

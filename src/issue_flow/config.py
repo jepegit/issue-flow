@@ -12,7 +12,9 @@ from issue_flow import modes as modes_module
 from issue_flow.editors import DEFAULT_EDITOR, EditorProfile, get_profile
 from issue_flow.modes import (
     DEFAULT_CONFIRM_VERSION_BUMP,
+    DEFAULT_AUTO_BUILD,
     DEFAULT_AUTO_CLOSE,
+    DEFAULT_AUTO_PLAN,
     DEFAULT_CHECKS_WATCH_MINUTES,
     DEFAULT_CONFIRM_CHANGELOG_UPDATE,
     DEFAULT_EARLY_PR,
@@ -393,6 +395,20 @@ class Settings:
             return persisted
         return _env_flag("ISSUEFLOW_AUTO_CLOSE", default=DEFAULT_AUTO_CLOSE)
 
+    def resolve_auto_plan(self, project_root: Path) -> bool:
+        """Resolve whether ``/iflow-pick`` chains into ``/iflow-plan`` after confirm."""
+        persisted = modes_module.read_auto_plan(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        return _env_flag("ISSUEFLOW_AUTO_PLAN", default=DEFAULT_AUTO_PLAN)
+
+    def resolve_auto_build(self, project_root: Path) -> bool:
+        """Resolve whether ``/iflow-plan`` chains into ``/iflow-build`` on Accept."""
+        persisted = modes_module.read_auto_build(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        return _env_flag("ISSUEFLOW_AUTO_BUILD", default=DEFAULT_AUTO_BUILD)
+
     def resolve_early_pr(self, project_root: Path) -> bool:
         """Resolve whether ``/iflow-build`` opens a draft PR after the first push."""
         persisted = modes_module.read_early_pr(self.config_path(project_root))
@@ -542,6 +558,8 @@ class Settings:
                 "ISSUEFLOW_RUFF_AUTOFIX", default=DEFAULT_RUFF_AUTOFIX
             ),
             "auto_close": _env_flag("ISSUEFLOW_AUTO_CLOSE", default=DEFAULT_AUTO_CLOSE),
+            "auto_plan": _env_flag("ISSUEFLOW_AUTO_PLAN", default=DEFAULT_AUTO_PLAN),
+            "auto_build": _env_flag("ISSUEFLOW_AUTO_BUILD", default=DEFAULT_AUTO_BUILD),
             "early_pr": _env_flag("ISSUEFLOW_EARLY_PR", default=DEFAULT_EARLY_PR),
             "confirm_changelog_update": _env_flag(
                 "ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE",
@@ -620,6 +638,8 @@ class Settings:
             "confirm_version_bump": self.resolve_confirm_version_bump(project_root),
             "ruff_autofix": self.resolve_ruff_autofix(project_root),
             "auto_close": self.resolve_auto_close(project_root),
+            "auto_plan": self.resolve_auto_plan(project_root),
+            "auto_build": self.resolve_auto_build(project_root),
             "early_pr": self.resolve_early_pr(project_root),
             "confirm_changelog_update": self.resolve_confirm_changelog_update(
                 project_root

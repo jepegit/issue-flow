@@ -1,16 +1,16 @@
 # Graph Report - workspace  (2026-07-29)
 
 ## Corpus Check
-- 224 files · ~157,706 words
+- 227 files · ~159,354 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2835 nodes · 4813 edges · 285 communities (211 shown, 74 thin omitted)
+- 2870 nodes · 4867 edges · 286 communities (215 shown, 71 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 62 edges (avg confidence: 0.75)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `4b3d877a`
+- Built from commit: `460f8478`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -294,12 +294,13 @@
 - [[_COMMUNITY_Community 277|Community 277]]
 - [[_COMMUNITY_Community 278|Community 278]]
 - [[_COMMUNITY_Community 281|Community 281]]
+- [[_COMMUNITY_Community 285|Community 285]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `Settings` - 129 edges
+1. `Settings` - 131 edges
 2. `run_init()` - 124 edges
-3. `render_template()` - 94 edges
-4. `_default_context()` - 83 edges
+3. `render_template()` - 96 edges
+4. `_default_context()` - 85 edges
 5. `Archived issues — 2026-07-12` - 59 edges
 6. `_json()` - 58 edges
 7. `run_update()` - 34 edges
@@ -322,19 +323,19 @@
 ## Import Cycles
 - None detected.
 
-## Communities (285 total, 74 thin omitted)
+## Communities (286 total, 71 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.03
-Nodes (110): init(), Scaffold issue-flow directories and editor config files in a project., Scaffold .issueflows/ directories and editor config (commands, rules, skills)., run_init(), ensure_editor_gitignore(), Append gitignore entries for local-only editor dirs. Returns True if changed., test_init_canonical_creates_agent_store(), Tests for issue_flow.init (the init command). (+102 more)
+Nodes (112): init(), Scaffold issue-flow directories and editor config files in a project., _ensure_dotenv_file(), Scaffold .issueflows/ directories and editor config (commands, rules, skills)., Create or extend ``.env`` with commented ``ISSUEFLOW_*`` hints.      Never remov, run_init(), Tests for issue_flow.convert and canonical scaffolding., test_convert_prune_other_removes_sibling_editors() (+104 more)
 
 ### Community 1 - "Community 1"
-Cohesion: 0.06
-Nodes (86): CliRunner, _clear_issueflow_env(), _fake_meta(), _json(), Tests for the `issue-flow` Typer CLI., Workspace with two fully scaffolded members and a registry file., A cycle_status.md in current-issues is reported as an in-flight cycle., A title with Rich markup must not crash the text report or be interpreted. (+78 more)
+Cohesion: 0.05
+Nodes (102): CliRunner, _clear_issueflow_env(), _fake_meta(), _json(), _plain(), Tests for the `issue-flow` Typer CLI., `issue-flow update` must not expose a --mode flag (init-only)., Without a default, the registry adds context but resolution still asks. (+94 more)
 
 ### Community 2 - "Community 2"
 Cohesion: 0.05
-Nodes (66): Runtime settings for issue-flow.      Values come from environment variables (pr, Settings, Tests for issue_flow.config., ISSUEFLOW_HISTORY_FILE should override the default changelog filename., With no config and no env, caveman is not on by default., A persisted [issueflow].caveman_default=true is honored., ISSUEFLOW_CAVEMAN_DEFAULT is used when config does not set the key., The persisted config value wins over a conflicting env var. (+58 more)
+Nodes (67): Runtime settings for issue-flow.      Values come from environment variables (pr, Settings, Tests for issue_flow.config., ISSUEFLOW_HISTORY_FILE should override the default changelog filename., With no config and no env, caveman is not on by default., A persisted [issueflow].caveman_default=true is honored., ISSUEFLOW_CAVEMAN_DEFAULT is used when config does not set the key., The persisted config value wins over a conflicting env var. (+59 more)
 
 ### Community 3 - "Community 3"
 Cohesion: 0.06
@@ -345,16 +346,16 @@ Cohesion: 0.03
 Nodes (59): Archived issues — 2026-07-12, Issue #104: Iterative small fixes, Issue #106: chose flow details from issue labels, Issue #108: lacking ref to grill-me, Issue #10: enhance issue-close with ability to bump version number, Issue #113: The different steps in iflow requires different models, Issue #114: Iterative small fixes, Issue #117: great skills (+51 more)
 
 ### Community 5 - "Community 5"
-Cohesion: 0.04
-Nodes (30): _env_flag(), Path to the project's ``.issueflows/config.toml``., Resolve the active mode id for ``project_root`` (no CLI ``--mode``).          Th, Resolve the active :class:`Mode` (built-ins + project overrides)., Resolve whether the caveman style is on by default for ``project_root``., Resolve whether the grill-me skill is on by default for ``project_root``., Resolve whether label-driven flow selection is allowed for ``project_root``., Resolve whether to write a managed Linguist ``.gitattributes`` block.          O (+22 more)
+Cohesion: 0.05
+Nodes (33): _env_flag(), Path to the project's ``.issueflows/config.toml``., Resolve the active mode id for ``project_root`` (no CLI ``--mode``).          Th, Resolve the active :class:`Mode` (built-ins + project overrides)., Resolve whether the caveman style is on by default for ``project_root``., Resolve whether the grill-me skill is on by default for ``project_root``., Resolve whether label-driven flow selection is allowed for ``project_root``., Resolve whether to write a managed Linguist ``.gitattributes`` block.          O (+25 more)
 
 ### Community 6 - "Community 6"
 Cohesion: 0.06
 Nodes (45): apply_archive(), apply_repairs(), apply_sweep(), ArchiveMove, audit_issueflows(), DirtyFinding, file_marks_done(), FocusResolution (+37 more)
 
 ### Community 7 - "Community 7"
-Cohesion: 0.05
-Nodes (49): Refresh packaged editor commands, rules, and workflow doc from this package., update(), _create_issueflow_dirs(), _ensure_project_brief(), _ensure_tools_readme(), Create the durable project brief when it is missing.      The brief lives in ``0, Create the ``00-tools/`` README when it is missing.      The README is a self-de, Refresh packaged scaffold files (commands, rule, skills, workflow doc).      Ove (+41 more)
+Cohesion: 0.06
+Nodes (47): Refresh packaged editor commands, rules, and workflow doc from this package., update(), _ensure_project_brief(), _ensure_tools_readme(), Create the durable project brief when it is missing.      The brief lives in ``0, Create the ``00-tools/`` README when it is missing.      The README is a self-de, Refresh packaged scaffold files (commands, rule, skills, workflow doc).      Ove, run_update() (+39 more)
 
 ### Community 8 - "Community 8"
 Cohesion: 0.04
@@ -373,24 +374,24 @@ Cohesion: 0.05
 Nodes (39): Branch, Co-location, Cognitive Load, Completion Criterion, Context Load, Context Pointer, Description, Duplication (+31 more)
 
 ### Community 12 - "Community 12"
-Cohesion: 0.09
-Nodes (36): check_dependencies(), check_recommended(), Dependency, format_missing_report(), prompt_or_skip(), External CLI dependency detection for issue-flow.  The scaffolded workflow shell, Return the subset of ``dependencies`` not on ``PATH``.      Mirrors :func:`check, Return the subset of ``dependencies`` whose ``command`` is not on ``PATH``. (+28 more)
+Cohesion: 0.10
+Nodes (34): check_dependencies(), check_recommended(), Dependency, format_missing_report(), prompt_or_skip(), External CLI dependency detection for issue-flow.  The scaffolded workflow shell, Return the subset of ``dependencies`` not on ``PATH``.      Mirrors :func:`check, Return the subset of ``dependencies`` whose ``command`` is not on ``PATH``. (+26 more)
 
 ### Community 13 - "Community 13"
 Cohesion: 0.12
 Nodes (33): bump(), _bump_release(), default_levels(), detect_strategy(), parse_version(), Deterministic release-version planning (a pragmatic PEP 440 subset).  Backs ``is, Apply ``levels`` (canonical order) to ``current``.      Returns ``(planned, note, The pre-release-aware default when no level is given.      Mirrors the iflow-ver (+25 more)
 
 ### Community 14 - "Community 14"
-Cohesion: 0.06
-Nodes (34): _expand(), normalize_pr_merge_method(), Workflow *modes* for issue-flow scaffolding.  A *mode* selects which workflow su, Expand a ``skills``/``commands`` value into a concrete set.      ``"all"`` (or `, Split an ``add``/``remove`` stem list into (skill stems, command stems)., Resolve a mode's concrete (skills, commands) sets, following ``extends``., Return the persisted ``[issueflow].step_directives`` flag., Return the persisted ``[issueflow].model_label_flows`` flag. (+26 more)
+Cohesion: 0.08
+Nodes (30): _expand(), normalize_pr_merge_method(), Workflow *modes* for issue-flow scaffolding.  A *mode* selects which workflow su, Expand a ``skills``/``commands`` value into a concrete set.      ``"all"`` (or `, Split an ``add``/``remove`` stem list into (skill stems, command stems)., Resolve a mode's concrete (skills, commands) sets, following ``extends``., Return the persisted ``[issueflow].step_directives`` flag., Return the persisted ``[issueflow].model_label_flows`` flag. (+22 more)
 
 ### Community 15 - "Community 15"
-Cohesion: 0.07
-Nodes (34): _ensure_dotenv_file(), Create or extend ``.env`` with commented ``ISSUEFLOW_*`` hints.      Never remov, ensure_linguist_gitattributes(), maybe_ensure_linguist_gitattributes(), Append a managed Linguist ``.gitattributes`` block. Returns True if changed., Write the Linguist block when ``linguist_attributes`` resolves true., Path, init should create the durable project brief when missing. (+26 more)
+Cohesion: 0.09
+Nodes (30): ensure_linguist_gitattributes(), maybe_ensure_linguist_gitattributes(), Append a managed Linguist ``.gitattributes`` block. Returns True if changed., Write the Linguist block when ``linguist_attributes`` resolves true., Path, init should seed the 00-tools README index when missing., Running init should create Cursor skills, not Cursor command files., Running init should create bundled Agent Skills under .cursor/skills/. (+22 more)
 
 ### Community 16 - "Community 16"
-Cohesion: 0.06
-Nodes (34): _default_context(), /iflow-close must describe the HISTORY.md update step and its input tokens., The issue-init skill must fetch comments and point at the comments skill., The caveman skill ships as a model-invocable, full-mode-only behavior skill., /iflow-close should switch back to default after PR when the tree is clean., The /iflow-cleanup command owns the post-merge branch cleanup logic., /iflow-plan must document graceful graphify + grep prior-art checklist., Rules, plan, start, and docs should tell agents about this-project.md. (+26 more)
+Cohesion: 0.04
+Nodes (69): Render a single template by name and return the result string., render_template(), _default_context(), The workspace rules must describe branch and folder hygiene expectations., Lifecycle skills must document multi-root project-root resolution., The shared rules body must point agents at the multi-root contract., Lifecycle skills should recommend `iflow plan` before slash form., The durable project brief starter template should render with placeholders. (+61 more)
 
 ### Community 17 - "Community 17"
 Cohesion: 0.10
@@ -398,31 +399,27 @@ Nodes (29): discover_workspace(), find_project_root(), find_workspace_file(), li
 
 ### Community 18 - "Community 18"
 Cohesion: 0.06
-Nodes (31): Tests for issue_flow.templating., docs/issue-workflow should document space form before slash-only wording., The history-update skill should reference {{ history_file }} so custom filenames, /iflow-yolo must forward the new history-related tokens to /iflow-close., Standard scaffolding emits the caveman skill at skills/caveman/SKILL.md., Standard scaffolding emits the grill-me skill at skills/grill-me/SKILL.md., Non-cursor editors must not write under .cursor/ or mention "Cursor"., Every expected skill has a default Cursor manifest entry. (+23 more)
-
-### Community 19 - "Community 19"
-Cohesion: 0.06
-Nodes (31): Render a single template by name and return the result string., render_template(), Issue #118: agents must honor `iflow plan` as explicit invocation., Regression for issue #58: the shared rules body must defer to the     project's, Regression guard for issue #9: the Agent efficiency guidance must live in the te, The rules body mentions caveman only when it is in included_skills., /iflow-yolo must forward the yolo token so close merges and pulls itself., /iflow and its skill must list /iflow-auto among the explicit-only commands. (+23 more)
+Nodes (37): Tests for issue_flow.templating., docs/issue-workflow should document space form before slash-only wording., Regression guard for issue #9: the Agent efficiency guidance must live in the te, The issue-init skill must fetch comments and point at the comments skill., Standard scaffolding emits the caveman skill at skills/caveman/SKILL.md., All resolved output paths for a profile, as forward-slash strings., Standard scaffolding emits the grill-me skill at skills/grill-me/SKILL.md., Cursor now uses Agent Skills as the primary slash-menu surface. (+29 more)
 
 ### Community 20 - "Community 20"
 Cohesion: 0.07
 Nodes (27): Branch hygiene, Chat invocation (no slash), Command lifecycle, Common commands, Configuration, Conventions & gotchas, Cursor Cloud specific instructions, Designs and guides (+19 more)
 
 ### Community 21 - "Community 21"
-Cohesion: 0.12
-Nodes (27): Resolve ``mode_id`` into a concrete :class:`Mode`.      Merges built-in modes wi, Return the persisted ``[issueflow].linguist_attributes`` flag.      Returns ``No, read_linguist_attributes(), resolve_mode(), Tests for issue_flow.modes (mode registry, resolution, persistence)., A config without the key -> unset (None), so env/default can apply., A config without the key -> unset (None), so env/default can apply., No config file -> linguist_attributes is unset (None), not a boolean. (+19 more)
+Cohesion: 0.10
+Nodes (30): Resolve ``mode_id`` into a concrete :class:`Mode`.      Merges built-in modes wi, resolve_mode(), Tests for issue_flow.modes (mode registry, resolution, persistence)., A config without the key -> unset (None), so env/default can apply., An explicit boolean is read back as that boolean., An explicit boolean is read back as that boolean., A config without the key -> unset (None), so env/default can apply., An explicit label is read back verbatim. (+22 more)
 
 ### Community 22 - "Community 22"
 Cohesion: 0.09
 Nodes (26): enrich_render_context(), _load_packaged_defaults(), Step execution profiles for issue-flow lifecycle skills.  Each lifecycle skill m, Map a manifest template path to a lifecycle skill stem, if any., Copy ``context`` and set ``step_profile`` when rendering a lifecycle surface., Return ``[issueflow.step_profiles]`` overrides from ``config.toml``., Merge packaged defaults with project overrides (project wins)., Return the profile for ``stem``, or ``None`` when not a lifecycle skill. (+18 more)
 
 ### Community 23 - "Community 23"
-Cohesion: 0.13
-Nodes (28): apply_plan(), bootstrap_hint(), collect_tracked_issues(), ensure_managed_labels(), _folder_state_map(), IssueSyncPlan, IssueSyncResult, label_for_state() (+20 more)
+Cohesion: 0.11
+Nodes (32): Sync ``.issueflows/`` folder state to GitHub labels (and optionally milestones)., sync(), Return ``[issueflow.sync]`` from ``config.toml``, or ``None`` if unset., read_sync_settings(), apply_plan(), bootstrap_hint(), collect_tracked_issues(), ensure_managed_labels() (+24 more)
 
 ### Community 24 - "Community 24"
-Cohesion: 0.08
-Nodes (24): Return the persisted ``[issueflow].remind_cleanup`` flag., Return the persisted ``[issueflow].suggest_graphify`` flag., Return the persisted ``[issueflow].auto_graphify_on_plan`` flag., Return the persisted ``[issueflow].auto_switchback`` flag., Return persisted ``[issueflow].cycle_max_issues``, or ``None`` if unset.      Re, Return persisted ``[issueflow].auto_adversarial_loops``, or ``None``.      Retur, Return the persisted ``[issueflow].confirm_version_bump`` flag., Return the persisted ``[issueflow].ruff_autofix`` flag. (+16 more)
+Cohesion: 0.07
+Nodes (28): Return the persisted ``[issueflow].remind_cleanup`` flag., Return the persisted ``[issueflow].suggest_graphify`` flag., Return the persisted ``[issueflow].auto_graphify_on_plan`` flag., Return the persisted ``[issueflow].auto_switchback`` flag., Return persisted ``[issueflow].cycle_max_issues``, or ``None`` if unset.      Re, Return persisted ``[issueflow].auto_adversarial_loops``, or ``None``.      Retur, Return the persisted ``[issueflow].confirm_version_bump`` flag., Return the persisted ``[issueflow].ruff_autofix`` flag. (+20 more)
 
 ### Community 25 - "Community 25"
 Cohesion: 0.09
@@ -437,24 +434,24 @@ Cohesion: 0.18
 Nodes (19): EpicPlan, IssueSpec, parse_epic_plan(), Parser for staged epic plan files (``epic<N>_plan.md``).  The ``/iflow-epic`` sk, One ``### Issue:`` block inside a stage., Fold ``stage <j> issue <k>`` placeholders into ``depends_on``         wherever t, Parse an epic plan file, or ``None`` when unreadable.      Lenient by design: un, Stage (+11 more)
 
 ### Community 28 - "Community 28"
-Cohesion: 0.16
-Nodes (21): Mode, A resolved scaffolding mode.      Attributes:         id: Stable identifier used, collect_profile_paths(), materialize_canonical_store(), materialize_editor_profile(), MaterializeResult, prune_all_editor_surfaces(), prune_other_editor_surfaces() (+13 more)
+Cohesion: 0.17
+Nodes (20): Materialize canonical or per-editor scaffold surfaces.      Args:         projec, run_convert(), Mode, A resolved scaffolding mode.      Attributes:         id: Stable identifier used, collect_profile_paths(), ensure_editor_gitignore(), materialize_canonical_store(), materialize_editor_profile() (+12 more)
 
 ### Community 29 - "Community 29"
 Cohesion: 0.18
 Nodes (19): build_queue(), parse_dependencies(), QueueItem, QueuePlan, Deterministic issue-queue planning for the cycling workflow.  Backs ``issue-flow, Issue numbers referenced on dependency-marker lines of a body.      Only lines c, One issue considered for the queue., The computed queue: execution order plus everything set aside. (+11 more)
 
 ### Community 30 - "Community 30"
-Cohesion: 0.10
-Nodes (18): Approach, CLI machinery (thin, deterministic), Constraints, Files to touch, Goal, Name and invocation, Open questions, Out of scope (this PR) (+10 more)
+Cohesion: 0.15
+Nodes (13): Approach, CLI machinery (thin, deterministic), Constraints, Files to touch, Goal, Name and invocation, Open questions, Out of scope (this PR) (+5 more)
 
 ### Community 31 - "Community 31"
-Cohesion: 0.11
-Nodes (16): Context, agent_branches(), _callback(), convert(), graphify(), main(), Command-line interface for issue-flow., Agents should behave. Let them follow the issue flow. (+8 more)
+Cohesion: 0.14
+Nodes (12): Context, agent_branches(), _callback(), graphify(), main(), Command-line interface for issue-flow., Agents should behave. Let them follow the issue flow., Rebuild the graphify knowledge graph for the project.      With no extra argumen (+4 more)
 
 ### Community 32 - "Community 32"
-Cohesion: 0.18
-Nodes (16): get_profile(), Return the :class:`EditorProfile` for ``editor_id``.      Raises:         ValueE, Resolve a raw ``--editor`` selection into ordered, de-duplicated profiles., resolve_editors(), Tests for issue_flow.editors (editor profile registry and resolution)., test_codex_has_no_commands_dir_and_no_rules_extra(), test_cursor_is_skills_first_with_rules_extra(), test_default_editor_is_cursor() (+8 more)
+Cohesion: 0.13
+Nodes (18): Agent directory for ``profile``: explicit override wins, else profile default., Agent directory for the default/selected editor (back-compat helper)., get_profile(), Return the :class:`EditorProfile` for ``editor_id``.      Raises:         ValueE, Resolve a raw ``--editor`` selection into ordered, de-duplicated profiles., resolve_editors(), Tests for issue_flow.editors (editor profile registry and resolution)., test_codex_has_no_commands_dir_and_no_rules_extra() (+10 more)
 
 ### Community 33 - "Community 33"
 Cohesion: 0.11
@@ -473,8 +470,8 @@ Cohesion: 0.13
 Nodes (15): BaseLoader, callable, Environment, get_environment(), is_skill_template(), _PackageLoader, Jinja2 template loading and rendering for issue-flow., Load Jinja2 templates shipped inside the issue_flow.templates package. (+7 more)
 
 ### Community 37 - "Community 37"
-Cohesion: 0.13
-Nodes (17): build_canonical_manifest(), build_manifest(), Return skill-only manifest entries under ``.issueflows/agent/skills/``.      Can, Return the ``(template, output_path_template)`` entries for ``profile``.      Wh, test_build_canonical_manifest_is_skill_only(), All resolved output paths for a profile, as forward-slash strings., The default TEMPLATE_MANIFEST is the cursor profile manifest., Cursor now uses Agent Skills as the primary slash-menu surface. (+9 more)
+Cohesion: 0.18
+Nodes (11): build_canonical_manifest(), build_manifest(), Return skill-only manifest entries under ``.issueflows/agent/skills/``.      Can, Return the ``(template, output_path_template)`` entries for ``profile``.      Wh, test_build_canonical_manifest_is_skill_only(), The default TEMPLATE_MANIFEST is the cursor profile manifest., Codex: skills (24) + docs (1), no slash commands and no rules extra., Command-emitting editors still include every slash-command template. (+3 more)
 
 ### Community 38 - "Community 38"
 Cohesion: 0.12
@@ -482,7 +479,7 @@ Nodes (15): 1. Config flag, 2. Managed `.gitattributes` writer, 3. Hook into sca
 
 ### Community 39 - "Community 39"
 Cohesion: 0.13
-Nodes (14): Shared Rich console for issue-flow CLI output., _dotenv_documents_key(), _ensure_agents_md(), _graphify_postinstall(), _prune_command_files(), _prune_retired_files(), Backward-compatible wrapper around :func:`surfaces.write_manifest_files`., Upsert the issue-flow managed block into the project-root ``AGENTS.md``.      `` (+6 more)
+Nodes (15): _create_issueflow_dirs(), _dependency_gate(), _dotenv_documents_key(), _ensure_agents_md(), _prune_command_files(), _prune_retired_files(), Backward-compatible wrapper around :func:`surfaces.write_manifest_files`., Upsert the issue-flow managed block into the project-root ``AGENTS.md``.      `` (+7 more)
 
 ### Community 40 - "Community 40"
 Cohesion: 0.13
@@ -493,12 +490,12 @@ Cohesion: 0.13
 Nodes (15): Advanced auto mode, Adversarial loop budget, Adversarial review (inter-epoch), Context, Decisions, Durable state, Epochs = epic stages, Goals at three levels (+7 more)
 
 ### Community 42 - "Community 42"
-Cohesion: 0.18
-Nodes (11): _layout(), Tests for issue_flow.sync — folder → label sync planning and apply., test_apply_plan_calls_gh_issue_edit(), test_collect_maps_folders_to_states(), test_collect_prefers_current_on_duplicate(), test_ensure_managed_labels_creates_missing(), test_ensure_managed_labels_skips_existing(), test_load_sync_settings_from_config() (+3 more)
+Cohesion: 0.20
+Nodes (10): _layout(), Tests for issue_flow.sync — folder → label sync planning and apply., test_apply_plan_calls_gh_issue_edit(), test_collect_maps_folders_to_states(), test_collect_prefers_current_on_duplicate(), test_ensure_managed_labels_creates_missing(), test_ensure_managed_labels_skips_existing(), test_plan_sync_dry_run_without_gh() (+2 more)
 
 ### Community 43 - "Community 43"
-Cohesion: 0.14
-Nodes (13): 1. Classify “issueflows-only” dirty, 2. `/iflow-doctor` — commit as default after repair, 3. `/iflow-pick` — Phase 2 dirty-tree smart gate, 4. Design doc, 5. Out of scope, Approach, Constraints, Files to touch (+5 more)
+Cohesion: 0.13
+Nodes (14): 1. Knobs, 2. `/iflow-pick` Phase 3, 3. `/iflow-plan` Accept handoff, 4. Docs / design, 5. This repo dogfood, Approach, Constraints, Files to touch (+6 more)
 
 ### Community 44 - "Community 44"
 Cohesion: 0.14
@@ -517,16 +514,16 @@ Cohesion: 0.14
 Nodes (14): _audit_context(), _folders(), Report branch hygiene: default branch, clean/dirty, ahead/behind, stale., Archive non-focus issue groups from current-issues to partly/solved., Delete the named solved issue groups (the mechanical half of archiving).      Su, run_archive(), run_preflight(), run_sweep() (+6 more)
 
 ### Community 48 - "Community 48"
-Cohesion: 0.14
-Nodes (14): _emit_json(), Create the multi-repo workspace registry (``issueflow-workspace.toml``).      Me, Print a JSON payload to stdout without Rich markup interpretation., Resolve the issue-flow project root, GitHub repo slug, and branch context., Deterministic epic progress: stages, per-issue state, next candidates.      Read, run_epic_status(), run_resolve(), run_workspace_init() (+6 more)
+Cohesion: 0.20
+Nodes (10): _emit_json(), Apply one label to many issues (no judgment; idempotent add)., Print a JSON payload to stdout without Rich markup interpretation., Deterministic epic progress: stages, per-issue state, next candidates.      Read, run_epic_status(), run_label_apply(), agent_epic_status(), agent_label_apply() (+2 more)
 
 ### Community 49 - "Community 49"
 Cohesion: 0.15
 Nodes (14): _has_label(), _label_names(), Plan an execution queue for the cycling workflow (read-only).      Exactly one s, Normalize a ``gh`` labels field to a list of label name strings., Return True when ``labels`` contains ``target`` (case-insensitive)., Return True when the issue carries the configured yolo trigger label., List open issues for a review kind (deterministic; no fitness judgment).      ``, run_label_candidates() (+6 more)
 
 ### Community 50 - "Community 50"
-Cohesion: 0.15
-Nodes (11): Agent directory for the default/selected editor (back-compat helper)., Build the Jinja2 template context dictionary for ``profile``.          When ``pr, Agent directory for ``profile``: explicit override wins, else profile default., EditorProfile, How issue-flow should scaffold itself for one AI coding tool.      Attributes:, _already_initialized(), _prune_excluded_surfaces(), True if the tree looks like issue-flow was set up here for any profile. (+3 more)
+Cohesion: 0.20
+Nodes (10): EditorProfile, How issue-flow should scaffold itself for one AI coding tool.      Attributes:, _already_initialized(), _graphify_postinstall(), _prune_excluded_surfaces(), True if the tree looks like issue-flow was set up here for any profile., Remove generated skills/commands that the active ``mode`` excludes.      This ke, Best-effort graphify integration step for ``run_init`` / ``run_update``.      Au (+2 more)
 
 ### Community 51 - "Community 51"
 Cohesion: 0.14
@@ -534,7 +531,7 @@ Nodes (13): current_branch(), gh_available(), gh_issue_view(), git_available(), 
 
 ### Community 52 - "Community 52"
 Cohesion: 0.14
-Nodes (14): _plain(), `issue-flow update` must not expose a --mode flag (init-only)., Strip ANSI color/style codes so help text can be matched reliably.      Rich col, `issue-flow init --help` must advertise the --editor option., `issue-flow init --help` must advertise the --mode option., test_agent_help_lists_subcommands(), test_cli_lists_status_and_agent(), test_config_help_lists_add() (+6 more)
+Nodes (13): 1. Classify “issueflows-only” dirty, 2. `/iflow-doctor` — commit as default after repair, 3. `/iflow-pick` — Phase 2 dirty-tree smart gate, 4. Design doc, 5. Out of scope, Approach, Constraints, Files to touch (+5 more)
 
 ### Community 53 - "Community 53"
 Cohesion: 0.24
@@ -585,12 +582,12 @@ Cohesion: 0.17
 Nodes (12): Caveman skill, Configuration, Creating `config.toml`, Custom modes, Environment variables (`.env`), Grill-me skill, Label-driven flows, Linguist `.gitattributes` (+4 more)
 
 ### Community 66 - "Community 66"
-Cohesion: 0.17
-Nodes (10): Activation, Boundaries, Grill me — relentless planning interview, How to grill, When to use, Constraints, Instructions, issue-flow — issue plan (`/iflow-plan`) (+2 more)
+Cohesion: 0.15
+Nodes (11): Activation, Boundaries, Grill me — relentless planning interview, How to grill, When to use, Constraints, Instructions, issue-flow — issue plan (`/iflow-plan`) (+3 more)
 
 ### Community 67 - "Community 67"
-Cohesion: 0.21
-Nodes (12): config_path(), Return the path to the project's ``.issueflows/config.toml``., Return the persisted ``[issueflow].mode`` value, or ``None`` if unset., Persist ``[issueflow].mode = mode_id`` while preserving other content.      Crea, read_active_mode(), write_active_mode(), Round-trip: updating the active mode keeps [modes.*] and comments intact., Resolution order: persisted config.toml > ISSUEFLOW_MODE env > default. (+4 more)
+Cohesion: 0.16
+Nodes (15): config_path(), Return the path to the project's ``.issueflows/config.toml``., Return the persisted ``[issueflow].mode`` value, or ``None`` if unset., Return the persisted ``[issueflow].canonical_format`` flag., Persist ``[issueflow].mode = mode_id`` while preserving other content.      Crea, read_active_mode(), read_canonical_format(), write_active_mode() (+7 more)
 
 ### Community 68 - "Community 68"
 Cohesion: 0.29
@@ -605,8 +602,8 @@ Cohesion: 0.18
 Nodes (10): Accepted knobs, Approach (after knob accept), Constraints, Files to touch, Goal, Open questions, Out of scope (unchanged), Plan — Issue #182: More config settings (+2 more)
 
 ### Community 71 - "Community 71"
-Cohesion: 0.24
-Nodes (6): Changelog timing — always in the PR, Context, Decisions, Link, gh list and watch in `/iflow-close`, Skill-behaviour knobs
+Cohesion: 0.15
+Nodes (11): Changelog timing — always in the PR, Context, Decisions, Link, Alternatives considered, Context, Decisions, Early pull request (+3 more)
 
 ### Community 72 - "Community 72"
 Cohesion: 0.18
@@ -621,12 +618,12 @@ Cohesion: 0.18
 Nodes (10): Branch switch tokens (command input), Changelog update tokens (command input), Constraints, Draft PR token (command input), Hands-off token (command input), Instructions, issue-flow — issue close (`/iflow-close`), MODEL & EXECUTION DIRECTIVE (+2 more)
 
 ### Community 75 - "Community 75"
-Cohesion: 0.25
-Nodes (8): Convert between canonical and per-editor issue-flow scaffold layouts., Materialize canonical or per-editor scaffold surfaces.      Args:         projec, run_convert(), Editor profiles for issue-flow's multi-tool scaffolding.  issue-flow renders the, Tests for issue_flow.convert and canonical scaffolding., test_convert_prune_other_removes_sibling_editors(), test_convert_to_canonical_prunes_editor_dirs(), test_convert_to_editor_materializes_cursor_tree()
+Cohesion: 0.29
+Nodes (4): Configuration for issue-flow, backed by .env files and environment variables., Shared Rich console for issue-flow CLI output., Convert between canonical and per-editor issue-flow scaffold layouts., Editor profiles for issue-flow's multi-tool scaffolding.  issue-flow renders the
 
 ### Community 76 - "Community 76"
-Cohesion: 0.18
-Nodes (11): _commented_issueflow_table(), Return persisted ``[issueflow].checks_watch_minutes``, or ``None`` if unset., Create (or, with ``overwrite``, refresh) the project's ``config.toml``.      Wri, Build a fresh ``[issueflow]`` table with explanatory comments per key., read_checks_watch_minutes(), write_default_config(), Table, Overwrite upserts the label-flow keys while preserving user content. (+3 more)
+Cohesion: 0.15
+Nodes (13): _commented_issueflow_table(), Return the persisted ``[issueflow].linguist_attributes`` flag.      Returns ``No, Return persisted ``[issueflow].checks_watch_minutes``, or ``None`` if unset., Create (or, with ``overwrite``, refresh) the project's ``config.toml``.      Wri, Build a fresh ``[issueflow]`` table with explanatory comments per key., read_checks_watch_minutes(), read_linguist_attributes(), write_default_config() (+5 more)
 
 ### Community 77 - "Community 77"
 Cohesion: 0.20
@@ -665,8 +662,8 @@ Cohesion: 0.22
 Nodes (8): Approach, Constraints, Files to touch, Goal, Issue #162 plan: Docs check (iPhone), Open questions, Prior art, Test strategy
 
 ### Community 86 - "Community 86"
-Cohesion: 0.22
-Nodes (9): Approach, Constraints, Decisions (confirmed), Files to touch, Goal, Open questions, Plan: Issue #172 — List and watch GitHub, Prior art (+1 more)
+Cohesion: 0.12
+Nodes (15): Approach, Constraints, Decisions (confirmed), Files to touch, Goal, Open questions, Plan: Issue #172 — List and watch GitHub, Prior art (+7 more)
 
 ### Community 87 - "Community 87"
 Cohesion: 0.22
@@ -701,8 +698,8 @@ Cohesion: 0.25
 Nodes (8): Approach, Constraints, Files to touch, Goal, Issue #153 plan: possible misplacement of mode information, Open questions, Prior art, Test strategy
 
 ### Community 95 - "Community 95"
-Cohesion: 0.25
-Nodes (6): Agent-facing CLI commands, Alternatives considered, Context, Decision, Follow-up: `agent archive` (#84), Key constraints (honour these in future work)
+Cohesion: 0.29
+Nodes (5): Alternatives considered, Decision, House rules (distilled for issue-flow templates), Known debt, Skill authoring — house rules
 
 ### Community 96 - "Community 96"
 Cohesion: 0.25
@@ -741,16 +738,16 @@ Cohesion: 0.25
 Nodes (8): pull_ff_only(), True for a clean tree, False if dirty, ``None`` if git is unavailable., Run ``git switch <branch>``. Returns ``(ok, error_message)``., Run ``git pull --ff-only``. Returns ``(ok, error_message)``.      A refusal here, Strip a captured stream; treat ``None`` as empty (decode edge cases)., _stream_text(), switch_branch(), working_tree_clean()
 
 ### Community 105 - "Community 105"
-Cohesion: 0.25
-Nodes (8): Return the persisted ``[issueflow].caveman_default`` flag.      Returns ``None``, read_caveman_default(), No config file -> caveman_default is unset (None), not False., A config without the key -> unset (None), so env/default can apply., An explicit boolean is read back as that boolean., test_read_caveman_default_missing_returns_none(), test_read_caveman_default_true_and_false(), test_read_caveman_default_unset_key_returns_none()
+Cohesion: 0.50
+Nodes (4): Return the persisted ``[issueflow].caveman_default`` flag.      Returns ``None``, read_caveman_default(), No config file -> caveman_default is unset (None), not False., test_read_caveman_default_missing_returns_none()
 
 ### Community 106 - "Community 106"
 Cohesion: 0.25
 Nodes (8): Return the persisted ``[issueflow].grill_me_default`` flag.      Returns ``None`, read_grill_me_default(), No config file -> grill_me_default is unset (None), not False., A config without the key -> unset (None), so env/default can apply., An explicit boolean is read back as that boolean., test_read_grill_me_default_missing_returns_none(), test_read_grill_me_default_true_and_false(), test_read_grill_me_default_unset_key_returns_none()
 
 ### Community 107 - "Community 107"
-Cohesion: 0.25
-Nodes (8): Workspace dir with two scaffolded members and a registry file., From the workspace root (no scaffold above), the default member wins., Inside a member repo, that repo wins even when another is the default., Without a default, the registry adds context but resolution still asks., _seed_workspace(), test_agent_resolve_falls_back_to_workspace_default(), test_agent_resolve_nearest_scaffold_beats_workspace_default(), test_agent_resolve_no_default_still_fails_from_workspace_root()
+Cohesion: 0.33
+Nodes (6): Workspace dir with two scaffolded members and a registry file., From the workspace root (no scaffold above), the default member wins., Inside a member repo, that repo wins even when another is the default., _seed_workspace(), test_agent_resolve_falls_back_to_workspace_default(), test_agent_resolve_nearest_scaffold_beats_workspace_default()
 
 ### Community 108 - "Community 108"
 Cohesion: 0.29
@@ -881,8 +878,8 @@ Cohesion: 0.33
 Nodes (6): _print_config_guide(), Print a short guide on hand-editing ``config.toml`` later., Create ``.issueflows/config.toml`` seeded from ``.env`` or defaults.      Writes, run_config_add(), config_add(), Create .issueflows/config.toml, seeded from .env (or issue-flow defaults).
 
 ### Community 140 - "Community 140"
-Cohesion: 0.33
-Nodes (5): _detect_project_name(), Configuration for issue-flow, backed by .env files and environment variables., Try to read the project name from pyproject.toml, fall back to dir name., test_detect_project_name_fallback(), test_detect_project_name_from_pyproject()
+Cohesion: 0.50
+Nodes (4): _detect_project_name(), Try to read the project name from pyproject.toml, fall back to dir name., test_detect_project_name_fallback(), test_detect_project_name_from_pyproject()
 
 ### Community 141 - "Community 141"
 Cohesion: 0.33
@@ -894,11 +891,11 @@ Nodes (6): dirty_paths(), _paths_from_porcelain_line(), Strip optional git porce
 
 ### Community 143 - "Community 143"
 Cohesion: 0.33
-Nodes (6): Return the persisted ``[issueflow].label_flows`` flag.      Returns ``None`` whe, read_label_flows(), No config file -> label_flows is unset (None), not a boolean., An explicit boolean is read back as that boolean., test_read_label_flows_missing_returns_none(), test_read_label_flows_true_and_false()
+Nodes (6): Return the persisted ``[issueflow].label_flows`` flag.      Returns ``None`` whe, read_label_flows(), No config file -> label_flows is unset (None), not a boolean., A config without the key -> unset (None), so env/default can apply., test_read_label_flows_missing_returns_none(), test_read_label_flows_unset_key_returns_none()
 
 ### Community 144 - "Community 144"
-Cohesion: 0.33
-Nodes (6): Return the persisted ``[issueflow].yolo_label`` value, or ``None`` if unset., read_yolo_label(), No config file -> yolo_label is unset (None)., An explicit label is read back verbatim., test_read_yolo_label_missing_returns_none(), test_read_yolo_label_value()
+Cohesion: 0.50
+Nodes (4): Return the persisted ``[issueflow].yolo_label`` value, or ``None`` if unset., read_yolo_label(), No config file -> yolo_label is unset (None)., test_read_yolo_label_missing_returns_none()
 
 ### Community 145 - "Community 145"
 Cohesion: 0.40
@@ -921,8 +918,8 @@ Cohesion: 0.40
 Nodes (4): Approach, Files, Goal, Plan — #204 Gate next epoch on clear queue
 
 ### Community 150 - "Community 150"
-Cohesion: 0.40
-Nodes (5): Alternatives considered, Context, Decisions, Early pull request, Link
+Cohesion: 0.29
+Nodes (7): Render templates from ``manifest`` and write under ``project_root``., write_manifest_files(), Resolve a path template like '{agent_dir}/commands/foo.md' into a Path., resolve_output_path(), Non-cursor editors must not write under .cursor/ or mention "Cursor"., test_build_manifest_no_cursor_leakage_in_non_cursor_outputs(), test_resolve_output_path()
 
 ### Community 151 - "Community 151"
 Cohesion: 0.40
@@ -954,7 +951,7 @@ Nodes (3): `00-tools/` — shared helper tools, Tool index, When working an issu
 
 ### Community 158 - "Community 158"
 Cohesion: 0.50
-Nodes (3): Remaining work, Status — Issue #218: doctor leftovers, What's done
+Nodes (3): Remaining work, Status — Issue #219: just build the thing when the plan is accepted, What's done
 
 ### Community 159 - "Community 159"
 Cohesion: 0.50
@@ -1114,7 +1111,7 @@ Nodes (3): Alternatives considered, Decision, Release strategies (version bump)
 
 ### Community 198 - "Community 198"
 Cohesion: 0.50
-Nodes (4): Apply one label to many issues (no judgment; idempotent add)., run_label_apply(), agent_label_apply(), Apply one label to many issues (no judgment; writes via gh unless dry-run).
+Nodes (3): Remaining work, Status — Issue #218: doctor leftovers, What's done
 
 ### Community 199 - "Community 199"
 Cohesion: 0.50
@@ -1136,6 +1133,10 @@ Nodes (4): Plan the next version deterministically — the mechanical half of th
 Cohesion: 0.50
 Nodes (3): Shared pytest fixtures for issue-flow tests., Make ``check_dependencies`` a no-op by default.      The production dep-check us, _stub_dependency_check()
 
+### Community 205 - "Community 205"
+Cohesion: 0.50
+Nodes (4): Create the multi-repo workspace registry (``issueflow-workspace.toml``).      Me, run_workspace_init(), Create issueflow-workspace.toml listing the scaffolded member repos.      The re, workspace_init()
+
 ### Community 228 - "Community 228"
 Cohesion: 0.67
 Nodes (3): CaptureFixture, With all deps present the check should not prompt or abort., test_init_proceeds_silently_when_all_dependencies_present()
@@ -1144,20 +1145,36 @@ Nodes (3): CaptureFixture, With all deps present the check should not prompt or 
 Cohesion: 0.67
 Nodes (3): Editor support, Multi-root workspaces, Workspace registry and default repo
 
+### Community 238 - "Community 238"
+Cohesion: 0.50
+Nodes (4): Resolve the issue-flow project root, GitHub repo slug, and branch context., run_resolve(), agent_resolve(), Resolve project root, owner/repo, branch, and sibling scaffolds.
+
+### Community 250 - "Community 250"
+Cohesion: 0.50
+Nodes (4): Lifecycle commands should run ruff check --fix when ruff is in the project., /iflow-yolo must forward the new history-related tokens to /iflow-close., test_iflow_close_and_start_nudge_ruff_fix_when_present(), test_issue_yolo_forwards_history_tokens()
+
+### Community 255 - "Community 255"
+Cohesion: 0.50
+Nodes (4): caveman_default flips the pointer between off-by-default and always-on., The rules body mentions grill-me only when it is in included_skills., test_rules_body_caveman_default_switches_pointer_wording(), test_rules_body_grill_me_pointer_is_membership_gated()
+
+### Community 271 - "Community 271"
+Cohesion: 0.50
+Nodes (4): /iflow and its skill must list /iflow-issue among the explicit-only commands., /iflow-cycle must document the yolo → label:<yolo_label> alias (#175)., test_iflow_cycle_documents_yolo_alias(), test_iflow_lists_issue_as_off_path()
+
 ## Knowledge Gaps
-- **861 isolated node(s):** `issue-flow`, `Persistence`, `Rules`, `Intensity`, `Auto-Clarity` (+856 more)
+- **876 isolated node(s):** `issue-flow`, `Persistence`, `Rules`, `Intensity`, `Auto-Clarity` (+871 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **74 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **71 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `render_template()` connect `Community 19` to `Community 256`, `Community 257`, `Community 258`, `Community 259`, `Community 260`, `Community 261`, `Community 262`, `Community 7`, `Community 263`, `Community 265`, `Community 266`, `Community 264`, `Community 268`, `Community 267`, `Community 270`, `Community 271`, `Community 16`, `Community 273`, `Community 18`, `Community 272`, `Community 274`, `Community 276`, `Community 22`, `Community 275`, `Community 277`, `Community 278`, `Community 28`, `Community 36`, `Community 39`, `Community 269`, `Community 247`, `Community 248`, `Community 249`, `Community 250`, `Community 251`, `Community 252`, `Community 253`, `Community 254`, `Community 255`?**
+- **Why does `render_template()` connect `Community 16` to `Community 257`, `Community 258`, `Community 259`, `Community 260`, `Community 261`, `Community 262`, `Community 7`, `Community 263`, `Community 264`, `Community 266`, `Community 267`, `Community 268`, `Community 265`, `Community 270`, `Community 271`, `Community 272`, `Community 273`, `Community 18`, `Community 275`, `Community 274`, `Community 277`, `Community 22`, `Community 150`, `Community 276`, `Community 19`, `Community 278`, `Community 285`, `Community 36`, `Community 39`, `Community 269`, `Community 248`, `Community 250`, `Community 252`, `Community 255`?**
   _High betweenness centrality (0.050) - this node is a cross-community bridge._
-- **Why does `_ensure_project_brief()` connect `Community 7` to `Community 0`, `Community 2`, `Community 39`, `Community 15`, `Community 19`?**
-  _High betweenness centrality (0.014) - this node is a cross-community bridge._
-- **Why does `_ensure_tools_readme()` connect `Community 7` to `Community 0`, `Community 2`, `Community 39`, `Community 15`, `Community 19`?**
-  _High betweenness centrality (0.014) - this node is a cross-community bridge._
+- **Why does `Settings` connect `Community 2` to `Community 0`, `Community 1`, `Community 5`, `Community 7`, `Community 138`, `Community 139`, `Community 15`, `Community 23`, `Community 28`, `Community 32`, `Community 35`, `Community 39`, `Community 42`, `Community 47`, `Community 48`, `Community 49`, `Community 50`, `Community 67`, `Community 200`, `Community 202`, `Community 75`, `Community 203`, `Community 205`, `Community 83`, `Community 238`?**
+  _High betweenness centrality (0.018) - this node is a cross-community bridge._
+- **Why does `run_init()` connect `Community 0` to `Community 256`, `Community 1`, `Community 2`, `Community 7`, `Community 15`, `Community 28`, `Community 32`, `Community 34`, `Community 39`, `Community 50`, `Community 228`, `Community 239`, `Community 242`, `Community 243`, `Community 245`, `Community 246`, `Community 247`, `Community 249`, `Community 251`, `Community 253`, `Community 254`?**
+  _High betweenness centrality (0.016) - this node is a cross-community bridge._
 - **Are the 7 inferred relationships involving `Settings` (e.g. with `EditorProfile` and `Mode`) actually correct?**
   _`Settings` has 7 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 8 inferred relationships involving `run_init()` (e.g. with `init()` and `resolve_editors()`) actually correct?**
@@ -1165,4 +1182,4 @@ _Questions this graph is uniquely positioned to answer:_
 - **Are the 3 inferred relationships involving `render_template()` (e.g. with `_ensure_agents_md()` and `_ensure_project_brief()`) actually correct?**
   _`render_template()` has 3 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `Scaffold a throwaway project and verify the rendered issue-flow surfaces.  Repo-`, `Run the issue-flow CLI from this repo's source against ``project``.`, `Upsert ``[issueflow]`` keys (plain ``init`` does not create config.toml).` to the rest of the system?**
-  _1461 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1476 weakly-connected nodes found - possible documentation gaps or missing edges._
