@@ -63,6 +63,12 @@ def test_caveman_in_standard_not_in_simple() -> None:
     assert "caveman" not in resolve_mode("simple").skills
 
 
+def test_gh_ci_in_standard_not_in_simple() -> None:
+    """The gh-ci skill ships in standard (PR/CI path) but is omitted by simple."""
+    assert "gh_ci" in resolve_mode("standard").skills
+    assert "gh_ci" not in resolve_mode("simple").skills
+
+
 def test_unknown_mode_raises_with_known_list() -> None:
     with pytest.raises(ValueError) as exc:
         resolve_mode("bogus")

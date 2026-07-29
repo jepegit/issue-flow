@@ -20,9 +20,10 @@ StepProfile = Literal["economy", "reasoning"]
 _PROFILES_RESOURCE = "step_profiles.toml"
 _VALID_PROFILES: frozenset[str] = frozenset({"economy", "reasoning"})
 
-# Lifecycle skills that receive a MODEL & EXECUTION DIRECTIVE (excludes caveman/grill_me).
+# Lifecycle skills that receive a MODEL & EXECUTION DIRECTIVE (excludes
+# model-invoked helpers: caveman / grill_me / gh_ci).
 LIFECYCLE_SKILL_STEMS: frozenset[str] = frozenset(
-    stem for stem in SKILL_DIRS if stem not in {"caveman", "grill_me"}
+    stem for stem in SKILL_DIRS if stem not in {"caveman", "grill_me", "gh_ci"}
 )
 
 _COMMAND_TO_SKILL: dict[str, str] = {

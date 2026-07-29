@@ -170,6 +170,9 @@ SKILL_DIRS: list[str] = [
     # interview. Like caveman it is part of the "all"/standard surface, excluded
     # by the explicit "simple" list, and dormant until invoked / turned on.
     "grill_me",
+    # Model-invoked CI/`gh` cheatsheet (not a lifecycle slash command). Ships in
+    # standard via "all"; omitted by simple (no PR/CI automation).
+    "gh_ci",
 ]
 
 SKILL_OUTPUT_NAMES: dict[str, str] = {

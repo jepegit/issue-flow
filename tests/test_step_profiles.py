@@ -41,6 +41,7 @@ def test_skill_stem_for_template_maps_commands() -> None:
     assert skill_stem_for_template("commands/iflow-plan.md.j2") == "iflow_plan"
     assert skill_stem_for_template("commands/iflow.md.j2") == "iflow_iflow"
     assert skill_stem_for_template("skills/caveman/SKILL.md.j2") is None
+    assert skill_stem_for_template("skills/gh_ci/SKILL.md.j2") is None
 
 
 def test_enrich_render_context_sets_step_profile() -> None:
