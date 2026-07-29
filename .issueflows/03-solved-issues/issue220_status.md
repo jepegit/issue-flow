@@ -1,6 +1,6 @@
 # Issue #220 status
 
-- [ ] Done
+- [x] Done
 
 ## What's done
 
@@ -12,8 +12,9 @@
 - Tests updated (manifest counts, mode membership, render asserts).
 - `uv run pytest` (579 passed) + `ruff check` clean.
 - Re-ran `issue-flow update` so local `.cursor/skills/gh-ci` + managed blocks refresh.
-- Pushed branch; draft PR: https://github.com/jepegit/issue-flow/pull/225 (#225, draft)
+- PR: https://github.com/jepegit/issue-flow/pull/225 (#225)
+- HISTORY.md Unreleased bullet written; issue archived to `03-solved-issues/`.
 
 ## Remaining work
 
-- `/iflow-close`: HISTORY bullet, mark PR ready, finalize (Closes #220).
+- None.
