@@ -64,8 +64,7 @@ If additional input is added, use that as implementation hints (scope, constrain
 {% endif %}{%- if essential_tests and essential_review in ("build", "both") %}
    - **Essential tests** (`essential_tests = true`, `essential_review = {{ essential_review }}`):
 {% include "skills/_essential_tests_review.md.j2" %}
-{%- endif %}
-   - **Designs and guides.** If `{{ issueflows_dir }}/{{ designs_folder }}/this-project.md` exists, read it for project-specific context before implementing. Read any other relevant files under `{{ issueflows_dir }}/{{ designs_folder }}/` before making non-trivial decisions. When the work produces a new design decision or establishes a project good-practice (one the plan flagged, or one that only became clear during implementation), add or update a short markdown file under `{{ issueflows_dir }}/{{ designs_folder }}/`: context, the decision, alternatives considered, and a link back to this issue. Keep it terse.
+{%- endif %}   - **Designs and guides.** If `{{ issueflows_dir }}/{{ designs_folder }}/this-project.md` exists, read it for project-specific context before implementing. Read any other relevant files under `{{ issueflows_dir }}/{{ designs_folder }}/` before making non-trivial decisions. When the work produces a new design decision or establishes a project good-practice (one the plan flagged, or one that only became clear during implementation), add or update a short markdown file under `{{ issueflows_dir }}/{{ designs_folder }}/`: context, the decision, alternatives considered, and a link back to this issue. Keep it terse.
 
 4. **Keep the status file current.** As you iterate, re-read and update `issue<N>_status.md`: move items between **What's done** and **Remaining work** so the file always reflects reality. Leave the `- [ ] Done` checkbox unchecked until the issue is fully resolved. Iterating agents (and `/iflow-pause` / `/iflow-close`) rely on this for accurate context.
 
