@@ -224,6 +224,17 @@ for this project, set `grill_me_default = true` under `[issueflow]` in
 {% endif %}
 
 {% endif %}
+{% if "gh_ci" in included_skills %}
+### CI via GitHub CLI
+
+A **gh-ci** Agent Skill is installed under `{{ agent_dir }}/skills/gh-ci/`. Use
+it whenever you need to know if CI finished: prefer `gh pr checks` /
+`gh pr checks --watch --fail-fast` (budget: `checks_watch_minutes`, default
+{{ checks_watch_minutes }}); fall back to `gh run list` / `gh run watch` when PR
+checks are empty. Always pass `--repo <owner/repo>`. `/iflow-close` owns the
+merge sequence; this skill is the shared command cheatsheet.
+
+{% endif %}
 ### Designs and guides
 
 Long-lived design docs, design decisions, and project "good practices" live under `{{ issueflows_dir }}/{{ designs_folder }}/`. Unlike the issue folders, content here is **not** tied to a single issue and is **not** archived when an issue closes — it is the project's durable memory.

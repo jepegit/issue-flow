@@ -120,8 +120,8 @@ def test_resolve_output_path() -> None:
 
 
 def test_manifest_entry_count() -> None:
-    # Cursor is skills-first: 1 rule + 1 doc + 24 skills = 26
-    assert len(TEMPLATE_MANIFEST) == 26
+    # Cursor is skills-first: 1 rule + 1 doc + 25 skills = 27
+    assert len(TEMPLATE_MANIFEST) == 27
 
 
 def _resolved_paths(profile_id: str) -> set[str]:
@@ -141,7 +141,7 @@ def _resolved_paths(profile_id: str) -> set[str]:
 def test_build_manifest_cursor_matches_default() -> None:
     """The default TEMPLATE_MANIFEST is the cursor profile manifest."""
     assert build_manifest(EDITORS["cursor"]) == TEMPLATE_MANIFEST
-    assert len(build_manifest(EDITORS["cursor"])) == 26
+    assert len(build_manifest(EDITORS["cursor"])) == 27
 
 
 def test_build_manifest_cursor_has_skills_and_rules_but_no_commands() -> None:
@@ -156,15 +156,15 @@ def test_build_manifest_cursor_has_skills_and_rules_but_no_commands() -> None:
 
 
 def test_build_manifest_codex_has_skills_and_docs_but_no_commands() -> None:
-    """Codex: skills (24) + docs (1), no slash commands and no rules extra."""
+    """Codex: skills (25) + docs (1), no slash commands and no rules extra."""
     manifest = build_manifest(get_profile("codex"))
     template_names = [name for name, _ in manifest]
     assert not any(name.startswith("commands/") for name in template_names)
-    assert sum(name.startswith("skills/") for name in template_names) == 24
+    assert sum(name.startswith("skills/") for name in template_names) == 25
     assert "docs/issue-workflow.md.j2" in template_names
     # No .mdc / CLAUDE.md rules extra for Codex.
     assert not any(name.startswith("rules/") for name in template_names)
-    assert len(manifest) == 25
+    assert len(manifest) == 26
 
 
 def test_build_manifest_opencode_uses_singular_command_dir() -> None:
@@ -1287,6 +1287,61 @@ def test_grill_me_in_standard_manifest_as_skills_grill_me() -> None:
     assert "{agent_dir}/skills/grill-me/SKILL.md" in {
         path for _, path in TEMPLATE_MANIFEST
     }
+
+
+def test_gh_ci_skill_renders_ci_cheatsheet() -> None:
+    """The gh-ci skill ships as a model-invocable CI/`gh` cheatsheet."""
+    rendered = render_template("skills/gh_ci/SKILL.md.j2", _default_context())
+    assert "name: gh-ci" in rendered
+    assert "disable-model-invocation: true" not in rendered
+    assert "gh pr checks" in rendered
+    assert "gh pr checks" in rendered and "--watch" in rendered
+    assert "gh run list" in rendered
+    assert "gh run watch" in rendered
+    assert "15" in rendered
+    assert "--repo" in rendered
+
+
+def test_gh_ci_in_standard_manifest_as_skills_gh_ci() -> None:
+    """Standard scaffolding emits the gh-ci skill at skills/gh-ci/SKILL.md."""
+    assert "gh_ci" in SKILL_DIRS
+    template_names = {name for name, _ in TEMPLATE_MANIFEST}
+    assert "skills/gh_ci/SKILL.md.j2" in template_names
+    assert "{agent_dir}/skills/gh-ci/SKILL.md" in {
+        path for _, path in TEMPLATE_MANIFEST
+    }
+
+
+def test_rules_body_gh_ci_pointer_is_membership_gated() -> None:
+    """The rules body mentions gh-ci only when it is in included_skills."""
+    with_gh = _default_context()
+    rendered_on = render_template("rules/AGENTS.md.j2", with_gh)
+    assert "gh-ci" in rendered_on.lower()
+    assert "CI via GitHub CLI" in rendered_on
+    assert "gh run watch" in rendered_on
+
+    without_gh = _default_context()
+    without_gh["included_skills"] = [s for s in _ALL_SKILLS if s != "gh_ci"]
+    rendered_off = render_template("rules/AGENTS.md.j2", without_gh)
+    assert "CI via GitHub CLI" not in rendered_off
+
+
+def test_close_mentions_gh_run_watch_fallback_and_gh_ci_pointer() -> None:
+    """Close skill/command name gh run fallback and point at gh-ci when included."""
+    for template_name in (
+        "commands/iflow-close.md.j2",
+        "skills/iflow_close/SKILL.md.j2",
+    ):
+        rendered = render_template(template_name, _default_context())
+        assert "gh run list" in rendered, template_name
+        assert "gh run watch" in rendered, template_name
+        assert "skills/gh-ci/SKILL.md" in rendered, template_name
+
+        without = _default_context()
+        without["included_skills"] = [s for s in _ALL_SKILLS if s != "gh_ci"]
+        rendered_off = render_template(template_name, without)
+        assert "gh run watch" in rendered_off, template_name
+        assert "skills/gh-ci/SKILL.md" not in rendered_off, template_name
 
 
 def test_rules_body_grill_me_pointer_is_membership_gated() -> None:
