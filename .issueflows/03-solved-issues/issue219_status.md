@@ -1,6 +1,6 @@
 # Status — Issue #219: just build the thing when the plan is accepted
 
-- [x] Done
+- [ ] Done
 
 ## What's done
 
@@ -10,9 +10,8 @@
 - `skill-behaviour-knobs.md` + `docs/configuration.md`.
 - `.issueflows/config.toml` explicit `auto_plan` / `auto_build`.
 - Dogfood `issue-flow update`; 574 tests passed.
-- HISTORY Unreleased bullet.
-- PR: https://github.com/jepegit/issue-flow/pull/223 (#223)
+- PR: https://github.com/jepegit/issue-flow/pull/223 (#223, draft)
 
 ## Remaining work
 
-- None.
+- HISTORY / ready-for-review via `/iflow-close`.

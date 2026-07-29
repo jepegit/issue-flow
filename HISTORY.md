@@ -11,6 +11,7 @@ than the GitHub release notes they link to.
 
 - **Opt-in `auto_graphify_on_plan` (#214).** When true, `/iflow-plan` runs `issue-flow graphify` (AST `update`) before prior-art discovery; missing/failing graphify notes and continues. Default false; coexists with soft `suggest_graphify`.
 - **Doctor leftovers default-commit (#218).** After `/iflow-doctor` repair (and at `/iflow-pick` Phase 2), treat issueflows-only dirty trees as a recommended housekeeping commit; `preflight --json` exposes `dirty_paths` / `issueflows_only`.
+- **`auto_plan` / `auto_build` handoff knobs (#219).** Default true: pick confirm chains to `/iflow-plan`, plan Accept chains to `/iflow-build`; one-shot skips `noplan` / `nobuild`. Independent of `auto_close`.
 
 ## [0.4.7] - 2026-07-24
 
