@@ -32,6 +32,15 @@ GitHub labels already carry intent.
   [parallel-cycle.md](./parallel-cycle.md)).
 - Optional prep: `/iflow-review yolo` to assign labels, then `/iflow-cycle yolo`.
 
+### Pick by arbitrary label (issue #228)
+
+- `/iflow-pick label:<L>` is a **hard filter** on the interactive shortlist
+  (GitHub list via `gh issue list --label`, plus parked/epic candidates that
+  carry `<L>`). Free-form hints stay soft bias only when `label:` is absent.
+- Still confirm before branching — never auto-pick a singleton shortlist.
+- `/iflow-cycle label:<L>` is the batch twin (same GitHub label selection,
+  hands-off yolo chain). No new CLI; pick stays skill-documented.
+
 **Alternatives considered.**
 
 - Always `gh pr merge --auto` — rejected: on repos without required checks the
