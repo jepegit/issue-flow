@@ -52,7 +52,7 @@ wheels = [
 
 [[package]]
 name = "issue-flow"
-version = "0.4.9"
+version = "0.4.9.post1"
 source = { editable = "." }
 dependencies = [
     { name = "jinja2" },
