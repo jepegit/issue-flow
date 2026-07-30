@@ -472,6 +472,20 @@ def test_init_pick_skill_prefers_active_epic(tmp_path: Path) -> None:
     assert "next_candidates" in content
 
 
+def test_init_pick_skill_documents_label_hard_filter(tmp_path: Path) -> None:
+    """iflow-pick scaffold must document label:<L> hard filter (#228)."""
+    run_init(tmp_path)
+    skill = (tmp_path / ".cursor" / "skills" / "iflow-pick" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    assert "`label:<L>`" in skill
+    assert "hard filter" in skill.lower()
+    assert "--label" in skill
+    assert "/iflow-cycle label:" in skill
+    docs = (tmp_path / "docs" / "issue-workflow.md").read_text(encoding="utf-8")
+    assert "label:<L>" in docs
+
+
 def test_init_cleanup_skill_offers_stage_gate(tmp_path: Path) -> None:
     """iflow-cleanup should offer the epic stage gate on a completed stage."""
     run_init(tmp_path)

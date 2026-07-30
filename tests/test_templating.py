@@ -1027,6 +1027,25 @@ def test_issue_pick_documents_three_phases_and_fix_shortcut() -> None:
     assert "Phase B" in rendered
 
 
+def test_issue_pick_documents_label_hard_filter() -> None:
+    """/iflow-pick must document label:<L> as a hard filter (#228)."""
+    cmd = render_template("commands/iflow-pick.md.j2", _default_context())
+    skill = render_template("skills/iflow_pick/SKILL.md.j2", _default_context())
+    for rendered in (cmd, skill):
+        assert "`label:<L>`" in rendered
+        assert "hard filter" in rendered.lower()
+        assert "--label" in rendered
+        assert "no open issues with label" in rendered
+        # Still confirm — never auto-pick a singleton filtered shortlist.
+        assert "single" in rendered.lower()
+        # Point at the batch twin.
+        assert "/iflow-cycle label:" in rendered
+    assert "/iflow-pick label:enhancement" in cmd
+    docs = render_template("docs/issue-workflow.md.j2", _default_context())
+    assert "label:<L>" in docs
+    assert "hard-filter" in docs.lower() or "hard filter" in docs.lower()
+
+
 def test_issue_pick_skill_mirrors_command() -> None:
     """The issue-pick skill must carry the same front-door flow and frontmatter."""
     rendered = render_template("skills/iflow_pick/SKILL.md.j2", _default_context())

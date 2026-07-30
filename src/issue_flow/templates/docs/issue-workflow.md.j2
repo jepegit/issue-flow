@@ -97,11 +97,11 @@ All workflows that touch git also run a short **branch-status preflight**: `git 
 
 **When:** You are on the default branch with nothing in progress and want help deciding what to work on next.
 
-**What you pass:** Nothing (survey + ask), `fix` (create a new general-fixes issue every time), or a hint (`milestone v0.4`, a topic) to bias ranking.
+**What you pass:** Nothing (survey + ask), `fix` (create a new general-fixes issue every time), `label:<L>` (hard-filter the shortlist to open issues with that GitHub label), or a hint (`milestone v0.4`, a topic) to soft-bias ranking when `label:` is absent. Free-form text that names a label is not a hard filter — use the `label:` token. Empty filter → stop. Batch the same filter with `/iflow-cycle label:<L>` (or `/iflow-cycle yolo`).
 
 **What the assistant does (three phases):**
 
-1. **Choose.** Prefers parked work in `{{ issueflows_dir }}/{{ partly_solved_folder }}/`; otherwise lists open GitHub issues (`gh issue list`) ranked by **milestone**, **labels**, and **topical similarity** to recently solved issues, then asks you to confirm a pick from a short shortlist. `fix` skips the survey and creates a new `chore: general fixes` issue.
+1. **Choose.** Prefers parked work in `{{ issueflows_dir }}/{{ partly_solved_folder }}/`; otherwise lists open GitHub issues (`gh issue list`) ranked by **milestone**, **labels**, and **topical similarity** to recently solved issues, then asks you to confirm a pick from a short shortlist. With `label:<L>`, hard-filters that shortlist (`--label <L>` on GitHub; parked/epic only if they carry `<L>`). `fix` skips the survey and creates a new `chore: general fixes` issue.
 2. **Branch.** Requires a clean tree (or, when the only dirt is under `{{ issueflows_dir }}/`, offers a default housekeeping commit first — typical after `/iflow-doctor`), then branches off the default with the GitHub numeric convention `git switch -c <N>-<short-slug>`, then runs the `/iflow-init` flow automatically for `<N>`.
 3. **Hand off.** When `auto_plan` is true (default), chains into `/iflow-plan` after init; otherwise asks first. Trailing `noplan` skips the chain once.
 

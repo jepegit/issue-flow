@@ -14,7 +14,8 @@ Optional free-form text after the command:
 
 - **No extra text** — survey candidates and ask which to pick.
 - **`fix`** — skip the survey and create a single new "general fixes" GitHub issue (small bug / typo / chore bucket), then work on it. A new issue is created **every time** `fix` is used.
-- **A hint** (e.g. `milestone v0.4`, `something about templating`, `the docs ones`) — used to bias the candidate ranking in Phase 1.
+- **`label:<L>`** — **hard filter**: shortlist only open issues carrying GitHub label `<L>` (case-insensitive; strip whitespace after the colon). Compatible with `noplan` / `root:` / `repo:`. Empty after filter → stop (“no open issues with label `<L>`”). Never auto-pick even when only one match. Batch equivalent: `/iflow-cycle label:<L>` (or `/iflow-cycle yolo` for the configured yolo trigger).
+- **A hint** (e.g. `milestone v0.4`, `something about templating`, `the docs ones`) — soft-bias the candidate ranking in Phase 1 when `label:<L>` is **absent**. Free-form text that names a label is **not** a hard filter — use the `label:` token.
 - **`noplan`** — skip the `auto_plan` chain for this run (ask before `/iflow-plan` even when baked `auto_plan` is true).
 
 ## Phases
@@ -28,17 +29,18 @@ Optional free-form text after the command:
 1. **`fix` shortcut.** If the user passed `fix`, skip candidate selection: go straight to creating a new general-fixes issue (see step 4) and continue to Phase 2.
 
 2. **Source the candidates** (in precedence order):
-   - **Parked work first.** If `{{ issueflows_dir }}/{{ partly_solved_folder }}/` contains any `issue<n>_*` groups, list them as the **primary** candidates — these are already-started issues that deserve to be finished before new work begins. Show issue number, title (from each `issue<n>_original.md`), and a one-line status if a status file exists.
-   - **Active epic next.** If an epic plan under `{{ issueflows_dir }}/{{ epics_folder }}/` has open issues (or the user named one, e.g. `epic 144`), prefer its **current stage's unblocked issues**. Fast path: `issue-flow agent epic-status <N> --json` — its `next_candidates` are exactly the open, dependency-satisfied issues of the current stage. Surface those near the top so the epic advances stage by stage instead of stalling.
-   - **Otherwise, pull from GitHub.** Run `gh issue list --state open --json number,title,labels,milestone,updatedAt` (add `--repo owner/repo` if the default remote is ambiguous). Drop any issue already captured locally under `{{ issueflows_dir }}/{{ current_issues_folder }}/`, `{{ partly_solved_folder }}/`, or `{{ solved_folder }}/`.
+   - **Parse `label:<L>`** when present (case-insensitive label name after the colon). Announce the active filter in the shortlist header.
+   - **Parked work first.** If `{{ issueflows_dir }}/{{ partly_solved_folder }}/` contains any `issue<n>_*` groups, list them as the **primary** candidates — these are already-started issues that deserve to be finished before new work begins. Show issue number, title (from each `issue<n>_original.md`), and a one-line status if a status file exists. When `label:<L>` is active, keep only parked issues that carry `<L>` (`gh issue view <n> --json labels` when unclear).
+   - **Active epic next.** If an epic plan under `{{ issueflows_dir }}/{{ epics_folder }}/` has open issues (or the user named one, e.g. `epic 144`), prefer its **current stage's unblocked issues**. Fast path: `issue-flow agent epic-status <N> --json` — its `next_candidates` are exactly the open, dependency-satisfied issues of the current stage. Surface those near the top so the epic advances stage by stage instead of stalling. When `label:<L>` is active, keep only epic candidates that carry `<L>`.
+   - **Otherwise, pull from GitHub.** Run `gh issue list --state open --json number,title,labels,milestone,updatedAt` (add `--repo owner/repo` if the default remote is ambiguous). When `label:<L>` is active, add `--label <L>` (hard filter). Drop any issue already captured locally under `{{ issueflows_dir }}/{{ current_issues_folder }}/`, `{{ partly_solved_folder }}/`, or `{{ solved_folder }}/`. If the filtered set is empty, **stop** with “no open issues with label `<L>`.”
 
 3. **Rank by relevance and present a shortlist.** Rank candidates using, in combination:
    - **Epic membership** — an active epic's current-stage `next_candidates` first (note the epic + stage on those entries).
    - **Milestone** — prefer issues on the nearest / active milestone (and honour any milestone hint in the input).
-   - **Labels** — prefer labels that match recent work or any label hint in the input.
+   - **Labels** — prefer labels that match recent work or any soft label/topic hint when no `label:` filter is active.
    - **Topical similarity** — bias toward issues whose title/labels resemble recently solved issues (skim `{{ issueflows_dir }}/{{ solved_folder }}/` and recent branch names) so related work clusters together.
 
-   Present a short ranked shortlist (roughly 3–7 entries) as a numbered list with number, title, labels, and milestone, then **ask the user to confirm** the top pick or choose another. Always allow a free-form override (a different issue number, URL, or `fix`). Do not silently pick one.
+   Present a short ranked shortlist (roughly 3–7 entries) as a numbered list with number, title, labels, and milestone, then **ask the user to confirm** the top pick or choose another. Always allow a free-form override (a different issue number, URL, or `fix`). Do not silently pick one — even when the filtered shortlist has a single entry.
 
 4. **Create a `fix` issue (only when requested).** When the user passed `fix` (or explicitly asks for a general-fixes bucket): create a **new** GitHub issue with `gh issue create` (e.g. title `chore: general fixes`, body noting it is a catch-all for small fixes/typos/chores). Confirm the title/body with the user first. Record the returned issue number and use it as the chosen issue. A fresh issue is created each time — existing open general-fixes issues are **not** reused.
 
@@ -109,4 +111,6 @@ Report:
 
 - `/iflow-pick` — survey parked + GitHub issues, show a ranked shortlist, confirm, branch, init, hand off.
 - `/iflow-pick fix` — create a new `chore: general fixes` issue, branch, init, hand off.
-- `/iflow-pick milestone v0.4` — bias the ranking toward the `v0.4` milestone before asking.
+- `/iflow-pick label:enhancement` — hard-filter the shortlist to open issues with the `enhancement` label, then confirm / branch / init.
+- `/iflow-pick milestone v0.4` — soft-bias the ranking toward the `v0.4` milestone before asking.
+- Batch the same label filter (hands-off): `/iflow-cycle label:enhancement` (or `/iflow-cycle yolo` for the configured yolo trigger).
