@@ -57,6 +57,10 @@ _DOTENV_KEYS: tuple[tuple[str, str], ...] = (
     ("ISSUEFLOW_RUFF_AUTOFIX", "true"),
     ("ISSUEFLOW_AUTO_CLOSE", "false"),
     ("ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE", "true"),
+    ("ISSUEFLOW_ESSENTIAL_TESTS", "false"),
+    ("ISSUEFLOW_TEST_RUNNER", "pytest"),
+    ("ISSUEFLOW_ESSENTIAL_MARKER", "essential"),
+    ("ISSUEFLOW_ESSENTIAL_REVIEW", "close"),
 )
 _DOTENV_SECTION_HEADER = "# --- issue-flow: optional environment variables ---\n"
 
@@ -240,6 +244,57 @@ def _ensure_tools_readme(
     console_io.console.print(f"  [green]write[/green] {relative}")
 
 
+_ESSENTIAL_TESTS_GUIDE = "essential-tests.md"
+_TEST_REGISTRY_FILE = "test-registry.md"
+
+
+def _ensure_once_seeded_design(
+    project_root: Path,
+    settings: Settings,
+    context: dict[str, object],
+    *,
+    filename: str,
+    template_name: str,
+    label: str,
+) -> None:
+    """Write a designs-folder file once; never overwrite on later update."""
+    relative = Path(settings.issueflows_dir) / settings.designs_folder / filename
+    path = project_root / relative
+    if path.exists():
+        console_io.console.print(
+            f"  [dim]skip[/dim]  {relative}  ({label} already exists)"
+        )
+        return
+    rendered = render_template(template_name, context)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(rendered, encoding="utf-8")
+    console_io.console.print(f"  [green]write[/green] {relative}")
+
+
+def _ensure_essential_tests_designs(
+    project_root: Path,
+    settings: Settings,
+    context: dict[str, object],
+) -> None:
+    """Seed essential-tests guide + living test registry when missing."""
+    _ensure_once_seeded_design(
+        project_root,
+        settings,
+        context,
+        filename=_ESSENTIAL_TESTS_GUIDE,
+        template_name="designs/essential-tests.md.j2",
+        label="essential-tests guide",
+    )
+    _ensure_once_seeded_design(
+        project_root,
+        settings,
+        context,
+        filename=_TEST_REGISTRY_FILE,
+        template_name="designs/test-registry.md.j2",
+        label="test registry",
+    )
+
+
 def _already_initialized(
     project_root: Path,
     settings: Settings,
@@ -379,6 +434,13 @@ def run_init(
         ),
     )
     _ensure_tools_readme(
+        project_root,
+        settings,
+        settings.template_context(
+            project_root, profiles[0], mode=mode_obj, skill_level=skill_level_id
+        ),
+    )
+    _ensure_essential_tests_designs(
         project_root,
         settings,
         settings.template_context(
@@ -526,6 +588,13 @@ def run_update(
         ),
     )
     _ensure_tools_readme(
+        project_root,
+        settings,
+        settings.template_context(
+            project_root, profiles[0], mode=mode_obj, skill_level=skill_level_id
+        ),
+    )
+    _ensure_essential_tests_designs(
         project_root,
         settings,
         settings.template_context(

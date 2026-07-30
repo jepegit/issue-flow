@@ -18,6 +18,9 @@ from issue_flow.modes import (
     DEFAULT_CHECKS_WATCH_MINUTES,
     DEFAULT_CONFIRM_CHANGELOG_UPDATE,
     DEFAULT_EARLY_PR,
+    DEFAULT_ESSENTIAL_MARKER,
+    DEFAULT_ESSENTIAL_REVIEW,
+    DEFAULT_ESSENTIAL_TESTS,
     DEFAULT_AUTO_GRAPHIFY_ON_PLAN,
     DEFAULT_AUTO_SWITCHBACK,
     DEFAULT_AUTO_ADVERSARIAL_LOOPS,
@@ -34,9 +37,12 @@ from issue_flow.modes import (
     DEFAULT_SKILL_LEVEL,
     DEFAULT_STEP_DIRECTIVES,
     DEFAULT_SUGGEST_GRAPHIFY,
+    DEFAULT_TEST_RUNNER,
     DEFAULT_YOLO_LABEL,
     Mode,
+    normalize_essential_review,
     normalize_pr_merge_method,
+    normalize_test_runner,
 )
 from issue_flow import step_profiles as step_profiles_module
 
@@ -428,6 +434,39 @@ class Settings:
             default=DEFAULT_CONFIRM_CHANGELOG_UPDATE,
         )
 
+    def resolve_essential_tests(self, project_root: Path) -> bool:
+        """Resolve whether essential-tests skill hooks are enabled."""
+        persisted = modes_module.read_essential_tests(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        return _env_flag("ISSUEFLOW_ESSENTIAL_TESTS", default=DEFAULT_ESSENTIAL_TESTS)
+
+    def resolve_test_runner(self, project_root: Path) -> str:
+        """Resolve the test runner id for essential-tests (v1: pytest)."""
+        persisted = modes_module.read_test_runner(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        normalized = normalize_test_runner(os.getenv("ISSUEFLOW_TEST_RUNNER"))
+        return normalized or DEFAULT_TEST_RUNNER
+
+    def resolve_essential_marker(self, project_root: Path) -> str:
+        """Resolve the pytest mark name for the essential suite."""
+        persisted = modes_module.read_essential_marker(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        env = os.getenv("ISSUEFLOW_ESSENTIAL_MARKER")
+        if env and env.strip():
+            return env.strip()
+        return DEFAULT_ESSENTIAL_MARKER
+
+    def resolve_essential_review(self, project_root: Path) -> str:
+        """Resolve when to triage issue-touched tests for essential marks."""
+        persisted = modes_module.read_essential_review(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        normalized = normalize_essential_review(os.getenv("ISSUEFLOW_ESSENTIAL_REVIEW"))
+        return normalized or DEFAULT_ESSENTIAL_REVIEW
+
     def resolve_canonical_format(self, project_root: Path) -> bool:
         """Return whether the project uses the canonical agent store in git."""
         persisted = modes_module.read_canonical_format(self.config_path(project_root))
@@ -497,6 +536,11 @@ class Settings:
             if parsed_loops > 0:
                 auto_adversarial_loops = parsed_loops
         pr_merge = normalize_pr_merge_method(os.getenv("ISSUEFLOW_PR_MERGE_METHOD"))
+        test_runner = normalize_test_runner(os.getenv("ISSUEFLOW_TEST_RUNNER"))
+        essential_marker_env = os.getenv("ISSUEFLOW_ESSENTIAL_MARKER")
+        essential_review = normalize_essential_review(
+            os.getenv("ISSUEFLOW_ESSENTIAL_REVIEW")
+        )
         return {
             "mode": mode.strip() if mode and mode.strip() else DEFAULT_MODE,
             "skill_level": (
@@ -565,6 +609,16 @@ class Settings:
                 "ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE",
                 default=DEFAULT_CONFIRM_CHANGELOG_UPDATE,
             ),
+            "essential_tests": _env_flag(
+                "ISSUEFLOW_ESSENTIAL_TESTS", default=DEFAULT_ESSENTIAL_TESTS
+            ),
+            "test_runner": test_runner or DEFAULT_TEST_RUNNER,
+            "essential_marker": (
+                essential_marker_env.strip()
+                if essential_marker_env and essential_marker_env.strip()
+                else DEFAULT_ESSENTIAL_MARKER
+            ),
+            "essential_review": essential_review or DEFAULT_ESSENTIAL_REVIEW,
         }
 
     def template_context(
@@ -644,6 +698,10 @@ class Settings:
             "confirm_changelog_update": self.resolve_confirm_changelog_update(
                 project_root
             ),
+            "essential_tests": self.resolve_essential_tests(project_root),
+            "test_runner": self.resolve_test_runner(project_root),
+            "essential_marker": self.resolve_essential_marker(project_root),
+            "essential_review": self.resolve_essential_review(project_root),
         }
 
 

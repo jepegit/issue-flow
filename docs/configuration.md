@@ -50,7 +50,8 @@ It writes the keys issue-flow actually reads from `config.toml` — `mode`,
 `deep_model_label`, `fast_model_label`, `linguist_attributes`,
 `remind_cleanup`, `suggest_graphify`, `auto_switchback`, `pr_merge_method`,
 `cycle_max_issues`, `confirm_version_bump`, `ruff_autofix`, `auto_close`,
-`auto_plan`, `auto_build`, `confirm_changelog_update` — taking each value from
+`auto_plan`, `auto_build`, `confirm_changelog_update`, `essential_tests`,
+`test_runner`, `essential_marker`, `essential_review` — taking each value from
 its `ISSUEFLOW_*` env var / `.env`
 when set, otherwise the issue-flow default.
 The other `ISSUEFLOW_*` settings are **environment-only** and are deliberately
@@ -260,6 +261,10 @@ Lifecycle skills can be tuned with additional `[issueflow]` keys (baked at
 | `auto_build` | `true` | When `true`, `/iflow-plan` chains into `/iflow-build` on plan Accept; trailing `nobuild` skips once |
 | `early_pr` | `false` | When `true`, `/iflow-build` opens a draft PR after the first push; trailing `early` / `pr` / `noearly` override per run |
 | `confirm_changelog_update` | `false` | When `true`, `/iflow-close` shows the changelog diff and confirms once before writing (decline **stops** close); `false` writes without asking so the bullet lands in the PR (`nohistory` still skips) |
+| `essential_tests` | `false` | Opt-in essential-suite paradigm for pytest; see `.issueflows/04-designs-and-guides/essential-tests.md` |
+| `test_runner` | `"pytest"` | Test runner for essential-tests (v1: only `"pytest"` supported) |
+| `essential_marker` | `"essential"` | pytest mark name for the essential suite |
+| `essential_review` | `"close"` | When to triage issue-touched tests: `close`, `build`, `both`, or `never` |
 
 ```toml
 [issueflow]
@@ -277,6 +282,10 @@ auto_plan = true
 auto_build = true
 early_pr = false
 confirm_changelog_update = false
+essential_tests = false
+test_runner = "pytest"
+essential_marker = "essential"
+essential_review = "close"
 ```
 
 Env fallbacks: `ISSUEFLOW_REMIND_CLEANUP`, `ISSUEFLOW_SUGGEST_GRAPHIFY`,
@@ -285,5 +294,7 @@ Env fallbacks: `ISSUEFLOW_REMIND_CLEANUP`, `ISSUEFLOW_SUGGEST_GRAPHIFY`,
 `ISSUEFLOW_AUTO_ADVERSARIAL_LOOPS`, `ISSUEFLOW_CONFIRM_VERSION_BUMP`,
 `ISSUEFLOW_RUFF_AUTOFIX`, `ISSUEFLOW_AUTO_CLOSE`, `ISSUEFLOW_AUTO_PLAN`,
 `ISSUEFLOW_AUTO_BUILD`, `ISSUEFLOW_EARLY_PR`,
-`ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE`. Re-run `issue-flow update` after changing any of
+`ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE`, `ISSUEFLOW_ESSENTIAL_TESTS`,
+`ISSUEFLOW_TEST_RUNNER`, `ISSUEFLOW_ESSENTIAL_MARKER`,
+`ISSUEFLOW_ESSENTIAL_REVIEW`. Re-run `issue-flow update` after changing any of
 these so skills and rules re-render.

@@ -1,0 +1,11 @@
+{%- if essential_tests and test_runner == "pytest" %}
+ **Essential tests:** run `pytest -m {{ essential_marker }}` (via the project's
+ documented runner) as the required local sanity gate; *remind* that the full
+ suite belongs on schedule/release CI when dual workflows exist (see
+ `{{ issueflows_dir }}/{{ designs_folder }}/essential-tests.md`). If the project
+ has no essential CI yet, still run essential locally and note the gap. Never
+ skip a failing essential suite without explicit user agreement.
+{%- elif essential_tests and test_runner != "pytest" %}
+ **Essential tests:** unsupported `test_runner={{ test_runner }}` — run the
+ full suite as usual; invite a contribution for this runner.
+{%- endif -%}

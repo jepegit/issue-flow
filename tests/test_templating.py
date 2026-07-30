@@ -49,6 +49,10 @@ _MODE_CONTEXT = {
     "auto_build": True,
     "early_pr": False,
     "confirm_changelog_update": True,
+    "essential_tests": False,
+    "test_runner": "pytest",
+    "essential_marker": "essential",
+    "essential_review": "close",
 }
 
 
@@ -627,6 +631,58 @@ def test_plan_auto_build_chains_into_build() -> None:
     cmd_on = render_template("commands/iflow-plan.md.j2", _default_context())
     assert "`nobuild`" in cmd_on
     assert "auto_build chained" in cmd_on or "auto_build` chained" in cmd_on
+
+
+def test_essential_tests_hooks_gated_by_knob() -> None:
+    """Essential-tests wording appears only when essential_tests is true."""
+    off_close = render_template("skills/iflow_close/SKILL.md.j2", _default_context())
+    assert "Essential tests:" not in off_close
+    assert "Essential tests review" not in off_close
+    off_doctor = render_template("skills/iflow_doctor/SKILL.md.j2", _default_context())
+    assert "Essential tests audit" not in off_doctor
+
+    on_ctx = {
+        **_default_context(),
+        "essential_tests": True,
+        "test_runner": "pytest",
+        "essential_marker": "smoke",
+        "essential_review": "close",
+    }
+    on_close = render_template("skills/iflow_close/SKILL.md.j2", on_ctx)
+    assert "pytest -m smoke" in on_close
+    assert "Essential tests review" in on_close
+    assert "@pytest.mark.smoke" in on_close
+
+    build_both = render_template(
+        "skills/iflow_build/SKILL.md.j2",
+        {**on_ctx, "essential_review": "both"},
+    )
+    assert "Essential tests" in build_both
+    assert "@pytest.mark.smoke" in build_both
+
+    build_close_only = render_template(
+        "skills/iflow_build/SKILL.md.j2",
+        on_ctx,
+    )
+    assert "Essential tests review" not in build_close_only
+
+    doctor = render_template("skills/iflow_doctor/SKILL.md.j2", on_ctx)
+    assert "Essential tests audit" in doctor
+    assert "test-registry.md" in doctor
+
+    unsupported = render_template(
+        "skills/iflow_close/SKILL.md.j2",
+        {**on_ctx, "test_runner": "nose"},
+    )
+    assert (
+        "not supported" in unsupported.lower() or "unsupported" in unsupported.lower()
+    )
+
+    guide = render_template("designs/essential-tests.md.j2", on_ctx)
+    assert "smoke" in guide
+    assert "pytest" in guide
+    registry = render_template("designs/test-registry.md.j2", on_ctx)
+    assert "Essential?" in registry
 
 
 def test_build_early_pr_step_and_tokens() -> None:

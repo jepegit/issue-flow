@@ -17,7 +17,8 @@ templates by hand.
 | Timing / PR | `early_pr` |
 | Auto / advanced | `auto_adversarial_loops` (see [advanced-auto-mode.md](./advanced-auto-mode.md)) |
 | Confirm gates (`confirm_*`) | `confirm_version_bump`, `confirm_changelog_update` |
-| Tool / value | `ruff_autofix`, `pr_merge_method`, `cycle_max_issues` |
+| Tool / value | `ruff_autofix`, `pr_merge_method`, `cycle_max_issues`, `test_runner`, `essential_marker`, `essential_review` |
+| Feature masters (`*_tests` / paradigm) | `essential_tests` |
 
 | Key | Default | Effect |
 |-----|---------|--------|
@@ -35,6 +36,10 @@ templates by hand.
 | `pr_merge_method` | `"squash"` | Yolo `gh pr merge --{squash\|merge\|rebase}` |
 | `cycle_max_issues` | `10` | `/iflow-cycle` safety cap before `max:<n>` |
 | `ruff_autofix` | `true` | Gate ruff `--fix` / format in start/close |
+| `essential_tests` | `false` | Opt-in essential-suite paradigm (pytest); see [essential-tests.md](./essential-tests.md) (issue #213) |
+| `test_runner` | `"pytest"` | Runner for essential-tests; v1 only `"pytest"` supported |
+| `essential_marker` | `"essential"` | pytest mark name for the essential suite |
+| `essential_review` | `"close"` | When to triage issue-touched tests: `close` \| `build` \| `both` \| `never` |
 
 **Consistency.** `auto_plan` / `auto_build` / `auto_close` are **independent** —
 each only skips its own next-step pause (pick confirm, plan Accept, and
