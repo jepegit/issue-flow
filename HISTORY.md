@@ -9,12 +9,19 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+## [0.4.9] - 2026-07-30
+
+- **Release docs + ship 0.4.9 (#224).** Refresh `docs/developing.md` release playbook (`uv version --bump`, HISTORY promote, post-merge `gh release create`).
 - **Pick by GitHub label (#228).** `/iflow-pick label:<L>` hard-filters the shortlist (`gh issue list --label`); soft hints stay bias-only; docs cross-link `/iflow-cycle label:<L>`.
-- **Opt-in `auto_graphify_on_plan` (#214).** When true, `/iflow-plan` runs `issue-flow graphify` (AST `update`) before prior-art discovery; missing/failing graphify notes and continues. Default false; coexists with soft `suggest_graphify`.
 - **Doctor leftovers default-commit (#218).** After `/iflow-doctor` repair (and at `/iflow-pick` Phase 2), treat issueflows-only dirty trees as a recommended housekeeping commit; `preflight --json` exposes `dirty_paths` / `issueflows_only`.
 - **`auto_plan` / `auto_build` handoff knobs (#219).** Default true: pick confirm chains to `/iflow-plan`, plan Accept chains to `/iflow-build`; one-shot skips `noplan` / `nobuild`. Independent of `auto_close`.
 - **`gh-ci` skill for CI wait commands (#220).** Model-invoked cheatsheet (`gh pr checks` / `--watch`, `gh run list` / `gh run watch` fallback) plus close/rules/docs pointers; keeps #172 primacy.
 - **Opt-in essential tests for pytest (#213).** Knobs `essential_tests` / `test_runner` / `essential_marker` / `essential_review`; design doc + test registry seeds; close/build/doctor skill hooks.
+
+## [0.4.8] - 2026-07-26
+
+- **Opt-in `auto_graphify_on_plan` (#214).** When true, `/iflow-plan` runs `issue-flow graphify` (AST `update`) before prior-art discovery; missing/failing graphify notes and continues. Default false; coexists with soft `suggest_graphify`.
+- **UTF-8 decode in gitutils + `gh repo view` guidance (#216).**
 
 ## [0.4.7] - 2026-07-24
 
