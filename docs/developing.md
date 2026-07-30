@@ -164,65 +164,81 @@ We have two GitHub Actions workflows:
 
 ## Publishing a new version
 
-Here's the full process, step by step.
+`issue-flow` uses a **static** version in `pyproject.toml` (see the
+"Release & version bump" section of
+`.issueflows/04-designs-and-guides/this-project.md`). Prefer shipping a
+dedicated release issue (e.g. `/iflow-pick` → plan → build →
+`/iflow-close`) so HISTORY, docs, and the bump land in one PR — then tag
+on `main` after merge.
 
 ### 1. Make sure tests pass
 
 ```bash
 uv run pytest -v
-uv run ruff check src/ tests/ scripts/
+uv run ruff check src/ tests/
 ```
 
 Don't skip this. If tests fail, the publish workflow will also fail.
 
-### 2. Bump the version
+### 2. Bump the version and promote HISTORY
+
+Preview, then write:
 
 ```bash
-uv version 0.2.0
+uv version --dry-run --bump patch --short   # e.g. 0.4.8 -> 0.4.9
+uv version --bump patch                     # or: minor / major / alpha / …
 ```
 
-This updates the version in `pyproject.toml`. Pick a version number following [semantic versioning](https://semver.org/):
-- **Patch** (0.1.0 -> 0.1.1): bug fixes
-- **Minor** (0.1.0 -> 0.2.0): new features, backwards compatible
-- **Major** (0.1.0 -> 1.0.0): breaking changes
+`uv version --bump <level>` updates `[project].version` in `pyproject.toml`.
+Levels follow [PEP 440](https://packaging.python.org/en/latest/specifications/pep-0440/)
+via uv (`patch`, `minor`, `major`, `stable`, `alpha`, `beta`, `rc`, `post`,
+`dev`). A bare `bump` in `/iflow-close` stays on the current pre-release
+channel when the version is already an alpha/beta/rc.
 
-### 3. Commit and push
+Also promote `HISTORY.md`: rename `## [Unreleased]` to
+`## [<new_version>] - YYYY-MM-DD`, move the release bullets into that
+section, and open a fresh empty `## [Unreleased]` above it. `/iflow-close`
+with a bump token does this via the `iflow-history-update` skill; if you
+bump by hand, edit `HISTORY.md` the same way. Drop any Unreleased bullet
+that already shipped in an earlier tag.
+
+### 3. Commit, push, and merge the release PR
 
 ```bash
-git add pyproject.toml uv.lock
-git commit -m "Bump version to 0.2.0"
+git add pyproject.toml HISTORY.md docs/
+# include uv.lock only if it changed
+git commit -m "Release 0.4.9"
 git push
 ```
 
-### 4. Create a release
+Open/merge a PR into `main` (squash). Do **not** create the GitHub release
+tag on the issue branch — under squash merges that commit never lands on
+`main`.
 
-If you have the `.aliases` file sourced in your shell (see below), just run:
+### 4. Create a GitHub release (on updated `main`)
 
-```bash
-release
-```
-
-This reads the version from `pyproject.toml` and creates a GitHub release with auto-generated notes. The publish workflow kicks in automatically.
-
-If you don't have the alias, the full command is:
+After the bump PR is merged and local `main` is fast-forwarded:
 
 ```bash
-gh release create v0.2.0 --generate-notes
+git switch main && git pull --ff-only
+gh release create "v$(uv run python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")" --generate-notes
 ```
+
+Or, if you keep a local `release` alias (see below), just run `release`.
+Creating the GitHub release starts `.github/workflows/publish.yml`, which
+re-runs tests, builds the package, and publishes to PyPI.
 
 ### The `release` alias
 
-The original developer typically have a `.aliases` file that is automatically read containing a handy shortcut:
+Optional convenience in a gitignored `.aliases` file:
 
 ```bash
 alias release='gh release create "v$(python -c "import tomllib; print(tomllib.load(open(\"pyproject.toml\",\"rb\"))[\"project\"][\"version\"])")" --generate-notes'
 ```
 
-Note that the `.aliases` file is ignored by git (it is included in `.gitignore`). So if you want to adopt the `.aliases` way of doing things, you need to make it yourself (i.e., creating a file called `.aliases` and copy-pasting the alias command above inside it).
-
 This alias:
 1. Reads the current version from `pyproject.toml`
-2. Prefixes it with `v` (e.g. `0.2.0` becomes `v0.2.0`)
+2. Prefixes it with `v` (e.g. `0.4.9` becomes `v0.4.9`)
 3. Creates a GitHub release with that tag
 4. Auto-generates release notes from merged PRs and commits
 
@@ -258,8 +274,10 @@ uv run ruff check src/ tests/ scripts/
 uv run scripts/update_issueflow_setup.py
 uv run issue-flow init /tmp/test-project
 
-# Release
-uv version 0.2.0
-git add pyproject.toml uv.lock && git commit -m "Bump version to 0.2.0" && git push
-release
+# Release (after merge to main)
+uv version --bump patch
+# promote HISTORY.md [Unreleased] → ## [x.y.z] - YYYY-MM-DD
+git add pyproject.toml HISTORY.md && git commit -m "Release x.y.z" && git push
+# after PR merges:
+gh release create "v$(uv run python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")" --generate-notes
 ```
