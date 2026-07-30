@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- **README badges (#231).** PyPI version, Read the Docs, and Pepy downloads badges under the title.
+
 ## [0.4.9] - 2026-07-30
 
 - **Release docs + ship 0.4.9 (#224).** Refresh `docs/developing.md` release playbook (`uv version --bump`, HISTORY promote, post-merge `gh release create`).
