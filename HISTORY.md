@@ -13,6 +13,7 @@ than the GitHub release notes they link to.
 - **Doctor leftovers default-commit (#218).** After `/iflow-doctor` repair (and at `/iflow-pick` Phase 2), treat issueflows-only dirty trees as a recommended housekeeping commit; `preflight --json` exposes `dirty_paths` / `issueflows_only`.
 - **`auto_plan` / `auto_build` handoff knobs (#219).** Default true: pick confirm chains to `/iflow-plan`, plan Accept chains to `/iflow-build`; one-shot skips `noplan` / `nobuild`. Independent of `auto_close`.
 - **`gh-ci` skill for CI wait commands (#220).** Model-invoked cheatsheet (`gh pr checks` / `--watch`, `gh run list` / `gh run watch` fallback) plus close/rules/docs pointers; keeps #172 primacy.
+- **Opt-in essential tests for pytest (#213).** Knobs `essential_tests` / `test_runner` / `essential_marker` / `essential_review`; design doc + test registry seeds; close/build/doctor skill hooks.
 
 ## [0.4.7] - 2026-07-24
 
