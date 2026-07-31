@@ -14,5 +14,9 @@
 
 ## Remaining work
 
-- Run pytest + ruff; dogfood `issue-flow update` if local skills should match (optional for this PR — templates are SoT).
-- `/iflow-close` for HISTORY + ship.
+- `/iflow-close` for HISTORY + ship (branch: `cursor/233-cleanup-configurable-17e3`).
+
+## Notes
+
+- pytest 588 passed; ruff clean.
+- Cloud PR branch renamed to `cursor/233-cleanup-configurable-17e3` (prefix requirement).
