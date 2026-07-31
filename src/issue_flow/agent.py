@@ -1988,7 +1988,8 @@ def _print_config_guide(console: Console, cfg_path: Path) -> None:
         "GitHub Linguist.[/dim]"
     )
     console.print(
-        "  [dim]- [bold]remind_cleanup[/bold] / [bold]suggest_graphify[/bold] / "
+        "  [dim]- [bold]remind_cleanup[/bold] / "
+        "[bold]cleanup_include_github[/bold] / [bold]suggest_graphify[/bold] / "
         "[bold]auto_graphify_on_plan[/bold]; "
         "[bold]auto_switchback[/bold] / [bold]auto_close[/bold] / "
         "[bold]auto_plan[/bold] / [bold]auto_build[/bold] / "

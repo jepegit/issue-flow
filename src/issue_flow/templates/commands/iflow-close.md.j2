@@ -94,7 +94,7 @@ Other optional notes still apply: branch name, PR title, skip issue doc update, 
    - With the `yolo` input the PR was already merged in step 7a —{% if remind_cleanup %} skip to the `/iflow-cleanup` reminder below.{% else %} skip further merge work.{% endif %}
    - Address feedback, push updates, and merge when approved and `gh pr checks <number> --repo <owner/repo>` is green (exit 0).
    - If step 8 switched back to the default branch, switch to the PR branch again before making review fixes.
-{% if remind_cleanup %}   - Once the PR is merged, run **`/iflow-cleanup`** to switch back to the default branch, `git pull --ff-only`, `git fetch --prune`, and delete local branches whose commits are already in the default branch (single consolidated confirm — which, for tag-derived projects, also offers to create the release tag planned in step 2). `/iflow-close` no longer does post-merge cleanup itself.
+{% if remind_cleanup %}   - Once the PR is merged, **remind** the user to run **`/iflow-cleanup`** (switch to default, `git pull --ff-only`, `git fetch --prune`, delete merged local branches under one confirm — tag-derived projects also offer the release tag from step 2). Do **not** auto-run cleanup from close; `/iflow-close` no longer does post-merge cleanup itself.
 {% endif %}
 ## Constraints
 

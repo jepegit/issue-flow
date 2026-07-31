@@ -133,7 +133,8 @@ Contract: `{{ issueflows_dir }}/{{ designs_folder }}/advanced-auto-mode.md`
 
 12. **Report.** Epic, stage, cycle results (if any), adversarial outcome +
     issue numbers, `loop_count` / `budget`, gate result, `auto_status.md`
-    path. Remind `/iflow-cleanup` after merges.
+    path.{% if remind_cleanup %} Remind `/iflow-cleanup` after merges
+    (do not auto-run it).{% endif %}
 
 ## Constraints
 

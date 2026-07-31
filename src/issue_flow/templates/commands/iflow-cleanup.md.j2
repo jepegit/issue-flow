@@ -2,7 +2,7 @@
 
 Run this after a PR has been merged (typically the one opened by `/iflow-close`). It detects the merge, switches back to the default branch, and — with a **single consolidated confirm** — deletes every local branch whose commits are already in the default branch (including squash-merged branches).
 
-With trailing text like `include GitHub`, it also runs a **GitHub remote-branch audit** (Phase B): classify `origin/*`, summarise unique work, and optionally delete deletable remotes and/or file a findings issue under a **second** confirm.
+With trailing text like `include GitHub`{% if cleanup_include_github %}, or when this project bakes `cleanup_include_github = true`,{% endif %} it also runs a **GitHub remote-branch audit** (Phase B): classify `origin/*`, summarise unique work, and optionally delete deletable remotes and/or file a findings issue under a **second** confirm. Opt out of a baked-on Phase B with `no github` / `local only`.
 
 `/iflow-cleanup` is the only command in the workflow that touches branches destructively (local via `git branch -d`, never `-D`; remote via `git push origin --delete` only after Phase B confirm, never `--force`).
 
@@ -14,9 +14,12 @@ With trailing text like `include GitHub`, it also runs a **GitHub remote-branch 
 
 Optional free-form text after the command. Examples:
 
-- **No extra text** — detect the current branch's PR, clean that up, plus any other local branches already merged into the default (Phase A only).
+- **No extra text** — detect the current branch's PR, clean that up, plus any other local branches already merged into the default (Phase A{% if cleanup_include_github %}; Phase B also runs by default because `cleanup_include_github = true`{% else %} only{% endif %}).
 - A branch name — clean up that specific branch instead of the current one (e.g. `/iflow-cleanup 42-fix-login`).
-- **GitHub audit tokens** (case-insensitive): `include github`, `include gh`, `with github`, or standalone `github` — also run Phase B after Phase A.
+- **GitHub audit opt-in tokens** (case-insensitive): `include github`, `include gh`, `with github`, or standalone `github` — also run Phase B after Phase A.
+- **GitHub audit opt-out tokens** (case-insensitive): `no github`, `local only`, `local-only` — skip Phase B even when `cleanup_include_github` is baked true.
+
+**Phase B enable rule:** (`cleanup_include_github` baked true **or** opt-in token) **and** no opt-out token.
 
 ## Steps
 
@@ -35,7 +38,7 @@ Optional free-form text after the command. Examples:
    - **If the branch is not merged:**
      - Remind the user that the working copy is still on the issue branch (not the default). Suggest `git switch <default>` before starting unrelated work.
      - Tell them to re-run `/iflow-cleanup` after the PR merges.
-     - **Stop Phase A.** Do not delete anything locally. If a GitHub-audit token was present, Phase B may still run (remote audit does not require the issue branch to be merged).
+     - **Stop Phase A.** Do not delete anything locally. If Phase B is enabled (see Input), Phase B may still run (remote audit does not require the issue branch to be merged).
 
 4. **Consolidated confirm for post-merge cleanup (Phase A).** Gather the full action list into a single yes/no prompt:
    - `git switch <default>`
@@ -54,7 +57,7 @@ Optional free-form text after the command. Examples:
    - If the just-merged issue's number appears in a `- Published: #<N>` line of an `epic<M>_plan.md` under `{{ issueflows_dir }}/{{ epics_folder }}/`, it belongs to an epic. Run `issue-flow agent epic-status <M> --json`; if the issue's stage now has no open issues left, the stage just completed.
    - On a completed stage, **offer** (never automatic): (a) post a short stage-summary comment on the epic anchor issue, and (b) run `/iflow-epic <M> publish` to publish the next stage. Publishing and commenting stay the user's explicit call.
 
-7. **Phase B — GitHub remote audit** (only when a GitHub-audit token was present).
+7. **Phase B — GitHub remote audit** (only when Phase B is enabled per the Input enable rule).
    - Prefer `issue-flow agent branches --json` (read-only classification of `origin/*` into `deletable` / `unique_work` / `skipped`). Manual fallback: `git fetch --prune`, `git cherry` / `git log --oneline` / `git diff --shortstat`, plus `gh pr list --state all --head <branch>`.
    - Report buckets; summarise unique-work commit subjects and open PR titles.
    - **Second consolidated confirm** (never implied by Phase A's yes):
