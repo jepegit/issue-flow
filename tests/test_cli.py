@@ -329,6 +329,55 @@ def test_agent_state_json_reports_stage(
     assert payload["resolved_via"] == "single-group"
     assert payload["stage"] == "build"
     assert payload["next_command"] == "/iflow-build"
+    assert payload["epic_hint"] is None
+
+
+def test_agent_state_epic_hint_when_no_focus(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Issue #210: no focus → epic_hint lists next_candidates; no auto-init."""
+    from issue_flow import gitutils as gitutils_module
+
+    monkeypatch.setattr(gitutils_module, "current_branch", lambda _cwd: None)
+    monkeypatch.setattr(gitutils_module, "remote_owner_repo", lambda _cwd: None)
+    states = {11: "closed", 12: "open"}
+    monkeypatch.setattr(
+        gitutils_module,
+        "gh_issue_state",
+        lambda number, _cwd, _repo=None: states.get(number),
+    )
+    _seed_epic_plan(tmp_path)
+    (tmp_path / ".issueflows" / "01-current-issues").mkdir(parents=True, exist_ok=True)
+
+    result = runner.invoke(app, ["agent", "state", "-C", str(tmp_path), "--json"])
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["focus"] is None
+    assert payload["next_command"] is None
+    assert payload["epic_hint"] is not None
+    epics = payload["epic_hint"]["epics"]
+    assert len(epics) == 1
+    assert epics[0]["epic"] == 9
+    assert epics[0]["stage"] == 1
+    assert epics[0]["next_candidates"] == [12]
+
+
+def test_agent_state_no_epic_hint_falls_back_to_init(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from issue_flow import gitutils as gitutils_module
+
+    monkeypatch.setattr(gitutils_module, "current_branch", lambda _cwd: None)
+    (tmp_path / ".issueflows" / "01-current-issues").mkdir(parents=True)
+
+    result = runner.invoke(app, ["agent", "state", "-C", str(tmp_path), "--json"])
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["focus"] is None
+    assert payload["epic_hint"] == {"epics": []}
+    assert payload["next_command"] == "/iflow-init"
 
 
 def test_agent_sweep_dry_run_does_not_move(runner: CliRunner, tmp_path: Path) -> None:
