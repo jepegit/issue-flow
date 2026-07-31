@@ -700,9 +700,7 @@ class Settings:
             ),
             "skill_level": skill_level,
             "remind_cleanup": self.resolve_remind_cleanup(project_root),
-            "cleanup_include_github": self.resolve_cleanup_include_github(
-                project_root
-            ),
+            "cleanup_include_github": self.resolve_cleanup_include_github(project_root),
             "suggest_graphify": self.resolve_suggest_graphify(project_root),
             "auto_graphify_on_plan": self.resolve_auto_graphify_on_plan(project_root),
             "auto_switchback": self.resolve_auto_switchback(project_root),
