@@ -121,7 +121,7 @@ Skill `@` attachment is supported on some editors but is not the recommended key
 
 If you have not chosen an issue yet, run **`/iflow-pick`** (or type **`iflow pick`** in chat) — the front door that helps you select the next issue (parked work first, else ranked open GitHub issues), creates the branch, and runs `/iflow-init`. It is off-path (never auto-dispatched).
 
-If you just want the next right step, run **`/iflow`** (or type **`iflow`** in chat) — it detects state (by file presence under `{{ issueflows_dir }}/{{ current_issues_folder }}/` and the status-file `- [x] Done` marker) and dispatches to `/iflow-init`, `/iflow-plan`, `/iflow-build`, or `/iflow-close`. It never auto-dispatches to `/iflow-pick`, `/iflow-pause`, `/iflow-cleanup`, or `/iflow-yolo` — those stay explicit.
+If you just want the next right step, run **`/iflow`** (or type **`iflow`** in chat) — it detects state (by file presence under `{{ issueflows_dir }}/{{ current_issues_folder }}/` and the status-file `- [x] Done` marker) and dispatches to `/iflow-init`, `/iflow-plan`, `/iflow-build`, or `/iflow-close`. With no focus issue, it checks active-epic `next_candidates` (`agent state` → `epic_hint`) and **recommends** `/iflow-pick` instead of a blind init — it never auto-dispatches to `/iflow-pick`, `/iflow-pause`, `/iflow-cleanup`, or `/iflow-yolo`.
 
 The full slash-command lifecycle is:
 

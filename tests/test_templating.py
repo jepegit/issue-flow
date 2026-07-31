@@ -561,6 +561,22 @@ def test_rules_soften_remind_cleanup_wording() -> None:
     assert "does not nudge cleanup" in off
 
 
+def test_iflow_dispatcher_epic_gap_contract() -> None:
+    """Issue #210: /iflow skill+command mention epic_hint / next_candidates."""
+    for template_name in (
+        "skills/iflow_iflow/SKILL.md.j2",
+        "commands/iflow.md.j2",
+    ):
+        rendered = render_template(template_name, _default_context())
+        assert "epic_hint" in rendered, template_name
+        assert "next_candidates" in rendered, template_name
+        assert "never pick silently" in rendered.lower() or (
+            "Never silent-pick" in rendered or "never silent-pick" in rendered.lower()
+        ), template_name
+        assert "Never auto-dispatch" in rendered or "never auto-dispatch" in rendered
+        assert "/iflow-pick" in rendered, template_name
+
+
 def test_cycle_bakes_max_issues() -> None:
     rendered = render_template(
         "skills/iflow_cycle/SKILL.md.j2",
