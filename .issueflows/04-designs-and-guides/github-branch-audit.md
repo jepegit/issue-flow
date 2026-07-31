@@ -12,10 +12,16 @@ delete, what still has unique commits, and optionally file the findings.
 
 ## Decisions
 
-### 1. Opt-in via trailing tokens on `/iflow-cleanup`
+### 1. Opt-in via trailing tokens (or config) on `/iflow-cleanup`
 
 Recognise (case-insensitive): `include github`, `include gh`, `with github`,
-standalone `github`. Default cleanup stays Phase A only (local).
+standalone `github`. Default cleanup stays Phase A only (local), unless
+`[issueflow].cleanup_include_github = true` is baked at `issue-flow update`
+(issue #233). Opt out of a baked-on Phase B with `no github` / `local only` /
+`local-only`.
+
+**Enable rule:** (`cleanup_include_github` **or** opt-in token) **and** no
+opt-out token.
 
 ### 2. Two confirms
 

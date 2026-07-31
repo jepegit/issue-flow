@@ -48,9 +48,10 @@ It writes the keys issue-flow actually reads from `config.toml` — `mode`,
 `skill_level`, `caveman_default`, `grill_me_default`, `label_flows`,
 `yolo_label`, `checks_watch_minutes`, `step_directives`, `model_label_flows`,
 `deep_model_label`, `fast_model_label`, `linguist_attributes`,
-`remind_cleanup`, `suggest_graphify`, `auto_switchback`, `pr_merge_method`,
-`cycle_max_issues`, `confirm_version_bump`, `ruff_autofix`, `auto_close`,
-`auto_plan`, `auto_build`, `confirm_changelog_update`, `essential_tests`,
+`remind_cleanup`, `cleanup_include_github`, `suggest_graphify`,
+`auto_switchback`, `pr_merge_method`, `cycle_max_issues`,
+`confirm_version_bump`, `ruff_autofix`, `auto_close`, `auto_plan`,
+`auto_build`, `confirm_changelog_update`, `essential_tests`,
 `test_runner`, `essential_marker`, `essential_review` — taking each value from
 its `ISSUEFLOW_*` env var / `.env`
 when set, otherwise the issue-flow default.
@@ -247,7 +248,8 @@ Lifecycle skills can be tuned with additional `[issueflow]` keys (baked at
 
 | Key | Default | Effect |
 | --- | --- | --- |
-| `remind_cleanup` | `true` | Remind the user to run `/iflow-cleanup` after close / cycle / dispatcher state D |
+| `remind_cleanup` | `true` | Soft-remind the user to run `/iflow-cleanup` after close / cycle / dispatcher state D (never auto-runs cleanup). Set `false` for no in-flow nudges — cleanup only when you run `/iflow-cleanup` yourself |
+| `cleanup_include_github` | `false` | When `true`, `/iflow-cleanup` runs the GitHub remote-branch audit (Phase B) by default; override per run with `no github` / `local only` |
 | `suggest_graphify` | `true` | Soft-suggest skimming `GRAPH_REPORT.md` / rebuilding graphify (never auto-runs) |
 | `auto_graphify_on_plan` | `false` | When `true`, `/iflow-plan` runs `issue-flow graphify` (AST `update`) before prior-art discovery; missing/failing graphify → note and continue |
 | `auto_switchback` | `true` | After `/iflow-close` opens a PR, switch to the default branch when clean (`false` ≈ always `stay`) |
@@ -269,6 +271,7 @@ Lifecycle skills can be tuned with additional `[issueflow]` keys (baked at
 ```toml
 [issueflow]
 remind_cleanup = true
+cleanup_include_github = false
 suggest_graphify = true
 auto_graphify_on_plan = false
 auto_switchback = true

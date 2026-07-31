@@ -321,6 +321,7 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
         DEFAULT_CYCLE_MAX_ISSUES,
         DEFAULT_AUTO_ADVERSARIAL_LOOPS,
         DEFAULT_PR_MERGE_METHOD,
+        DEFAULT_CLEANUP_INCLUDE_GITHUB,
         DEFAULT_REMIND_CLEANUP,
         DEFAULT_RUFF_AUTOFIX,
         DEFAULT_AUTO_GRAPHIFY_ON_PLAN,
@@ -335,6 +336,7 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
         read_cycle_max_issues,
         read_auto_adversarial_loops,
         read_pr_merge_method,
+        read_cleanup_include_github,
         read_remind_cleanup,
         read_ruff_autofix,
         read_auto_graphify_on_plan,
@@ -350,6 +352,7 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
     )
 
     assert read_remind_cleanup(cfg) is DEFAULT_REMIND_CLEANUP
+    assert read_cleanup_include_github(cfg) is DEFAULT_CLEANUP_INCLUDE_GITHUB
     assert read_suggest_graphify(cfg) is DEFAULT_SUGGEST_GRAPHIFY
     assert read_auto_graphify_on_plan(cfg) is DEFAULT_AUTO_GRAPHIFY_ON_PLAN
     assert read_auto_switchback(cfg) is DEFAULT_AUTO_SWITCHBACK

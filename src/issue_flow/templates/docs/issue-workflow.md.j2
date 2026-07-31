@@ -130,7 +130,7 @@ All workflows that touch git also run a short **branch-status preflight**: `git 
 
 **Focus-issue resolution:** prefer the leading digits of the current branch when it matches `^<N>-.+`; else the single group in `{{ issueflows_dir }}/{{ current_issues_folder }}/`; else ask.
 
-**Not auto-dispatched:** `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-status`, `/iflow-doctor`, `/iflow-review`, `/iflow-epic`, `/iflow-cycle`, `/iflow-auto`, and `/iflow-archive`. `/iflow` will mention them in its output when relevant (e.g. "after the PR merges, run `/iflow-cleanup`") but never picks them for you.
+**Not auto-dispatched:** `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-status`, `/iflow-doctor`, `/iflow-review`, `/iflow-epic`, `/iflow-cycle`, `/iflow-auto`, and `/iflow-archive`.{% if remind_cleanup %} `/iflow` will mention them in its output when relevant (e.g. "after the PR merges, run `/iflow-cleanup`") but never picks them for you.{% else %} `/iflow` never picks them for you and, with `remind_cleanup = false`, does not nudge `/iflow-cleanup`.{% endif %}
 
 **Result:** One of the four linear commands runs, with its own normal checkpoints intact.
 
@@ -235,7 +235,7 @@ The bump runs **after** tests and **before** issue-folder moves and **before** c
 6. **Push** — to your usual remote (e.g. `origin`).
 7. **Pull request** — `gh pr list --head <branch>` first (reuse an open PR, including an early draft); else `gh pr create` (with `--draft` when the `draft` token was passed). Mark ready from draft when not keeping `draft`. Afterward, snapshot CI with `gh pr checks` (see the `gh-ci` skill for `gh run list` / `gh run watch` fallback). Link the GitHub issue (`Closes #n` / `Refs #n`).
 8. **Switch back when safe** — unless `stay` / `don't switch` was passed, run `git status --porcelain`; if clean, `git switch <default>` and `git pull --ff-only`; if dirty, stay put and report why switching is unsafe.
-9. **After review** — if switched back, return to the PR branch before review fixes; merge when approved and `gh pr checks` is green; once the PR merges, run `/iflow-cleanup` for the post-merge tidy-up. With `yolo`, close may `gh pr checks --watch` (budget: `checks_watch_minutes`, default 15) before merge, falling back to `--auto` only when the cap elapses.
+9. **After review** — if switched back, return to the PR branch before review fixes; merge when approved and `gh pr checks` is green{% if remind_cleanup %}; once the PR merges, remind the user to run `/iflow-cleanup` for the post-merge tidy-up (do not auto-run it){% endif %}. With `yolo`, close may `gh pr checks --watch` (budget: `checks_watch_minutes`, default 15) before merge, falling back to `--auto` only when the cap elapses.
 
 **Result:** Commit, push, PR link, and either a clean switch back to the default branch or a clear reason for staying on the issue branch. No branches are deleted from `/iflow-close` itself.
 
@@ -245,16 +245,16 @@ The bump runs **after** tests and **before** issue-folder moves and **before** c
 
 **When:** The PR opened by `/iflow-close` has merged on GitHub. (The optional GitHub remote audit can also run when you only want a remote-branch report.)
 
-**What you pass:** Nothing (acts on the current branch), an explicit branch name, and/or a GitHub-audit token such as `include GitHub` / `with github` / `github`.
+**What you pass:** Nothing (acts on the current branch), an explicit branch name, and/or a GitHub-audit token such as `include GitHub` / `with github` / `github`. Opt out of a baked-on Phase B with `no github` / `local only`. With `cleanup_include_github = true` in `config.toml`, Phase B runs by default without a token.
 
 **What the assistant does:**
 
 1. Detects the default branch.
 2. Detects merge state via `gh pr view` (falls back to `git cherry origin/<default> <branch>` to catch squash-merges).
-3. If **not merged**: reminds you to stay off the default for unrelated work and re-run after merge (Phase A stops; Phase B may still run if a GitHub-audit token was present).
+3. If **not merged**: reminds you to stay off the default for unrelated work and re-run after merge (Phase A stops; Phase B may still run when enabled).
 4. If **merged**: one consolidated yes/no prompt covering `git switch <default>`, `git pull --ff-only`, `git fetch --prune`, and `git branch -d` on every local branch whose tip is already reachable from the default (including squash-merged ones). Never `-D`; if `-d` refuses, reports and moves on.
 5. Optional safe folder sweep: moves any `issue<N>_*` group whose status file says `- [x] Done` to `{{ issueflows_dir }}/{{ solved_folder }}/`.
-6. **Optional Phase B (`include GitHub`):** run `issue-flow agent branches --json` (or the manual `git`/`gh` fallback) to classify `origin/*` as deletable / unique work / skipped; summarise unique commits; then a **second** confirm for optional `git push origin --delete` on deletable remotes and/or a findings issue via `gh issue create`. Never `--force`; never delete the default.
+6. **Optional Phase B** (opt-in token, or baked `cleanup_include_github = true`, unless opt-out): run `issue-flow agent branches --json` (or the manual `git`/`gh` fallback) to classify `origin/*` as deletable / unique work / skipped; summarise unique commits; then a **second** confirm for optional `git push origin --delete` on deletable remotes and/or a findings issue via `gh issue create`. Never `--force`; never delete the default.
 
 **Result:** Working tree on the default, merged local branches deleted (with consent), folders tidy; when Phase B ran, remote audit report plus any consented remote deletes / findings issue.
 
@@ -310,7 +310,7 @@ The bump runs **after** tests and **before** issue-folder moves and **before** c
 
 1. **Set up (once).** Preflight (default branch, `git fetch --prune`, clean tree); create a GitHub issue with `gh issue create` (always, after confirmation) and capture `N`; create branch `<N>-<slug>` (off the default, or — when already on a non-default branch — ask whether to branch from current or default); delegate local capture to `/iflow-init`; seed `issue<N>_status.md` with an unchecked `- [ ] Done` and an empty **`## Iterative fixes log`**.
 2. **Loop.** For each proposed fix: restate it, write a short inline plan, implement **only on confirmation**, and append a dated bullet to the **Iterative fixes log**. A fix that turns out to be a real feature is split out into its own issue instead.
-3. **Finish.** Tells you to run `/iflow-close` to land the session (it never auto-runs it); reminds you about `/iflow-cleanup` after the PR merges.
+3. **Finish.** Tells you to run `/iflow-close` to land the session (it never auto-runs it){% if remind_cleanup %}; reminds you about `/iflow-cleanup` after the PR merges{% endif %}.
 
 **Coexists with `/iflow-pick fix` and `/iflow-issue`:** pick-fix is a one-shot general-fixes setup; `/iflow-issue` creates one well-specified normal issue; `/iflow-fix` stays and drives the small-fixes loop until close.
 
@@ -462,7 +462,7 @@ iflow cycle yolo
 
 **Off-path:** `/iflow` never auto-dispatches to `/iflow-cycle`.
 
-**Result:** A batch report of merged/failed/not-reached issues; run `/iflow-cleanup` once afterward to prune merged local branches.
+**Result:** A batch report of merged/failed/not-reached issues{% if remind_cleanup %}; remind the user to run `/iflow-cleanup` once afterward to prune merged local branches{% endif %}.
 
 ---
 
