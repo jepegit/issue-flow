@@ -1,6 +1,6 @@
 # Status — Issue #210: Iflow in epics
 
-- [ ] Done
+- [x] Done
 
 ## What's done
 
@@ -9,7 +9,9 @@
 - Dispatcher skill/command: epic gap stop + recommend `/iflow-pick`.
 - Rules + workflow doc + `iflow-epic-awareness.md`.
 - Tests for state JSON + template contract.
+- Feature shipped via PR #235 (squash-merged to `main`).
+- HISTORY Unreleased bullet + archive under close housekeeping.
 
 ## Remaining work
 
-- `/iflow-close` for HISTORY + ship.
+- None.

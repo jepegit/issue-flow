@@ -11,6 +11,7 @@ than the GitHub release notes they link to.
 
 - **README badges (#231).** PyPI version, Read the Docs, and Pepy downloads badges under the title.
 - **Cleanup configurable (#233).** Soften `remind_cleanup` to remind-only (never auto-run); gate leftover workflow/auto nudges; add `cleanup_include_github` for Phase B default with `no github` / `local only` override.
+- Iflow in epics. (#210)
 
 ## [0.4.9] - 2026-07-30
 
