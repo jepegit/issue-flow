@@ -32,6 +32,7 @@ from issue_flow.modes import (
     DEFAULT_MODE,
     DEFAULT_MODEL_LABEL_FLOWS,
     DEFAULT_PR_MERGE_METHOD,
+    DEFAULT_CLEANUP_INCLUDE_GITHUB,
     DEFAULT_REMIND_CLEANUP,
     DEFAULT_RUFF_AUTOFIX,
     DEFAULT_SKILL_LEVEL,
@@ -298,6 +299,18 @@ class Settings:
         if persisted is not None:
             return persisted
         return _env_flag("ISSUEFLOW_REMIND_CLEANUP", default=DEFAULT_REMIND_CLEANUP)
+
+    def resolve_cleanup_include_github(self, project_root: Path) -> bool:
+        """Resolve whether ``/iflow-cleanup`` runs the GitHub audit by default."""
+        persisted = modes_module.read_cleanup_include_github(
+            self.config_path(project_root)
+        )
+        if persisted is not None:
+            return persisted
+        return _env_flag(
+            "ISSUEFLOW_CLEANUP_INCLUDE_GITHUB",
+            default=DEFAULT_CLEANUP_INCLUDE_GITHUB,
+        )
 
     def resolve_suggest_graphify(self, project_root: Path) -> bool:
         """Resolve whether skills soft-suggest graphify skim/rebuild."""
@@ -582,6 +595,10 @@ class Settings:
             "remind_cleanup": _env_flag(
                 "ISSUEFLOW_REMIND_CLEANUP", default=DEFAULT_REMIND_CLEANUP
             ),
+            "cleanup_include_github": _env_flag(
+                "ISSUEFLOW_CLEANUP_INCLUDE_GITHUB",
+                default=DEFAULT_CLEANUP_INCLUDE_GITHUB,
+            ),
             "suggest_graphify": _env_flag(
                 "ISSUEFLOW_SUGGEST_GRAPHIFY", default=DEFAULT_SUGGEST_GRAPHIFY
             ),
@@ -683,6 +700,7 @@ class Settings:
             ),
             "skill_level": skill_level,
             "remind_cleanup": self.resolve_remind_cleanup(project_root),
+            "cleanup_include_github": self.resolve_cleanup_include_github(project_root),
             "suggest_graphify": self.resolve_suggest_graphify(project_root),
             "auto_graphify_on_plan": self.resolve_auto_graphify_on_plan(project_root),
             "auto_switchback": self.resolve_auto_switchback(project_root),

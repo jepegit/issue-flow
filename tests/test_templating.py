@@ -36,6 +36,7 @@ _MODE_CONTEXT = {
     "fast_model_label": "fast",
     "step_profiles": dict(PACKAGED_DEFAULTS),
     "remind_cleanup": True,
+    "cleanup_include_github": False,
     "suggest_graphify": True,
     "auto_graphify_on_plan": False,
     "auto_switchback": True,
@@ -517,13 +518,63 @@ def test_close_bakes_pr_merge_method_and_gates_cleanup_reminder() -> None:
     )
     assert "gh pr merge <number> --merge" in on
     assert "/iflow-cleanup" in on
+    assert "Remind the user to run **`/iflow-cleanup`**" in on
+    assert "Do **not** auto-run cleanup from this skill." in on
     off = render_template(
         "skills/iflow_close/SKILL.md.j2",
         {**_default_context(), "remind_cleanup": False, "ruff_autofix": False},
     )
     assert "ruff check --fix" not in off
     # Still mentions cleanup skill ownership, but step 10/11 reminder is gated.
-    assert "Tell the user to run **`/iflow-cleanup`**" not in off
+    assert "Remind the user to run **`/iflow-cleanup`**" not in off
+
+
+def test_cleanup_bakes_include_github_default() -> None:
+    """cleanup_include_github gates Phase B default wording in cleanup skill."""
+    off = render_template(
+        "skills/iflow_cleanup/SKILL.md.j2",
+        {**_default_context(), "cleanup_include_github": False},
+    )
+    assert "Phase B stays off unless a GitHub-audit token is present." in off
+    assert "no github" in off
+    on = render_template(
+        "skills/iflow_cleanup/SKILL.md.j2",
+        {**_default_context(), "cleanup_include_github": True},
+    )
+    assert "cleanup_include_github = true" in on
+    assert "Phase B also runs by default" in on
+
+
+def test_rules_soften_remind_cleanup_wording() -> None:
+    """remind_cleanup=true reminds; never mandates auto-running cleanup."""
+    on = render_template(
+        "rules/_body.md.j2",
+        {**_default_context(), "remind_cleanup": True},
+    )
+    assert "**remind** the user to run **`/iflow-cleanup`**" in on
+    assert "Do **not** auto-run cleanup" in on
+    assert "After a PR merges: run **`/iflow-cleanup`**" not in on
+    off = render_template(
+        "rules/_body.md.j2",
+        {**_default_context(), "remind_cleanup": False},
+    )
+    assert "does not nudge cleanup" in off
+
+
+def test_iflow_dispatcher_epic_gap_contract() -> None:
+    """Issue #210: /iflow skill+command mention epic_hint / next_candidates."""
+    for template_name in (
+        "skills/iflow_iflow/SKILL.md.j2",
+        "commands/iflow.md.j2",
+    ):
+        rendered = render_template(template_name, _default_context())
+        assert "epic_hint" in rendered, template_name
+        assert "next_candidates" in rendered, template_name
+        assert "never pick silently" in rendered.lower() or (
+            "Never silent-pick" in rendered or "never silent-pick" in rendered.lower()
+        ), template_name
+        assert "Never auto-dispatch" in rendered or "never auto-dispatch" in rendered
+        assert "/iflow-pick" in rendered, template_name
 
 
 def test_cycle_bakes_max_issues() -> None:

@@ -16,6 +16,7 @@ and notes the gap — mirroring the scaffolded ``/iflow-status`` contract.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -62,6 +63,7 @@ def run_state(project_root: Path, console: Console, as_json: bool) -> int:
         "next_command": None,
         "files": {"original": False, "plan": False, "status": False, "done": False},
         "ambiguous": focus.resolved_via == "ambiguous",
+        "epic_hint": None,
     }
 
     if focus.number is not None:
@@ -74,6 +76,13 @@ def run_state(project_root: Path, console: Console, as_json: bool) -> int:
             "status": bool(group.status_files),
             "done": group.is_done,
         }
+    elif focus.resolved_via != "ambiguous":
+        # No focus yet — surface active-epic next_candidates so /iflow can
+        # recommend /iflow-pick instead of a blind /iflow-init (issue #210).
+        epic_hint = _collect_epic_hints(project_root, local=False)
+        payload["epic_hint"] = epic_hint
+        if not epic_hint["epics"]:
+            payload["next_command"] = tracking.STAGE_NEXT_COMMAND[tracking.STAGE_INIT]
 
     if as_json:
         _emit_json(console, payload)
@@ -88,6 +97,19 @@ def run_state(project_root: Path, console: Console, as_json: bool) -> int:
         )
         return 0
     if focus.number is None:
+        epic_hint = payload.get("epic_hint") or {"epics": []}
+        if epic_hint["epics"]:
+            console.print(
+                "[dim]No focus issue found.[/dim] Active epic next candidates "
+                "(do not auto-init — use /iflow-pick or pass an explicit N):"
+            )
+            for entry in epic_hint["epics"]:
+                nums = ", ".join(f"#{n}" for n in entry["next_candidates"])
+                console.print(
+                    f"  Epic #{entry['epic']} stage {entry['stage']} "
+                    f"({escape(entry['title'])}): {nums}"
+                )
+            return 0
         console.print(
             "[dim]No focus issue found.[/dim] Next step: "
             f"{tracking.STAGE_NEXT_COMMAND[tracking.STAGE_INIT]}"
@@ -762,21 +784,16 @@ def _render_version_plan_text(
 # agent epic-status
 # ---------------------------------------------------------------------------
 
+_EPIC_PLAN_NAME = re.compile(r"^epic(\d+)_plan\.md$")
 
-def run_epic_status(
+
+def _build_epic_status_payload(
     project_root: Path,
-    console: Console,
     number: int,
+    *,
     local: bool,
-    as_json: bool,
-) -> int:
-    """Deterministic epic progress: stages, per-issue state, next candidates.
-
-    Read-only. Parses ``epic<N>_plan.md`` (the contract the /iflow-epic skill
-    writes) and — unless ``local`` — resolves each published issue's state via
-    ``gh``. A missing/unauthenticated ``gh`` degrades to ``state: "unknown"``
-    per issue rather than failing the command.
-    """
+) -> dict[str, Any] | None:
+    """Return the epic-status JSON payload, or ``None`` if the plan is missing."""
     from issue_flow import epicplan
 
     settings = Settings()
@@ -788,12 +805,7 @@ def run_epic_status(
     )
     plan = epicplan.parse_epic_plan(plan_path)
     if plan is None:
-        msg = f"no epic plan found at {plan_path}; draft one with /iflow-epic {number}."
-        if as_json:
-            _emit_json(console, {"epic": number, "error": msg})
-        else:
-            console.print(f"[red]error[/red]  {escape(msg)}")
-        return 1
+        return None
 
     repo_slug: str | None = None
     owner_repo = gitutils.remote_owner_repo(project_root)
@@ -866,7 +878,7 @@ def run_epic_status(
                 ):
                     next_candidates.append(item["number"])
 
-    payload: dict[str, Any] = {
+    return {
         "epic": plan.number if plan.number is not None else number,
         "title": plan.title,
         "plan_status": plan.status,
@@ -876,13 +888,91 @@ def run_epic_status(
         "next_candidates": next_candidates,
     }
 
+
+def _collect_epic_hints(
+    project_root: Path,
+    *,
+    local: bool,
+) -> dict[str, Any]:
+    """Scan ``05-epics/`` for plans with non-empty ``next_candidates``.
+
+    Used by ``agent state`` when there is no focus issue so ``/iflow`` can
+    recommend ``/iflow-pick`` (issue #210). Never auto-picks.
+    """
+    settings = Settings()
+    epics_dir = project_root / settings.issueflows_dir / settings.epics_folder
+    entries: list[dict[str, Any]] = []
+    if epics_dir.is_dir():
+        for path in sorted(epics_dir.iterdir()):
+            match = _EPIC_PLAN_NAME.match(path.name)
+            if match is None:
+                continue
+            number = int(match.group(1))
+            payload = _build_epic_status_payload(project_root, number, local=local)
+            if payload is None:
+                continue
+            candidates = payload.get("next_candidates") or []
+            if not candidates:
+                continue
+            stage_title = ""
+            current = payload.get("current_stage")
+            for stage in payload.get("stages") or []:
+                if stage.get("index") == current:
+                    stage_title = stage.get("title") or ""
+                    break
+            entries.append(
+                {
+                    "epic": payload["epic"],
+                    "title": payload.get("title") or "",
+                    "stage": current,
+                    "stage_title": stage_title,
+                    "next_candidates": list(candidates),
+                }
+            )
+    return {"epics": entries}
+
+
+def run_epic_status(
+    project_root: Path,
+    console: Console,
+    number: int,
+    local: bool,
+    as_json: bool,
+) -> int:
+    """Deterministic epic progress: stages, per-issue state, next candidates.
+
+    Read-only. Parses ``epic<N>_plan.md`` (the contract the /iflow-epic skill
+    writes) and — unless ``local`` — resolves each published issue's state via
+    ``gh``. A missing/unauthenticated ``gh`` degrades to ``state: "unknown"``
+    per issue rather than failing the command.
+    """
+    settings = Settings()
+    plan_path = (
+        project_root
+        / settings.issueflows_dir
+        / settings.epics_folder
+        / f"epic{number}_plan.md"
+    )
+    payload = _build_epic_status_payload(project_root, number, local=local)
+    if payload is None:
+        msg = f"no epic plan found at {plan_path}; draft one with /iflow-epic {number}."
+        if as_json:
+            _emit_json(console, {"epic": number, "error": msg})
+        else:
+            console.print(f"[red]error[/red]  {escape(msg)}")
+        return 1
+
     if as_json:
         _emit_json(console, payload)
         return 0
 
+    stage_payloads = payload["stages"]
+    current_stage = payload["current_stage"]
+    next_candidates = payload["next_candidates"]
+
     console.print(
-        f"[bold]Epic #{payload['epic']}[/bold] — {escape(plan.title)} "
-        f"[dim](plan: {plan.status})[/dim]"
+        f"[bold]Epic #{payload['epic']}[/bold] — {escape(payload['title'])} "
+        f"[dim](plan: {payload['plan_status']})[/dim]"
     )
     for stage in stage_payloads:
         marker = (
@@ -2043,7 +2133,8 @@ def _print_config_guide(console: Console, cfg_path: Path) -> None:
         "GitHub Linguist.[/dim]"
     )
     console.print(
-        "  [dim]- [bold]remind_cleanup[/bold] / [bold]suggest_graphify[/bold] / "
+        "  [dim]- [bold]remind_cleanup[/bold] / "
+        "[bold]cleanup_include_github[/bold] / [bold]suggest_graphify[/bold] / "
         "[bold]auto_graphify_on_plan[/bold]; "
         "[bold]auto_switchback[/bold] / [bold]auto_close[/bold] / "
         "[bold]auto_plan[/bold] / [bold]auto_build[/bold] / "

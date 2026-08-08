@@ -1,5 +1,9 @@
 # issue-flow
 
+[![PyPI](https://img.shields.io/pypi/v/issue-flow.svg)](https://pypi.org/project/issue-flow/)
+[![Documentation Status](https://readthedocs.org/projects/issue-flow/badge/?version=latest)](https://issue-flow.readthedocs.io/en/latest/?badge=latest)
+[![PyPI Downloads](https://static.pepy.tech/personalized-badge/issue-flow?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads)](https://pepy.tech/projects/issue-flow)
+
 Agents should behave. Let them follow the issue flow.
 
 **issue-flow** scaffolds a lightweight issue-tracking workflow into your project so that AI coding agents can pick up GitHub issues, plan work, and land PRs in a consistent way. It supports **Cursor, Claude Code, opencode, and Codex** via `--editor` (see [Editor support](https://github.com/jepegit/issue-flow/blob/main/docs/editors.md)); the examples below use the default, Cursor.

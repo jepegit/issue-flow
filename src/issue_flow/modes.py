@@ -54,6 +54,7 @@ DEFAULT_LINGUIST_ATTRIBUTES = False
 
 # Skill-behaviour knobs (baked into templates on ``issue-flow update``).
 DEFAULT_REMIND_CLEANUP = True
+DEFAULT_CLEANUP_INCLUDE_GITHUB = False
 DEFAULT_SUGGEST_GRAPHIFY = True
 DEFAULT_AUTO_GRAPHIFY_ON_PLAN = False
 DEFAULT_AUTO_SWITCHBACK = True
@@ -478,6 +479,17 @@ def read_remind_cleanup(cfg_path: Path) -> bool | None:
     return None
 
 
+def read_cleanup_include_github(cfg_path: Path) -> bool | None:
+    """Return the persisted ``[issueflow].cleanup_include_github`` flag."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "cleanup_include_github" in section:
+        return bool(section.get("cleanup_include_github"))
+    return None
+
+
 def read_suggest_graphify(cfg_path: Path) -> bool | None:
     """Return the persisted ``[issueflow].suggest_graphify`` flag."""
     if not cfg_path.is_file():
@@ -849,6 +861,7 @@ def write_default_config(
     fast_model_label: str = DEFAULT_FAST_MODEL_LABEL,
     linguist_attributes: bool = DEFAULT_LINGUIST_ATTRIBUTES,
     remind_cleanup: bool = DEFAULT_REMIND_CLEANUP,
+    cleanup_include_github: bool = DEFAULT_CLEANUP_INCLUDE_GITHUB,
     suggest_graphify: bool = DEFAULT_SUGGEST_GRAPHIFY,
     auto_graphify_on_plan: bool = DEFAULT_AUTO_GRAPHIFY_ON_PLAN,
     auto_switchback: bool = DEFAULT_AUTO_SWITCHBACK,
@@ -909,6 +922,7 @@ def write_default_config(
         section["fast_model_label"] = fast_model_label
         section["linguist_attributes"] = linguist_attributes
         section["remind_cleanup"] = remind_cleanup
+        section["cleanup_include_github"] = cleanup_include_github
         section["suggest_graphify"] = suggest_graphify
         section["auto_graphify_on_plan"] = auto_graphify_on_plan
         section["auto_switchback"] = auto_switchback
@@ -953,6 +967,7 @@ def write_default_config(
             fast_model_label,
             linguist_attributes,
             remind_cleanup,
+            cleanup_include_github,
             suggest_graphify,
             auto_graphify_on_plan,
             auto_switchback,
@@ -990,6 +1005,7 @@ def _commented_issueflow_table(
     fast_model_label: str,
     linguist_attributes: bool,
     remind_cleanup: bool,
+    cleanup_include_github: bool,
     suggest_graphify: bool,
     auto_graphify_on_plan: bool,
     auto_switchback: bool,
@@ -1096,11 +1112,21 @@ def _commented_issueflow_table(
     table.add(tomlkit.nl())
     table.add(
         tomlkit.comment(
-            "Remind the user to run /iflow-cleanup after close / cycle "
-            "(true/false). Re-run 'issue-flow update' after changing."
+            "Soft-remind the user to run /iflow-cleanup after close / cycle "
+            "(true/false). Never auto-runs cleanup. false = no in-flow nudges; "
+            "cleanup only when the user runs /iflow-cleanup. Re-run "
+            "'issue-flow update' after changing."
         )
     )
     table["remind_cleanup"] = remind_cleanup
+    table.add(
+        tomlkit.comment(
+            "When true, /iflow-cleanup runs the GitHub remote-branch audit "
+            "(Phase B) by default. Override per run with 'no github' / "
+            "'local only'. Re-run 'issue-flow update' after changing."
+        )
+    )
+    table["cleanup_include_github"] = cleanup_include_github
     table.add(
         tomlkit.comment(
             "Soft-suggest skimming GRAPH_REPORT.md / rebuilding graphify "
