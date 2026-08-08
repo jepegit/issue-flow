@@ -25,6 +25,7 @@ from rich.markup import escape
 
 from issue_flow import gitutils, modes, project, tracking
 from issue_flow.config import Settings
+from issue_flow.editors import EDITORS
 
 
 def _folders(project_root: Path, settings: Settings) -> dict[str, Path]:
@@ -1746,6 +1747,59 @@ def _audit_context(
     return folders, base, branch
 
 
+# Every editor scaffold materializes this skill, so its presence under an agent
+# directory is a reliable "issue-flow is scaffolded here" marker.
+_SCAFFOLD_MARKER_SKILL = Path("skills") / "iflow-init" / "SKILL.md"
+
+
+def audit_editor_scaffolds(
+    project_root: Path, settings: Settings
+) -> list[tracking.DirtyFinding]:
+    """Flag editor config dirs present on disk that lack an issue-flow scaffold.
+
+    Catches the "opened in editor X but only editor Y was scaffolded" gap: e.g.
+    a ``.claude/`` directory (Claude Code in use) with no ``.claude/skills/`` or
+    ``.claude/commands/`` issue-flow surfaces, so none of the ``/iflow-*``
+    commands appear. Each hit is an INFO nudge to run
+    ``issue-flow update --editor <id>``.
+
+    Only editors whose agent directory already exists are considered — an absent
+    ``.codex/`` is not a problem, just an editor this project does not use. The
+    check is skipped entirely when the agent directory is overridden
+    (``ISSUEFLOW_AGENT_DIR``), since the per-editor default paths no longer
+    describe the on-disk layout.
+    """
+    if settings.agent_dir_override:
+        return []
+
+    findings: list[tracking.DirtyFinding] = []
+    for editor_id, profile in EDITORS.items():
+        agent_root = project_root / profile.agent_dir
+        if not agent_root.is_dir():
+            continue  # editor not in use here — nothing to nudge about
+        if (agent_root / _SCAFFOLD_MARKER_SKILL).is_file():
+            continue  # skills scaffold already materialized
+        if (
+            profile.commands_dir
+            and (agent_root / profile.commands_dir / "iflow-init.md").is_file()
+        ):
+            continue  # command scaffold present (skills-less layout)
+        findings.append(
+            tracking.DirtyFinding(
+                code="missing_editor_scaffold",
+                severity=tracking.SEVERITY_INFO,
+                message=(
+                    f"{profile.name} config dir {profile.agent_dir!r} is present "
+                    "but has no issue-flow scaffold, so its /iflow-* commands "
+                    "will not appear."
+                ),
+                repairable=False,
+                suggested_command=f"issue-flow update --editor {editor_id}",
+            )
+        )
+    return findings
+
+
 def run_audit(project_root: Path, console: Console, as_json: bool) -> int:
     """Audit ``.issueflows/`` for dirty conditions."""
     settings = Settings()
@@ -1758,6 +1812,7 @@ def run_audit(project_root: Path, console: Console, as_json: bool) -> int:
         branch,
         expected_subdirs=settings.issueflows_subdirs,
     )
+    findings.extend(audit_editor_scaffolds(project_root, settings))
     has_error = any(f.severity == tracking.SEVERITY_ERROR for f in findings)
     payload: dict[str, Any] = {
         "findings": [_finding_payload(f) for f in findings],
