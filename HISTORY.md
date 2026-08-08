@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- **Doctor flags un-scaffolded editors (#237).** `issue-flow doctor` (and `/iflow-doctor`) now emit a `missing_editor_scaffold` INFO finding when an editor config dir exists on disk (e.g. `.claude/` from opening the project in Claude Code) but has no issue-flow scaffold, so its `/iflow-*` commands never appear. Suggests `issue-flow update --editor <id>`. Skipped when `ISSUEFLOW_AGENT_DIR` overrides the layout.
+
 ## [0.4.9] - 2026-07-30
 
 - **Release docs + ship 0.4.9 (#224).** Refresh `docs/developing.md` release playbook (`uv version --bump`, HISTORY promote, post-merge `gh release create`).

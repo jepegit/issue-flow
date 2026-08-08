@@ -471,6 +471,65 @@ def test_doctor_fix_refuses_ambiguous_focus(runner: CliRunner, tmp_path: Path) -
     assert "ambiguous" in _json(result.stdout)["error"]
 
 
+def _seed_clean_tree(tmp_path: Path, number: int = 5) -> None:
+    """Seed a single focus issue plus every expected ``.issueflows/`` subdir."""
+    _seed_issue(tmp_path, number)
+    for name in (
+        "00-tools",
+        "02-partly-solved-issues",
+        "03-solved-issues",
+        "04-designs-and-guides",
+        "05-epics",
+    ):
+        (tmp_path / ".issueflows" / name).mkdir(parents=True, exist_ok=True)
+
+
+def test_doctor_flags_editor_dir_without_scaffold(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    _seed_clean_tree(tmp_path)
+    # Claude Code in use (writes its own settings file) but never scaffolded.
+    claude = tmp_path / ".claude"
+    claude.mkdir()
+    (claude / "settings.local.json").write_text("{}\n", encoding="utf-8")
+
+    result = runner.invoke(app, ["doctor", str(tmp_path), "--json"])
+
+    assert result.exit_code == 0, result.output  # INFO nudge, not an error
+    findings = _json(result.stdout)["findings"]
+    scaffold = [f for f in findings if f["code"] == "missing_editor_scaffold"]
+    assert len(scaffold) == 1
+    assert scaffold[0]["severity"] == "info"
+    assert scaffold[0]["suggested_command"] == "issue-flow update --editor claude"
+
+
+def test_doctor_skips_scaffolded_editor_dir(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    _seed_clean_tree(tmp_path)
+    marker = tmp_path / ".claude" / "skills" / "iflow-init" / "SKILL.md"
+    marker.parent.mkdir(parents=True)
+    marker.write_text("scaffolded\n", encoding="utf-8")
+
+    result = runner.invoke(app, ["doctor", str(tmp_path), "--json"])
+
+    assert result.exit_code == 0, result.output
+    codes = {f["code"] for f in _json(result.stdout)["findings"]}
+    assert "missing_editor_scaffold" not in codes
+
+
+def test_doctor_ignores_absent_editor_dirs(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    _seed_clean_tree(tmp_path)  # no editor dirs at all
+
+    result = runner.invoke(app, ["doctor", str(tmp_path), "--json"])
+
+    assert result.exit_code == 0, result.output
+    codes = {f["code"] for f in _json(result.stdout)["findings"]}
+    assert "missing_editor_scaffold" not in codes
+
+
 def test_agent_preflight_json_handles_missing_git(
     runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
