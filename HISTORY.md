@@ -9,6 +9,7 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- **Linked GitHub sub-issues via `/iflow-split` (#12).** Confirm-gated split of one over-large issue into 2–5 flat children, linked as native sub-issues; `issue-flow agent sub-issue-add` sends integer JSON via `--input`. Pick / issue / plan offer split or epic and never auto-create.
 - **Doctor flags un-scaffolded editors (#237).** `issue-flow doctor` (and `/iflow-doctor`) now emit a `missing_editor_scaffold` INFO finding when an editor config dir exists on disk (e.g. `.claude/` from opening the project in Claude Code) but has no issue-flow scaffold, so its `/iflow-*` commands never appear. Suggests `issue-flow update --editor <id>`. Skipped when `ISSUEFLOW_AGENT_DIR` overrides the layout.
 - **README badges (#231).** PyPI version, Read the Docs, and Pepy downloads badges under the title.
 - **Cleanup configurable (#233).** Soften `remind_cleanup` to remind-only (never auto-run); gate leftover workflow/auto nudges; add `cleanup_include_github` for Phase B default with `no github` / `local only` override.
