@@ -11,6 +11,7 @@ This is an **off-path** command — the lifecycle dispatcher (`/iflow`) never au
 - **`/iflow-pick fix`** — one-shot *general-fixes* issue into `/iflow-plan` → `/iflow-build`. Use `/iflow-issue` when the work is a named, well-specified deliverable.
 - **`/iflow-fix`** — iterative small-fixes *session* that stays in a loop until `/iflow-close`. They coexist.
 - **`/iflow-epic`** — staged multi-issue work. If the epic **anchor** does not exist yet, create it with `/iflow-issue epic …`, then run `/iflow-epic <N>`.
+- **`/iflow-split`** — cut an *existing* over-large issue into linked children.
 
 {% include "skills/_model_directive.md.j2" %}
 
@@ -36,7 +37,7 @@ Optional free-form text after the command — a seed for the title and/or short 
    - **Acceptance criteria**
    - **Out of scope** (optional; omit the heading when empty)
 
-   Refine with the user until they confirm the text. If the draft is clearly over-large for one PR, **mention** splitting via `/iflow-epic` — do **not** auto-create sub-issues.
+   Refine with the user until they confirm the text. If the draft is clearly over-large for one PR, **offer** `/iflow-split` (flat parent/child) or `/iflow-epic` (staged) — do **not** auto-create sub-issues.
 
 4. **Create (confirm first).** Show the final title and body (and, in epic-anchor mode, the planned `epic` label when present). On yes: create with `gh issue create` (add `--repo owner/repo` if ambiguous; add `--label epic` only when epic-anchor mode is on **and** `gh label list` shows `epic`). Capture the returned issue number `N`. Change the chat/agent tab title to `Issue <N> <short title>`. Other labels/milestones: only if the user asked for them in this turn — do not invent them.
 

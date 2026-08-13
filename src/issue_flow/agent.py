@@ -3,7 +3,7 @@
 These functions back ``issue-flow status`` (human-facing, top-level) and the
 ``issue-flow agent ...`` sub-commands (``state`` / ``preflight`` / ``switchback`` /
 ``branches`` / ``version-plan`` / ``resolve`` / ``sweep`` / ``archive`` /
-``capture``) that exist so AI agents can ask the tool for a deterministic
+``capture`` / ``sub-issue-add``) that exist so AI agents can ask the tool for a deterministic
 answer instead of re-deriving lifecycle state by hand on every run.
 
 Each ``run_*`` returns a process exit code and emits either a short human
@@ -2091,6 +2091,135 @@ def run_capture(
             "'## Comments (curated summary)' section.[/dim]"
         )
     return 0
+
+
+# ---------------------------------------------------------------------------
+# agent sub-issue-add
+# ---------------------------------------------------------------------------
+
+
+def run_sub_issue_add(
+    project_root: Path,
+    console: Console,
+    parent: int,
+    child: int,
+    repo: str | None,
+    dry_run: bool,
+    as_json: bool,
+) -> int:
+    """Link ``child`` as a native GitHub sub-issue of ``parent`` (idempotent)."""
+    if parent < 1 or child < 1:
+        msg = "parent and child must be positive issue numbers."
+        if as_json:
+            _emit_json(console, {"linked": False, "error": msg})
+        else:
+            console.print(f"[red]error[/red]  {msg}")
+        return 2
+    if parent == child:
+        msg = "parent and child must be different issues."
+        if as_json:
+            _emit_json(console, {"linked": False, "error": msg})
+        else:
+            console.print(f"[red]error[/red]  {msg}")
+        return 2
+
+    if not gitutils.gh_available():
+        msg = "gh is not on PATH; cannot link sub-issues. Try `gh auth login`."
+        if as_json:
+            _emit_json(console, {"linked": False, "error": msg})
+        else:
+            console.print(f"[red]error[/red]  {msg}")
+        return 1
+
+    resolved_repo = repo
+    if resolved_repo is None:
+        owner_repo = gitutils.remote_owner_repo(project_root)
+        if owner_repo is not None:
+            resolved_repo = f"{owner_repo[0]}/{owner_repo[1]}"
+
+    existing = gitutils.gh_list_sub_issue_numbers(parent, project_root, resolved_repo)
+    if existing is not None and child in existing:
+        payload = {
+            "parent": parent,
+            "child": child,
+            "child_id": None,
+            "repo": resolved_repo,
+            "linked": False,
+            "skipped": True,
+            "dry_run": dry_run,
+            "error": None,
+        }
+        if as_json:
+            _emit_json(console, payload)
+        else:
+            console.print(
+                f"[yellow]skip[/yellow]  #{child} already a sub-issue of #{parent}"
+            )
+        return 0
+
+    child_id = gitutils.gh_issue_database_id(child, project_root, resolved_repo)
+    if child_id is None:
+        msg = (
+            f"could not resolve database id for #{child}"
+            + (f" in {resolved_repo}" if resolved_repo else "")
+            + "."
+        )
+        if as_json:
+            _emit_json(
+                console,
+                {
+                    "parent": parent,
+                    "child": child,
+                    "child_id": None,
+                    "repo": resolved_repo,
+                    "linked": False,
+                    "skipped": False,
+                    "error": msg,
+                },
+            )
+        else:
+            console.print(f"[red]error[/red]  {msg}")
+        return 1
+
+    if dry_run:
+        payload = {
+            "parent": parent,
+            "child": child,
+            "child_id": child_id,
+            "repo": resolved_repo,
+            "linked": False,
+            "skipped": False,
+            "dry_run": True,
+            "error": None,
+        }
+        if as_json:
+            _emit_json(console, payload)
+        else:
+            console.print(
+                f"[dim]dry-run[/dim]  would link #{child} (id {child_id}) "
+                f"under #{parent}"
+            )
+        return 0
+
+    ok, err = gitutils.gh_add_sub_issue(parent, child_id, project_root, resolved_repo)
+    payload = {
+        "parent": parent,
+        "child": child,
+        "child_id": child_id,
+        "repo": resolved_repo,
+        "linked": ok,
+        "skipped": False,
+        "dry_run": False,
+        "error": err,
+    }
+    if as_json:
+        _emit_json(console, payload)
+        return 0 if ok else 1
+    if ok:
+        console.print(f"[green]linked[/green]  #{child} → #{parent}")
+        return 0
+    console.print(f"[red]error[/red]  {err or 'link failed'}")
+    return 1
 
 
 # ---------------------------------------------------------------------------

@@ -2,7 +2,7 @@
 
 `/iflow` inspects the state of the focus issue and **dispatches** to the next logical command in the linear lifecycle — `/iflow-init`, `/iflow-plan`, `/iflow-build`, or `/iflow-close`. It never does work those commands don't already do; it just picks the right one for you.
 
-Off-path commands (`/iflow-pick`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-graphify`) are **not** auto-dispatched. Invoke them directly when you need them. (`/iflow-pick` is the front door *before* `/iflow-init` — use it when you have not chosen an issue yet. `/iflow-fix` runs an interactive iterative-fixes session; while one is active, drive it with `/iflow-fix` + `/iflow-close`, not `/iflow`. `/iflow-issue` creates one well-specified normal GitHub issue.)
+Off-path commands (`/iflow-pick`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-split`, `/iflow-graphify`) are **not** auto-dispatched. Invoke them directly when you need them. (`/iflow-pick` is the front door *before* `/iflow-init` — use it when you have not chosen an issue yet. `/iflow-fix` runs an interactive iterative-fixes session; while one is active, drive it with `/iflow-fix` + `/iflow-close`, not `/iflow`. `/iflow-issue` creates one well-specified normal GitHub issue. `/iflow-split` cuts an over-large issue into linked sub-issues.)
 
 Long-lived design docs, design decisions, and project good-practices live under `{{ issueflows_dir }}/{{ designs_folder }}/`. The downstream commands (`/iflow-plan`, `/iflow-build`, `/iflow-close`) read from and add to that folder as they run; `/iflow` itself does not touch it.
 
@@ -78,7 +78,7 @@ Optional free-form text after the command. `/iflow` forwards the raw trailing te
 ## Constraints
 
 - `/iflow` never skips a downstream command's own prompts. If the downstream step asks a question, surface it normally.
-- `/iflow` never auto-dispatches to `/iflow-pick`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-status`, `/iflow-doctor`, `/iflow-review`, `/iflow-archive`, `/iflow-epic`, `/iflow-cycle`, `/iflow-auto`, or `/iflow-graphify`. Those are explicit choices only. The epic gap only **recommends** `/iflow-pick`.
+- `/iflow` never auto-dispatches to `/iflow-pick`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-split`, `/iflow-status`, `/iflow-doctor`, `/iflow-review`, `/iflow-archive`, `/iflow-epic`, `/iflow-cycle`, `/iflow-auto`, or `/iflow-graphify`. Those are explicit choices only. The epic gap only **recommends** `/iflow-pick`.
 - If the focus issue cannot be resolved (multiple active issues, branch ambiguous), stop and ask. Do not pick one silently.
 - Do not modify files beyond what the downstream command would normally modify. `/iflow` itself writes nothing.
 

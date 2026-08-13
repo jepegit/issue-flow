@@ -94,7 +94,7 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 
    Keep it terse but specific. Use markdown links to files when useful.
 
-7. **Scope check.** If the plan is broad (many unrelated files, mixes refactors with feature work, multiple independent deliverables), propose splitting into smaller issues or phased PRs before finalizing the plan.
+7. **Scope check.** If the plan is broad (many unrelated files, mixes refactors with feature work, multiple independent deliverables), propose `/iflow-split` (flat 2–5 children) or `/iflow-epic` (staged) before finalizing. Do not create children from this skill.
 
 8. **Confirm with the user.** Present the plan and **stop**. Accept one of: **Accept** (ready for `/iflow-build`), **Revise** (update `issue<N>_plan.md` in place and re-confirm), or **Abort**.
 

@@ -81,7 +81,7 @@ Optional free-form text after the command. Examples:
 
    Keep it terse but specific. Link to files with markdown links when helpful. If the plan expects to **produce** a design doc / decision record under `{{ issueflows_dir }}/{{ designs_folder }}/`, call that out explicitly (e.g. in **Files to touch**) so `/iflow-build` knows to create it.
 
-4. **Scope check.** If the plan is broad (many unrelated files, several independent deliverables, or mixes refactors with feature work), **propose splitting** into smaller issues or phased PRs and ask the user before continuing.
+4. **Scope check.** If the plan is broad (many unrelated files, several independent deliverables, or mixes refactors with feature work), propose `/iflow-split` (flat 2–5 children) or `/iflow-epic` (staged) and ask before continuing. Do not create children from this command.
 
 5. **Confirm with the user.** Present the plan and **stop**. Ask one of:
    - **Accept** — the plan is good; ready for `/iflow-build`.

@@ -52,7 +52,12 @@ def gh_available() -> bool:
     return shutil.which(GH) is not None
 
 
-def _run(argv: list[str], cwd: Path) -> subprocess.CompletedProcess[str] | None:
+def _run(
+    argv: list[str],
+    cwd: Path,
+    *,
+    input_text: str | None = None,
+) -> subprocess.CompletedProcess[str] | None:
     """Run ``argv`` in ``cwd`` capturing text output.
 
     Returns ``None`` if the executable is missing or cannot be spawned;
@@ -74,6 +79,7 @@ def _run(argv: list[str], cwd: Path) -> subprocess.CompletedProcess[str] | None:
             text=True,
             encoding="utf-8",
             errors="replace",
+            input=input_text,
         )
     except (OSError, UnicodeError):
         return None
@@ -298,6 +304,16 @@ def remote_owner_repo(cwd: Path) -> tuple[str, str] | None:
     return match.group("owner"), match.group("repo")
 
 
+def _owner_repo(cwd: Path, repo: str | None) -> tuple[str, str] | None:
+    """Resolve ``(owner, name)`` from an explicit ``owner/repo`` or origin."""
+    if repo and "/" in repo:
+        owner, name = repo.split("/", 1)
+        owner, name = owner.strip(), name.strip()
+        if owner and name:
+            return owner, name
+    return remote_owner_repo(cwd)
+
+
 def gh_issue_view(
     number: int, cwd: Path, repo: str | None = None
 ) -> dict[str, Any] | None:
@@ -496,6 +512,103 @@ def gh_label_names(cwd: Path, repo: str | None = None) -> set[str] | None:
         for item in data
         if isinstance(item, dict) and item.get("name")
     }
+
+
+def gh_issue_database_id(number: int, cwd: Path, repo: str | None = None) -> int | None:
+    """REST database id for an issue (not the issue number).
+
+    GitHub's add-sub-issue endpoint requires this integer ``id``. ``gh api -f``
+    stringifies values and 422s — callers must send JSON.
+    """
+    owner_repo = _owner_repo(cwd, repo)
+    if owner_repo is None:
+        return None
+    owner, name = owner_repo
+    out = _stdout(
+        [GH, "api", f"repos/{owner}/{name}/issues/{number}", "--jq", ".id"],
+        cwd,
+    )
+    if out is None:
+        return None
+    try:
+        return int(out)
+    except ValueError:
+        return None
+
+
+def gh_list_sub_issue_numbers(
+    parent: int, cwd: Path, repo: str | None = None
+) -> list[int] | None:
+    """Issue numbers already linked as native sub-issues of ``parent``.
+
+    Returns ``None`` when the API call fails (missing gh, 404, auth). An
+    empty list means the parent currently has no sub-issues.
+    """
+    owner_repo = _owner_repo(cwd, repo)
+    if owner_repo is None:
+        return None
+    owner, name = owner_repo
+    out = _stdout(
+        [
+            GH,
+            "api",
+            f"repos/{owner}/{name}/issues/{parent}/sub_issues",
+            "--jq",
+            ".[].number",
+        ],
+        cwd,
+    )
+    if out is None:
+        return None
+    if not out:
+        return []
+    numbers: list[int] = []
+    for line in out.splitlines():
+        line = line.strip().strip('"')
+        if not line:
+            continue
+        try:
+            numbers.append(int(line))
+        except ValueError:
+            return None
+    return numbers
+
+
+def gh_add_sub_issue(
+    parent: int,
+    child_database_id: int,
+    cwd: Path,
+    repo: str | None = None,
+) -> tuple[bool, str | None]:
+    """Link an existing issue as a native GitHub sub-issue of ``parent``.
+
+    ``child_database_id`` is the REST ``id``, not the issue number. Sends
+    JSON on stdin via ``gh api --input -`` so the id stays an integer.
+    """
+    owner_repo = _owner_repo(cwd, repo)
+    if owner_repo is None:
+        return False, "could not resolve owner/repo"
+    owner, name = owner_repo
+    payload = json.dumps({"sub_issue_id": int(child_database_id)})
+    result = _run(
+        [
+            GH,
+            "api",
+            f"repos/{owner}/{name}/issues/{parent}/sub_issues",
+            "-X",
+            "POST",
+            "--input",
+            "-",
+        ],
+        cwd,
+        input_text=payload,
+    )
+    if result is None:
+        return False, "gh is not available"
+    if result.returncode != 0:
+        err = (result.stderr or result.stdout or "gh api sub_issues failed").strip()
+        return False, err
+    return True, None
 
 
 def gh_label_create(

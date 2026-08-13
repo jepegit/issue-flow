@@ -125,8 +125,8 @@ def test_resolve_output_path() -> None:
 
 
 def test_manifest_entry_count() -> None:
-    # Cursor is skills-first: 1 rule + 1 doc + 25 skills = 27
-    assert len(TEMPLATE_MANIFEST) == 27
+    # Cursor is skills-first: 1 rule + 1 doc + 26 skills = 28
+    assert len(TEMPLATE_MANIFEST) == 28
 
 
 def _resolved_paths(profile_id: str) -> set[str]:
@@ -146,7 +146,7 @@ def _resolved_paths(profile_id: str) -> set[str]:
 def test_build_manifest_cursor_matches_default() -> None:
     """The default TEMPLATE_MANIFEST is the cursor profile manifest."""
     assert build_manifest(EDITORS["cursor"]) == TEMPLATE_MANIFEST
-    assert len(build_manifest(EDITORS["cursor"])) == 27
+    assert len(build_manifest(EDITORS["cursor"])) == 28
 
 
 def test_build_manifest_cursor_has_skills_and_rules_but_no_commands() -> None:
@@ -161,15 +161,15 @@ def test_build_manifest_cursor_has_skills_and_rules_but_no_commands() -> None:
 
 
 def test_build_manifest_codex_has_skills_and_docs_but_no_commands() -> None:
-    """Codex: skills (25) + docs (1), no slash commands and no rules extra."""
+    """Codex: skills (26) + docs (1), no slash commands and no rules extra."""
     manifest = build_manifest(get_profile("codex"))
     template_names = [name for name, _ in manifest]
     assert not any(name.startswith("commands/") for name in template_names)
-    assert sum(name.startswith("skills/") for name in template_names) == 25
+    assert sum(name.startswith("skills/") for name in template_names) == 26
     assert "docs/issue-workflow.md.j2" in template_names
     # No .mdc / CLAUDE.md rules extra for Codex.
     assert not any(name.startswith("rules/") for name in template_names)
-    assert len(manifest) == 26
+    assert len(manifest) == 27
 
 
 def test_build_manifest_opencode_uses_singular_command_dir() -> None:
@@ -241,6 +241,7 @@ def test_manifest_has_expected_skills() -> None:
         "iflow_yolo",
         "iflow_fix",
         "iflow_issue",
+        "iflow_split",
         "iflow_status",
         "iflow_archive",
         "iflow_cycle",
@@ -267,6 +268,7 @@ def test_claude_manifest_has_expected_commands() -> None:
         "iflow-yolo",
         "iflow-fix",
         "iflow-issue",
+        "iflow-split",
         "iflow-status",
         "iflow-doctor",
         "iflow-archive",
@@ -951,6 +953,66 @@ def test_rules_body_mentions_iflow_issue() -> None:
     assert "well-specified normal GitHub issue" in rendered
 
 
+def test_iflow_split_describes_confirm_and_rest_recipe() -> None:
+    """/iflow-split must describe confirm-gated create + native sub-issue link."""
+    rendered = render_template("commands/iflow-split.md.j2", _default_context())
+    assert "off-path" in rendered.lower()
+    assert "gh issue create" in rendered
+    assert "sub-issue-add" in rendered
+    assert "sub_issue_id" in rendered
+    assert "--input" in rendered
+    assert "422" in rendered
+    assert "Sub-issue of #" in rendered
+    assert "GitLab is not supported" in rendered
+    assert "/iflow-epic" in rendered
+
+
+def test_iflow_split_skill_mirrors_command() -> None:
+    """The iflow-split skill must carry the same flow and frontmatter."""
+    rendered = render_template("skills/iflow_split/SKILL.md.j2", _default_context())
+    assert "name: iflow-split" in rendered
+    assert "disable-model-invocation: true" in rendered
+    assert "sub-issue-add" in rendered
+    assert "sub_issue_id" in rendered
+    assert "--input" in rendered
+    assert "Consolidated confirm" in rendered or "consolidated confirm" in rendered
+
+
+def test_iflow_lists_split_as_off_path() -> None:
+    """/iflow and its skill must list /iflow-split among the explicit-only commands."""
+    cmd = render_template("commands/iflow.md.j2", _default_context())
+    skill = render_template("skills/iflow_iflow/SKILL.md.j2", _default_context())
+    assert "/iflow-split" in cmd
+    assert "/iflow-split" in skill
+
+
+def test_rules_body_mentions_iflow_split() -> None:
+    """The shared rules body must describe /iflow-split as off-path."""
+    rendered = render_template("rules/AGENTS.md.j2", _default_context())
+    assert "/iflow-split" in rendered
+    assert "native sub-issues" in rendered
+
+
+def test_iflow_issue_offers_split_for_over_large() -> None:
+    """/iflow-issue over-large path offers split or epic, never auto-creates."""
+    cmd = render_template("commands/iflow-issue.md.j2", _default_context())
+    skill = render_template("skills/iflow_issue/SKILL.md.j2", _default_context())
+    for rendered in (cmd, skill):
+        assert "/iflow-split" in rendered
+        assert (
+            "do **not** auto-create" in rendered.lower()
+            or "do not auto-create" in rendered.lower()
+        )
+
+
+def test_iflow_plan_scope_check_offers_split() -> None:
+    """/iflow-plan scope check points at /iflow-split."""
+    cmd = render_template("commands/iflow-plan.md.j2", _default_context())
+    skill = render_template("skills/iflow_plan/SKILL.md.j2", _default_context())
+    assert "/iflow-split" in cmd
+    assert "/iflow-split" in skill
+
+
 def test_iflow_review_command_documents_kinds_and_cli() -> None:
     """/iflow-review must describe kinds, confirm gate, and CLI helpers."""
     rendered = render_template("commands/iflow-review.md.j2", _default_context())
@@ -1074,8 +1136,9 @@ def test_issue_pick_documents_three_phases_and_fix_shortcut() -> None:
     assert "/iflow-plan" in rendered
     # Off-path: not auto-dispatched by /iflow.
     assert "off-path" in rendered.lower()
-    # Phase B (auto sub-issue creation) is explicitly out of scope.
-    assert "Phase B" in rendered
+    # Over-large issues offer /iflow-split; pick never creates children.
+    assert "/iflow-split" in rendered
+    assert "offer" in rendered.lower()
 
 
 def test_issue_pick_documents_label_hard_filter() -> None:

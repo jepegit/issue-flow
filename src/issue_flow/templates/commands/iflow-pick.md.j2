@@ -44,7 +44,7 @@ Optional free-form text after the command:
 
 4. **Create a `fix` issue (only when requested).** When the user passed `fix` (or explicitly asks for a general-fixes bucket): create a **new** GitHub issue with `gh issue create` (e.g. title `chore: general fixes`, body noting it is a catch-all for small fixes/typos/chores). Confirm the title/body with the user first. Record the returned issue number and use it as the chosen issue. A fresh issue is created each time — existing open general-fixes issues are **not** reused.
 
-5. **Over-large issue (note only).** If the chosen issue looks too involved to land in one PR, **mention** that it could be broken into sub-issues and that automated breakdown is planned as a follow-up (Phase B of issue #63). Do **not** auto-create sub-issues in this version — either proceed with the whole issue or let the user pick a smaller one.
+5. **Over-large issue (offer only).** If the chosen issue looks too involved to land in one PR, **mention** `/iflow-split` (flat parent/child) or `/iflow-epic` (staged) and ask. Default is proceed with the whole issue. Do **not** create children here.
 {% if label_flows and "iflow-yolo" in included_commands %}
 6. **Label-driven yolo flow.** If the chosen issue carries the **`{{ yolo_label }}`** label (case-insensitive; check the `labels` field from `gh issue list`, or `gh issue view <n> --json labels` when the issue was given directly), the issue is marked for the hands-off `/iflow-yolo` chain:
    - Announce it: "issue #<N> has the `{{ yolo_label }}` label → running it through `/iflow-yolo`".
@@ -93,7 +93,7 @@ Optional free-form text after the command:
 - **Off-path.** Never auto-dispatch `/iflow-pick` from `/iflow`, `/iflow-build`, or `/iflow-close`. The user opts in.
 - **Never create GitHub issues or branches without explicit confirmation.** Show what will be created first.
 - **Respect git safety norms.** Branch off the detected default, never force-push, never delete branches from this command.
-- **Phase B is out of scope** for this version: no automated sub-issue creation, no parking of generated siblings under `{{ partly_solved_folder }}/`. `/iflow-pick` only *mentions* the option (tracked as a follow-up to issue #63).
+- Over-large splits are **offer-only**: never create child issues from this command. Point at `/iflow-split` (flat) or `/iflow-epic` (staged).
 - Delegate issue capture to `/iflow-init` rather than duplicating its fetch/archive logic.
 
 ## Output to user
