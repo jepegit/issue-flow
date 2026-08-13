@@ -1,0 +1,66 @@
+# Split an over-large issue (`/iflow-split`)
+
+`/iflow-split` cuts **one over-large GitHub issue** into 2–5 flat child issues, links each as a GitHub native sub-issue of the parent, appends a parent task list, parks the parent locally as a tracker, and optionally starts the first child.
+
+Use it when an existing issue is too big for one PR but is **not** a multi-stage epic. Staged work with dependencies belongs to `/iflow-epic`. Creating one new issue belongs to `/iflow-issue`.
+
+This is an **off-path** command — the lifecycle dispatcher (`/iflow`) never auto-runs it, because it creates GitHub issues and parent/child links. Invoke it explicitly.
+
+## How it relates to other commands
+
+- **`/iflow-issue`** — one new well-specified issue. Split operates on an *existing* parent.
+- **`/iflow-epic`** — staged specs + `publish`. If the cut needs stages or `Depends on`, stop and use epic instead.
+- **`/iflow-pick` / `/iflow-plan`** — may *offer* this command when an issue looks over-large; they never create children themselves.
+
+{% include "skills/_model_directive.md.j2" %}
+
+{% include "skills/_resolve_project_root.md.j2" %}
+
+## Input
+
+- `/iflow-split 12` — split issue #12.
+- `/iflow-split` — use the focus issue in `{{ issueflows_dir }}/{{ current_issues_folder }}/`, else the issue-style branch `^\d+-.+`. Ambiguous → ask.
+
+## Phase 1 — draft children
+
+1. **Resolve parent `N`.** Trailing number, else the single current `issue<n>_original.md`, else leading digits of a `^\d+-.+` branch. Ambiguous or missing → stop and ask.
+
+2. **Preflight.** Detect the default branch (`gh repo view --json defaultBranchRef -q .defaultBranchRef.name`; fall back to `git symbolic-ref --quiet --short refs/remotes/origin/HEAD | sed 's|^origin/||'`, else `main`). Run `git fetch --prune`. Report the current branch and whether the working tree is clean. Creating children does not require a clean tree; branching onto a child later does.
+
+3. **Draft 2–5 children.** Propose titles + light bodies (Problem / context, Spec, Acceptance criteria, optional Out of scope). Each body ends with `Sub-issue of #<N>.` Refine until the user confirms the set.
+
+4. **Size gate.** Stages or explicit deps → stop and recommend `/iflow-epic`. Do not create.
+
+## Phase 2 — create and link
+
+5. **Consolidated confirm.** One prompt: parent `#N` stays open as the tracker; listed child titles will be created; each will be linked as a GitHub native sub-issue; a `- [ ] #<M>` task-list block will be appended on the parent under `## Sub-issues`. No yes → stop.
+
+6. **Create + link (idempotent).** For each unpublished child:
+   1. `gh issue create --repo owner/repo` (labels/milestones only if the user asked this turn). Capture `M`.
+   2. Link: prefer `issue-flow agent sub-issue-add <N> <M> -C <project_root> [--repo owner/repo] --json` (`linked` / `skipped` / `error`). CLI missing or error → REST fallback. REST also failing (404 / permission / plan) → keep the created issue and rely on the parent task list.
+   3. **REST recipe** (do not use `gh api -f` — it stringifies and 422s). `sub_issue_id` is the child's numeric **database id**, not the issue number:
+
+      ```bash
+      CHILD_ID=$(gh api repos/<owner>/<repo>/issues/<M> --jq .id)
+      echo "{\"sub_issue_id\": ${CHILD_ID}}" | \
+        gh api repos/<owner>/<repo>/issues/<N>/sub_issues -X POST --input -
+      ```
+
+      Re-runs skip already-linked children (`GET .../issues/<N>/sub_issues` or CLI `skipped`).
+   4. Append `- [ ] #<M>` under `## Sub-issues` on the parent (`gh issue edit --body-file`, append/patch only).
+   5. Record created numbers in the parent's local status file.
+
+7. **Local parent.** If `issue<N>_*` is in `{{ current_issues_folder }}/`, move the group to `{{ partly_solved_folder }}/`. Status stays `- [ ] Done`. Do not close the GitHub parent. Do not write child `issue<M>_*` groups.
+
+## Phase 3 — optional handoff
+
+8. **Ask** whether to start the first child (branch `<M>-<slug>` + `/iflow-init`). Do **not** auto-run `/iflow-plan` or `/iflow-build`.
+
+## Constraints
+
+- **Off-path:** `/iflow` never auto-dispatches to `/iflow-split`.
+- Never create a GitHub issue or sub-issue link without the consolidated confirm; show titles and bodies first.
+- GitHub only (`gh` / `gh api`); GitLab is not supported.
+- Parent stays open. Do not convert the parent into an epic plan file.
+- Do not merge with `/iflow-epic` publish or `/iflow-issue`.
+- Do not park generated children under `{{ partly_solved_folder }}/`.

@@ -494,3 +494,60 @@ def test_branch_is_protected_true(
         _fake_runner({("gh", "api"): _FakeProc(stdout="true")}),
     )
     assert gitutils.branch_is_protected(Path("."), "main", "octo/repo") is True
+
+
+def test_gh_issue_database_id_parses_int(
+    monkeypatch: pytest.MonkeyPatch, all_tools_present: None
+) -> None:
+    monkeypatch.setattr(
+        gitutils.subprocess,
+        "run",
+        _fake_runner(
+            {
+                ("gh", "api", "repos/octo/repo/issues/5"): _FakeProc(
+                    stdout="3000028010\n"
+                )
+            }
+        ),
+    )
+    assert gitutils.gh_issue_database_id(5, Path("."), "octo/repo") == 3000028010
+
+
+def test_gh_list_sub_issue_numbers_parses_lines(
+    monkeypatch: pytest.MonkeyPatch, all_tools_present: None
+) -> None:
+    monkeypatch.setattr(
+        gitutils.subprocess,
+        "run",
+        _fake_runner(
+            {
+                (
+                    "gh",
+                    "api",
+                    "repos/octo/repo/issues/12/sub_issues",
+                ): _FakeProc(stdout="240\n241\n")
+            }
+        ),
+    )
+    assert gitutils.gh_list_sub_issue_numbers(12, Path("."), "octo/repo") == [240, 241]
+
+
+def test_gh_add_sub_issue_sends_integer_json(
+    monkeypatch: pytest.MonkeyPatch, all_tools_present: None
+) -> None:
+    seen: dict[str, object] = {}
+
+    def run(argv: list[str], **kwargs: object) -> _FakeProc:
+        seen["argv"] = argv
+        seen["input"] = kwargs.get("input")
+        return _FakeProc(stdout="{}", returncode=0)
+
+    monkeypatch.setattr(gitutils.subprocess, "run", run)
+    ok, err = gitutils.gh_add_sub_issue(12, 3000028010, Path("."), "octo/repo")
+    assert ok is True
+    assert err is None
+    argv = seen["argv"]
+    assert isinstance(argv, list)
+    assert "--input" in argv
+    assert "-f" not in argv
+    assert seen["input"] == '{"sub_issue_id": 3000028010}'

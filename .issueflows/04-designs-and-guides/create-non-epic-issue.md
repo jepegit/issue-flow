@@ -32,8 +32,9 @@ quality). `/iflow` never auto-dispatches.
 ### 3. Structured draft body (not a full plan)
 
 Propose **Problem / context**, **Spec**, **Acceptance criteria**, optional
-**Out of scope**. Confirm before `gh issue create`. Over-large drafts: mention
-`/iflow-epic` only — no auto-split.
+**Out of scope**. Confirm before `gh issue create`. Over-large drafts: offer
+`/iflow-split` (flat) or `/iflow-epic` (staged) — no auto-split. See
+[linked-sub-issues.md](./linked-sub-issues.md).
 
 ### 4. Offer branch + `/iflow-init` after create; allow create-only
 

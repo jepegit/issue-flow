@@ -18,6 +18,7 @@ Do **not** use this skill from `/iflow`, `/iflow-build`, or `/iflow-close`. `/if
 - **`/iflow-pick fix`** — one-shot *general-fixes chore bucket* into plan/start.
 - **`/iflow-fix`** — iterative small-fixes *session* that stays in a loop.
 - **`/iflow-epic`** — staged multi-issue work; use `/iflow-issue` first when the epic **anchor** does not exist yet.
+- **`/iflow-split`** — cut an *existing* over-large issue into linked children. Do not use `/iflow-issue` for that.
 
 ## Input
 
@@ -77,7 +78,7 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
    - **Spec** (what to change)
    - **Acceptance criteria**
    - **Out of scope** (optional; omit the heading when empty)
-   Refine with the user until they confirm the text. If the draft is clearly over-large for one PR, **mention** splitting via `/iflow-epic` — do **not** auto-create sub-issues.
+   Refine with the user until they confirm the text. If the draft is clearly over-large for one PR, **offer** `/iflow-split` (flat parent/child) or `/iflow-epic` (staged) — do **not** auto-create sub-issues.
 4. **Create (confirm first).** Show the final title and body (and, in epic-anchor mode, the planned `epic` label when present). On yes: `gh issue create --repo <owner/repo>` (add `--label epic` only when epic-anchor mode is on **and** `gh label list` shows `epic`). Capture number `N`. Set the chat tab title to `Issue <N> <short title>`. Optional labels/milestones other than the epic-anchor label: only if the user asked for them in this turn — do not invent them.
 
 ### Phase 2 — optional lifecycle setup

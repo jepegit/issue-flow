@@ -301,6 +301,7 @@ def test_agent_help_lists_subcommands(runner: CliRunner) -> None:
         "archive",
         "label-candidates",
         "label-apply",
+        "sub-issue-add",
     ):
         assert sub in plain
 
@@ -552,9 +553,7 @@ def test_doctor_flags_editor_dir_without_scaffold(
     assert scaffold[0]["suggested_command"] == "issue-flow update --editor claude"
 
 
-def test_doctor_skips_scaffolded_editor_dir(
-    runner: CliRunner, tmp_path: Path
-) -> None:
+def test_doctor_skips_scaffolded_editor_dir(runner: CliRunner, tmp_path: Path) -> None:
     _seed_clean_tree(tmp_path)
     marker = tmp_path / ".claude" / "skills" / "iflow-init" / "SKILL.md"
     marker.parent.mkdir(parents=True)
@@ -567,9 +566,7 @@ def test_doctor_skips_scaffolded_editor_dir(
     assert "missing_editor_scaffold" not in codes
 
 
-def test_doctor_ignores_absent_editor_dirs(
-    runner: CliRunner, tmp_path: Path
-) -> None:
+def test_doctor_ignores_absent_editor_dirs(runner: CliRunner, tmp_path: Path) -> None:
     _seed_clean_tree(tmp_path)  # no editor dirs at all
 
     result = runner.invoke(app, ["doctor", str(tmp_path), "--json"])
@@ -1436,6 +1433,138 @@ def test_label_apply_calls_gh_issue_edit(
     payload = _json(result.stdout)
     assert payload["label"] == "fast-track"
     assert payload["results"][0]["ok"] is True
+
+
+def test_sub_issue_add_skips_already_linked(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from issue_flow import gitutils as gitutils_module
+
+    called: list[object] = []
+
+    def boom(*_args: object, **_kwargs: object) -> tuple[bool, str | None]:
+        called.append(True)
+        return False, "should not be called"
+
+    monkeypatch.setattr(gitutils_module, "gh_available", lambda: True)
+    monkeypatch.setattr(
+        gitutils_module, "remote_owner_repo", lambda _cwd: ("octo", "repo")
+    )
+    monkeypatch.setattr(
+        gitutils_module, "gh_list_sub_issue_numbers", lambda *_a, **_k: [240]
+    )
+    monkeypatch.setattr(gitutils_module, "gh_add_sub_issue", boom)
+
+    result = runner.invoke(
+        app,
+        [
+            "agent",
+            "sub-issue-add",
+            "12",
+            "240",
+            "-C",
+            str(tmp_path),
+            "--json",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    assert called == []
+    payload = _json(result.stdout)
+    assert payload["skipped"] is True
+    assert payload["linked"] is False
+    assert payload["parent"] == 12
+    assert payload["child"] == 240
+
+
+def test_sub_issue_add_dry_run_does_not_post(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from issue_flow import gitutils as gitutils_module
+
+    called: list[object] = []
+
+    def boom(*_args: object, **_kwargs: object) -> tuple[bool, str | None]:
+        called.append(True)
+        return False, "should not be called"
+
+    monkeypatch.setattr(gitutils_module, "gh_available", lambda: True)
+    monkeypatch.setattr(
+        gitutils_module, "remote_owner_repo", lambda _cwd: ("octo", "repo")
+    )
+    monkeypatch.setattr(
+        gitutils_module, "gh_list_sub_issue_numbers", lambda *_a, **_k: []
+    )
+    monkeypatch.setattr(
+        gitutils_module, "gh_issue_database_id", lambda *_a, **_k: 3000028010
+    )
+    monkeypatch.setattr(gitutils_module, "gh_add_sub_issue", boom)
+
+    result = runner.invoke(
+        app,
+        [
+            "agent",
+            "sub-issue-add",
+            "12",
+            "240",
+            "--dry-run",
+            "-C",
+            str(tmp_path),
+            "--json",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    assert called == []
+    payload = _json(result.stdout)
+    assert payload["dry_run"] is True
+    assert payload["child_id"] == 3000028010
+    assert payload["linked"] is False
+
+
+def test_sub_issue_add_calls_gh_add(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from issue_flow import gitutils as gitutils_module
+
+    links: list[tuple[int, int]] = []
+
+    def fake_add(
+        parent: int,
+        child_id: int,
+        _cwd: Path,
+        repo: str | None = None,
+    ) -> tuple[bool, str | None]:
+        links.append((parent, child_id))
+        return True, None
+
+    monkeypatch.setattr(gitutils_module, "gh_available", lambda: True)
+    monkeypatch.setattr(
+        gitutils_module, "remote_owner_repo", lambda _cwd: ("octo", "repo")
+    )
+    monkeypatch.setattr(
+        gitutils_module, "gh_list_sub_issue_numbers", lambda *_a, **_k: []
+    )
+    monkeypatch.setattr(
+        gitutils_module, "gh_issue_database_id", lambda *_a, **_k: 3000028010
+    )
+    monkeypatch.setattr(gitutils_module, "gh_add_sub_issue", fake_add)
+
+    result = runner.invoke(
+        app,
+        [
+            "agent",
+            "sub-issue-add",
+            "12",
+            "240",
+            "-C",
+            str(tmp_path),
+            "--json",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    assert links == [(12, 3000028010)]
+    payload = _json(result.stdout)
+    assert payload["linked"] is True
+    assert payload["child_id"] == 3000028010
 
 
 def test_agent_queue_honours_configured_yolo_label(

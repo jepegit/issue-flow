@@ -146,6 +146,8 @@ Lifecycle skills include a **`### MODEL & EXECUTION DIRECTIVE`** section that te
 
 `/iflow-issue` creates **one well-specified normal GitHub issue** (context / spec / acceptance criteria), then optionally branches and runs `/iflow-init` into the standard lifecycle. It fills the gap between `/iflow-fix` (iterative small-fixes) and `/iflow-epic` (multi-issue staged work). Off-path (never auto-dispatched). For an epic anchor: `/iflow-issue epic <intent>`.
 
+`/iflow-split` cuts **one over-large existing issue** into 2–5 flat GitHub native sub-issues behind one consolidated confirm (parent stays open as the tracker). Off-path (never auto-dispatched). Staged work with dependencies still goes through `/iflow-epic`. `/iflow-pick` / `/iflow-issue` / `/iflow-plan` may *offer* split; they never create children themselves.
+
 `/iflow-status` prints a **read-only** overview of where every issue stands — the local tracking state under `{{ issueflows_dir }}/` (focus / parked / solved) plus open GitHub issues cross-referenced against it. It is off-path (never auto-dispatched) and changes nothing.
 
 `/iflow-doctor` audits `{{ issueflows_dir }}/` for **dirty** conditions (ambiguous multi-focus, leftovers in `{{ current_issues_folder }}/`, duplicates across folders, and similar) and can apply **safe repairs** on confirmation (`issue-flow doctor` / `agent audit` + `repair`). It is off-path and never auto-dispatched.

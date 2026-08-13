@@ -770,6 +770,41 @@ def agent_archive(
     )
 
 
+@agent_app.command("sub-issue-add")
+def agent_sub_issue_add(
+    parent: int = typer.Argument(..., help="Parent issue number."),
+    child: int = typer.Argument(..., help="Child issue number to link."),
+    project_dir: Path = typer.Option(
+        Path("."),
+        "--project-dir",
+        "-C",
+        help="Project root directory (defaults to current directory).",
+        exists=True,
+        file_okay=False,
+        resolve_path=True,
+    ),
+    repo: str | None = typer.Option(
+        None,
+        "--repo",
+        help="owner/repo override (else derived from the origin remote).",
+    ),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Resolve ids and skip the POST."
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Link a child issue as a native GitHub sub-issue (idempotent)."""
+    from issue_flow.agent import run_sub_issue_add
+
+    raise typer.Exit(
+        code=run_sub_issue_add(
+            project_dir, _console, parent, child, repo, dry_run, json_output
+        )
+    )
+
+
 @agent_app.command("capture")
 def agent_capture(
     number: int = typer.Argument(..., help="GitHub issue number to capture."),
