@@ -23,7 +23,12 @@ sequential cycle must always work everywhere without it.
   worst offender is `HISTORY.md`: parallel workers must **not** each
   edit it. Each worker leaves its changelog bullet in its own issue status
   file (or PR body); the coordinator appends the bullets to `HISTORY.md`
-  during the serial merge step, in the order merges land.
+  during the serial merge step, in the order merges land — the same ordering
+  rule as the changelog conflict resolver (newest bullet last), so serial and
+  parallel runs produce the same file. A worker PR that still goes `DIRTY` on
+  `[Unreleased]` is resolved with `issue-flow agent sync-branch`, never by
+  hand-editing conflict markers; see
+  [changelog-conflicts.md](./changelog-conflicts.md) (issue #240).
 
 ## Execution pattern (per-issue worktree)
 

@@ -14,6 +14,7 @@ than the GitHub release notes they link to.
 - **README badges (#231).** PyPI version, Read the Docs, and Pepy downloads badges under the title.
 - **Cleanup configurable (#233).** Soften `remind_cleanup` to remind-only (never auto-run); gate leftover workflow/auto nudges; add `cleanup_include_github` for Phase B default with `no github` / `local only` override.
 - Iflow in epics. (#210)
+- **Changelog conflicts no longer stop a close (#240).** New `issue-flow agent sync-branch` syncs the issue branch with `origin/<default>` before push (a plain `git pull --ff-only` on the issue branch could never pick up default-branch commits, so PRs only failed later as `mergeable: CONFLICTING`). A conflict confined to `HISTORY.md`, where both sides only add `## [Unreleased]` bullets, is resolved by keeping them all with the in-flight bullet last (new `issue_flow.history` resolver); every other conflict aborts the rebase, leaves the branch untouched, and stops the flow. Close force-with-leases a rebased branch and retries a `CONFLICTING` merge once (never `--admin`, never skipping CI); `/iflow-cycle` step 6b no longer halts a batch over a changelog-only refusal.
 
 ## [0.4.9] - 2026-07-30
 

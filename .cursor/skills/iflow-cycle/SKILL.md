@@ -90,7 +90,7 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 
 6. **Strictly-necessary-input rule.** Between issues the cycle runs unattended. **Stop and ask only** when:
    a. tests or lint fail in a way you cannot fix within the current issue's scope;
-   b. a merge is refused or a `git pull --ff-only` will not fast-forward (divergence);
+   b. a merge is refused, or a sync with the default branch will not complete — **but** a refusal whose only conflict is additive `HISTORY.md` bullets is **not** a stop: close's sync step (`issue-flow agent sync-branch`) resolves that and retries the merge once. Stop only when the sync itself exits 1, or the retry is refused again;
    c. the issue spec is ambiguous, contradictory, or turns out **not** small (yolo's scope check aborts);
    d. an action would fall **outside the confirmed queue** (touching an unlisted issue, an unrelated dirty file, a destructive op).
    Anything else — routine implementation choices, passing tests, clean merges — proceeds without asking.
@@ -120,7 +120,7 @@ By default the cycle is **sequential** — one issue fully lands before the next
 - **Harness gate.** If you cannot confirm the harness supports background execution (worktrees + parallel agents/subagents), **refuse `parallel:<n>` and run sequentially** — never pretend to parallelize.
 - **Worktree per issue.** `git worktree add ../<repo>-<N> <N>-<slug>` so each issue has an isolated tree; run the yolo work there.
 - **Serialize merges.** Never merge PRs concurrently — the coordinating session merges them one at a time on the default branch, pulling between merges and rebasing/retrying on a non-fast-forward or CI refusal.
-- **Shared files via the coordinator only.** Parallel workers must **not** each edit `HISTORY.md`; each leaves its changelog bullet in its issue status file / PR body, and the coordinator appends them in **merge order** during the serial merge step.
+- **Shared files via the coordinator only.** Parallel workers must **not** each edit `HISTORY.md`; each leaves its changelog bullet in its issue status file / PR body, and the coordinator appends them in **merge order** during the serial merge step — same ordering rule as the changelog resolver (already-landed bullets first, the newest last), so serial and parallel runs produce the same file. If a worker PR does go `DIRTY` on `[Unreleased]`, the coordinator resolves it with `issue-flow agent sync-branch` rather than hand-editing markers.
 
 When in doubt, prefer the sequential run — parallel dispatch trades safety for speed and every one of the rules above must hold.
 
@@ -131,8 +131,17 @@ When in doubt, prefer the sequential run — parallel dispatch trades safety for
 
 **Conflict stance (sequential default):** each issue's yolo close merges its PR
 and returns to a **clean default branch** before the next issue starts, so
-shared files (`HISTORY.md`, etc.) stay single-writer. Stop-on-fail
-leaves the tree clean on default. For experimental concurrent work, see
+within the cycle shared files (`HISTORY.md`, etc.) stay single-writer.
+Stop-on-fail leaves the tree clean on default.
+
+That single-writer property does **not** protect against the default branch
+moving **externally** — another session or an already-open PR merging while one
+queued issue is in its test/CI window. The collision is almost always the same:
+two additive bullets under `## [Unreleased]`. Close's sync step owns that
+(`issue-flow agent sync-branch`: rebase onto `origin/<default>`, keep both
+bullet sets with the in-flight one last, force-with-lease push, retry the merge
+once), so a changelog-only conflict no longer halts a batch. Everything else
+still trips step 6b. For experimental concurrent work, see
 **Parallel dispatch** above and `.issueflows/04-designs-and-guides/parallel-cycle.md`
 (merges stay serialized there too). Labelling first is optional via
 `/iflow-review yolo` — then run `/iflow-cycle yolo`.

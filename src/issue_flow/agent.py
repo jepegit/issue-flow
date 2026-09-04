@@ -2,9 +2,9 @@
 
 These functions back ``issue-flow status`` (human-facing, top-level) and the
 ``issue-flow agent ...`` sub-commands (``state`` / ``preflight`` / ``switchback`` /
-``branches`` / ``version-plan`` / ``resolve`` / ``sweep`` / ``archive`` /
-``capture`` / ``sub-issue-add``) that exist so AI agents can ask the tool for a deterministic
-answer instead of re-deriving lifecycle state by hand on every run.
+``sync-branch`` / ``branches`` / ``version-plan`` / ``resolve`` / ``sweep`` /
+``archive`` / ``capture`` / ``sub-issue-add``) that exist so AI agents can ask the tool
+for a deterministic answer instead of re-deriving lifecycle state by hand on every run.
 
 Each ``run_*`` returns a process exit code and emits either a short human
 report (via :class:`rich.console.Console`) or a stable JSON object on stdout
@@ -23,7 +23,7 @@ from typing import Any
 from rich.console import Console
 from rich.markup import escape
 
-from issue_flow import gitutils, modes, project, tracking
+from issue_flow import gitutils, history, modes, project, tracking
 from issue_flow.config import Settings
 from issue_flow.editors import EDITORS
 
@@ -498,6 +498,280 @@ def _render_switchback_text(
         )
     for path in payload["dirty_paths"]:
         console.print(f"  [yellow]dirty[/yellow]  {escape(path)}")
+    for note in payload["notes"]:
+        style = "red" if exit_code != 0 else "dim"
+        console.print(f"  [{style}]{escape(note)}[/{style}]")
+
+
+# ---------------------------------------------------------------------------
+# agent sync-branch
+# ---------------------------------------------------------------------------
+
+#: How many consecutive conflicted commits the changelog resolver will handle
+#: during one rebase before giving up. A well-formed issue branch touches the
+#: changelog in a single commit; more than a handful means something else is
+#: going on and a human should look.
+_SYNC_RESOLVE_LIMIT = 10
+
+SYNC_STRATEGIES = ("rebase", "merge")
+
+
+def run_sync_branch(
+    project_root: Path,
+    console: Console,
+    strategy: str,
+    as_json: bool,
+) -> int:
+    """Bring the current issue branch up to date with ``origin/<default>``.
+
+    ``/iflow-close`` used to sync with a plain ``git pull --ff-only`` on the
+    issue branch, which cannot pick up commits that landed on the *default*
+    branch while the issue was in flight — so the PR only failed later, at
+    merge time, with ``mergeable: CONFLICTING`` (issue #240).
+
+    This replays the branch onto ``origin/<default>`` (``--strategy merge``
+    merges instead) and auto-resolves the one conflict shape that is pure
+    bookkeeping: both sides appending bullets to the changelog's
+    ``[Unreleased]`` section. Anything else aborts the operation, leaves the
+    branch exactly as it was, and exits 1 for the caller to stop on.
+
+    Pushing is deliberately out of scope: a rebase rewrites the branch, so the
+    force-with-lease push stays in ``/iflow-close`` where the user's tokens and
+    confirmations apply.
+    """
+    settings = Settings()
+    changelog = settings.history_file
+    notes: list[str] = []
+    payload: dict[str, Any] = {
+        "git_available": gitutils.git_available(),
+        "branch": None,
+        "default_branch": None,
+        "strategy": strategy,
+        "ahead": None,
+        "behind": None,
+        "action": "none",
+        "changelog": changelog,
+        "changelog_resolved": False,
+        "resolved_paths": [],
+        "conflicts": [],
+        "dirty_paths": [],
+        "needs_force_push": False,
+        "notes": notes,
+    }
+
+    def emit(exit_code: int) -> int:
+        if as_json:
+            _emit_json(console, payload)
+        else:
+            _render_sync_branch_text(console, payload, exit_code)
+        return exit_code
+
+    if strategy not in SYNC_STRATEGIES:
+        notes.append(
+            f"unknown strategy {strategy!r}; expected one of "
+            f"{', '.join(SYNC_STRATEGIES)}"
+        )
+        return emit(1)
+    if not payload["git_available"]:
+        notes.append("git is not on PATH")
+        return emit(1)
+
+    branch = gitutils.current_branch(project_root)
+    default = gitutils.default_branch(project_root)
+    payload["branch"] = branch
+    payload["default_branch"] = default
+
+    if branch is None:
+        notes.append("HEAD is detached; switch to the issue branch first")
+        return emit(1)
+    if branch == default:
+        notes.append(
+            f"already on the default branch ({default}); sync-branch is for an "
+            "issue branch"
+        )
+        return emit(1)
+
+    dirty = gitutils.dirty_paths(project_root)
+    if dirty is None:
+        notes.append("could not read the working tree state (not a git repo?)")
+        return emit(1)
+    if dirty:
+        payload["dirty_paths"] = dirty
+        notes.append(
+            "working tree is dirty; commit or stash before syncing so a "
+            "conflict can never strand uncommitted work."
+        )
+        return emit(1)
+
+    if not gitutils.fetch_prune(project_root):
+        notes.append("git fetch --prune failed; comparing against stale refs")
+
+    counts = gitutils.ahead_behind(project_root, default)
+    if counts is None:
+        notes.append(
+            f"could not compare with origin/{default} (missing remote-tracking "
+            "ref?); sync manually"
+        )
+        return emit(1)
+    ahead, behind = counts
+    payload["ahead"] = ahead
+    payload["behind"] = behind
+
+    if behind == 0:
+        notes.append(f"already up to date with origin/{default}")
+        return emit(0)
+
+    ref = f"origin/{default}"
+    if strategy == "rebase":
+        ok, error = gitutils.rebase_onto(project_root, ref)
+    else:
+        ok, error = gitutils.merge_ref(project_root, ref)
+
+    if not ok:
+        resolved = _resolve_sync_conflicts(
+            project_root, strategy, changelog, payload, notes, error
+        )
+        if not resolved:
+            return emit(1)
+
+    payload["action"] = (
+        "fast-forward"
+        if ahead == 0 and strategy == "rebase"
+        else ("rebased" if strategy == "rebase" else "merged")
+    )
+    payload["needs_force_push"] = strategy == "rebase" and ahead > 0
+    return emit(0)
+
+
+def _abort_sync(
+    project_root: Path,
+    strategy: str,
+    payload: dict[str, Any],
+    notes: list[str],
+) -> None:
+    """Undo an in-progress rebase/merge so the branch is untouched.
+
+    An abort rewinds any changelog resolve made earlier in the same run (a
+    rebase can conflict once per replayed commit), so the payload must stop
+    claiming it — nothing was kept.
+    """
+    if strategy == "rebase":
+        gitutils.rebase_abort(project_root)
+    else:
+        gitutils.merge_abort(project_root)
+    if payload["changelog_resolved"]:
+        notes.append(
+            f"rolled back the {payload['changelog']} resolve — the abort "
+            "restored the branch as it was"
+        )
+        payload["changelog_resolved"] = False
+        payload["resolved_paths"] = []
+
+
+def _resolve_sync_conflicts(
+    project_root: Path,
+    strategy: str,
+    changelog: str,
+    payload: dict[str, Any],
+    notes: list[str],
+    error: str | None,
+) -> bool:
+    """Auto-resolve changelog-only conflicts; abort on anything else.
+
+    Returns True when the rebase/merge completed. On False the operation has
+    been aborted and ``notes`` explains why the caller must stop.
+    """
+    # During a rebase HEAD is the upstream being replayed onto, so the issue's
+    # own commit is the "theirs" side; a merge is the other way around.
+    in_flight_side = "theirs" if strategy == "rebase" else "ours"
+    root = gitutils.repo_root(project_root) or project_root
+    target = (project_root / changelog).resolve()
+
+    for _ in range(_SYNC_RESOLVE_LIMIT):
+        unmerged = gitutils.unmerged_paths(project_root)
+        if unmerged is None:
+            _abort_sync(project_root, strategy, payload, notes)
+            notes.append("could not list conflicted paths; aborted and stopped")
+            return False
+        if not unmerged:
+            _abort_sync(project_root, strategy, payload, notes)
+            notes.append(
+                f"git {strategy} failed without conflicts: {error or 'unknown error'}"
+            )
+            return False
+
+        payload["conflicts"] = unmerged
+        offending = [path for path in unmerged if (root / path).resolve() != target]
+        if offending:
+            _abort_sync(project_root, strategy, payload, notes)
+            notes.append(
+                "conflicts outside "
+                f"{changelog} ({', '.join(offending)}); aborted and stopped — "
+                "this needs a human decision."
+            )
+            return False
+
+        conflicted = root / unmerged[0]
+        text = conflicted.read_text(encoding="utf-8")
+        result = history.resolve_changelog_conflict(text, in_flight_side=in_flight_side)
+        if not result.ok or result.text is None:
+            _abort_sync(project_root, strategy, payload, notes)
+            notes.append(
+                f"{changelog} conflict is not two additive [Unreleased] bullet "
+                f"lists ({result.reason}); aborted and stopped."
+            )
+            return False
+
+        conflicted.write_text(result.text, encoding="utf-8", newline="")
+        ok, stage_error = gitutils.stage_paths(project_root, unmerged)
+        if not ok:
+            _abort_sync(project_root, strategy, payload, notes)
+            notes.append(f"could not stage the resolved {changelog}: {stage_error}")
+            return False
+
+        payload["changelog_resolved"] = True
+        if unmerged[0] not in payload["resolved_paths"]:
+            payload["resolved_paths"].append(unmerged[0])
+        notes.append(f"kept both {changelog} bullet sets (in-flight bullet last)")
+
+        if strategy == "rebase":
+            ok, error = gitutils.rebase_continue(project_root)
+        else:
+            ok, error = gitutils.merge_continue(project_root)
+        if ok:
+            payload["conflicts"] = []
+            return True
+
+    _abort_sync(project_root, strategy, payload, notes)
+    notes.append(
+        f"more than {_SYNC_RESOLVE_LIMIT} conflicted commits; aborted and stopped"
+    )
+    return False
+
+
+def _render_sync_branch_text(
+    console: Console, payload: dict[str, Any], exit_code: int
+) -> None:
+    if exit_code == 0:
+        branch = escape(payload["branch"] or "(detached)")
+        default = escape(payload["default_branch"] or "?")
+        action = payload["action"]
+        if action == "none":
+            console.print(f"[green]ok[/green]  [bold]{branch}[/bold] is in sync.")
+        else:
+            console.print(
+                f"[green]ok[/green]  [bold]{branch}[/bold] {action} onto "
+                f"origin/{default}."
+            )
+        if payload["needs_force_push"]:
+            console.print(
+                "  [yellow]note[/yellow]  history was rewritten — push with "
+                "--force-with-lease"
+            )
+    for path in payload["dirty_paths"]:
+        console.print(f"  [yellow]dirty[/yellow]  {escape(path)}")
+    for path in payload["conflicts"]:
+        console.print(f"  [red]conflict[/red]  {escape(path)}")
     for note in payload["notes"]:
         style = "red" if exit_code != 0 else "dim"
         console.print(f"  [{style}]{escape(note)}[/{style}]")
