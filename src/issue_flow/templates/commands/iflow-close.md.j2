@@ -60,10 +60,15 @@ Other optional notes still apply: branch name, PR title, skip issue doc update, 
    - Before staging, run `git status` to list all modified/untracked files. If any changes are **not relevant** to this issue, tell the user which ones and ask whether to include them in this commit or leave them for later. Do not silently drop or include unrelated changes.
    - Unless told to commit all, stage the right files (avoid unrelated changes). Include `pyproject.toml` (and `uv.lock` if it changed) when a version bump ran. Include `{{ history_file }}` when step 3 updated it.
    - Write a commit message that states what changed and why in normal sentences.
-   - Sync with the default branch before pushing: run `git fetch --prune` then `git pull --ff-only` from the default branch (e.g. `main`) merged into the issue branch (or rebase, per project preference). Use `--ff-only` so unrelated work never gets merged in silently; if it refuses, stop and ask how to reconcile. Check for and fix merge conflicts.
+
+5a. **Sync with the default branch before pushing**
+   - The issue branch must carry whatever landed on the default branch while this issue was in flight; a plain `git pull --ff-only` on the issue branch cannot do that, so the PR would only fail later at merge time (`mergeable: CONFLICTING`).
+   - **CLI fast path (preferred).** `issue-flow agent sync-branch --json` — refuses while the tree is dirty or you are on the default branch, fetches, replays the branch onto `origin/<default>`, and **auto-resolves a changelog-only conflict** (both sides appending bullets under `## [Unreleased]`: all bullets kept, the in-flight issue's last). Anything else aborts the rebase, leaves the branch untouched, and exits 1 — report its `notes` and **stop**. `needs_force_push: true` means the branch was rewritten.
+   - **Manual fallback.** `git fetch --prune`, then `git rebase origin/<default>`. Conflict **only** in `{{ history_file }}` with both sides merely adding `[Unreleased]` bullets → keep them all (already-landed first, this issue's bullet last), `git add {{ history_file }}`, `git rebase --continue`. Anything else (code conflict, edited bullet, renamed/promoted heading) → `git rebase --abort` and **stop**.
+   - Never rewrite or force-push the **default** branch.
 
 6. **Push**
-   - Push your branch to `origin` (or the remote you use).
+   - Push your branch to `origin` (or the remote you use). If step 5a rebased, use `git push --force-with-lease` — never a bare `--force`.
 
 7. **Pull request**
    - Always pass `--repo <owner/repo>`.
@@ -80,6 +85,7 @@ Other optional notes still apply: branch name, PR title, skip issue doc update, 
    - Watch succeeds within the cap → retry `gh pr merge <number> --{{ pr_merge_method }}`.
    - Watch fails (red / `--fail-fast`) → stop hands-off, leave the PR open, report failing check links.
    - Cap elapses while still pending, or checks never register / watch unavailable → last resort `gh pr merge <number> --{{ pr_merge_method }} --auto` and report the merge as queued. If even `--auto` fails, stop hands-off, report the error, leave the PR open.
+   - **Refused as conflicted** (`mergeable: CONFLICTING` / `mergeStateStatus: DIRTY` — something merged into the default branch after step 5a): re-run `issue-flow agent sync-branch --json`. If it resolved a changelog-only conflict, `git push --force-with-lease`, re-watch checks under the same budget, and retry the merge **once**. If the sync exits 1 or the retry is refused again, stop hands-off and leave the PR open. Never `--admin`, never skip checks.
 
 8. **Switch back when safe**
    - If the input included `stay`, `stay on branch`, `don't switch`, or `dont switch to main`, stay on the issue branch and report that the user opted out.
@@ -101,6 +107,7 @@ Other optional notes still apply: branch name, PR title, skip issue doc update, 
 - **Changelog timing:** unless `nohistory`, write `{{ history_file }}` in step 3 and stage it in the close commit that feeds (or updates) the PR — including when a draft was opened earlier via `/iflow-build` early PR. Never offer a HISTORY/CHANGELOG update after close has finished or after merge.
 {% if confirm_changelog_update %}- If the changelog confirm is declined, **stop** until the user chooses write / revise / `nohistory` / abort — do not silent-skip and continue.
 {% endif %}- Never delete branches from `/iflow-close`. Branch deletion belongs to `/iflow-cleanup`.
+- **Conflicts:** only a `{{ history_file }}`-only conflict of two additive `## [Unreleased]` bullet lists resolves automatically (step 5a). Every other conflict aborts the sync and stops the flow. Never `gh pr merge --admin`, never skip CI, never force-push anything but the issue branch (`--force-with-lease`).
 
 ## Output
 

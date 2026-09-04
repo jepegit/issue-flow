@@ -668,6 +668,44 @@ def test_init_close_skill_mentions_switchback_fast_path(tmp_path: Path) -> None:
     assert "issue-flow agent switchback" in content
 
 
+def test_init_close_skill_documents_sync_before_merge(tmp_path: Path) -> None:
+    """iflow-close must sync with the default branch, not just pull the branch.
+
+    Issue #240: a plain `git pull --ff-only` on the issue branch cannot pick up
+    commits that landed on the default branch, so the PR only failed later at
+    merge time. The skill must offer the sync fast path, the force-with-lease
+    push it implies, and the merge retry on a conflicted refusal.
+    """
+    run_init(tmp_path)
+    content = (tmp_path / ".cursor" / "skills" / "iflow-close" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    assert "issue-flow agent sync-branch" in content
+    assert "--force-with-lease" in content
+    assert "CONFLICTING" in content
+
+
+def test_init_history_skill_documents_keep_both_rule(tmp_path: Path) -> None:
+    """The changelog skill owns the one documented keep-both ordering."""
+    run_init(tmp_path)
+    content = (
+        tmp_path / ".cursor" / "skills" / "iflow-history-update" / "SKILL.md"
+    ).read_text(encoding="utf-8")
+    assert "keep both" in content.lower()
+    assert "last" in content
+    assert "issue-flow agent sync-branch" in content
+
+
+def test_init_cycle_skill_does_not_stop_on_changelog_conflict(tmp_path: Path) -> None:
+    """A changelog-only merge refusal must not halt a cycle any more."""
+    run_init(tmp_path)
+    content = (tmp_path / ".cursor" / "skills" / "iflow-cycle" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    assert "issue-flow agent sync-branch" in content
+    assert "not** a stop" in content
+
+
 def test_init_rule_documents_designs_folder(tmp_path: Path) -> None:
     """The generated rule file should mention the designs-and-guides folder."""
     run_init(tmp_path)

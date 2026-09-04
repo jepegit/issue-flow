@@ -27,3 +27,5 @@ so PRs could land without a bullet — inviting a post-merge ask.
 ## Link
 
 Issue #171; knob table in [skill-behaviour-knobs.md](./skill-behaviour-knobs.md).
+Conflict handling when two branches add bullets to the same `[Unreleased]`
+section: [changelog-conflicts.md](./changelog-conflicts.md) (issue #240).

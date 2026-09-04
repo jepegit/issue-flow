@@ -22,8 +22,8 @@ agent_app = typer.Typer(
         "Agent-facing helpers that read the .issueflows/ tree and git/gh so "
         "AI agents get deterministic answers instead of re-deriving lifecycle "
         "state by hand. All are read-only except `sweep`, `archive`, `capture`, "
-        "`switchback`, `repair`, and `label-apply`. `branches` is read-only "
-        "(remote audit only; deletes stay in `/iflow-cleanup`)."
+        "`switchback`, `sync-branch`, `repair`, and `label-apply`. `branches` "
+        "is read-only (remote audit only; deletes stay in `/iflow-cleanup`)."
     ),
 )
 
@@ -459,6 +459,36 @@ def agent_switchback(
     from issue_flow.agent import run_switchback
 
     raise typer.Exit(code=run_switchback(project_dir, _console, json_output))
+
+
+@agent_app.command("sync-branch")
+def agent_sync_branch(
+    project_dir: Path = _PROJECT_DIR_OPTION,
+    strategy: str = typer.Option(
+        "rebase",
+        "--strategy",
+        help=(
+            "How to take on the default branch's new commits: `rebase` "
+            "(default, keeps history linear but rewrites the branch) or "
+            "`merge` (no force-push needed)."
+        ),
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Sync the current issue branch with `origin/<default>` before merging.
+
+    Replays the branch onto the default branch and auto-resolves the one
+    conflict shape that is pure bookkeeping — both sides appending bullets to
+    the changelog's `[Unreleased]` section, kept in full with the in-flight
+    bullet last. Any other conflict aborts the operation, leaves the branch
+    untouched, and exits 1. Never pushes: a rebase rewrites the branch, so the
+    `--force-with-lease` push stays in `/iflow-close`.
+    """
+    from issue_flow.agent import run_sync_branch
+
+    raise typer.Exit(code=run_sync_branch(project_dir, _console, strategy, json_output))
 
 
 @agent_app.command("branches")

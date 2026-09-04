@@ -270,6 +270,111 @@ def pull_ff_only(cwd: Path) -> tuple[bool, str | None]:
     return True, None
 
 
+def repo_root(cwd: Path) -> Path | None:
+    """Absolute path of the enclosing work tree, or ``None`` when unknown.
+
+    Unmerged paths from ``git diff`` are reported relative to this, which may
+    differ from the issue-flow project root in a nested layout.
+    """
+    out = _stdout([GIT, "rev-parse", "--show-toplevel"], cwd)
+    return Path(out) if out else None
+
+
+def rebase_onto(cwd: Path, ref: str) -> tuple[bool, str | None]:
+    """Run ``git rebase <ref>``. Returns ``(ok, error_message)``.
+
+    A non-zero exit is normally a conflict, not a broken repo: the caller
+    inspects :func:`unmerged_paths` and decides whether to resolve or abort.
+    """
+    result = _run([GIT, "rebase", ref], cwd)
+    if result is None:
+        return False, "git is not on PATH"
+    if result.returncode != 0:
+        message = _stream_text(result.stderr) or _stream_text(result.stdout)
+        return False, message or f"git rebase {ref} failed"
+    return True, None
+
+
+def rebase_continue(cwd: Path) -> tuple[bool, str | None]:
+    """Run ``git rebase --continue`` without opening an editor.
+
+    ``core.editor=true`` keeps the replayed commit message as-is; an
+    interactive editor would hang a non-interactive agent run.
+    """
+    result = _run([GIT, "-c", "core.editor=true", "rebase", "--continue"], cwd)
+    if result is None:
+        return False, "git is not on PATH"
+    if result.returncode != 0:
+        message = _stream_text(result.stderr) or _stream_text(result.stdout)
+        return False, message or "git rebase --continue failed"
+    return True, None
+
+
+def rebase_abort(cwd: Path) -> bool:
+    """Run ``git rebase --abort`` (best effort). True on success."""
+    result = _run([GIT, "rebase", "--abort"], cwd)
+    return result is not None and result.returncode == 0
+
+
+def rebase_in_progress(cwd: Path) -> bool:
+    """True while a rebase is still stopped mid-way (conflict or edit)."""
+    for name in ("rebase-merge", "rebase-apply"):
+        path = _stdout([GIT, "rev-parse", "--git-path", name], cwd)
+        if path and (cwd / path).exists():
+            return True
+    return False
+
+
+def merge_ref(cwd: Path, ref: str) -> tuple[bool, str | None]:
+    """Run ``git merge --no-edit <ref>``. Returns ``(ok, error_message)``."""
+    result = _run([GIT, "merge", "--no-edit", ref], cwd)
+    if result is None:
+        return False, "git is not on PATH"
+    if result.returncode != 0:
+        message = _stream_text(result.stderr) or _stream_text(result.stdout)
+        return False, message or f"git merge {ref} failed"
+    return True, None
+
+
+def merge_abort(cwd: Path) -> bool:
+    """Run ``git merge --abort`` (best effort). True on success."""
+    result = _run([GIT, "merge", "--abort"], cwd)
+    return result is not None and result.returncode == 0
+
+
+def merge_continue(cwd: Path) -> tuple[bool, str | None]:
+    """Commit a merge whose conflicts have just been staged."""
+    result = _run([GIT, "-c", "core.editor=true", "commit", "--no-edit"], cwd)
+    if result is None:
+        return False, "git is not on PATH"
+    if result.returncode != 0:
+        message = _stream_text(result.stderr) or _stream_text(result.stdout)
+        return False, message or "git commit --no-edit failed"
+    return True, None
+
+
+def unmerged_paths(cwd: Path) -> list[str] | None:
+    """Paths git reports as unmerged (``U``), or ``None`` when unknown."""
+    result = _run([GIT, "diff", "--name-only", "--diff-filter=U"], cwd)
+    if result is None or result.returncode != 0:
+        return None
+    stdout = result.stdout or ""
+    return [line.strip() for line in stdout.splitlines() if line.strip()]
+
+
+def stage_paths(cwd: Path, paths: list[str]) -> tuple[bool, str | None]:
+    """Run ``git add -- <paths>``. Returns ``(ok, error_message)``."""
+    if not paths:
+        return True, None
+    result = _run([GIT, "add", "--", *paths], cwd)
+    if result is None:
+        return False, "git is not on PATH"
+    if result.returncode != 0:
+        message = _stream_text(result.stderr) or _stream_text(result.stdout)
+        return False, message or "git add failed"
+    return True, None
+
+
 def ahead_behind(cwd: Path, default: str) -> tuple[int, int] | None:
     """Return ``(ahead, behind)`` of HEAD vs ``origin/<default>``.
 

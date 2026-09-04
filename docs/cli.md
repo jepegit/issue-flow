@@ -14,6 +14,7 @@ issue-flow doctor [PROJECT_DIR] [--fix] [--except N] [--dry-run] [--json]
 issue-flow agent state [-C PROJECT_DIR] [--json]
 issue-flow agent preflight [-C PROJECT_DIR] [--json]
 issue-flow agent switchback [-C PROJECT_DIR] [--json]
+issue-flow agent sync-branch [-C PROJECT_DIR] [--strategy rebase|merge] [--json]
 issue-flow agent branches [-C PROJECT_DIR] [--json] [--no-fetch]
 issue-flow agent version-plan [-C PROJECT_DIR] [--bump LEVEL ...] [--json]
 issue-flow agent epic-status N [-C PROJECT_DIR] [--local] [--json]
@@ -145,6 +146,7 @@ project never installs `issue-flow`.
 | `agent state` | Resolve the focus issue (branch-derived number wins, else the single current group), its lifecycle stage (`init`/`plan`/`start`/`close`), and the suggested next command. |
 | `agent preflight` | Branch hygiene report: default branch, clean/dirty working tree, `dirty_paths` + `issueflows_only` (JSON), ahead/behind vs `origin/<default>`, and a stale-branch flag when the issue is already archived. Runs `git fetch --prune` first. |
 | `agent switchback` | The mechanical "switch back when safe" half of `/iflow-close`: refuses (exit 1) while the working tree is dirty — listing the paths — else runs `git switch <default>` and `git pull --ff-only`. A refused fast-forward is reported, never forced. Never deletes branches (that stays in `/iflow-cleanup`). |
+| `agent sync-branch` | Bring the current issue branch up to date with `origin/<default>` before merging, so commits that landed during the issue are included instead of surfacing as a `CONFLICTING` PR at merge time. Refuses (exit 1) on a dirty tree or the default branch; otherwise fetches and rebases (`--strategy merge` merges instead). A conflict confined to the changelog, where both sides only add `## [Unreleased]` bullets, is resolved by keeping them all with the in-flight bullet **last**; every other conflict aborts the operation, leaves the branch untouched, and exits 1. Never pushes — the `--force-with-lease` push stays in `/iflow-close`. |
 | `agent version-plan` | **Read-only** next-version planning for the `iflow-version-bump` skill: detects the release strategy from `pyproject.toml` (static `[project] version` → uv; `dynamic = ["version"]` + setuptools-scm/hatch-vcs/versioningit → git tag), reads the current version (static field or latest tag), applies the PEP 440 bump arithmetic (`--bump` repeatable; omitted → the pre-release-aware default), and prints the exact commands. Never edits files or creates tags; a filled `this-project.md` release section is flagged (`brief_release_section`) and wins over detection. |
 | `agent epic-status` | **Read-only** progress for a staged epic: parses `.issueflows/05-epics/epic<N>_plan.md` (the structure `/iflow-epic` writes) and cross-references published issue states via `gh` — stages with per-issue state and blockers, the current stage, and the next open, unblocked candidates. `--local` skips the GitHub lookups. Exit 1 when no plan file exists. |
 | `agent queue` | **Read-only** execution-queue planner for the cycling workflow. Exactly one source — explicit issue numbers, `--label L`, or `--epic N` (the epic's current stage). Parses `Depends on #N` / `Blocked by #N` lines, topologically orders the queue, and reports `blocked` (open deps outside the queue), `skipped_closed`, and `independent` (no dependency relation to any other member — parallel-safe). A dependency cycle aborts with exit 1, naming the members; the explicit-numbers source refuses a partial fetch so a typo never shrinks the queue silently. |
@@ -162,7 +164,11 @@ is unavailable or the fetch fails. `agent archive` needs a clean working tree
 and refuses when any requested issue has no files under `03-solved-issues/`.
 `agent switchback` likewise refuses on a dirty tree and exits non-zero when any
 git step fails, so an agent can safely treat exit 0 as "on an up-to-date
-default branch".
+default branch". `agent sync-branch` is the one command that rewrites history
+(a rebase), and only ever on the issue branch: it refuses on a dirty tree,
+aborts the rebase on any conflict it is not allowed to resolve, and never
+pushes — so exit 0 means "the branch now contains the default branch" and
+exit 1 means "nothing changed, a human decides".
 
 ## `issue-flow config add`
 
