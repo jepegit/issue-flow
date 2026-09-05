@@ -1,0 +1,97 @@
+# Guided project setup for new users (`/iflow-setup`)
+
+`/iflow-setup` takes a project from "I just installed issue-flow" to "I can start
+working on issues". It checks what is missing — a Python project, a git repo, a
+GitHub remote, GitHub CLI authentication, the issue-flow scaffold — and walks
+through the gaps one confirmation at a time.
+
+It handles both starting points:
+
+- **A brand-new project** — an empty folder that needs `uv init`, `git init`,
+  and a GitHub repository.
+- **An existing project** — real code already, but something is missing.
+
+This is an **off-path** command: `/iflow` never runs it for you. It is also not
+the issue-capture step — that is `/iflow-init`.
+
+{% include "skills/_model_directive.md.j2" %}
+
+{% include "skills/_resolve_project_root.md.j2" %}
+
+## Input
+
+Optional single token after the command:
+
+- **No extra text** — inspect the current directory and guide from there.
+- **`new`** — treat this as a brand-new project (skips the new-vs-existing question).
+- **`existing`** — treat this as an existing project.
+- **`check`** — report readiness only. Changes nothing, runs nothing, asks nothing.
+
+## Steps
+
+> **CLI fast path (optional).** If the `issue-flow` CLI is on `PATH`, run
+> `issue-flow agent setup-status --json`. It reports tool availability, git
+> repo / remote / commit state, `gh` authentication, Python project state, and
+> any existing scaffold, plus an ordered `blockers` list where every entry
+> carries the exact `fix` command. It never prompts and never mutates anything,
+> and exits 0 even when the project is not ready. Without the CLI, run the
+> probes by hand: `git rev-parse --is-inside-work-tree`, `git remote get-url
+> origin`, `gh auth status`, and file checks for `pyproject.toml` and
+> `{{ issueflows_dir }}/`.
+
+1. **Read the state and summarise it** in plain language — what is already fine,
+   what is missing. Avoid issue-flow jargon the user has not met yet.
+
+2. **If the verdict is `ready`**, say so, point at step 6, and stop.
+
+3. **Decide new vs existing, then confirm it with the user.** Infer from the
+   payload (a `pyproject.toml`, git history, or source files ⇒ existing), state
+   your inference, and ask. Getting this wrong is how `uv init` ends up running
+   inside somebody's real project. The `new` / `existing` tokens skip the question.
+
+4. **Clear the blockers in order**, showing the exact commands first and running
+   only what is approved. Stop at the first blocker you cannot clear.
+
+   | Missing | What to do |
+   |---|---|
+   | `uv` | Print the install command and **stop** — you cannot install it for them. |
+   | Python project (new) | `uv init` after confirming the project name and layout, then `uv sync`. |
+   | Python project (existing, no `pyproject.toml`) | Ask what the project uses; if it documents conda / poetry / a plain venv, record that and move on. Never `uv init` over existing code. |
+   | git repo | `git init`, then a first commit once the user has seen what would be committed. Offer a `.gitignore` if there is none. |
+   | `gh` | Print the install hints and stop that branch. |
+   | `gh` not authenticated | Ask the user to run **`gh auth login`** themselves — it is an interactive browser flow. Never drive it, pipe into it, or background it. |
+   | no `origin` remote | Offer `gh repo create <name> --source=. --private --remote=origin --push`, confirming name and visibility explicitly. |
+   | no scaffold | `issue-flow init` (see step 5). |
+
+5. **Recommend a starting mode.** For a user new to agentic coding, suggest
+   `issue-flow init --mode novice`: the linear lifecycle plus the safety nets,
+   with settings that ask before each step rather than chaining. Note that
+   `issue-flow init --mode standard` adds the full surface later — switching
+   mode is just a re-run.
+
+6. **Hand off.** End with one thing to type next: `/iflow-pick` when GitHub
+   issues already exist, `/iflow-issue` when there are none yet. Then the
+   ordinary path — `/iflow-plan` → `/iflow-build` → `/iflow-close`.
+
+7. **Report** what was run, what the user must still do themselves (`uv` / `gh`
+   installs, `gh auth login`), and the single next command.
+
+## Constraints
+
+- **Confirm before every mutation.** `uv init`, `uv sync`, `git init`, the first
+  commit, `gh repo create`, and `issue-flow init` each need approval. Group
+  related steps into one confirmation instead of asking eight questions.
+- **Never run `gh auth login` yourself**; never install `uv` or `gh` for the user.
+- **Never run `uv init` in a directory that already holds a project.**
+- **`check` is read-only** — report and stop.
+- **Off-path.** Never auto-dispatched by `/iflow`, `/iflow-plan`, or
+  `/iflow-build`. This command never captures an issue, creates a branch, or
+  opens a PR.
+- **Plain language.** Explain what each command does to the user's machine or
+  GitHub account before asking for approval.
+
+## Example invocations
+
+- `/iflow-setup` — inspect and guide.
+- `/iflow-setup new` — brand-new project, skip the inference question.
+- `/iflow-setup check` — readiness report only, no changes.

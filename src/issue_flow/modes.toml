@@ -24,6 +24,40 @@ description = "Full issue-flow workflow: planning, PRs, history, cleanup, graphi
 skills = "all"
 commands = "all"
 
+[modes.novice]
+name = "Novice"
+description = "Guided first-project surface: setup, the linear lifecycle, and the safety nets. No hands-off, batch, or decomposition automation."
+skills = [
+    "iflow_iflow",
+    "iflow_setup",
+    "iflow_pick",
+    "iflow_init",
+    "iflow_comments",
+    "iflow_issue",
+    "iflow_plan",
+    "iflow_build",
+    "iflow_pause",
+    "iflow_close",
+    "iflow_cleanup",
+    "iflow_status",
+    "iflow_doctor",
+    "gh_ci",
+]
+commands = [
+    "iflow",
+    "iflow-setup",
+    "iflow-pick",
+    "iflow-init",
+    "iflow-issue",
+    "iflow-plan",
+    "iflow-build",
+    "iflow-pause",
+    "iflow-close",
+    "iflow-cleanup",
+    "iflow-status",
+    "iflow-doctor",
+]
+
 [modes.simple]
 name = "Simple"
 description = "Lightweight markdown-only lifecycle: capture, plan, implement, park, and status. No PR/cleanup/yolo/fix/graphify automation."
