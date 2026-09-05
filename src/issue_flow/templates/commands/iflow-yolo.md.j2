@@ -77,6 +77,6 @@ Report, in order:
 
 ## Constraints
 
-- Do not override any of the downstream commands' own constraints (no `-D` in `/iflow-cleanup`, etc.). `/iflow-yolo` is a chain, not a free pass.
+- Do not override any of the downstream commands' own constraints (never `git branch -D`; `/iflow-cleanup`'s squash-landed force-delete confirm requires an interactive run, etc.). `/iflow-yolo` is a chain, not a free pass.
 - If **any** downstream step requires a decision (unrelated changes in `git status`, ambiguous version bump, merge conflict, failed test), **stop** and hand back to the user. Never paper over a prompt just because the chain is running.
 - Never run `/iflow-cleanup` from `/iflow-yolo`. Branch deletion always needs the user to see the merged PR first.

@@ -23,7 +23,8 @@ agent_app = typer.Typer(
         "AI agents get deterministic answers instead of re-deriving lifecycle "
         "state by hand. All are read-only except `sweep`, `archive`, `capture`, "
         "`switchback`, `sync-branch`, `repair`, and `label-apply`. `branches` "
-        "is read-only (remote audit only; deletes stay in `/iflow-cleanup`)."
+        "(remote) and `local-branches` (local) only classify: every delete "
+        "stays in `/iflow-cleanup`."
     ),
 )
 
@@ -517,6 +518,45 @@ def agent_branches(
 
     raise typer.Exit(
         code=run_branches(
+            project_dir,
+            _console,
+            json_output,
+            fetch=not no_fetch,
+            commit_limit=commit_limit,
+        )
+    )
+
+
+@agent_app.command("local-branches")
+def agent_local_branches(
+    project_dir: Path = _PROJECT_DIR_OPTION,
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+    no_fetch: bool = typer.Option(
+        False,
+        "--no-fetch",
+        help="Skip `git fetch --prune` before classifying local branches.",
+    ),
+    commit_limit: int = typer.Option(
+        20,
+        "--commit-limit",
+        help="Max `git log --oneline` lines per branch with unique commits.",
+    ),
+) -> None:
+    """Classify local branches: reachable / squash-landed / unique work.
+
+    Read-only helper for ``/iflow-cleanup`` Phase A. ``git branch -d`` only
+    accepts branches reachable from the default branch, so in a squash-merging
+    repo it refuses every landed branch; this says which ones are provably
+    landed (``-D`` is safe behind the skill's own confirm), which have a merged
+    PR but a divergent tip, and which still hold unique work. Never deletes a
+    branch — the skill owns confirm + ``git branch -d/-D``.
+    """
+    from issue_flow.agent import run_local_branches
+
+    raise typer.Exit(
+        code=run_local_branches(
             project_dir,
             _console,
             json_output,

@@ -301,7 +301,9 @@ def run_branches(
             notes.append(f"gh pr list failed for head {name}")
         open_prs, merged_prs = _pr_bucket(prs)
 
-        unique = gitutils.cherry_unique_count(project_root, default, name)
+        base_ref = f"origin/{default}"
+        target_ref = f"origin/{name}"
+        unique = gitutils.cherry_unique_count(project_root, base_ref, target_ref)
         if unique is None:
             payload["skipped"].append(
                 {
@@ -313,9 +315,11 @@ def run_branches(
 
         if open_prs:
             commits = gitutils.unique_commit_onelines(
-                project_root, default, name, limit=commit_limit
+                project_root, base_ref, target_ref, limit=commit_limit
             )
-            shortstat = gitutils.unique_diff_shortstat(project_root, default, name)
+            shortstat = gitutils.unique_diff_shortstat(
+                project_root, base_ref, target_ref
+            )
             payload["unique_work"].append(
                 {
                     "name": name,
@@ -347,9 +351,9 @@ def run_branches(
             continue
 
         commits = gitutils.unique_commit_onelines(
-            project_root, default, name, limit=commit_limit
+            project_root, base_ref, target_ref, limit=commit_limit
         )
-        shortstat = gitutils.unique_diff_shortstat(project_root, default, name)
+        shortstat = gitutils.unique_diff_shortstat(project_root, base_ref, target_ref)
         payload["unique_work"].append(
             {
                 "name": name,
@@ -403,6 +407,295 @@ def _render_branches_text(
         console.print(
             f"  [dim]skipped[/dim]    {escape(str(item.get('name')))} — "
             f"{escape(str(item.get('reason')))}"
+        )
+    for note in payload.get("notes") or []:
+        console.print(f"  [yellow]note[/yellow]  {escape(str(note))}")
+    return exit_code
+
+
+# ---------------------------------------------------------------------------
+# agent local-branches (local audit for ``/iflow-cleanup`` Phase A, issue #243)
+# ---------------------------------------------------------------------------
+
+
+def _commits_after_merge(
+    newest_commit_date: str | None,
+    merged_prs: list[dict[str, Any]],
+) -> bool:
+    """Whether unique commits are *newer* than the newest merged PR.
+
+    A squash merge rewrites the branch's commits, so a landed branch keeps
+    commits that ``git cherry`` calls unique even though nothing is at risk.
+    Work pushed *after* the PR merged looks identical in the bucket counts but
+    is genuinely unmerged, so it must never be offered for deletion. When
+    either timestamp is unparseable, answer ``True`` — the cautious side.
+    """
+    newest = gitutils.parse_iso8601(newest_commit_date or "")
+    if newest is None:
+        return True
+    merges = [
+        gitutils.parse_iso8601(str(pr.get("mergedAt") or "")) for pr in merged_prs
+    ]
+    stamps = [stamp for stamp in merges if stamp is not None]
+    if not stamps:
+        return True
+    return newest > max(stamps)
+
+
+def run_local_branches(
+    project_root: Path,
+    console: Console,
+    as_json: bool,
+    *,
+    fetch: bool = True,
+    commit_limit: int = 20,
+) -> int:
+    """Classify local branches by how they relate to the default branch.
+
+    ``git branch -d`` only accepts branches *reachable* from the default, so in
+    a squash-merging repo it refuses every landed branch. This splits the
+    locals into what ``-d`` can take (``reachable``), what is provably landed
+    but needs ``-D`` (``squash_landed``), what a merged PR claims is landed
+    while the tip still differs (``merged_pr_divergent``), and what must never
+    be deleted (``unique_work``).
+
+    Read-only: never deletes a branch. The confirm-gated deletes live in
+    ``/iflow-cleanup``.
+    """
+    notes: list[str] = []
+    remote = gitutils.remote_owner_repo(project_root)
+    repo = f"{remote[0]}/{remote[1]}" if remote else None
+    payload: dict[str, Any] = {
+        "git_available": gitutils.git_available(),
+        "gh_available": gitutils.gh_available(),
+        "repo": repo,
+        "default_branch": None,
+        "base_ref": None,
+        "fetched": False,
+        "current_branch": None,
+        "reachable": [],
+        "squash_landed": [],
+        "merged_pr_divergent": [],
+        "unique_work": [],
+        "skipped": [],
+        "notes": notes,
+    }
+
+    def emit(exit_code: int) -> int:
+        if as_json:
+            _emit_json(console, payload)
+            return exit_code
+        return _render_local_branches_text(console, payload, exit_code)
+
+    if not gitutils.git_available():
+        notes.append("git is not on PATH")
+        return emit(1)
+
+    if fetch:
+        payload["fetched"] = gitutils.fetch_prune(project_root)
+        if not payload["fetched"]:
+            notes.append("git fetch --prune failed or was skipped")
+
+    default = gitutils.default_branch(project_root)
+    payload["default_branch"] = default
+
+    base_ref = f"origin/{default}"
+    if gitutils.branch_tip(project_root, base_ref) is None:
+        base_ref = default
+        notes.append(
+            f"origin/{default} not found; comparing against local {default} instead"
+        )
+    payload["base_ref"] = base_ref
+
+    names = gitutils.list_local_branches(project_root)
+    if names is None:
+        notes.append("could not list local branches")
+        return emit(1)
+
+    current = gitutils.current_branch(project_root)
+    payload["current_branch"] = current
+
+    prs_by_head: dict[str, list[dict[str, Any]]] | None = None
+    if gitutils.gh_available():
+        prs_by_head = gitutils.gh_prs_by_head(project_root, repo)
+        if prs_by_head is None:
+            notes.append("gh pr list failed; PR evidence unavailable")
+
+    def protection_skip(name: str) -> bool:
+        """True when GitHub marks ``name`` protected (checked for candidates only)."""
+        if prs_by_head is None and not gitutils.gh_available():
+            return False
+        return gitutils.branch_is_protected(project_root, name, repo) is True
+
+    for name in sorted(names):
+        if name == default:
+            payload["skipped"].append({"name": name, "reason": "default branch"})
+            continue
+        if current and name == current:
+            payload["skipped"].append(
+                {"name": name, "reason": "current branch (checked out)"}
+            )
+            continue
+
+        tip = gitutils.branch_tip(project_root, name)
+        reachable = gitutils.is_ancestor(project_root, name, base_ref)
+        if reachable is None:
+            payload["skipped"].append(
+                {
+                    "name": name,
+                    "tip": tip,
+                    "reason": f"could not compare to {base_ref}",
+                }
+            )
+            continue
+
+        prs = (prs_by_head or {}).get(name)
+        open_prs, merged_prs = _pr_bucket(prs)
+
+        if reachable:
+            if protection_skip(name):
+                payload["skipped"].append(
+                    {"name": name, "tip": tip, "reason": "GitHub protected branch"}
+                )
+                continue
+            payload["reachable"].append(
+                {
+                    "name": name,
+                    "tip": tip,
+                    "reason": f"tip reachable from {base_ref} (plain -d works)",
+                    "merged_prs": merged_prs,
+                }
+            )
+            continue
+
+        unique = gitutils.cherry_unique_count(project_root, base_ref, name)
+        if unique is None:
+            payload["skipped"].append(
+                {
+                    "name": name,
+                    "tip": tip,
+                    "reason": f"could not compare to {base_ref}",
+                }
+            )
+            continue
+
+        if unique == 0:
+            if protection_skip(name):
+                payload["skipped"].append(
+                    {"name": name, "tip": tip, "reason": "GitHub protected branch"}
+                )
+                continue
+            reason = f"every commit is patch-equivalent to {base_ref}"
+            if merged_prs:
+                reason += " (merged PR on GitHub)"
+            payload["squash_landed"].append(
+                {
+                    "name": name,
+                    "tip": tip,
+                    "reason": reason,
+                    "merged_prs": merged_prs,
+                }
+            )
+            continue
+
+        commits = gitutils.unique_commit_onelines(
+            project_root, base_ref, name, limit=commit_limit, no_merges=True
+        )
+        shortstat = gitutils.unique_diff_shortstat(project_root, base_ref, name)
+        entry: dict[str, Any] = {
+            "name": name,
+            "tip": tip,
+            "unique_commits": unique,
+            "commits": commits or [],
+            "shortstat": shortstat or "",
+            "open_prs": open_prs,
+            "merged_prs": merged_prs,
+        }
+
+        if merged_prs and not open_prs:
+            numbers = ", ".join(f"#{pr.get('number')}" for pr in merged_prs)
+            newest = gitutils.latest_unique_commit_date(project_root, base_ref, name)
+            after = _commits_after_merge(newest, merged_prs)
+            if after:
+                entry["committed_after_merge"] = True
+                entry["reason"] = (
+                    f"{unique} commit(s) added after PR {numbers} merged "
+                    f"(not in {base_ref})"
+                )
+                payload["unique_work"].append(entry)
+                continue
+            entry["reason"] = (
+                f"merged PR {numbers}; {unique} commit(s) rewritten by the "
+                f"squash merge, none newer than it"
+            )
+            payload["merged_pr_divergent"].append(entry)
+            continue
+
+        if open_prs:
+            entry["reason"] = "open pull request on this head"
+        else:
+            entry["reason"] = f"{unique} commit(s) not in {base_ref}"
+        payload["unique_work"].append(entry)
+
+    return emit(0)
+
+
+def _render_local_branches_text(
+    console: Console, payload: dict[str, Any], exit_code: int
+) -> int:
+    if exit_code != 0 and not payload.get("default_branch"):
+        for note in payload.get("notes") or []:
+            console.print(f"[yellow]{escape(str(note))}[/yellow]")
+        return exit_code
+
+    base_ref = payload.get("base_ref") or "?"
+    console.print(f"Local branch audit vs [bold]{escape(str(base_ref))}[/bold]:")
+    reachable = payload.get("reachable") or []
+    squashed = payload.get("squash_landed") or []
+    divergent = payload.get("merged_pr_divergent") or []
+    unique = payload.get("unique_work") or []
+    skipped = payload.get("skipped") or []
+    console.print(
+        f"  [green]reachable[/green] {len(reachable)}  ·  "
+        f"[yellow]squash-landed[/yellow] {len(squashed)}  ·  "
+        f"[magenta]merged-PR divergent[/magenta] {len(divergent)}  ·  "
+        f"[cyan]unique work[/cyan] {len(unique)}  ·  "
+        f"[dim]skipped[/dim] {len(skipped)}"
+    )
+    for item in reachable:
+        console.print(
+            f"  [green]reachable[/green]  {escape(str(item.get('name')))} "
+            f"{escape(str(item.get('tip') or '?'))} — -d is enough"
+        )
+    for item in squashed:
+        console.print(
+            f"  [yellow]squash-landed[/yellow]  {escape(str(item.get('name')))} "
+            f"{escape(str(item.get('tip') or '?'))} — {escape(str(item.get('reason')))}"
+        )
+    for item in divergent:
+        console.print(
+            f"  [magenta]merged-PR divergent[/magenta]  "
+            f"{escape(str(item.get('name')))} "
+            f"{escape(str(item.get('tip') or '?'))} — {escape(str(item.get('reason')))}"
+        )
+        for line in (item.get("commits") or [])[:5]:
+            console.print(f"      {escape(str(line))}")
+    for item in unique:
+        console.print(
+            f"  [cyan]unique[/cyan]  {escape(str(item.get('name')))} "
+            f"{escape(str(item.get('tip') or '?'))} — {escape(str(item.get('reason')))}"
+        )
+        for line in (item.get("commits") or [])[:5]:
+            console.print(f"      {escape(str(line))}")
+    for item in skipped:
+        console.print(
+            f"  [dim]skipped[/dim]  {escape(str(item.get('name')))} — "
+            f"{escape(str(item.get('reason')))}"
+        )
+    if squashed or divergent:
+        console.print(
+            "  [dim]squash-landed / divergent branches need "
+            "`git branch -D`; restore with `git branch <name> <tip>`.[/dim]"
         )
     for note in payload.get("notes") or []:
         console.print(f"  [yellow]note[/yellow]  {escape(str(note))}")

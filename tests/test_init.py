@@ -706,6 +706,60 @@ def test_init_cycle_skill_does_not_stop_on_changelog_conflict(tmp_path: Path) ->
     assert "not** a stop" in content
 
 
+def test_init_cleanup_skill_documents_squash_landed_force_delete(
+    tmp_path: Path,
+) -> None:
+    """Issue #243: `-d` alone can never prune a squash-merged branch.
+
+    The scaffolded cleanup skill must classify locals, gate `-D` behind its own
+    confirm, and print tip SHAs so every delete stays recoverable.
+    """
+    run_init(tmp_path)
+    content = (
+        tmp_path / ".cursor" / "skills" / "iflow-cleanup" / "SKILL.md"
+    ).read_text(encoding="utf-8")
+    assert "issue-flow agent local-branches" in content
+    assert "squash_landed" in content
+    assert "merged_pr_divergent" in content
+    assert "Phase A2" in content
+    assert "git branch <name> <tip>" in content
+    # The old, impossible promise must be gone.
+    assert "include squash-merges via `git cherry`" not in content
+
+
+def test_init_cleanup_command_matches_the_skill_on_force_delete(
+    tmp_path: Path,
+) -> None:
+    """Skill and command must not disagree about when `-D` is allowed.
+
+    Cursor is skills-only, so the command template is exercised through an
+    editor that renders slash commands.
+    """
+    run_init(tmp_path, editors=["claude"])
+    content = (tmp_path / ".claude" / "commands" / "iflow-cleanup.md").read_text(
+        encoding="utf-8"
+    )
+    assert "issue-flow agent local-branches" in content
+    assert "Phase A2" in content
+    assert "never `-D`" not in content
+
+
+def test_init_docs_and_rules_drop_the_never_force_delete_claim(
+    tmp_path: Path,
+) -> None:
+    """The blanket "never -D" promise appeared in the rule and workflow doc too."""
+    run_init(tmp_path)
+    rule = (tmp_path / ".cursor" / "rules" / "issueflow-rules.mdc").read_text(
+        encoding="utf-8"
+    )
+    workflow = (tmp_path / "docs" / "issue-workflow.md").read_text(encoding="utf-8")
+    assert "Never `-D`" not in rule
+    assert "never `-D`" not in rule
+    assert "squash-landed" in rule
+    assert "Never `-D`" not in workflow
+    assert "second, dedicated confirm" in workflow
+
+
 def test_init_rule_documents_designs_folder(tmp_path: Path) -> None:
     """The generated rule file should mention the designs-and-guides folder."""
     run_init(tmp_path)

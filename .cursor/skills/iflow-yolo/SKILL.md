@@ -80,6 +80,6 @@ Report the PR URL, the merge result (merged, or queued via `--auto`), and the fi
 
 ## Constraints
 
-- Do not override downstream commands' own constraints (no `-D`, no force-push, etc.). `/iflow-yolo` is a chain, not a free pass.
+- Do not override downstream commands' own constraints (never `git branch -D` — the squash-landed force-delete confirm belongs to an interactive `/iflow-cleanup`, no force-push beyond close's own `--force-with-lease` after a sync, etc.). `/iflow-yolo` is a chain, not a free pass.
 - If **any** downstream step requires a human decision (unrelated changes in `git status`, ambiguous version bump, merge conflict, failed test), **stop** and hand back to the user.
 - Never run `/iflow-cleanup` from this skill. Branch deletion always needs the user to see the merged PR first.
