@@ -34,16 +34,17 @@ _DONE_RE = re.compile(r"-\s*\[\s*x\s*\]\s*done", re.IGNORECASE)
 
 # Lifecycle stages, in linear order. Each maps to the slash command that should
 # run next (skills-first editors use the same names without the leading slash).
-STAGE_INIT = "init"
+STAGE_CAPTURE = "capture"
 STAGE_PLAN = "plan"
 STAGE_BUILD = "build"
 STAGE_CLOSE = "close"
 
-# Back-compat alias for importers that still reference STAGE_START.
+# Back-compat aliases for importers that still reference the old names.
+STAGE_INIT = STAGE_CAPTURE
 STAGE_START = STAGE_BUILD
 
 STAGE_NEXT_COMMAND: dict[str, str] = {
-    STAGE_INIT: "/iflow-init",
+    STAGE_CAPTURE: "/iflow-capture",
     STAGE_PLAN: "/iflow-plan",
     STAGE_BUILD: "/iflow-build",
     STAGE_CLOSE: "/iflow-close",
@@ -468,7 +469,7 @@ def audit_issueflows(
                         ),
                         issue_numbers=[number],
                         repairable=False,
-                        suggested_command="/iflow-init",
+                        suggested_command="/iflow-capture",
                     )
                 )
 

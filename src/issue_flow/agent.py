@@ -78,7 +78,7 @@ def run_state(project_root: Path, console: Console, as_json: bool) -> int:
         }
     elif focus.resolved_via != "ambiguous":
         # No focus yet — surface active-epic next_candidates so /iflow can
-        # recommend /iflow-pick instead of a blind /iflow-init (issue #210).
+        # recommend /iflow-pick instead of a blind /iflow-capture (issue #210).
         epic_hint = _collect_epic_hints(project_root, local=False)
         payload["epic_hint"] = epic_hint
         if not epic_hint["epics"]:

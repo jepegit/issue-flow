@@ -7,6 +7,7 @@
 iflow_iflow = "economy"
 iflow_pick = "reasoning"
 iflow_init = "economy"
+iflow_capture = "economy"
 iflow_comments = "economy"
 iflow_plan = "reasoning"
 iflow_build = "reasoning"

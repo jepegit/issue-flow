@@ -1,6 +1,6 @@
 # Pick the next issue to work on (`/iflow-pick`)
 
-`/iflow-pick` is the **front door** to the issue-flow lifecycle: it helps you **choose** what to work on next, creates the right issue branch, runs `/iflow-init` for you, and hands off to the normal flow. Use it when you are on the default branch with nothing in progress and you want help deciding what to pick up.
+`/iflow-pick` is the **front door** to the issue-flow lifecycle: it helps you **choose** what to work on next, creates the right issue branch, runs `/iflow-capture` for you, and hands off to the normal flow. Use it when you are on the default branch with nothing in progress and you want help deciding what to pick up.
 
 This is an **off-path** command — the lifecycle dispatcher (`/iflow`) never auto-runs it, because it is interactive and can create GitHub issues and branches. Invoke it explicitly.
 
@@ -48,7 +48,7 @@ Optional free-form text after the command:
 {% if label_flows and "iflow-yolo" in included_commands %}
 6. **Label-driven yolo flow.** If the chosen issue carries the **`{{ yolo_label }}`** label (case-insensitive; check the `labels` field from `gh issue list`, or `gh issue view <n> --json labels` when the issue was given directly), the issue is marked for the hands-off `/iflow-yolo` chain:
    - Announce it: "issue #<N> has the `{{ yolo_label }}` label → running it through `/iflow-yolo`".
-   - Fold `/iflow-yolo`'s single consolidated confirm into the pick confirmation — one prompt total, listing the branch to create and the full chain (`init → plan → build → close yolo`). Require an explicit yes; any other answer falls back to the normal (non-yolo) flow or aborts, per the user's answer.
+   - Fold `/iflow-yolo`'s single consolidated confirm into the pick confirmation — one prompt total, listing the branch to create and the full chain (`capture → plan → build → close yolo`). Require an explicit yes; any other answer falls back to the normal (non-yolo) flow or aborts, per the user's answer.
    - On yes: run Phase 2 (create the branch) as usual, then follow `{{ agent_dir }}/commands/iflow-yolo.md` **instead of** the plain Phase 3 handoff. The yolo preflight (clean tree, passing tests) still runs and can still abort; do not re-ask its consolidated confirm — the combined prompt above already covered it.
    - This routing is configurable: `label_flows = false` under `[issueflow]` in `{{ issueflows_dir }}/config.toml` turns it off, and `yolo_label` renames the trigger label (re-run `issue-flow update` after changing either).
 {% endif %}
@@ -75,7 +75,7 @@ Optional free-form text after the command:
 
 2. **Branch off the default.** Switch to the default branch and fast-forward if needed, then create the issue branch using GitHub's numeric convention `git switch -c <N>-<short-slug>` (leading issue number, then a short kebab-case slug derived from the title). Confirm the branch name with the user if the slug is non-obvious.
 
-3. **Run `/iflow-init` automatically.** The issue number is now known, so follow the `{{ agent_dir }}/commands/iflow-init.md` playbook for `<N>` (fetch the issue + comments, write `{{ issueflows_dir }}/{{ current_issues_folder }}/issue<N>_original.md`, run its archive sweep). Do not re-implement that logic here — delegate to it.
+3. **Run `/iflow-capture` automatically.** The issue number is now known, so follow the `{{ agent_dir }}/commands/iflow-capture.md` playbook for `<N>` (fetch the issue + comments, write `{{ issueflows_dir }}/{{ current_issues_folder }}/issue<N>_original.md`, run its archive sweep). Do not re-implement that logic here — delegate to it.
 
 ### Phase 3 — hand off to the standard flow
 
@@ -85,7 +85,7 @@ Optional free-form text after the command:
 1. The issue is now captured on a fresh branch. **Ask the user whether to continue with `/iflow-plan`** next (the usual next step). Do **not** auto-run it — make the handoff explicit so the user stays in control.
 {% endif %}
 {% if label_flows and "iflow-yolo" in included_commands %}
-2. **Exception:** when Phase 1 step 6 confirmed the `{{ yolo_label }}`-label yolo routing, skip this handoff — the `/iflow-yolo` chain (which includes its own `/iflow-init`) takes over after the branch is created.
+2. **Exception:** when Phase 1 step 6 confirmed the `{{ yolo_label }}`-label yolo routing, skip this handoff — the `/iflow-yolo` chain (which includes its own `/iflow-capture`) takes over after the branch is created.
 {% endif %}
 
 ## Constraints
@@ -94,14 +94,14 @@ Optional free-form text after the command:
 - **Never create GitHub issues or branches without explicit confirmation.** Show what will be created first.
 - **Respect git safety norms.** Branch off the detected default, never force-push, never delete branches from this command.
 - Over-large splits are **offer-only**: never create child issues from this command. Point at `/iflow-split` (flat) or `/iflow-epic` (staged).
-- Delegate issue capture to `/iflow-init` rather than duplicating its fetch/archive logic.
+- Delegate issue capture to `/iflow-capture` rather than duplicating its fetch/archive logic.
 
 ## Output to user
 
 Report:
 - which source the candidate came from (parked work vs GitHub) and the ranked shortlist shown
 - the chosen issue number and title (and, for `fix`, that a new general-fixes issue was created)
-- the branch created (`<N>-<slug>`) and that `/iflow-init` ran (file path written)
+- the branch created (`<N>-<slug>`) and that `/iflow-capture` ran (file path written)
 - the handoff prompt result (whether the user wants `/iflow-plan` next)
 {% if label_flows and "iflow-yolo" in included_commands %}
 - whether the `{{ yolo_label }}` label routed the issue into `/iflow-yolo` (and, if so, defer the rest of the report to that command's output)

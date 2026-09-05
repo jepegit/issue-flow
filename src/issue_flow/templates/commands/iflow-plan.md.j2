@@ -1,6 +1,6 @@
 # Plan the current issue before any code is written
 
-The issue should already be captured in `{{ issueflows_dir }}/{{ current_issues_folder }}/issue<N>_original.md` (via `/iflow-init`). Use this command to write a structured plan and get explicit user confirmation **before** `/iflow-build` starts editing code.
+The issue should already be captured in `{{ issueflows_dir }}/{{ current_issues_folder }}/issue<N>_original.md` (via `/iflow-capture`). Use this command to write a structured plan and get explicit user confirmation **before** `/iflow-build` starts editing code.
 
 {% include "skills/_model_directive.md.j2" %}
 
@@ -22,7 +22,7 @@ Optional free-form text after the command. Examples:
 > below. (`issue-flow` is only present when the user installed it, e.g.
 > `uv tool install issue-flow`.)
 
-0. **Locate the focus issue.** In `{{ issueflows_dir }}/{{ current_issues_folder }}/`, find the `issue<N>_original.md`. If there is none, or multiple ambiguous groups, **stop** and ask the user. Suggest running `/iflow-init` first.
+0. **Locate the focus issue.** In `{{ issueflows_dir }}/{{ current_issues_folder }}/`, find the `issue<N>_original.md`. If there is none, or multiple ambiguous groups, **stop** and ask the user. Suggest running `/iflow-capture` first.
 
 0.5 **Branch status preflight** (non-destructive — report, do not delete).
    - Detect the default branch: `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`. If `gh` is unavailable, fall back to `git symbolic-ref --quiet --short refs/remotes/origin/HEAD | sed 's|^origin/||'`, else `main`.

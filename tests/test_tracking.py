@@ -118,7 +118,9 @@ def test_group_issue_files_missing_folder(tmp_path: Path) -> None:
 
 def test_stage_init_when_no_original(tmp_path: Path) -> None:
     group = tracking.IssueGroup(number=1, location="01-current-issues")
-    assert group.stage == tracking.STAGE_INIT
+    assert group.stage == tracking.STAGE_CAPTURE
+    assert group.stage == "capture"
+    assert tracking.STAGE_INIT == tracking.STAGE_CAPTURE
 
 
 def test_stage_plan_when_only_original(tmp_path: Path) -> None:

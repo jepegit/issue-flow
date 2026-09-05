@@ -104,7 +104,7 @@ def test_template_substitution() -> None:
         "graphify_installer": "cursor",
         **_MODE_CONTEXT,
     }
-    rendered = render_template("commands/iflow-init.md.j2", context)
+    rendered = render_template("commands/iflow-capture.md.j2", context)
     assert "CUSTOM_DIR/01-current-issues" in rendered
     assert "{{ issueflows_dir }}" not in rendered
 
@@ -125,8 +125,8 @@ def test_resolve_output_path() -> None:
 
 
 def test_manifest_entry_count() -> None:
-    # Cursor is skills-first: 1 rule + 1 doc + 26 skills = 28
-    assert len(TEMPLATE_MANIFEST) == 28
+    # Cursor is skills-first: 1 rule + 1 doc + 27 skills = 29
+    assert len(TEMPLATE_MANIFEST) == 29
 
 
 def _resolved_paths(profile_id: str) -> set[str]:
@@ -146,7 +146,7 @@ def _resolved_paths(profile_id: str) -> set[str]:
 def test_build_manifest_cursor_matches_default() -> None:
     """The default TEMPLATE_MANIFEST is the cursor profile manifest."""
     assert build_manifest(EDITORS["cursor"]) == TEMPLATE_MANIFEST
-    assert len(build_manifest(EDITORS["cursor"])) == 28
+    assert len(build_manifest(EDITORS["cursor"])) == 29
 
 
 def test_build_manifest_cursor_has_skills_and_rules_but_no_commands() -> None:
@@ -161,15 +161,15 @@ def test_build_manifest_cursor_has_skills_and_rules_but_no_commands() -> None:
 
 
 def test_build_manifest_codex_has_skills_and_docs_but_no_commands() -> None:
-    """Codex: skills (26) + docs (1), no slash commands and no rules extra."""
+    """Codex: skills (27) + docs (1), no slash commands and no rules extra."""
     manifest = build_manifest(get_profile("codex"))
     template_names = [name for name, _ in manifest]
     assert not any(name.startswith("commands/") for name in template_names)
-    assert sum(name.startswith("skills/") for name in template_names) == 26
+    assert sum(name.startswith("skills/") for name in template_names) == 27
     assert "docs/issue-workflow.md.j2" in template_names
     # No .mdc / CLAUDE.md rules extra for Codex.
     assert not any(name.startswith("rules/") for name in template_names)
-    assert len(manifest) == 27
+    assert len(manifest) == 28
 
 
 def test_build_manifest_opencode_uses_singular_command_dir() -> None:
@@ -260,6 +260,7 @@ def test_claude_manifest_has_expected_commands() -> None:
         "iflow",
         "iflow-pick",
         "iflow-init",
+        "iflow-capture",
         "iflow-plan",
         "iflow-build",
         "iflow-pause",
@@ -312,12 +313,12 @@ def test_issue_start_mentions_branch_and_sweep_preflight() -> None:
 _CLI_FASTPATH_SURFACES = {
     "commands/iflow.md.j2": "issue-flow agent state",
     "commands/iflow-status.md.j2": "issue-flow status",
-    "commands/iflow-init.md.j2": "issue-flow agent capture",
+    "commands/iflow-capture.md.j2": "issue-flow agent capture",
     "commands/iflow-build.md.j2": "issue-flow agent preflight",
     "commands/iflow-plan.md.j2": "issue-flow agent preflight",
     "skills/iflow_iflow/SKILL.md.j2": "issue-flow agent state",
     "skills/iflow_status/SKILL.md.j2": "issue-flow status",
-    "skills/iflow_init/SKILL.md.j2": "issue-flow agent capture",
+    "skills/iflow_capture/SKILL.md.j2": "issue-flow agent capture",
     "skills/iflow_build/SKILL.md.j2": "issue-flow agent preflight",
     "skills/iflow_plan/SKILL.md.j2": "issue-flow agent preflight",
     "commands/iflow-archive.md.j2": "issue-flow agent archive",
@@ -337,11 +338,20 @@ def test_cli_fast_path_notes_render_with_fallback() -> None:
         assert "fall back to the manual" in rendered, template_name
 
 
-def test_iflow_init_fast_path_mentions_sweep_and_capture() -> None:
-    """/iflow-init's fast path covers both the capture and the sweep shortcuts."""
-    rendered = render_template("commands/iflow-init.md.j2", _default_context())
+def test_iflow_capture_fast_path_mentions_sweep_and_capture() -> None:
+    """/iflow-capture's fast path covers both the capture and the sweep shortcuts."""
+    rendered = render_template("commands/iflow-capture.md.j2", _default_context())
     assert "issue-flow agent capture" in rendered
     assert "issue-flow agent sweep --except" in rendered
+
+
+def test_iflow_init_is_harness_cold_start_not_capture() -> None:
+    """/iflow-init guides issue-flow init; it must not own agent capture (#241)."""
+    rendered = render_template("commands/iflow-init.md.j2", _default_context())
+    assert "issue-flow init" in rendered
+    assert "issue-flow agent capture" not in rendered
+    assert "/iflow-capture" in rendered
+    assert "off-path" in rendered.lower()
 
 
 def test_issue_close_delegates_post_merge_cleanup_to_issue_cleanup() -> None:
@@ -843,8 +853,8 @@ def test_issue_fix_describes_interactive_session() -> None:
     # The fix loop records each fix in the status file's log section.
     assert "Iterative fixes log" in rendered
     assert "issue<N>_status.md" in rendered
-    # Branch-from-current-vs-default choice and delegation to init/close.
-    assert "/iflow-init" in rendered
+    # Branch-from-current-vs-default choice and delegation to capture/close.
+    assert "/iflow-capture" in rendered
     assert "/iflow-close" in rendered
     # Keeps the unchecked Done checkbox during the session.
     assert "- [ ] Done" in rendered
@@ -857,7 +867,7 @@ def test_issue_fix_skill_mirrors_command() -> None:
     assert "disable-model-invocation: true" in rendered
     assert "gh issue create" in rendered
     assert "Iterative fixes log" in rendered
-    assert "/iflow-init" in rendered
+    assert "/iflow-capture" in rendered
     assert "/iflow-close" in rendered
 
 
@@ -922,7 +932,7 @@ def test_iflow_issue_describes_normal_issue_create() -> None:
     assert "GitLab is not supported" in rendered
     assert "Problem / context" in rendered
     assert "Acceptance criteria" in rendered
-    assert "/iflow-init" in rendered
+    assert "/iflow-capture" in rendered
     assert "/iflow-plan" in rendered
     assert "epic" in rendered.lower()
 
@@ -933,7 +943,7 @@ def test_iflow_issue_skill_mirrors_command() -> None:
     assert "name: iflow-issue" in rendered
     assert "disable-model-invocation: true" in rendered
     assert "gh issue create" in rendered
-    assert "/iflow-init" in rendered
+    assert "/iflow-capture" in rendered
     assert "/iflow-plan" in rendered
     assert "Acceptance criteria" in rendered
 
@@ -1083,7 +1093,7 @@ def test_iflow_describes_state_machine() -> None:
     rendered = render_template("commands/iflow.md.j2", _default_context())
     # Dispatches into all four linear-flow commands.
     for target in (
-        "/iflow-init",
+        "/iflow-capture",
         "/iflow-plan",
         "/iflow-build",
         "/iflow-close",
@@ -1131,8 +1141,8 @@ def test_issue_pick_documents_three_phases_and_fix_shortcut() -> None:
     # `fix` shortcut creates a new issue every time.
     assert "fix" in rendered
     assert "gh issue create" in rendered
-    # Delegates capture to /iflow-init and hands off to /iflow-plan.
-    assert "/iflow-init" in rendered
+    # Delegates capture to /iflow-capture and hands off to /iflow-plan.
+    assert "/iflow-capture" in rendered
     assert "/iflow-plan" in rendered
     # Off-path: not auto-dispatched by /iflow.
     assert "off-path" in rendered.lower()
@@ -1168,7 +1178,7 @@ def test_issue_pick_skill_mirrors_command() -> None:
     assert "Phase 1" in rendered
     assert "Phase 2" in rendered
     assert "Phase 3" in rendered
-    assert "/iflow-init" in rendered
+    assert "/iflow-capture" in rendered
     assert "/iflow-plan" in rendered
 
 
@@ -1181,8 +1191,8 @@ def test_iflow_does_not_auto_dispatch_issue_pick() -> None:
 
 
 def test_issue_init_mentions_branch_preflight_and_archive_guard() -> None:
-    """The /iflow-init command must include the preflight and archived-issue guard."""
-    rendered = render_template("commands/iflow-init.md.j2", _default_context())
+    """The /iflow-capture command must include the preflight and archived-issue guard."""
+    rendered = render_template("commands/iflow-capture.md.j2", _default_context())
     assert "Branch status preflight" in rendered
     assert "Archived-issue guard" in rendered or "archived" in rendered.lower()
 
@@ -1361,8 +1371,8 @@ def test_issue_yolo_forwards_history_tokens() -> None:
 
 
 def test_issue_init_fetches_and_triages_comments() -> None:
-    """/iflow-init must fetch comments and call the comments-triage skill."""
-    rendered = render_template("commands/iflow-init.md.j2", _default_context())
+    """/iflow-capture must fetch comments and call the comments-triage skill."""
+    rendered = render_template("commands/iflow-capture.md.j2", _default_context())
     # gh fetch now asks for the comments field too.
     assert "title,body,url,number,comments" in rendered
     # The curated section header appears in the file-content template.
@@ -1383,23 +1393,23 @@ def test_issue_init_fetches_and_triages_comments() -> None:
 def test_issue_init_documents_agent_efficiency() -> None:
     """Regression guard for issue #9: the Agent efficiency guidance must live in the template.
 
-    It was originally added only to the generated `.cursor/commands/iflow-init.md` and got
+    It was originally added only to the generated `.cursor/commands/iflow-capture.md` and got
     wiped by a later regeneration; it now belongs in the source template so it survives.
     """
-    rendered = render_template("commands/iflow-init.md.j2", _default_context())
+    rendered = render_template("commands/iflow-capture.md.j2", _default_context())
     assert "## Agent efficiency" in rendered
     assert "trailing newlines" in rendered
     assert "CRLF" in rendered
     # The reconciled body contract no longer demands literal byte-for-byte equality.
     assert "byte-for-byte" not in rendered
     # The mirror skill should not re-introduce the stricter "byte-for-byte" wording.
-    skill = render_template("skills/iflow_init/SKILL.md.j2", _default_context())
+    skill = render_template("skills/iflow_capture/SKILL.md.j2", _default_context())
     assert "byte-for-byte" not in skill
 
 
 def test_issue_init_skill_delegates_to_comments_skill() -> None:
     """The issue-init skill must fetch comments and point at the comments skill."""
-    rendered = render_template("skills/iflow_init/SKILL.md.j2", _default_context())
+    rendered = render_template("skills/iflow_capture/SKILL.md.j2", _default_context())
     assert "title,body,url,number,comments" in rendered
     assert "iflow-comments" in rendered
     assert "## Comments (curated summary)" in rendered
@@ -1576,7 +1586,7 @@ def test_issue_comments_skill_documents_triage_rules() -> None:
     assert "Additional tasks" in rendered
     assert "Clarifications" in rendered
     assert "Superseded" in rendered
-    # The output contract header matches exactly what /iflow-init expects.
+    # The output contract header matches exactly what /iflow-capture expects.
     assert "## Comments (curated summary)" in rendered
     # Noise-filtering guidance exists.
     assert "bot" in lowered
@@ -1593,7 +1603,7 @@ def test_iflow_plan_skill_includes_reasoning_directive() -> None:
 
 def test_iflow_init_skill_includes_economy_directive() -> None:
     ctx = enrich_render_context(_default_context(), "skills/iflow_init/SKILL.md.j2")
-    rendered = render_template("skills/iflow_init/SKILL.md.j2", ctx)
+    rendered = render_template("skills/iflow_capture/SKILL.md.j2", ctx)
     assert "### MODEL & EXECUTION DIRECTIVE" in rendered
     assert "Profile: economy" in rendered
 
@@ -1637,10 +1647,10 @@ def test_stamp_skill_version_refreshes_existing_key() -> None:
 
 
 def test_render_template_stamps_skill_outputs() -> None:
-    rendered = render_template("skills/iflow_init/SKILL.md.j2", _default_context())
+    rendered = render_template("skills/iflow_capture/SKILL.md.j2", _default_context())
     assert f"issue-flow-version: {ISSUE_FLOW_VERSION}" in rendered
 
 
 def test_render_template_does_not_stamp_commands() -> None:
-    rendered = render_template("commands/iflow-init.md.j2", _default_context())
+    rendered = render_template("commands/iflow-capture.md.j2", _default_context())
     assert "issue-flow-version:" not in rendered

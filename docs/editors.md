@@ -26,7 +26,7 @@ top where the tool supports them.
 | Codex       | `.codex/`    | — (use skills) | yes    | —                                   | yes         | no                     |
 
 Cursor and Codex use skills as their primary slash-menu surface, so you invoke
-the mirrored skills (e.g. `/iflow-init`) instead of separate files under
+the mirrored skills (e.g. `/iflow-capture`) instead of separate files under
 `commands/`. `issue-flow update` removes known generated `.cursor/commands/`
 files during the Cursor migration but preserves unrelated user commands. The
 [graphify integration](graphify.md) currently registers only with Cursor; other

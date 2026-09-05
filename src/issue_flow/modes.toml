@@ -30,6 +30,7 @@ description = "Lightweight markdown-only lifecycle: capture, plan, implement, pa
 skills = [
     "iflow_iflow",
     "iflow_init",
+    "iflow_capture",
     "iflow_comments",
     "iflow_plan",
     "iflow_build",
@@ -40,6 +41,7 @@ skills = [
 commands = [
     "iflow",
     "iflow-init",
+    "iflow-capture",
     "iflow-plan",
     "iflow-build",
     "iflow-pause",

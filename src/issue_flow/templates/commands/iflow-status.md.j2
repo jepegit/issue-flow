@@ -39,7 +39,7 @@ Optional free-form text after the command:
 2. **Focus issue** (`{{ issueflows_dir }}/{{ current_issues_folder }}/`).
    - List `issue<n>_*` groups present. Normally there is exactly one (the focus issue); if the branch gave an `N`, prefer that group.
    - For the focus group, read the title from `issue<n>_original.md` and classify its **lifecycle stage** using the same file-presence logic as `/iflow` (first match wins):
-     - **init** — no `issue<n>_original.md` yet → next step `/iflow-init`.
+     - **init** — no `issue<n>_original.md` yet → next step `/iflow-capture`.
      - **plan** — original exists, no `issue<n>_plan.md` → next step `/iflow-plan`.
      - **build** — plan exists, status file missing or its `- [x] Done` is unchecked → next step `/iflow-build`.
      - **close** — a status file contains `- [x] Done` (case-insensitive on `done`) → next step `/iflow-close`.

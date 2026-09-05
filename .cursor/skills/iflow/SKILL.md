@@ -2,16 +2,16 @@
 name: iflow
 description: >-
   Smart dispatcher: detect where the focus issue stands and dispatch to
-  /iflow-init, /iflow-plan, /iflow-build, or /iflow-close.
+  /iflow-capture, /iflow-plan, /iflow-build, or /iflow-close.
 disable-model-invocation: true
 issue-flow-version: 0.4.2a4
 ---
 
 # issue-flow — iflow smart dispatcher (`/iflow`)
 
-Follow this skill to run **the right next step** in the issue-flow lifecycle: it detects state and routes to `/iflow-init`, `/iflow-plan`, `/iflow-build`, or `/iflow-close`, forwarding trailing args verbatim.
+Follow this skill to run **the right next step** in the issue-flow lifecycle: it detects state and routes to `/iflow-capture`, `/iflow-plan`, `/iflow-build`, or `/iflow-close`, forwarding trailing args verbatim.
 
-Do **not** use this skill for `/iflow-pick`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-split`, `/iflow-review`, or other off-path helpers. Those are explicit-only commands. (`/iflow-pick` is the front door *before* `/iflow-init`, for when no issue has been chosen yet. `/iflow-fix` runs an interactive iterative-fixes session, driven by `/iflow-fix` + `/iflow-close`. `/iflow-issue` creates one well-specified normal GitHub issue. `/iflow-split` cuts an over-large issue into linked sub-issues.)
+Do **not** use this skill for `/iflow-pick`, `/iflow-init`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-split`, `/iflow-review`, or other off-path helpers. Those are explicit-only commands. (`/iflow-pick` is the front door *before* `/iflow-capture`, for when no issue has been chosen yet. `/iflow-init` cold-starts the harness — it does not capture issues. `/iflow-fix` runs an interactive iterative-fixes session, driven by `/iflow-fix` + `/iflow-close`. `/iflow-issue` creates one well-specified normal GitHub issue. `/iflow-split` cuts an over-large issue into linked sub-issues.)
 
 
 **Invoke:** type `iflow` in chat, or `/iflow` from the slash menu.
@@ -70,19 +70,19 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
    - Manual fallback: `git branch --show-current`. If it matches `^(\d+)-.+`, the leading digits are the **authoritative** `N`.
    - List `issue<n>_*` groups in `.issueflows/01-current-issues/`, and also check `.issueflows/02-partly-solved-issues/` and `.issueflows/03-solved-issues/` for archived groups matching `N`.
    - Pick `N` by precedence:
-     1. **Branch-derived `N` wins**, regardless of whether a group for `N` exists in `01-current-issues/`. State **A** will apply when no `issue<N>_*` files are present yet. If `issue<N>_*` is archived under `02-partly-solved-issues/` or `03-solved-issues/`, warn the user that `/iflow-init`'s archived-issue guard will ask for an explicit confirmation before re-opening.
+     1. **Branch-derived `N` wins**, regardless of whether a group for `N` exists in `01-current-issues/`. State **A** will apply when no `issue<N>_*` files are present yet. If `issue<N>_*` is archived under `02-partly-solved-issues/` or `03-solved-issues/`, warn the user that `/iflow-capture`'s archived-issue guard will ask for an explicit confirmation before re-opening.
      2. No branch-derived `N`, exactly one group exists in `01-current-issues/` → use it.
      3. No branch-derived `N`, no groups at all → **epic gap check** (step 1a), else state **A**.
      4. No branch-derived `N`, multiple groups → **stop and ask**.
 
 1a. **Epic gap (no focus)** — when step 1 finds no focus (`focus` is null / empty `01-current-issues/` and no `^\d+-.+` branch):
    - Prefer `epic_hint` from `issue-flow agent state --json` (lists epics with non-empty `next_candidates`). Fallback: scan `.issueflows/05-epics/epic*_plan.md` and run `issue-flow agent epic-status <N> --json` per plan.
-   - If **any** `next_candidates`: **stop**. Print epic + stage + candidate numbers/titles. Recommend **`/iflow-pick`** (or `iflow pick`). Do **not** dispatch `/iflow-init` yet — even when only one candidate (never pick silently). If the user's trailing text is already an explicit issue number `N`, then dispatch `/iflow-init` with that `N` instead of stopping.
-   - If **no** epic candidates → continue to state **A** (`/iflow-init`, which asks for a number).
+   - If **any** `next_candidates`: **stop**. Print epic + stage + candidate numbers/titles. Recommend **`/iflow-pick`** (or `iflow pick`). Do **not** dispatch `/iflow-capture` yet — even when only one candidate (never pick silently). If the user's trailing text is already an explicit issue number `N`, then dispatch `/iflow-capture` with that `N` instead of stopping.
+   - If **no** epic candidates → continue to state **A** (`/iflow-capture`, which asks for a number).
 
 2. **Detect state and choose the dispatch target** (first match wins):
 
-   - **A** — no `issue<N>_original.md` (or no focus issue, after the epic gap check) → dispatch to **`/iflow-init`**. Reason: "no `*_original.md` yet".
+   - **A** — no `issue<N>_original.md` (or no focus issue, after the epic gap check) → dispatch to **`/iflow-capture`**. Reason: "no `*_original.md` yet".
    - **B** — original exists, no `issue<N>_plan.md` → dispatch to **`/iflow-plan`**. Reason: "no plan file yet".
    - **C** — plan exists, and status file is missing or its `- [x] Done` is unchecked → dispatch to **`/iflow-build`**. Reason: "plan is confirmed but status is not `- [x] Done`".
    - **D** — status file contains `- [x] Done` (case-insensitive on `done`) → dispatch to **`/iflow-close`**. Reason: "status marks the issue `- [x] Done`".

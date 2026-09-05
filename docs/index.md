@@ -33,8 +33,9 @@ your-project/
       this-project.md        # Hand-editable project brief (created if missing)
     05-epics/               # Staged epic plans (epic<N>_plan.md)
   .cursor/
-    skills/                  # Agent Skills (/iflow, /iflow-pick, /iflow-init,
-                             # /iflow-plan, /iflow-build, /iflow-close, ...)
+    skills/                  # Agent Skills (/iflow, /iflow-pick, /iflow-capture,
+                             # /iflow-plan, /iflow-build, /iflow-close, …;
+                             # /iflow-init = harness cold-start)
     rules/
       issueflow-rules.mdc    # Always-on Cursor rule for the workflow
   AGENTS.md                  # Workflow rules (managed block; shared by all editors)
@@ -75,7 +76,7 @@ That's it. Open the project in your editor and start with `/iflow` (or type
 `iflow` in chat when a slash is awkward on your keyboard) — or step through the
 linear path explicitly:
 
-1. `/iflow-init 42` — pulls GitHub issue #42 into
+1. `/iflow-capture 42` — pulls GitHub issue #42 into
    `.issueflows/01-current-issues/` and archives older issues.
 2. `/iflow-plan` — drafts `issue<N>_plan.md` (Goal / Constraints / Approach /
    Files to touch / Test strategy / Open questions) and stops for your
@@ -87,7 +88,7 @@ linear path explicitly:
    fast-forwards, prunes, and deletes the merged local branch.
 
 Plus a few off-path commands (never auto-dispatched): `/iflow-pick` (choose the
-next issue), `/iflow-pause` (park work), `/iflow-yolo` (hands-off chain for
+next issue), `/iflow-init` (cold-start / check the harness), `/iflow-pause` (park work), `/iflow-yolo` (hands-off chain for
 small issues), `/iflow-fix` (iterative fixes session), `/iflow-status`
 (read-only overview), `/iflow-epic` (staged epic plan + publish),
 `/iflow-cycle` (batch yolo queue), `/iflow-auto` (unattended epic stage +
@@ -100,7 +101,7 @@ The full lifecycle is described in [The workflow](issue-workflow.md).
 Short paths for common multi-issue work. Fuller examples live in the
 scaffolded [workflow doc](issue-workflow.md) after `issue-flow init`.
 
-**One issue, linear path** — `/iflow-init` → `/iflow-plan` → `/iflow-build` →
+**One issue, linear path** — `/iflow-capture` → `/iflow-plan` → `/iflow-build` →
 `/iflow-close` → `/iflow-cleanup` (or just `/iflow` between steps).
 
 **One small issue, hands-off** — `/iflow-yolo <N>` (or pick an issue that

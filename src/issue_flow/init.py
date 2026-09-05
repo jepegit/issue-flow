@@ -519,11 +519,12 @@ def run_init(
     else:
         hint_dir = f"{primary.agent_dir}/skills/"
     console_io.console.print(
-        "\n[dim]Run [bold]/iflow-init <number>[/bold] or [bold]/iflow-init[/bold] "
-        "(on a branch like [bold]42-slug[/bold], after confirmation) in your editor "
-        "to start tracking a GitHub issue. "
-        f"Optional Agent Skills live under [bold]{hint_dir}[/bold] "
-        "([bold]/iflow-init[/bold], etc.).[/dim]\n"
+        "\n[dim]Run [bold]/iflow-capture <number>[/bold] or [bold]/iflow-pick[/bold] "
+        "in your editor to start tracking a GitHub issue "
+        "(or [bold]/iflow-capture[/bold] on a branch like [bold]42-slug[/bold], "
+        "after confirmation). [bold]/iflow-init[/bold] cold-starts the harness "
+        f"if needed. Optional Agent Skills live under [bold]{hint_dir}[/bold] "
+        "([bold]/iflow-capture[/bold], etc.).[/dim]\n"
     )
 
 

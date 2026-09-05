@@ -269,7 +269,7 @@ def test_init_creates_docs(tmp_path: Path) -> None:
     doc = tmp_path / "docs" / "issue-workflow.md"
     assert doc.is_file()
     content = doc.read_text(encoding="utf-8")
-    assert "/iflow-init" in content
+    assert "/iflow-capture" in content
     assert ".issueflows" in content
 
 
@@ -306,7 +306,7 @@ def test_init_templates_reference_issueflows_dir(tmp_path: Path) -> None:
     run_init(tmp_path)
 
     skills_dir = tmp_path / ".cursor" / "skills"
-    for name in ["iflow-init", "iflow-build", "iflow-close"]:
+    for name in ["iflow-capture", "iflow-build", "iflow-close"]:
         content = (skills_dir / name / "SKILL.md").read_text(encoding="utf-8")
         assert ".issueflows/" in content, f"{name} should reference .issueflows/"
 
@@ -782,15 +782,27 @@ def test_init_commands_reference_designs_folder(tmp_path: Path) -> None:
         )
 
 
-def test_init_issue_init_documents_branch_inference(tmp_path: Path) -> None:
-    """iflow-init skill should describe resolving an issue from the current branch when no args."""
+def test_init_issue_capture_documents_branch_inference(tmp_path: Path) -> None:
+    """iflow-capture skill should describe resolving an issue from the current branch when no args."""
+    run_init(tmp_path)
+    content = (
+        tmp_path / ".cursor" / "skills" / "iflow-capture" / "SKILL.md"
+    ).read_text(encoding="utf-8")
+    assert "git -C <project_root> branch --show-current" in content
+    assert "You have not provided an issue reference" in content
+    assert "issue-style branch" in content
+
+
+def test_init_issue_init_is_harness_cold_start(tmp_path: Path) -> None:
+    """iflow-init skill is harness cold-start, not issue capture (#241)."""
     run_init(tmp_path)
     content = (tmp_path / ".cursor" / "skills" / "iflow-init" / "SKILL.md").read_text(
         encoding="utf-8"
     )
-    assert "git -C <project_root> branch --show-current" in content
-    assert "You have not provided an issue reference" in content
-    assert "issue-style branch" in content
+    assert "cold-start" in content.lower() or "harness" in content.lower()
+    assert "issue-flow init" in content
+    assert "agent capture" not in content
+    assert (tmp_path / ".cursor" / "skills" / "iflow-capture" / "SKILL.md").is_file()
 
 
 def test_init_proceeds_silently_when_all_dependencies_present(
@@ -955,7 +967,7 @@ def test_init_creates_issue_pick_skill(tmp_path: Path) -> None:
     skill_content = pick_skill.read_text(encoding="utf-8")
     assert "name: iflow-pick" in skill_content
     assert "/iflow-pick" in skill_content
-    assert "/iflow-init" in skill_content
+    assert "/iflow-capture" in skill_content
     assert ".issueflows/" in skill_content
     assert "disable-model-invocation: true" in skill_content
 
@@ -1089,6 +1101,7 @@ def test_init_mode_simple_scaffolds_subset(tmp_path: Path) -> None:
     for present in (
         "iflow",
         "iflow-init",
+        "iflow-capture",
         "iflow-plan",
         "iflow-build",
         "iflow-pause",

@@ -1,8 +1,8 @@
 # Smart dispatcher for the issue-flow lifecycle
 
-`/iflow` inspects the state of the focus issue and **dispatches** to the next logical command in the linear lifecycle — `/iflow-init`, `/iflow-plan`, `/iflow-build`, or `/iflow-close`. It never does work those commands don't already do; it just picks the right one for you.
+`/iflow` inspects the state of the focus issue and **dispatches** to the next logical command in the linear lifecycle — `/iflow-capture`, `/iflow-plan`, `/iflow-build`, or `/iflow-close`. It never does work those commands don't already do; it just picks the right one for you.
 
-Off-path commands (`/iflow-pick`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-split`, `/iflow-graphify`) are **not** auto-dispatched. Invoke them directly when you need them. (`/iflow-pick` is the front door *before* `/iflow-init` — use it when you have not chosen an issue yet. `/iflow-fix` runs an interactive iterative-fixes session; while one is active, drive it with `/iflow-fix` + `/iflow-close`, not `/iflow`. `/iflow-issue` creates one well-specified normal GitHub issue. `/iflow-split` cuts an over-large issue into linked sub-issues.)
+Off-path commands (`/iflow-pick`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-split`, `/iflow-graphify`) are **not** auto-dispatched. Invoke them directly when you need them. (`/iflow-pick` is the front door *before* `/iflow-capture` — use it when you have not chosen an issue yet. `/iflow-fix` runs an interactive iterative-fixes session; while one is active, drive it with `/iflow-fix` + `/iflow-close`, not `/iflow`. `/iflow-issue` creates one well-specified normal GitHub issue. `/iflow-split` cuts an over-large issue into linked sub-issues.)
 
 Long-lived design docs, design decisions, and project good-practices live under `{{ issueflows_dir }}/{{ designs_folder }}/`. The downstream commands (`/iflow-plan`, `/iflow-build`, `/iflow-close`) read from and add to that folder as they run; `/iflow` itself does not touch it.
 
@@ -15,7 +15,7 @@ Long-lived design docs, design decisions, and project good-practices live under 
 Optional free-form text after the command. `/iflow` forwards the raw trailing text to whichever command it dispatches to. Examples:
 
 - `/iflow` — dispatch with no extra args.
-- `/iflow 42` — forwards `42` (useful when state resolves to `/iflow-init`).
+- `/iflow 42` — forwards `42` (useful when state resolves to `/iflow-capture`).
 - `/iflow bump minor` — forwards `bump minor` (meaningful when state resolves to `/iflow-close`; otherwise the downstream command will ignore or ask).
 - `/iflow stick to the existing logger` — forwards the hint (useful when state resolves to `/iflow-plan` or `/iflow-build`).
 
@@ -34,21 +34,21 @@ Optional free-form text after the command. `/iflow` forwards the raw trailing te
    - Manual fallback: run `git branch --show-current`. If it matches `^(\d+)-.+`, the leading digits are the **authoritative** `N`.
    - List `issue<n>_*` groups in `{{ issueflows_dir }}/{{ current_issues_folder }}/`, and also check `{{ issueflows_dir }}/{{ partly_solved_folder }}/` and `{{ issueflows_dir }}/{{ solved_folder }}/` for archived groups matching `N`.
    - Pick `N` using this precedence:
-     1. **Branch-derived `N` wins**, regardless of whether a group for `N` exists in `{{ current_issues_folder }}/`. State A (dispatch `/iflow-init`) will simply apply when no `issue<N>_*` files are present yet. If `issue<N>_*` is archived under `{{ partly_solved_folder }}/` or `{{ solved_folder }}/`, warn the user that `/iflow-init`'s archived-issue guard will ask for an explicit confirmation before re-opening.
+     1. **Branch-derived `N` wins**, regardless of whether a group for `N` exists in `{{ current_issues_folder }}/`. State A (dispatch `/iflow-capture`) will simply apply when no `issue<N>_*` files are present yet. If `issue<N>_*` is archived under `{{ partly_solved_folder }}/` or `{{ solved_folder }}/`, warn the user that `/iflow-capture`'s archived-issue guard will ask for an explicit confirmation before re-opening.
      2. Else if exactly one group exists in `{{ current_issues_folder }}/`, use that `N`.
-     3. Else if there are **no** groups at all in `{{ current_issues_folder }}/` (and no branch-derived `N`), run the **epic gap check** (step 0a); if it does not stop, fall through to dispatch `/iflow-init` (state A).
+     3. Else if there are **no** groups at all in `{{ current_issues_folder }}/` (and no branch-derived `N`), run the **epic gap check** (step 0a); if it does not stop, fall through to dispatch `/iflow-capture` (state A).
      4. Else (no branch-derived `N`, multiple groups in `{{ current_issues_folder }}/`), **stop** and ask the user which issue to act on. Do not guess.
 
 0a. **Epic gap (no focus).** When step 0 finds no focus:
    - Prefer `epic_hint.epics` from `issue-flow agent state --json` (each entry has `epic`, `stage`, `next_candidates`). Fallback: scan `{{ issueflows_dir }}/{{ epics_folder }}/epic*_plan.md` and run `issue-flow agent epic-status <N> --json`.
-   - If any `next_candidates`: **stop**. List epic + stage + candidates. Recommend `/iflow-pick` (never auto-dispatch pick; never silent-pick even for one candidate). If trailing text is already an explicit issue number, dispatch `/iflow-init <N>` instead.
+   - If any `next_candidates`: **stop**. List epic + stage + candidates. Recommend `/iflow-pick` (never auto-dispatch pick; never silent-pick even for one candidate). If trailing text is already an explicit issue number, dispatch `/iflow-capture <N>` instead.
    - If none: continue to state A.
 
 1. **Detect state and choose the dispatch target.** In priority order:
 
    | State | Condition | Dispatch to | Reason to report |
    |-------|-----------|-------------|------------------|
-   | A | No `issue<N>_original.md` for the focus issue (or no focus issue at all) | `/iflow-init` | "no `*_original.md` yet" |
+   | A | No `issue<N>_original.md` for the focus issue (or no focus issue at all) | `/iflow-capture` | "no `*_original.md` yet" |
    | B | `issue<N>_original.md` exists, no `issue<N>_plan.md` | `/iflow-plan` | "no plan file yet" |
    | C | Plan exists, and either no status file or the status file does **not** contain `- [x] Done` | `/iflow-build` | "plan is confirmed but status is not `- [x] Done`" |
    | D | Status file contains `- [x] Done` (case-insensitive on `done`) | `/iflow-close` | "status marks the issue `- [x] Done`" |
@@ -78,21 +78,21 @@ Optional free-form text after the command. `/iflow` forwards the raw trailing te
 ## Constraints
 
 - `/iflow` never skips a downstream command's own prompts. If the downstream step asks a question, surface it normally.
-- `/iflow` never auto-dispatches to `/iflow-pick`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-split`, `/iflow-status`, `/iflow-doctor`, `/iflow-review`, `/iflow-archive`, `/iflow-epic`, `/iflow-cycle`, `/iflow-auto`, or `/iflow-graphify`. Those are explicit choices only. The epic gap only **recommends** `/iflow-pick`.
+- `/iflow` never auto-dispatches to `/iflow-pick`, `/iflow-init`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-split`, `/iflow-status`, `/iflow-doctor`, `/iflow-review`, `/iflow-archive`, `/iflow-epic`, `/iflow-cycle`, `/iflow-auto`, or `/iflow-graphify`. Those are explicit choices only. The epic gap only **recommends** `/iflow-pick`.
 - If the focus issue cannot be resolved (multiple active issues, branch ambiguous), stop and ask. Do not pick one silently.
 - Do not modify files beyond what the downstream command would normally modify. `/iflow` itself writes nothing.
 
 ## Example invocations
 
 - `/iflow` on a fresh branch `42-fix-login` with no `issueflows` files yet
-  -> dispatches to `/iflow-init` which infers `#42` from the branch.
+  -> dispatches to `/iflow-capture` which infers `#42` from the branch.
 - `/iflow` on branch `42-fix-login` while unrelated groups (`issue99_*`, `issue100_*`) still sit in `{{ current_issues_folder }}/`
-  -> branch-derived `N=42` wins; dispatches to `/iflow-init` (state A) which captures #42 and archives the other groups per its own sweep.
-- `/iflow` after `/iflow-init 42` has run and `issue42_original.md` exists, but there is no `issue42_plan.md` yet
+  -> branch-derived `N=42` wins; dispatches to `/iflow-capture` (state A) which captures #42 and archives the other groups per its own sweep.
+- `/iflow` after `/iflow-capture 42` has run and `issue42_original.md` exists, but there is no `issue42_plan.md` yet
   -> dispatches to `/iflow-plan`.
 - `/iflow` after `/iflow-plan` has written and the user confirmed `issue42_plan.md`, with no `issue42_status.md` or an unchecked `- [ ] Done`
   -> dispatches to `/iflow-build`.
 - `/iflow bump patch` after implementation is done and `issue42_status.md` contains `- [x] Done`
   -> dispatches to `/iflow-close bump patch`.
 - `/iflow` on branch `99-partial-work` after the issue was paused (files now under `{{ partly_solved_folder }}/`)
-  -> branch-derived `N=99` wins; dispatches to `/iflow-init` (state A since `01-` has no `issue99_*`). `/iflow` warns up front that `/iflow-init`'s archived-issue guard will trigger and ask for explicit confirmation before restoring the group to `{{ current_issues_folder }}/`.
+  -> branch-derived `N=99` wins; dispatches to `/iflow-capture` (state A since `01-` has no `issue99_*`). `/iflow` warns up front that `/iflow-capture`'s archived-issue guard will trigger and ask for explicit confirmation before restoring the group to `{{ current_issues_folder }}/`.

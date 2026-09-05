@@ -102,7 +102,7 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 
 ### Phase 3 — optional handoff
 
-8. **Ask** whether to start the first child: `/iflow-pick`-style branch `<M>-<slug>` off the default (clean-tree gate) + `/iflow-init` for `M`. Do **not** auto-run `/iflow-plan` or `/iflow-build`. Declining leaves the children as open GitHub issues for a later pick.
+8. **Ask** whether to start the first child: `/iflow-pick`-style branch `<M>-<slug>` off the default (clean-tree gate) + `/iflow-capture` for `M`. Do **not** auto-run `/iflow-plan` or `/iflow-build`. Declining leaves the children as open GitHub issues for a later pick.
 
 ## Constraints
 

@@ -1,7 +1,7 @@
 ---
 name: iflow-yolo
 description: >-
-  Chain init → plan → build → close yolo for a small, low-risk issue under
+  Chain capture → plan → build → close yolo for a small, low-risk issue under
   one consolidated confirm. Stops on any ambiguity.
 disable-model-invocation: true
 issue-flow-version: 0.4.2a4
@@ -68,7 +68,7 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 
 Once preflight has passed and the user confirmed:
 
-1. **`/iflow-init`** — capture the issue (or skip if `*_original.md` already exists for the focus issue).
+1. **`/iflow-capture`** — capture the issue (or skip if `*_original.md` already exists for the focus issue).
 2. **`/iflow-plan`** — write a **short** `issue<N>_plan.md` (Goal + Approach + Files to touch + Test strategy). Auto-confirm — the consolidated confirm above covered it. If the scope check reveals the change is not actually small, **abort the yolo chain** and tell the user to run the commands individually.
 3. **`/iflow-build`** — implement the plan without an additional plan-mode prompt. Forward `early` / `pr` / `noearly` when present. When early PR is on (baked `early_pr` or trailing `early`/`pr`), build may open a **draft** PR after the first push; close will list-before-create, mark ready (unless `draft`), then merge.
 4. **Re-run tests.** `uv run pytest` again. On failure, **stop** before commit / push / PR.
