@@ -54,6 +54,7 @@ The Cursor Agent Skills give agents a repeatable flow and appear in the slash me
 
 Plus a few off-path commands:
 
+- `/iflow-setup` — **guided first-time setup**: reads `issue-flow agent setup-status`, works out whether this is a new or an existing project, and walks the gaps (`uv init`, `git init`, `gh auth login`, `gh repo create`, scaffold) one confirmation at a time. Off-path; never auto-dispatched.
 - `/iflow-pick` — **front door**: when you haven't chosen an issue yet, it helps pick one (parked work in `02-partly-solved-issues/` first, else open GitHub issues ranked by milestone, labels, and similarity to recently solved work), creates the `<N>-slug` branch, and runs `/iflow-init`. Pass `fix` to create a new general-fixes issue. Off-path; never auto-dispatched.
 - `/iflow` — **quick start**: inspects the current issue's state and dispatches to the right linear step automatically. A branch-derived number (`42-fix-login` → `N=42`) is authoritative, so `/iflow` works from a fresh branch too.
 - `/iflow-pause` — park the current issue in `02-partly-solved-issues/` with a **Remaining work** note; optional WIP commit + switch back to the default branch.
@@ -71,7 +72,7 @@ Plus a few off-path commands:
 
 See the [docs](https://issue-flow.readthedocs.io/) for worked recipes (review → cycle, epic publish, cycle queues).
 
-The **Agent Skills** under `.cursor/skills/` carry the workflows for on-demand use with `/iflow-pick`, `/iflow`, `/iflow-init`, `/iflow-plan`, `/iflow-build`, `/iflow-pause`, `/iflow-close`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-split`, `/iflow-status`, `/iflow-epic`, `/iflow-cycle`, `/iflow-auto`, `/iflow-review`, `/iflow-doctor`, `/iflow-archive`, `@iflow-version-bump` when you need only the bump steps, or `@iflow-history-update` when you need only the changelog update (see [Cursor Agent Skills](https://cursor.com/help/customization/skills)).
+The **Agent Skills** under `.cursor/skills/` carry the workflows for on-demand use with `/iflow-setup`, `/iflow-pick`, `/iflow`, `/iflow-init`, `/iflow-plan`, `/iflow-build`, `/iflow-pause`, `/iflow-close`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-split`, `/iflow-status`, `/iflow-epic`, `/iflow-cycle`, `/iflow-auto`, `/iflow-review`, `/iflow-doctor`, `/iflow-archive`, `@iflow-version-bump` when you need only the bump steps, or `@iflow-history-update` when you need only the changelog update (see [Cursor Agent Skills](https://cursor.com/help/customization/skills)).
 
 ## Prerequisites
 
@@ -201,6 +202,13 @@ issue-flow init
 
 That's it. Open the project in Cursor and start with `/iflow` — or step through the linear path explicitly:
 
+> **New to agentic coding, or starting from an empty folder?** Use
+> `issue-flow init --mode novice` instead — a smaller command surface with
+> settings that stop and ask at each step — then type `iflow setup` in the chat
+> window and the agent walks you through `uv init`, `git init`, `gh auth login`,
+> and creating the GitHub repository. See
+> [Getting started](https://issue-flow.readthedocs.io/getting-started/).
+
 1. `/iflow-init 42` — pulls GitHub issue #42 into `.issueflows/01-current-issues/` and archives older issues.
 2. `/iflow-plan` — drafts `issue<N>_plan.md` (Goal / Constraints / Approach / Files to touch / Test strategy / Open questions) and stops for your confirmation.
 3. `/iflow-build` — reads the confirmed plan and implements it.
@@ -209,6 +217,7 @@ That's it. Open the project in Cursor and start with `/iflow` — or step throug
 
 Plus a few off-path commands (never auto-dispatched):
 
+- `/iflow-setup` — guided first-time setup for a new or unprepared project (`uv init`, `git init`, `gh auth login`, `gh repo create`), one confirmation at a time.
 - `/iflow-pick` — **front door**: helps pick the next issue (parked work first, else open GitHub issues ranked by milestone, labels, and similarity to recent work), creates the branch, and runs `/iflow-init`.
 - `/iflow` — **quick start**: inspects the current issue's state and dispatches to the right linear step automatically (a branch-derived number like `42-fix-login` is authoritative).
 - `/iflow-pause` — park the current issue with a **Remaining work** note.

@@ -74,10 +74,11 @@ _EDITOR_HELP = (
 
 _MODE_HELP = (
     "Scaffolding mode (which workflow surfaces to install). Built-ins: "
-    "'standard' (full workflow) and 'simple' (markdown-only lifecycle). "
-    "Projects may define custom modes in .issueflows/config.toml. The choice is "
-    "persisted; change it by re-running init. Defaults to the persisted mode "
-    "(or 'standard')."
+    "'standard' (full workflow), 'novice' (guided setup + linear lifecycle, "
+    "and seeds settings that ask before each step), and 'simple' "
+    "(markdown-only lifecycle). Projects may define custom modes in "
+    ".issueflows/config.toml. The choice is persisted; change it by re-running "
+    "init. Defaults to the persisted mode (or 'standard')."
 )
 
 _SKILL_LEVEL_HELP = (
@@ -441,6 +442,29 @@ def agent_preflight(
     from issue_flow.agent import run_preflight
 
     raise typer.Exit(code=run_preflight(project_dir, _console, json_output))
+
+
+@agent_app.command("setup-status")
+def agent_setup_status(
+    project_dir: Path = _PROJECT_DIR_OPTION,
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Report whether a project is ready to run the issue-flow workflow.
+
+    The read-only half of ``/iflow-setup``: which of ``uv`` / ``git`` / ``gh``
+    are installed, whether this is a git repo with commits and an ``origin``
+    remote, whether ``gh`` is signed in, whether a Python project and an
+    issue-flow scaffold exist — plus an ordered ``blockers`` list where each
+    entry carries the exact fix command and whether an agent may run it.
+
+    Never prompts, never mutates, and exits 0 even when the project is not
+    ready: "needs_setup" is the answer, not an error.
+    """
+    from issue_flow.agent import run_setup_status
+
+    raise typer.Exit(code=run_setup_status(project_dir, _console, json_output))
 
 
 @agent_app.command("switchback")

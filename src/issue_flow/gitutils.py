@@ -281,6 +281,27 @@ def repo_root(cwd: Path) -> Path | None:
     return Path(out) if out else None
 
 
+def has_commits(cwd: Path) -> bool:
+    """True iff the repo has at least one commit reachable from HEAD."""
+    return _stdout([GIT, "rev-parse", "--verify", "HEAD"], cwd) is not None
+
+
+def gh_authenticated(cwd: Path) -> bool:
+    """True iff ``gh auth status`` reports a logged-in account.
+
+    ``gh auth status`` exits non-zero when no account is configured and never
+    prompts, which makes it safe to probe. A missing ``gh`` reads as ``False``.
+    """
+    result = _run([GH, "auth", "status"], cwd)
+    return result is not None and result.returncode == 0
+
+
+def gh_account(cwd: Path) -> str | None:
+    """Logged-in GitHub account name, or ``None`` when unauthenticated."""
+    out = _stdout([GH, "api", "user", "-q", ".login"], cwd)
+    return out or None
+
+
 def rebase_onto(cwd: Path, ref: str) -> tuple[bool, str | None]:
     """Run ``git rebase <ref>``. Returns ``(ok, error_message)``.
 

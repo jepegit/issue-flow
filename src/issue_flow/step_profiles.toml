@@ -5,6 +5,7 @@
 
 [defaults]
 iflow_iflow = "economy"
+iflow_setup = "reasoning"
 iflow_pick = "reasoning"
 iflow_init = "economy"
 iflow_comments = "economy"
