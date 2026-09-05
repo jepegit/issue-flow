@@ -16,6 +16,10 @@ Built-in check groups:
    surfaces after ``issue-flow update``.
 3. **yolo_label = "fast-track"** — a custom label is interpolated into the
    pick surfaces after ``issue-flow update``.
+4. **novice mode** — a second throwaway scaffolded with ``--mode novice``
+   installs the guided-setup surface, omits the hands-off/batch surfaces, seeds
+   the settings preset, and renders a rule that does not advertise commands the
+   mode did not install.
 
 Usage (from the repo root):
 
@@ -123,6 +127,53 @@ def _rmtree(path: Path) -> None:
     shutil.rmtree(path, onerror=_onerror)
 
 
+def _verify_novice(keep: bool) -> None:
+    """Scaffold a second throwaway with ``--mode novice`` and check the surface."""
+    project = Path(tempfile.mkdtemp(prefix="issueflow-novice-"))
+    print(f"\n[4/4] novice mode (throwaway: {project})")
+    try:
+        _run(["git", "init", "--quiet"], cwd=project)
+        _issue_flow(project, "init", ".", "--skip-dep-check", "--mode", "novice")
+
+        for rel in (
+            ".cursor/skills/iflow-setup/SKILL.md",
+            ".cursor/skills/iflow-capture/SKILL.md",
+            ".cursor/skills/iflow-plan/SKILL.md",
+            ".cursor/skills/iflow-close/SKILL.md",
+        ):
+            path = project / rel
+            if path.is_file():
+                print(f"  ok    {rel}: installed")
+            else:
+                _failures.append(f"novice: {rel} was not rendered")
+                print(f"  FAIL  novice: missing {rel}")
+
+        for rel in (
+            ".cursor/skills/iflow-yolo/SKILL.md",
+            ".cursor/skills/iflow-cycle/SKILL.md",
+            ".cursor/skills/caveman/SKILL.md",
+        ):
+            if (project / rel).exists():
+                _failures.append(f"novice: {rel} should not be installed")
+                print(f"  FAIL  novice: unexpected {rel}")
+            else:
+                print(f"  ok    {rel}: correctly omitted")
+
+        cfg = project / ".issueflows" / "config.toml"
+        _check(cfg, "auto_plan = false", True, "novice config")
+        _check(cfg, 'skill_level = "basic"', True, "novice config")
+
+        rule = project / ".cursor" / "rules" / "issueflow-rules.mdc"
+        _check(rule, "/iflow-setup", True, "novice rule")
+        for absent in ("/iflow-yolo", "/iflow-cycle", "/iflow-epic"):
+            _check(rule, absent, False, "novice rule")
+    finally:
+        if keep:
+            print(f"  kept novice throwaway at {project}")
+        else:
+            _rmtree(project)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument(
@@ -140,7 +191,7 @@ def main() -> int:
         editor_flags = [flag for e in EDITORS for flag in ("-e", e)]
         _issue_flow(project, "init", ".", "--skip-dep-check", *editor_flags)
 
-        print("\n[1/3] defaults (label_flows on, yolo_label = yolo)")
+        print("\n[1/4] defaults (label_flows on, yolo_label = yolo)")
         for rel in PICK_SURFACES:
             _check(project / rel, LABEL_ROUTING_MARKER, True, rel)
             _check(project / rel, "`yolo`", True, rel)
@@ -159,13 +210,13 @@ def main() -> int:
                 _check(path, "Early pull request", True, rel)
                 _check(path, "gh pr create --draft", True, rel)
 
-        print("\n[2/3] label_flows = false → routing text disappears")
+        print("\n[2/4] label_flows = false → routing text disappears")
         _set_config(project, label_flows=False)
         _issue_flow(project, "update", *editor_flags)
         for rel in PICK_SURFACES:
             _check(project / rel, LABEL_ROUTING_MARKER, False, rel)
 
-        print('\n[3/3] yolo_label = "fast-track" → custom label rendered')
+        print('\n[3/4] yolo_label = "fast-track" → custom label rendered')
         _set_config(project, label_flows=True, yolo_label="fast-track")
         _issue_flow(project, "update", *editor_flags)
         for rel in PICK_SURFACES:
@@ -176,6 +227,8 @@ def main() -> int:
             print(f"\nkept throwaway project at {project}")
         else:
             _rmtree(project)
+
+    _verify_novice(args.keep)
 
     if _failures:
         print(f"\n{len(_failures)} check(s) FAILED")

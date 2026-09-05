@@ -117,6 +117,7 @@ def stamp_skill_version(content: str, version: str) -> str:
 # Slash-command template stems (emitted only for editors with a commands_dir).
 COMMAND_NAMES: list[str] = [
     "iflow",
+    "iflow-setup",
     "iflow-pick",
     "iflow-init",
     "iflow-capture",
@@ -144,6 +145,7 @@ COMMAND_NAMES: list[str] = [
 # Skills are the portable core and are emitted for every editor.
 SKILL_DIRS: list[str] = [
     "iflow_iflow",
+    "iflow_setup",
     "iflow_pick",
     "iflow_init",
     "iflow_capture",

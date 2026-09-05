@@ -11,6 +11,7 @@ issue-flow update [PROJECT_DIR] [--skip-dep-check] [--editor EDITOR]
 issue-flow graphify [-C PROJECT_DIR] [...graphify subcommand + args]
 issue-flow status [PROJECT_DIR] [--local] [--json]
 issue-flow doctor [PROJECT_DIR] [--fix] [--except N] [--dry-run] [--json]
+issue-flow agent setup-status [-C PROJECT_DIR] [--json]
 issue-flow agent state [-C PROJECT_DIR] [--json]
 issue-flow agent preflight [-C PROJECT_DIR] [--json]
 issue-flow agent switchback [-C PROJECT_DIR] [--json]
@@ -54,7 +55,7 @@ issue-flow workspace init [WORKSPACE_DIR] [--default MEMBER]
 | `--force`, `-f`    | Overwrite generated commands, rules, and workflow doc instead of skipping them. |
 | `--skip-dep-check` | Skip the external-CLI dependency check (`git`, `gh`) and the confirmation prompt that follows if anything is missing. Useful in automation. |
 | `--editor`, `-e`   | AI coding tool(s) to scaffold for: `cursor` (default), `claude`, `opencode`, `codex`, or `all`. Repeatable (`-e cursor -e claude`). See [Editor support](editors.md). |
-| `--mode`, `-m`     | Scaffolding mode — which workflow surfaces to install: `standard` (default, full workflow) or `simple` (markdown-only lifecycle). Persisted to `.issueflows/config.toml`; `update` honours it. See [Modes](configuration.md#modes). |
+| `--mode`, `-m`     | Scaffolding mode — which workflow surfaces to install: `standard` (default, full workflow), `novice` (guided setup + linear lifecycle, and seeds settings that stop at each step), or `simple` (markdown-only lifecycle). Persisted to `.issueflows/config.toml`; `update` honours it. See [Modes](configuration.md#modes). |
 | `--skill-level`    | Skill level — controls quality-tooling recommendations: `basic` (minimal), `standard` (default), `advanced` (opinionated type checking / linting / pre-commit guidance). Persisted to `.issueflows/config.toml`; `update` honours it. See [Skill levels](configuration.md#skill-levels). |
 
 Running `init` again without `--force` is safe: generated scaffold files that
@@ -145,6 +146,7 @@ project never installs `issue-flow`.
 
 | Command | What it does |
 | --- | --- |
+| `agent setup-status` | **Read-only** readiness report behind [`/iflow-setup`](issue-workflow.md): which of `uv` / `git` / `gh` are on `PATH`; whether this directory is a git repository *of its own* (a folder merely sitting inside another checkout is reported with its `enclosing_repo`, not mistaken for a repo), has commits and an `origin` remote; whether `gh` is signed in; whether a `pyproject.toml` and an issue-flow scaffold exist. Adds `project_kind` (`new` / `existing`) and an ordered `blockers` list where each entry carries a `fix` command and `agent_may_run` — `false` for the steps a human must do (installing `uv`/`gh`, `gh auth login`, nesting a repo). Never prompts, never mutates, always exits 0. |
 | `agent state` | Resolve the focus issue (branch-derived number wins, else the single current group), its lifecycle stage (`init`/`plan`/`start`/`close`), and the suggested next command. |
 | `agent preflight` | Branch hygiene report: default branch, clean/dirty working tree, `dirty_paths` + `issueflows_only` (JSON), ahead/behind vs `origin/<default>`, and a stale-branch flag when the issue is already archived. Runs `git fetch --prune` first. |
 | `agent switchback` | The mechanical "switch back when safe" half of `/iflow-close`: refuses (exit 1) while the working tree is dirty — listing the paths — else runs `git switch <default>` and `git pull --ff-only`. A refused fast-forward is reported, never forced. Never deletes branches (that stays in `/iflow-cleanup`). |

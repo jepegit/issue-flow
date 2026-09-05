@@ -67,16 +67,43 @@ commands re-render (and so optional side effects like the Linguist
 
 A **mode** selects which workflow surfaces (skills / slash commands) `init`
 installs, so you can scaffold a lighter workflow when the full lifecycle is more
-than you need. Two modes ship built in:
+than you need. Three modes ship built in:
 
 | Mode | What you get |
 | --- | --- |
 | `standard` (default) | The full workflow: planning, PRs, history, cleanup, graphify, and all helpers. |
+| `novice` | Guided setup plus the straight-line lifecycle and the safety nets: `/iflow`, `/iflow-setup`, `/iflow-pick`, `/iflow-init`, `/iflow-capture`, `/iflow-issue`, `/iflow-plan`, `/iflow-build`, `/iflow-pause`, `/iflow-close`, `/iflow-cleanup`, `/iflow-status`, `/iflow-doctor`. No yolo / cycle / auto / epic / split / fix / review / archive / graphify. |
 | `simple` | A markdown-only lifecycle (capture, plan, implement, park, status, archive). No PR/cleanup/yolo/fix/graphify automation. Includes `/iflow-archive` for condensing a large `03-solved-issues/` folder. |
 
 ```bash
 issue-flow init --mode simple
 ```
+
+### The `novice` preset
+
+`--mode novice` is the only mode that also **seeds settings**, because a smaller
+command list alone does not make the flow easier to follow. On a project that
+does not have a `config.toml` yet, it writes one where every lifecycle step
+stops and asks instead of chaining into the next:
+
+| Setting | Novice | Standard default |
+| --- | --- | --- |
+| `auto_plan` | `false` | `true` |
+| `auto_build` | `false` | `true` |
+| `auto_close` | `false` | `false` |
+| `label_flows` | `false` | `true` |
+| `confirm_version_bump` | `true` | `false` |
+| `confirm_changelog_update` | `true` | `false` |
+| `suggest_graphify` | `false` | `true` |
+| `skill_level` | `basic` | `standard` |
+
+Selecting `novice` implies `skill_level = "basic"`; passing `--skill-level`
+explicitly on the same command line still wins.
+
+A project that **already** has a `config.toml` keeps its settings — switching to
+`novice` later changes the installed surfaces but never rewrites knobs you have
+tuned. Adjust anything in the table by editing `config.toml` and re-running
+`issue-flow update`.
 
 The chosen mode is **persisted** to `.issueflows/config.toml`
 (`[issueflow].mode`), so `issue-flow update` refreshes exactly that mode's

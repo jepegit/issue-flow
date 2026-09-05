@@ -23,7 +23,7 @@ from typing import Any
 from rich.console import Console
 from rich.markup import escape
 
-from issue_flow import gitutils, history, modes, project, tracking
+from issue_flow import gitutils, history, modes, project, readiness, tracking
 from issue_flow.config import Settings
 from issue_flow.editors import EDITORS
 
@@ -198,6 +198,70 @@ def run_preflight(project_root: Path, console: Console, as_json: bool) -> int:
     )
     for note in notes:
         console.print(f"  [yellow]warn[/yellow]  {note}")
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# agent setup-status (readiness picture for ``/iflow-setup``)
+# ---------------------------------------------------------------------------
+
+
+def run_setup_status(project_root: Path, console: Console, as_json: bool) -> int:
+    """Report whether the project is ready to run the issue-flow workflow.
+
+    Read-only and always exit 0: "not ready" is the answer, not an error, so
+    ``/iflow-setup`` can parse the payload on a bare directory just as well as
+    on a fully configured repo.
+    """
+    report = readiness.probe(project_root)
+
+    if as_json:
+        _emit_json(console, report.as_dict())
+        return 0
+
+    def _mark(ok: bool) -> str:
+        return "[green]ok[/green]  " if ok else "[yellow]--[/yellow]  "
+
+    console.print(f"\n[bold]Setup status for [cyan]{report.project_root}[/cyan][/bold]")
+    console.print(
+        f"[dim]Looks like a{'n' if report.project_kind == 'existing' else ''} "
+        f"{report.project_kind} project.[/dim]\n"
+    )
+
+    for name, present in report.tools.items():
+        console.print(f"  {_mark(present)}{name}")
+    console.print(f"  {_mark(bool(report.git['is_repo']))}git repository")
+    origin = report.git["origin"]
+    console.print(
+        f"  {_mark(bool(report.git['has_origin']))}origin remote"
+        + (f" ([cyan]{escape(str(origin))}[/cyan])" if origin else "")
+    )
+    account = report.github["account"]
+    console.print(
+        f"  {_mark(bool(report.github['authenticated']))}gh authenticated"
+        + (f" (as [cyan]{escape(str(account))}[/cyan])" if account else "")
+    )
+    console.print(f"  {_mark(bool(report.python['has_pyproject']))}pyproject.toml")
+    mode = report.issueflow["mode"]
+    console.print(
+        f"  {_mark(bool(report.issueflow['scaffolded']))}issue-flow scaffold"
+        + (f" (mode [cyan]{escape(str(mode))}[/cyan])" if mode else "")
+    )
+
+    if not report.blockers:
+        console.print("\n[bold green]Ready.[/bold green] Next: /iflow-pick\n")
+        return 0
+
+    console.print(
+        f"\n[bold yellow]{len(report.blockers)} thing(s) to sort out[/bold yellow] "
+        "[dim](run /iflow-setup in your editor to be walked through them)[/dim]"
+    )
+    for blocker in report.blockers:
+        console.print(f"\n  {escape(blocker.summary)}")
+        console.print(f"    [green]{escape(blocker.fix)}[/green]")
+        if not blocker.agent_may_run:
+            console.print("    [dim]you need to run this one yourself[/dim]")
+    console.print()
     return 0
 
 

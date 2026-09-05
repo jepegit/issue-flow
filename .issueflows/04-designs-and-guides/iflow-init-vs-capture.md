@@ -24,6 +24,9 @@ init`).
    a back-compat alias equal to `STAGE_CAPTURE`. Suggested next command is
    `/iflow-capture`.
 5. Scaffold marker skill stays `skills/iflow-init/SKILL.md` (always emitted).
+6. **`/iflow-setup` (#246) stays a separate off-path command.** It walks
+   environment readiness (`uv` / git / `gh` / scaffold). `/iflow-init` only
+   cold-starts or checks the issue-flow harness. Not aliased onto setup.
 
 ## Link
 

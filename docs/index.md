@@ -76,6 +76,16 @@ That's it. Open the project in your editor and start with `/iflow` (or type
 `iflow` in chat when a slash is awkward on your keyboard) — or step through the
 linear path explicitly:
 
+!!! tip "New to this?"
+
+    If you are starting from nothing — no project, no repository, or no
+    experience with agentic coding — follow
+    **[Getting started](getting-started.md)** instead. It uses
+    `issue-flow init --mode novice` (a smaller command surface, with settings
+    that stop and ask at each step) and then `/iflow-setup` in your editor,
+    which walks you through `uv init`, `git init`, `gh auth login`, and
+    creating the GitHub repository.
+
 1. `/iflow-capture 42` — pulls GitHub issue #42 into
    `.issueflows/01-current-issues/` and archives older issues.
 2. `/iflow-plan` — drafts `issue<N>_plan.md` (Goal / Constraints / Approach /
@@ -87,7 +97,8 @@ linear path explicitly:
 5. `/iflow-cleanup` — after the PR merges, switches to the default branch,
    fast-forwards, prunes, and deletes the merged local branch.
 
-Plus a few off-path commands (never auto-dispatched): `/iflow-pick` (choose the
+Plus a few off-path commands (never auto-dispatched): `/iflow-setup` (guided
+first-time project setup), `/iflow-pick` (choose the
 next issue), `/iflow-init` (cold-start / check the harness), `/iflow-pause` (park work), `/iflow-yolo` (hands-off chain for
 small issues), `/iflow-fix` (iterative fixes session), `/iflow-status`
 (read-only overview), `/iflow-epic` (staged epic plan + publish),
@@ -127,6 +138,8 @@ else ranked open GitHub issues).
 
 ## Where to go next
 
+- **[Getting started](getting-started.md)** — the from-scratch path for new
+  users: install uv, scaffold, and let the agent finish the setup.
 - **[The workflow](issue-workflow.md)** — the human-readable walkthrough of the
   full issue lifecycle (also scaffolded into your project).
 - **[CLI reference](cli.md)** — every `issue-flow` command, including the

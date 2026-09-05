@@ -125,8 +125,8 @@ def test_resolve_output_path() -> None:
 
 
 def test_manifest_entry_count() -> None:
-    # Cursor is skills-first: 1 rule + 1 doc + 27 skills = 29
-    assert len(TEMPLATE_MANIFEST) == 29
+    # Cursor is skills-first: 1 rule + 1 doc + 28 skills = 30
+    assert len(TEMPLATE_MANIFEST) == 30
 
 
 def _resolved_paths(profile_id: str) -> set[str]:
@@ -146,7 +146,7 @@ def _resolved_paths(profile_id: str) -> set[str]:
 def test_build_manifest_cursor_matches_default() -> None:
     """The default TEMPLATE_MANIFEST is the cursor profile manifest."""
     assert build_manifest(EDITORS["cursor"]) == TEMPLATE_MANIFEST
-    assert len(build_manifest(EDITORS["cursor"])) == 29
+    assert len(build_manifest(EDITORS["cursor"])) == 30
 
 
 def test_build_manifest_cursor_has_skills_and_rules_but_no_commands() -> None:
@@ -161,15 +161,15 @@ def test_build_manifest_cursor_has_skills_and_rules_but_no_commands() -> None:
 
 
 def test_build_manifest_codex_has_skills_and_docs_but_no_commands() -> None:
-    """Codex: skills (27) + docs (1), no slash commands and no rules extra."""
+    """Codex: skills (28) + docs (1), no slash commands and no rules extra."""
     manifest = build_manifest(get_profile("codex"))
     template_names = [name for name, _ in manifest]
     assert not any(name.startswith("commands/") for name in template_names)
-    assert sum(name.startswith("skills/") for name in template_names) == 27
+    assert sum(name.startswith("skills/") for name in template_names) == 28
     assert "docs/issue-workflow.md.j2" in template_names
     # No .mdc / CLAUDE.md rules extra for Codex.
     assert not any(name.startswith("rules/") for name in template_names)
-    assert len(manifest) == 28
+    assert len(manifest) == 29
 
 
 def test_build_manifest_opencode_uses_singular_command_dir() -> None:
@@ -230,8 +230,10 @@ def test_manifest_has_expected_skills() -> None:
         "{agent_dir}/skills/iflow/SKILL.md",
     ) in TEMPLATE_MANIFEST
     for skill in (
+        "iflow_setup",
         "iflow_pick",
         "iflow_init",
+        "iflow_capture",
         "iflow_comments",
         "iflow_plan",
         "iflow_build",
@@ -258,6 +260,7 @@ def test_claude_manifest_has_expected_commands() -> None:
     template_names = {name for name, _ in build_manifest(get_profile("claude"))}
     for command in (
         "iflow",
+        "iflow-setup",
         "iflow-pick",
         "iflow-init",
         "iflow-capture",
@@ -352,6 +355,17 @@ def test_iflow_init_is_harness_cold_start_not_capture() -> None:
     assert "issue-flow agent capture" not in rendered
     assert "/iflow-capture" in rendered
     assert "off-path" in rendered.lower()
+
+
+def test_iflow_setup_points_at_capture_not_init() -> None:
+    """After #241, /iflow-setup must send issue capture to /iflow-capture."""
+    command = render_template("commands/iflow-setup.md.j2", _default_context())
+    skill = render_template("skills/iflow_setup/SKILL.md.j2", _default_context())
+    for rendered in (command, skill):
+        assert "that is `/iflow-capture`" in rendered or "is `/iflow-capture`" in rendered
+        assert "Capturing a GitHub issue" not in rendered or "/iflow-capture" in rendered
+        assert "that is `/iflow-init`" not in rendered
+        assert "is `/iflow-init`;" not in rendered
 
 
 def test_issue_close_delegates_post_merge_cleanup_to_issue_cleanup() -> None:

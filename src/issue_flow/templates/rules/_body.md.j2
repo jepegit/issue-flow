@@ -118,10 +118,14 @@ When the user message is **exactly** one of these forms, or **starts with** it f
 Skill `@` attachment is supported on some editors but is not the recommended keyboard-friendly path.
 
 ### Command lifecycle
+{% if "iflow_setup" in included_skills %}
+
+If the project itself is not ready yet — no git repo, no remote, `gh` not authenticated, or no Python project — run **`/iflow-setup`** (or type **`iflow setup`** in chat) first. It reads `issue-flow agent setup-status`, works out whether this is a brand-new or an existing project, and walks the blockers one confirmation at a time. Off-path (never auto-dispatched).
+{% endif %}
 
 If you have not chosen an issue yet, run **`/iflow-pick`** (or type **`iflow pick`** in chat) — the front door that helps you select the next issue (parked work first, else ranked open GitHub issues), creates the branch, and runs `/iflow-capture`. It is off-path (never auto-dispatched).
 
-If you just want the next right step, run **`/iflow`** (or type **`iflow`** in chat) — it detects state (by file presence under `{{ issueflows_dir }}/{{ current_issues_folder }}/` and the status-file `- [x] Done` marker) and dispatches to `/iflow-capture`, `/iflow-plan`, `/iflow-build`, or `/iflow-close`. With no focus issue, it checks active-epic `next_candidates` (`agent state` → `epic_hint`) and **recommends** `/iflow-pick` instead of a blind capture — it never auto-dispatches to `/iflow-pick`, `/iflow-init`, `/iflow-pause`, `/iflow-cleanup`, or `/iflow-yolo`.
+If you just want the next right step, run **`/iflow`** (or type **`iflow`** in chat) — it detects state (by file presence under `{{ issueflows_dir }}/{{ current_issues_folder }}/` and the status-file `- [x] Done` marker) and dispatches to `/iflow-capture`, `/iflow-plan`, `/iflow-build`, or `/iflow-close`. With no focus issue, it{% if "iflow_epic" in included_skills %} checks active-epic `next_candidates` (`agent state` → `epic_hint`) and{% endif %} **recommends** `/iflow-pick` instead of a blind capture — it never auto-dispatches to the off-path commands (`/iflow-pick`, `/iflow-init`, `/iflow-pause`, `/iflow-cleanup`{% if "iflow_yolo" in included_skills %}, `/iflow-yolo`{% endif %}).
 
 The full slash-command lifecycle is:
 
@@ -132,9 +136,13 @@ The full slash-command lifecycle is:
 5. **`/iflow-close`** — tests, optional `uv version --bump`, **changelog/`{{ history_file }}` update (in the PR commit)**, status update, commit, push, PR. Does not delete branches. Never offer a HISTORY/CHANGELOG update after close finishes or after merge; use `nohistory` only to skip intentionally. (A draft opened earlier via `/iflow-build` early PR does not skip the close HISTORY step.)
 6. **`/iflow-cleanup`** — post-merge: switch to default, `git pull --ff-only`, `git fetch --prune`, `git branch -d` on reachable local branches under a single consolidated confirm. Squash-landed branches (which `-d` always refuses) need `git branch -D`, offered only behind a **second** confirm that lists tip SHAs; branches with unique work are never deleted. Trailing `include GitHub` (or similar) adds a remote-branch audit with a further confirm for optional remote deletes / findings issue.
 
+{% if "iflow_yolo" in included_skills %}
 `/iflow-yolo` chains `capture → plan → build → close yolo` for small, low-risk issues with up-front safeguards (clean tree, passing tests, single consolidated confirm). Its close step is hands-off: changelog decided without a prompt, PR merged (`gh pr merge --squash`; on pending checks may `gh pr checks --watch` then retry, with `--auto` as last resort), then default-branch switch + pull.
+{% endif %}
+{% if "iflow_init" in included_skills %}
 
 `/iflow-init` cold-starts or checks the issue-flow harness (guides `issue-flow init` / `update`). It does **not** capture GitHub issues — that is `/iflow-capture`. Off-path (never auto-dispatched).
+{% endif %}
 {% if label_flows and "iflow-yolo" in included_commands and "iflow-pick" in included_commands %}
 
 Issue labels can select the flow: when an issue picked via `/iflow-pick` carries the **`{{ yolo_label }}`** label, it is routed through `/iflow-yolo` (one combined confirmation). Controlled by `label_flows` (default `true`) and `yolo_label` (default `"yolo"`) under `[issueflow]` in `{{ issueflows_dir }}/config.toml`; re-run `issue-flow update` after changing them.
@@ -144,25 +152,36 @@ Issue labels can select the flow: when an issue picked via `/iflow-pick` carries
 Lifecycle skills include a **`### MODEL & EXECUTION DIRECTIVE`** section that tells agents whether to prioritize **economy** (speed) or **reasoning** (depth) for that step. Toggle with `step_directives` under `[issueflow]`; override per step via `[issueflow.step_profiles]`; optional label hints during `/iflow-pick` via `model_label_flows`, `deep_model_label`, and `fast_model_label`. Re-run `issue-flow update` after changing any of these.
 {% endif %}
 
+{% if "iflow_fix" in included_skills %}
 `/iflow-fix` opens an interactive iterative-fixes session: it creates one GitHub issue + long-lived branch, then loops over many small fixes (each gets a short plan and is implemented only on confirmation, recorded as a dated bullet in `issue<N>_status.md`), and ends with `/iflow-close`. It is off-path (never auto-dispatched); while a session is active, drive it with `/iflow-fix` + `/iflow-close`, not `/iflow`.
-
-`/iflow-issue` creates **one well-specified normal GitHub issue** (context / spec / acceptance criteria), then optionally branches and runs `/iflow-capture` into the standard lifecycle. It fills the gap between `/iflow-fix` (iterative small-fixes) and `/iflow-epic` (multi-issue staged work). Off-path (never auto-dispatched). For an epic anchor: `/iflow-issue epic <intent>`.
-
+{% endif %}
+{% if "iflow_issue" in included_skills %}
+`/iflow-issue` creates **one well-specified normal GitHub issue** (context / spec / acceptance criteria), then optionally branches and runs `/iflow-capture` into the standard lifecycle.{% if "iflow_fix" in included_skills and "iflow_epic" in included_skills %} It fills the gap between `/iflow-fix` (iterative small-fixes) and `/iflow-epic` (multi-issue staged work).{% endif %} Off-path (never auto-dispatched).{% if "iflow_epic" in included_skills %} For an epic anchor: `/iflow-issue epic <intent>`.{% endif %}
+{% endif %}
+{% if "iflow_split" in included_skills %}
 `/iflow-split` cuts **one over-large existing issue** into 2–5 flat GitHub native sub-issues behind one consolidated confirm (parent stays open as the tracker). Off-path (never auto-dispatched). Staged work with dependencies still goes through `/iflow-epic`. `/iflow-pick` / `/iflow-issue` / `/iflow-plan` may *offer* split; they never create children themselves.
-
+{% endif %}
+{% if "iflow_status" in included_skills %}
 `/iflow-status` prints a **read-only** overview of where every issue stands — the local tracking state under `{{ issueflows_dir }}/` (focus / parked / solved) plus open GitHub issues cross-referenced against it. It is off-path (never auto-dispatched) and changes nothing.
-
+{% endif %}
+{% if "iflow_doctor" in included_skills %}
 `/iflow-doctor` audits `{{ issueflows_dir }}/` for **dirty** conditions (ambiguous multi-focus, leftovers in `{{ current_issues_folder }}/`, duplicates across folders, and similar) and can apply **safe repairs** on confirmation (`issue-flow doctor` / `agent audit` + `repair`). It is off-path and never auto-dispatched.
-
+{% endif %}
+{% if "iflow_review" in included_skills %}
 `/iflow-review` reviews open GitHub issues and applies labels (extendable kinds; v1: **yolo** → configured `yolo_label`). Off-path; consolidated confirm before any label create/apply; never auto-dispatched. CLI helpers: `issue-flow agent label-candidates` / `label-apply`.
-
+{% endif %}
+{% if "iflow_epic" in included_skills %}
 `/iflow-epic <N>` plans a change **too large for one issue** as a staged epic: it drafts `{{ issueflows_dir }}/{{ epics_folder }}/epic<N>_plan.md` (anchored to GitHub issue `<N>`), dividing the work into sequential stages of manageable issue specs with explicit dependencies and a per-issue yolo-fitness judgment. Drafting writes nothing on GitHub; **`/iflow-epic <N> publish [stage <k>]`** creates a confirmed stage's issues behind one consolidated confirm (yolo labels per the recorded judgment, task list maintained on the anchor issue, `Published: #<M>` recorded back into the plan so re-runs are idempotent). Off-path (never auto-dispatched); epics decompose into the normal single-issue lifecycle, never around it.
-
+{% endif %}
+{% if "iflow_cycle" in included_skills %}
 `/iflow-cycle <queue-spec>` processes **many issues hands-off in a row** under a single up-front confirmation — the batch equivalent of `/iflow-yolo`. It resolves a queue via `issue-flow agent queue` (explicit numbers, `label:<L>`, or `epic <N> [stage <k>]`), then runs each issue through the full yolo chain (PR auto-merged), interrupting you only when input is **strictly necessary** (unfixable failure, refused merge / non-fast-forward pull, ambiguous or not-actually-small spec, or anything outside the confirmed queue). It stops the whole cycle on the first such condition, leaving the repo clean on the default branch. **All yolo-labelled issues:** `/iflow-cycle yolo` (alias for `label:{{ yolo_label }}`). Off-path (never auto-dispatched); never weakens a yolo safeguard to keep moving.
-
+{% endif %}
+{% if "iflow_auto" in included_skills %}
 `/iflow-auto <N>` runs an **unattended large-change** path over a confirmed epic: select a stage, drive it via `/iflow-cycle`, record `auto_status.md`, then adversarial inter-epoch review (`review` token; may reopen/create issues under the overnight confirm). On findings, honour the loop budget (re-queue + re-review, or **stop and ask**: accept / grant N more loops / abort). Advance to stage `k+1` only when stage `k` is clear (`epic-status` done + no open blockers); otherwise `epoch_gated`. Budget baked as **{{ auto_adversarial_loops }}** (`loops:<n>` overrides). Off-path (never auto-dispatched). See `{{ issueflows_dir }}/{{ designs_folder }}/advanced-auto-mode.md`.
-
+{% endif %}
+{% if "iflow_archive" in included_skills %}
 `/iflow-archive` condenses old solved issue groups under `{{ issueflows_dir }}/{{ solved_folder }}/` into a single dated `YYYY-MM-DD_archived_issues.md` summary file (recording the pre-archive git ref for recovery via `git show <ref>:<path>`), then deletes the original `issue<N>_*` files. It is off-path and destructive: nothing is deleted before one consolidated confirmation.
+{% endif %}
 
 > On tools without project slash commands (e.g. Codex CLI), invoke the mirrored Agent Skills instead (for example `iflow-capture` in place of `/iflow-capture`).
 

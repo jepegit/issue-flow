@@ -6,6 +6,10 @@ This repo uses Cursor **Agent Skills** under `.cursor/skills/` that line up with
 
 **Quick start:** type **`iflow`** in chat or run **`/iflow`** from the slash menu. It inspects the state of the focus issue and dispatches to the right linear-flow skill (`iflow capture` / `/iflow-capture`, `iflow plan` / `/iflow-plan`, `iflow build` / `/iflow-build`, or `iflow close` / `/iflow-close`) — so you don't have to remember which step is next. Haven't chosen an issue yet? Start with **`iflow pick`** or **`/iflow-pick`**.
 
+
+**Brand new to this?** If the project itself is not ready yet — no Python project, no git repo, no GitHub remote, or `gh` not signed in — start with **`iflow setup`** (or **`/iflow-setup`**) instead. It reports what is missing and walks you through each gap one confirmation at a time, for a fresh folder as well as an existing codebase. Run `issue-flow agent setup-status` yourself any time you want the same report without the conversation.
+
+
 `issue-flow init` also creates a durable project brief at `.issueflows/04-designs-and-guides/this-project.md` when it is missing. Edit it by hand with project-specific context; `issue-flow update` and `issue-flow init --force` leave existing content untouched.
 
 It also seeds `.issueflows/00-tools/README.md` — the index of the project's **shared toolbox**. Drop reusable helper scripts there during issue work and add a one-line index entry; check the folder before writing a new one-off helper. Like the project brief, this README is never overwritten by `issue-flow update`, so its index grows over time.
@@ -15,8 +19,9 @@ It also seeds `.issueflows/00-tools/README.md` — the index of the project's **
 
 | Entry point | File | Role |
 |--------|------|------|
+| `/iflow-setup` | `iflow-setup/SKILL.md` | **Off-path.** Guided first-time setup: check what is missing (Python project, git repo, GitHub remote, `gh` login, scaffold) via `issue-flow agent setup-status`, then walk the gaps one confirmation at a time. For new *and* existing projects. |
 | `/iflow-pick` | `iflow-pick/SKILL.md` | **Front door.** Help choose the next issue (parked work first, else ranked open GitHub issues), create the branch, and run `/iflow-capture`. Off-path; never auto-dispatched. |
-| `/iflow` | `iflow/SKILL.md` | **Smart dispatcher.** Detect current state and run `/iflow-capture`, `/iflow-plan`, `/iflow-build`, or `/iflow-close` automatically. Never auto-dispatches to pick / pause / cleanup / yolo / fix / issue / split / status / archive / epic / cycle / auto / graphify / init. |
+| `/iflow` | `iflow/SKILL.md` | **Smart dispatcher.** Detect current state and run `/iflow-capture`, `/iflow-plan`, `/iflow-build`, or `/iflow-close` automatically. Never auto-dispatches to setup / pick / pause / cleanup / yolo / fix / issue / split / status / archive / epic / cycle / auto / graphify / init. |
 | `/iflow-init` | `iflow-init/SKILL.md` | **Off-path.** Cold-start or check the issue-flow harness (guide `issue-flow init` / `update`). Does **not** capture GitHub issues — that is `/iflow-capture`. |
 | `/iflow-capture` | `iflow-capture/SKILL.md` | Pull an issue from GitHub into the repo as a local markdown file and tidy older current issues. |
 | `/iflow-plan` | `iflow-plan/SKILL.md` | Write a structured `issue<N>_plan.md` and get explicit user confirmation before any code is touched. |
@@ -47,6 +52,7 @@ It also seeds `.issueflows/00-tools/README.md` — the index of the project's **
 
 | Skill folder | Invoke (examples) | Role |
 |--------------|-------------------|------|
+| `iflow-setup` | `iflow setup`, `iflow-setup`, `/iflow-setup` | Guided first-time project setup. Off-path. |
 | `iflow-pick` | `iflow pick`, `iflow-pick`, `/iflow-pick` | Front door — choose issue, branch, init, hand off. |
 | `iflow` | `iflow`, `/iflow` | Smart dispatcher — same state machine as `/iflow`. |
 | `iflow-init` | `iflow init`, `iflow-init`, `/iflow-init` | Cold-start / check harness. Off-path. |
@@ -127,7 +133,7 @@ All workflows that touch git also run a short **branch-status preflight**: `git 
 
 **Focus-issue resolution:** prefer the leading digits of the current branch when it matches `^<N>-.+`; else the single group in `.issueflows/01-current-issues/`; else the epic gap check; else ask. See `04-designs-and-guides/iflow-epic-awareness.md`.
 
-**Not auto-dispatched:** `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-split`, `/iflow-status`, `/iflow-doctor`, `/iflow-review`, `/iflow-epic`, `/iflow-cycle`, `/iflow-auto`, and `/iflow-archive`. `/iflow` will mention them in its output when relevant (e.g. "after the PR merges, run `/iflow-cleanup`") but never picks them for you. The epic gap only **recommends** `/iflow-pick`.
+**Not auto-dispatched:** `/iflow-setup`, `/iflow-init`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-split`, `/iflow-status`, `/iflow-doctor`, `/iflow-review`, `/iflow-epic`, `/iflow-cycle`, `/iflow-auto`, and `/iflow-archive`. `/iflow` will mention them in its output when relevant (e.g. "after the PR merges, run `/iflow-cleanup`") but never picks them for you. The epic gap only **recommends** `/iflow-pick`.
 
 **Result:** One of the four linear commands runs (with its own checkpoints), or a stop with epic candidates listed.
 
@@ -380,7 +386,7 @@ The bump runs **after** tests and **before** issue-folder moves and **before** c
 **What the assistant does (all read-only):**
 
 1. **Context** — current branch, default branch, clean/dirty tree, ahead/behind; focus issue `N` derived from the branch when it matches `^<N>-.+`.
-2. **Focus issue** — the active group in `.issueflows/01-current-issues/` and its lifecycle stage (init / plan / build / close) using the same file-presence logic as `/iflow`, plus the suggested next step.
+2. **Focus issue** — the active group in `.issueflows/01-current-issues/` and its lifecycle stage (capture / plan / build / close) using the same file-presence logic as `/iflow`, plus the suggested next step.
 3. **Parked work** — each `issue<n>_*` group under `.issueflows/02-partly-solved-issues/` with title and one-line status.
 4. **Solved archive** — count of distinct solved issues under `.issueflows/03-solved-issues/` and the most recent few.
 5. **Open GitHub issues** — `gh issue list` cross-referenced against the local folders, tagged **focus** / **parked** / **solved-locally** / **untracked**. Skipped gracefully when `gh` is unavailable or `local` was passed.
@@ -568,11 +574,13 @@ Commit → push → PR
 Default branch, stale local branches deleted (with single confirm)
 
 Detours:
-  /iflow-pick   — front door: choose the next issue, branch, init (before the linear flow)
+  /iflow-setup  — guided first-time project setup (off-path; never auto-dispatched)
+  /iflow-pick   — front door: choose the next issue, branch, capture (before the linear flow)
+  /iflow-init   — cold-start / check the harness (off-path; does not capture issues)
   /iflow-pause  — park mid-stream; moves issueN_* to 02-partly-solved-issues/
   /iflow-yolo   — chain capture → plan → build → close for tiny fixes (safeguarded)
   /iflow-fix    — interactive session: one branch, many small fixes, then /iflow-close
-  /iflow-issue  — create one well-specified normal GitHub issue (optional branch + init)
+  /iflow-issue  — create one well-specified normal GitHub issue (optional branch + capture)
   /iflow-split  — cut an over-large issue into linked GitHub sub-issues
   /iflow-status — read-only overview of all issues (focus / parked / solved + GitHub)
   /iflow-doctor — audit/repair dirty .issueflows/ folders

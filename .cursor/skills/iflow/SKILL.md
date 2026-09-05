@@ -11,7 +11,7 @@ issue-flow-version: 0.4.2a4
 
 Follow this skill to run **the right next step** in the issue-flow lifecycle: it detects state and routes to `/iflow-capture`, `/iflow-plan`, `/iflow-build`, or `/iflow-close`, forwarding trailing args verbatim.
 
-Do **not** use this skill for `/iflow-pick`, `/iflow-init`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-split`, `/iflow-review`, or other off-path helpers. Those are explicit-only commands. (`/iflow-pick` is the front door *before* `/iflow-capture`, for when no issue has been chosen yet. `/iflow-init` cold-starts the harness — it does not capture issues. `/iflow-fix` runs an interactive iterative-fixes session, driven by `/iflow-fix` + `/iflow-close`. `/iflow-issue` creates one well-specified normal GitHub issue. `/iflow-split` cuts an over-large issue into linked sub-issues.)
+Do **not** use this skill for `/iflow-setup`, `/iflow-pick`, `/iflow-init`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-split`, `/iflow-review`, or other off-path helpers. Those are explicit-only commands. (`/iflow-pick` is the front door *before* `/iflow-capture`, for when no issue has been chosen yet. `/iflow-init` cold-starts the harness — it does not capture issues. `/iflow-fix` runs an interactive iterative-fixes session, driven by `/iflow-fix` + `/iflow-close`. `/iflow-issue` creates one well-specified normal GitHub issue. `/iflow-split` cuts an over-large issue into linked sub-issues.)
 
 
 **Invoke:** type `iflow` in chat, or `/iflow` from the slash menu.
@@ -102,7 +102,7 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 
 ## Constraints
 
-- Never auto-dispatch to `/iflow-pick`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-split`, `/iflow-review`, `/iflow-epic`, `/iflow-cycle`, or `/iflow-auto`.
+- Never auto-dispatch to `/iflow-setup`, `/iflow-pick`, `/iflow-init`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-split`, `/iflow-review`, `/iflow-epic`, `/iflow-cycle`, or `/iflow-auto`.
 - Epic gap (step 1a) only **suggests** `/iflow-pick`; it never runs pick or silently picks a candidate.
 - If the focus issue cannot be resolved (multiple groups, branch ambiguous), stop and ask.
 - Do not modify files beyond what the downstream command would normally modify. `/iflow` itself writes nothing — all file changes come from the dispatched command.

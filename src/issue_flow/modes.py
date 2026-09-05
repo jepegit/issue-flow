@@ -31,6 +31,10 @@ from issue_flow.templating import COMMAND_NAMES, SKILL_DIRS
 
 DEFAULT_MODE = "standard"
 
+# The guided first-project mode (issue #246). Selecting it explicitly also seeds
+# a novice-tuned ``config.toml`` — see :data:`NOVICE_CONFIG` below.
+NOVICE_MODE = "novice"
+
 # Skill levels gate complexity-based scaffolding (e.g. quality-tooling docs).
 # Ordered low → high. ``advanced`` adds opinionated quality-tooling guidance.
 SKILL_LEVELS: tuple[str, ...] = ("basic", "standard", "advanced")
@@ -89,6 +93,32 @@ DEFAULT_SYNC_MILESTONE_MAP: dict[str, str] = {
     "current": "",
     "parked": "",
     "solved": "",
+}
+
+# Knob values seeded alongside the ``novice`` mode (issue #246). Where the
+# standard defaults above favour momentum — chaining one lifecycle step into the
+# next, deciding bookkeeping without asking — these favour visibility: every step
+# is a separate, announced action the user approves. Keys must all be accepted by
+# :func:`write_default_config`.
+NOVICE_CONFIG: dict[str, object] = {
+    "skill_level": "basic",
+    # No step chains into the next: pick stops after init, plan stops after
+    # Accept, build stops before close.
+    "auto_plan": False,
+    "auto_build": False,
+    "auto_close": False,
+    # A stray label should not silently switch a beginner into the hands-off path.
+    "label_flows": False,
+    "early_pr": False,
+    # Ask before the two bookkeeping writes that are otherwise silent.
+    "confirm_version_bump": True,
+    "confirm_changelog_update": True,
+    "remind_cleanup": True,
+    # Response-style and planning-interview skills are not even installed in the
+    # novice surface; keep the flags off so the rendered rule stays quiet.
+    "caveman_default": False,
+    "grill_me_default": False,
+    "suggest_graphify": False,
 }
 
 # Packaged data file holding the built-in modes (sibling of this module).
@@ -991,6 +1021,21 @@ def write_default_config(
     return True
 
 
+def seed_novice_config(cfg_path: Path, mode: str = NOVICE_MODE) -> bool:
+    """Create a ``config.toml`` pre-tuned for a first-time user.
+
+    Applies :data:`NOVICE_CONFIG` on top of the standard defaults. Returns
+    ``False`` without touching anything when the file already exists, so
+    re-running ``issue-flow init --mode novice`` on a configured project never
+    rewrites knobs the user has since changed.
+    """
+    if cfg_path.is_file():
+        return False
+    values = dict(NOVICE_CONFIG)
+    skill_level = str(values.pop("skill_level", DEFAULT_SKILL_LEVEL))
+    return write_default_config(cfg_path, mode=mode, skill_level=skill_level, **values)  # type: ignore[arg-type]
+
+
 def _commented_issueflow_table(
     mode: str,
     skill_level: str,
@@ -1028,8 +1073,9 @@ def _commented_issueflow_table(
     table = tomlkit.table()
     table.add(
         tomlkit.comment(
-            "Scaffolding mode: 'standard' (full workflow) or 'simple' "
-            "(markdown-only). Switch by re-running 'issue-flow init --mode <id>'."
+            "Scaffolding mode: 'standard' (full workflow), 'novice' (guided "
+            "setup + linear lifecycle), or 'simple' (markdown-only). Switch by "
+            "re-running 'issue-flow init --mode <id>'."
         )
     )
     table["mode"] = mode

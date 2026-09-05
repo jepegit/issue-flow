@@ -380,11 +380,14 @@ def run_init(
         raise typer.Exit(code=2) from None
 
     explicit_skill_level = skill_level is not None
-    skill_level_id = (
-        skill_level
-        if explicit_skill_level
-        else settings.resolve_skill_level(project_root)
-    )
+    if explicit_skill_level:
+        skill_level_id = skill_level
+    elif explicit_mode and mode_obj.id == modes_module.NOVICE_MODE:
+        # Choosing the novice mode picks the novice skill level with it; an
+        # explicit --skill-level on the same command line still wins.
+        skill_level_id = str(modes_module.NOVICE_CONFIG["skill_level"])
+    else:
+        skill_level_id = settings.resolve_skill_level(project_root)
     if skill_level_id not in modes_module.SKILL_LEVELS:
         console_io.console.print(
             f"[red]error[/red]  Invalid skill level '{skill_level_id}'. "
@@ -417,14 +420,26 @@ def run_init(
         )
 
     _create_issueflow_dirs(project_root, settings)
-    if explicit_mode or explicit_skill_level:
+    novice_selected = explicit_mode and mode_obj.id == modes_module.NOVICE_MODE
+    # Only a first-time novice scaffold seeds the knob preset; a project that
+    # already has a config.toml keeps whatever the user has tuned there.
+    novice_seeded = novice_selected and modes_module.seed_novice_config(
+        cfg_path, mode_obj.id
+    )
+    persist_skill_level = explicit_skill_level or novice_selected
+    if explicit_mode or persist_skill_level:
         if explicit_mode:
             modes_module.write_active_mode(cfg_path, mode_obj.id)
-        if explicit_skill_level:
+        if persist_skill_level:
             modes_module.write_skill_level(cfg_path, skill_level_id)
         console_io.console.print(
             f"  [green]write[/green] {cfg_path.relative_to(project_root).as_posix()}  "
             f"(mode = {mode_obj.id}, skill_level = {skill_level_id})"
+        )
+    if novice_seeded:
+        console_io.console.print(
+            "  [dim]seeded novice settings: each lifecycle step stops for you "
+            "instead of chaining into the next.[/dim]"
         )
     _ensure_project_brief(
         project_root,
@@ -495,7 +510,7 @@ def run_init(
 
     console_io.console.print()
     if not canonical:
-        _graphify_postinstall(project_root, profiles)
+        _graphify_postinstall(project_root, profiles, mode_obj)
 
     console_io.console.print()
     if written_files:
@@ -518,6 +533,13 @@ def run_init(
         hint_dir = f"{settings.issueflows_dir}/agent/skills/"
     else:
         hint_dir = f"{primary.agent_dir}/skills/"
+    if "iflow_setup" in mode_obj.skills:
+        console_io.console.print(
+            "\n[dim]New to this? Run [bold]/iflow-setup[/bold] (or type "
+            "[bold]iflow setup[/bold]) in your editor — it checks what is still "
+            "missing (git repo, GitHub remote, "
+            "[bold]gh auth login[/bold]) and walks you through it.[/dim]"
+        )
     console_io.console.print(
         "\n[dim]Run [bold]/iflow-capture <number>[/bold] or [bold]/iflow-pick[/bold] "
         "in your editor to start tracking a GitHub issue "
@@ -626,7 +648,7 @@ def run_update(
     maybe_ensure_linguist_gitattributes(project_root, settings)
 
     console_io.console.print()
-    _graphify_postinstall(project_root, profiles)
+    _graphify_postinstall(project_root, profiles, mode_obj)
 
     console_io.console.print()
     if written_files:
@@ -771,7 +793,11 @@ def _prune_excluded_surfaces(
     return pruned_count
 
 
-def _graphify_postinstall(project_root: Path, profiles: list[EditorProfile]) -> None:
+def _graphify_postinstall(
+    project_root: Path,
+    profiles: list[EditorProfile],
+    mode: Mode | None = None,
+) -> None:
     """Best-effort graphify integration step for ``run_init`` / ``run_update``.
 
     Auto-detects the ``graphify`` CLI (the user opts in by installing
@@ -781,7 +807,14 @@ def _graphify_postinstall(project_root: Path, profiles: list[EditorProfile]) -> 
     When graphify is absent, :func:`register_with_editor` itself prints
     install hints. Never raises and never aborts the parent ``init`` /
     ``update``.
+
+    Modes that leave the graphify surface out (e.g. ``novice``, ``simple``)
+    skip registration entirely, so a mode that hides the integration does not
+    quietly install its editor skill anyway.
     """
+    if mode is not None and "iflow_graphify" not in mode.skills:
+        return
+
     installable = [p for p in profiles if p.graphify_installer]
     if not installable:
         return
