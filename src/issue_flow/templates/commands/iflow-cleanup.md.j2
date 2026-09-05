@@ -1,10 +1,10 @@
 # Post-merge branch and folder cleanup
 
-Run this after a PR has been merged (typically the one opened by `/iflow-close`). It detects the merge, switches back to the default branch, and — with a **single consolidated confirm** — deletes every local branch whose commits are already in the default branch (including squash-merged branches).
+Run this after a PR has been merged (typically the one opened by `/iflow-close`). It detects the merge, switches back to the default branch, and — with a **consolidated confirm** — deletes every local branch that git agrees is merged. Branches that landed via a **squash merge** need a **second, dedicated confirm**, because their tips are not reachable from the default branch and `git branch -d` refuses them.
 
 With trailing text like `include GitHub`{% if cleanup_include_github %}, or when this project bakes `cleanup_include_github = true`,{% endif %} it also runs a **GitHub remote-branch audit** (Phase B): classify `origin/*`, summarise unique work, and optionally delete deletable remotes and/or file a findings issue under a **second** confirm. Opt out of a baked-on Phase B with `no github` / `local only`.
 
-`/iflow-cleanup` is the only command in the workflow that touches branches destructively (local via `git branch -d`, never `-D`; remote via `git push origin --delete` only after Phase B confirm, never `--force`).
+`/iflow-cleanup` is the only command in the workflow that touches branches destructively: locally via `git branch -d` (Phase A1) and `git branch -D` for provably-landed squash merges (Phase A2, its own confirm, tip SHAs always printed); remotely via `git push origin --delete` only after the Phase B confirm, never `--force`.
 
 {% include "skills/_model_directive.md.j2" %}
 
@@ -30,7 +30,7 @@ Optional free-form text after the command. Examples:
 
 2. **Identify the branch to clean.**
    - If the user passed a branch name (ignoring GitHub-audit tokens), use it.
-   - Else use the current branch (`git branch --show-current`). If the current branch **is** the default, skip to step 5 (group sweep only); there is no issue branch to merge-check.
+   - Else use the current branch (`git branch --show-current`). If the current branch **is** the default, skip to step 7 (group sweep only); there is no issue branch to merge-check.
 
 3. **Check PR / merge state for the issue branch.**
    - Prefer `gh pr view <branch> --json state,mergedAt,mergeCommit,headRefName`.
@@ -40,27 +40,39 @@ Optional free-form text after the command. Examples:
      - Tell them to re-run `/iflow-cleanup` after the PR merges.
      - **Stop Phase A.** Do not delete anything locally. If Phase B is enabled (see Input), Phase B may still run (remote audit does not require the issue branch to be merged).
 
-4. **Consolidated confirm for post-merge cleanup (Phase A).** Gather the full action list into a single yes/no prompt:
+4. **Classify the local branches.**
+   - Prefer `issue-flow agent local-branches --json` — read-only, buckets each local branch as `reachable` / `squash_landed` / `merged_pr_divergent` / `unique_work` / `skipped`, with a `tip` short SHA on every entry.
+   - Manual fallback per branch (skip the current and default branches): `git merge-base --is-ancestor <branch> origin/<default>` (exit 0 → `reachable`); else `git cherry origin/<default> <branch>` with no `+` lines → `squash_landed`; else check `gh pr list --state all --head <branch> --json number,state,mergedAt,url` and compare `git log --no-merges --format=%cI origin/<default>..<branch>` to `mergedAt` — a merged PR with nothing newer → `merged_pr_divergent`, otherwise `unique_work`.
+   - `git branch -d` applies git's **reachability** test, while `git cherry` proves **patch equivalence**. A {% if pr_merge_method == "squash" %}squash merge (this project's `pr_merge_method`){% else %}squash merge{% endif %} rewrites commits onto a new commit, so the branch tip stays unreachable and `-d` refuses it no matter how thoroughly the work landed.
+
+5. **Consolidated confirm for post-merge cleanup (Phase A1).** Gather the full action list into a single yes/no prompt:
    - `git switch <default>`
    - `git pull --ff-only`
    - `git fetch --prune`
-   - List **every** local branch whose tip is already reachable from `origin/<default>` (use `git for-each-ref --format='%(refname:short)' refs/heads/` combined with `git cherry origin/<default> <branch>` to catch squash-merges). Present the list explicitly and ask **once** before running `git branch -d <branch>` for each.
-   - **Planned release tag (tag-derived projects only).** When `/iflow-close` planned a tag it did not create — check the focus issue's status file and the newest `{{ history_file }}` release section for a version whose tag is missing from `git tag -l` — include creating it in the same confirm: `git tag <planned>` then `git push origin <planned>` (or `gh release create <planned> --generate-notes`). Run it **after** the pull so the tag lands on the merged squash commit.
-   - Never use `-D` automatically. If `-d` refuses (unmerged changes), report that branch and leave it alone.
+   - `git branch -d <branch>` for each **`reachable`** branch, listed explicitly by name before asking.
+   - **Planned release tag (tag-derived projects only).** When `/iflow-close` planned a tag it did not create — check the focus issue's status file and the newest `{{ history_file }}` release section for a version whose tag is missing from `git tag -l` — include creating it in the same confirm: `git tag <planned>` then `git push origin <planned>` (or `gh release create <planned> --generate-notes`). Run it **after** the pull so the tag lands on the merged {{ pr_merge_method }} commit.
+   - If `-d` still refuses a branch, report it and leave it alone — do not escalate to `-D` here.
 
-5. **Optional folder sweep** (safe; no destructive git).
+6. **Dedicated force-delete confirm (Phase A2).** Only when `squash_landed` or `merged_pr_divergent` is non-empty; skip the step silently otherwise.
+   - Explain that these branches need `git branch -D` because the {{ pr_merge_method }} merge left no reachable tip, and that `-D` bypasses git's safety check.
+   - List `squash_landed` as `<name>  <tip>`, and list `merged_pr_divergent` **separately** with each branch's merged PR link and unique-commit subjects so the user can see what differs.
+   - Include the recovery line: `git branch <name> <tip>` restores anything deleted.
+   - Ask **once**, separately from Phase A1. On yes, try `git branch -d <name>` first and fall back to `-D` only when it refuses (`-d` also accepts branches merged into their own upstream, so it can still succeed while the remote-tracking ref exists); report every `<name> <tip>` and the flag used. On no, nothing is deleted.
+   - Never list a `unique_work` or `skipped` branch here, whatever the user asks for.
+
+7. **Optional folder sweep** (safe; no destructive git).
    - Group files in `{{ issueflows_dir }}/{{ current_issues_folder }}/` by issue number (`issue<N>_*`).
    - For each group whose status file contains `- [x] Done` (case-insensitive on `done`), move the group to `{{ issueflows_dir }}/{{ solved_folder }}/`.
    - Groups without a checked `Done` stay put — do not route them to `{{ issueflows_dir }}/{{ partly_solved_folder }}/` from `/iflow-cleanup`. That is `/iflow-pause`'s job and requires a human decision.
 
-6. **Epic stage gate (offer only).**
+8. **Epic stage gate (offer only).**
    - If the just-merged issue's number appears in a `- Published: #<N>` line of an `epic<M>_plan.md` under `{{ issueflows_dir }}/{{ epics_folder }}/`, it belongs to an epic. Run `issue-flow agent epic-status <M> --json`; if the issue's stage now has no open issues left, the stage just completed.
    - On a completed stage, **offer** (never automatic): (a) post a short stage-summary comment on the epic anchor issue, and (b) run `/iflow-epic <M> publish` to publish the next stage. Publishing and commenting stay the user's explicit call.
 
-7. **Phase B — GitHub remote audit** (only when Phase B is enabled per the Input enable rule).
+9. **Phase B — GitHub remote audit** (only when Phase B is enabled per the Input enable rule).
    - Prefer `issue-flow agent branches --json` (read-only classification of `origin/*` into `deletable` / `unique_work` / `skipped`). Manual fallback: `git fetch --prune`, `git cherry` / `git log --oneline` / `git diff --shortstat`, plus `gh pr list --state all --head <branch>`.
    - Report buckets; summarise unique-work commit subjects and open PR titles.
-   - **Second consolidated confirm** (never implied by Phase A's yes):
+   - **Its own consolidated confirm** (never implied by the Phase A1 or A2 yes):
      - Optional `git push origin --delete <branch>` for each listed **deletable** remote — never `--force`, never the default branch.
      - Optional findings issue via `gh issue create` after showing draft title/body (suggested title: `chore: remote branch audit (<YYYY-MM-DD>)`).
    - Declining leaves remotes and GitHub issues untouched.
@@ -71,16 +83,19 @@ Report:
 - default branch resolved
 - PR/merge status of the target branch
 - post-merge commands run (if any)
-- list of local branches deleted (with `-d` output per branch)
-- list of branches skipped because `-d` refused, with a one-line reason
+- branch classification counts (`reachable` / `squash_landed` / `merged_pr_divergent` / `unique_work` / `skipped`)
+- list of local branches deleted with `-d` (Phase A1)
+- list of local branches deleted with `-D` and their tip SHAs (Phase A2), or "declined" / "none offered"
+- list of branches left alone, with a one-line reason (unique work, `-d` refused, unclassifiable)
 - folder sweep summary (`issue<N>` → `{{ solved_folder }}/`, or "nothing to sweep")
 - when Phase B ran: deletable / unique-work / skipped counts, remote deletes, findings issue URL or "skipped"
 
 ## Constraints
 
-- Never use `git branch -D` or `git push --force`.
+- Never use `git push --force`.
+- `git branch -D` only for `squash_landed` / `merged_pr_divergent` branches, only after the Phase A2 confirm, and only with tip SHAs reported. Never `-D` unique work, an unclassifiable branch, or the current branch. A `-d` refusal in Phase A1 is reported, never force-retried.
 - Never delete the default branch (local or remote).
-- Remote deletes and findings-issue creation require the Phase B confirm.
+- Remote deletes and findings-issue creation require the Phase B confirm. None of the three confirms implies another.
 - If anything is ambiguous (detached HEAD, multiple remotes, missing tracking info), report and stop rather than guessing.
 - Do not open or update PRs. Do not bump version fields — pyproject bumps belong to `/iflow-close`. The only version action allowed here is creating a release tag that `/iflow-close` **planned** (tag-derived strategy), inside the Phase A consolidated confirm.
 - Do **not** offer to update `{{ history_file }}` / CHANGELOG here — that belongs in `/iflow-close` before the PR.

@@ -19,6 +19,7 @@ import json
 import re
 import shutil
 import subprocess
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -793,15 +794,17 @@ def list_origin_branches(cwd: Path) -> list[str] | None:
     return names
 
 
-def cherry_unique_count(cwd: Path, default: str, branch: str) -> int | None:
-    """Count commits on ``origin/<branch>`` not in ``origin/<default>``.
+def cherry_unique_count(cwd: Path, base_ref: str, target_ref: str) -> int | None:
+    """Count commits on ``target_ref`` whose patch is not in ``base_ref``.
 
-    Uses ``git cherry origin/<default> origin/<branch>``: lines starting with
-    ``+`` are unique; ``-`` means already in the upstream. Returns ``None``
-    when the comparison cannot be made.
+    Uses ``git cherry <base_ref> <target_ref>``: lines starting with ``+`` are
+    unique; ``-`` means an equivalent patch is already upstream (which is how a
+    squash-merged branch shows up). Both refs are passed through verbatim, so
+    callers compare either remotes (``origin/foo``) or local branches. Returns
+    ``None`` when the comparison cannot be made.
     """
     result = _run(
-        [GIT, "cherry", f"origin/{default}", f"origin/{branch}"],
+        [GIT, "cherry", base_ref, target_ref],
         cwd,
     )
     if result is None or result.returncode != 0:
@@ -811,21 +814,25 @@ def cherry_unique_count(cwd: Path, default: str, branch: str) -> int | None:
 
 
 def unique_commit_onelines(
-    cwd: Path, default: str, branch: str, *, limit: int = 20
+    cwd: Path,
+    base_ref: str,
+    target_ref: str,
+    *,
+    limit: int = 20,
+    no_merges: bool = False,
 ) -> list[str] | None:
-    """``git log --oneline`` for commits on ``origin/<branch>`` not in default."""
+    """``git log --oneline`` for commits on ``target_ref`` not in ``base_ref``.
+
+    ``no_merges`` drops merge commits so the list matches what
+    :func:`cherry_unique_count` counts (``git cherry`` ignores merges).
+    """
     if limit < 1:
         limit = 20
-    out = _stdout(
-        [
-            GIT,
-            "log",
-            "--oneline",
-            f"origin/{default}..origin/{branch}",
-            f"-{limit}",
-        ],
-        cwd,
-    )
+    argv = [GIT, "log", "--oneline"]
+    if no_merges:
+        argv.append("--no-merges")
+    argv += [f"{base_ref}..{target_ref}", f"-{limit}"]
+    out = _stdout(argv, cwd)
     if out is None:
         return None
     if not out:
@@ -833,14 +840,62 @@ def unique_commit_onelines(
     return [line.strip() for line in out.splitlines() if line.strip()]
 
 
-def unique_diff_shortstat(cwd: Path, default: str, branch: str) -> str | None:
-    """``git diff --shortstat`` between ``origin/<default>...origin/<branch>``."""
+def latest_unique_commit_date(cwd: Path, base_ref: str, target_ref: str) -> str | None:
+    """Newest committer date (ISO 8601) among commits unique to ``target_ref``.
+
+    Lets callers tell a squash-rewrite apart from work added *after* a PR
+    merged: the former has no commit newer than the merge, the latter does.
+    """
+    out = _stdout(
+        [
+            GIT,
+            "log",
+            "--no-merges",
+            "--format=%cI",
+            f"{base_ref}..{target_ref}",
+        ],
+        cwd,
+    )
+    if not out:
+        return None
+    best: datetime | None = None
+    best_raw: str | None = None
+    for line in out.splitlines():
+        raw = line.strip()
+        if not raw:
+            continue
+        parsed = parse_iso8601(raw)
+        if parsed is None:
+            continue
+        if best is None or parsed > best:
+            best, best_raw = parsed, raw
+    return best_raw
+
+
+def parse_iso8601(value: str) -> datetime | None:
+    """Parse an ISO 8601 timestamp (``Z`` suffix included) or return ``None``."""
+    text = value.strip()
+    if not text:
+        return None
+    if text.endswith(("Z", "z")):
+        text = text[:-1] + "+00:00"
+    try:
+        parsed = datetime.fromisoformat(text)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return None
+    return parsed
+
+
+def unique_diff_shortstat(cwd: Path, base_ref: str, target_ref: str) -> str | None:
+    """``git diff --shortstat`` between ``base_ref...target_ref``."""
     out = _stdout(
         [
             GIT,
             "diff",
             "--shortstat",
-            f"origin/{default}...origin/{branch}",
+            f"{base_ref}...{target_ref}",
         ],
         cwd,
     )
@@ -906,3 +961,115 @@ def branch_is_protected(cwd: Path, branch: str, repo: str | None = None) -> bool
     if out is None:
         return None
     return out.strip().lower() == "true"
+
+
+# ---------------------------------------------------------------------------
+# Local branch audit helpers (``/iflow-cleanup`` Phase A, issue #243)
+# ---------------------------------------------------------------------------
+
+
+def list_local_branches(cwd: Path) -> list[str] | None:
+    """Short names of local branches (``refs/heads/*``).
+
+    Returns ``None`` when git is unavailable or the query fails.
+    """
+    out = _stdout(
+        [
+            GIT,
+            "for-each-ref",
+            "--format=%(refname:short)",
+            "refs/heads",
+        ],
+        cwd,
+    )
+    if out is None:
+        return None
+    return [line.strip() for line in out.splitlines() if line.strip()]
+
+
+def is_ancestor(cwd: Path, ref: str, upstream: str) -> bool | None:
+    """Whether ``ref`` is reachable from ``upstream``.
+
+    This is the same reachability test ``git branch -d`` applies, so a ``True``
+    answer means a plain ``-d`` will succeed. Returns ``None`` when either ref
+    cannot be resolved.
+    """
+    result = _run([GIT, "merge-base", "--is-ancestor", ref, upstream], cwd)
+    if result is None:
+        return None
+    if result.returncode == 0:
+        return True
+    if result.returncode == 1:
+        return False
+    return None
+
+
+def branch_tip(cwd: Path, branch: str) -> str | None:
+    """Short SHA at the tip of ``branch`` (the recovery handle for a delete)."""
+    out = _stdout([GIT, "rev-parse", "--short", branch], cwd)
+    if not out:
+        return None
+    return out.strip().splitlines()[0].strip() or None
+
+
+def delete_branch(
+    cwd: Path, branch: str, *, force: bool = False
+) -> tuple[bool, str | None]:
+    """Delete a local branch. ``force`` selects ``-D`` over ``-d``.
+
+    Callers must gate ``force=True`` behind its own confirmation: it discards
+    the reachability check that protects unmerged work.
+    """
+    flag = "-D" if force else "-d"
+    result = _run([GIT, "branch", flag, branch], cwd)
+    if result is None:
+        return False, "git is not available"
+    if result.returncode != 0:
+        err = (result.stderr or result.stdout or "git branch delete failed").strip()
+        return False, err
+    return True, None
+
+
+def gh_prs_by_head(
+    cwd: Path,
+    repo: str | None = None,
+    *,
+    limit: int = 100,
+) -> dict[str, list[dict[str, Any]]] | None:
+    """All PRs indexed by head ref name, or ``None`` when ``gh`` fails.
+
+    One ``gh pr list`` call for the whole repo, unlike per-branch
+    :func:`gh_prs_for_head`: auditing every local branch otherwise costs one
+    round trip per branch.
+    """
+    argv = [
+        GH,
+        "pr",
+        "list",
+        "--state",
+        "all",
+        "--limit",
+        str(limit),
+        "--json",
+        "number,title,state,url,mergedAt,headRefName",
+    ]
+    if repo:
+        argv += ["--repo", repo]
+    out = _stdout(argv, cwd)
+    if out is None:
+        return None
+    try:
+        data = json.loads(out)
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(data, list):
+        return None
+    by_head: dict[str, list[dict[str, Any]]] = {}
+    for pr in data:
+        if not isinstance(pr, dict):
+            continue
+        head = pr.get("headRefName")
+        if not head:
+            continue
+        by_head.setdefault(str(head), []).append(pr)
+    return by_head

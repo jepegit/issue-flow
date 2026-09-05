@@ -2,6 +2,9 @@
 
 **Issue:** [#163 — How to handle branches on GitHub](https://github.com/jepegit/issue-flow/issues/163)
 **Status:** decided 2026-07-20, implemented in the same issue.
+**See also:** [`local-branch-cleanup.md`](local-branch-cleanup.md) — the *local*
+half (issue #243), which reuses these bucket/confirm conventions and explains
+why `git branch -d` alone can never prune a squash-merged branch.
 
 ## Context
 

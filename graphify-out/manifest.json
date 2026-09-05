@@ -12,16 +12,16 @@
     "hash": "a45d28d18de31a7b066d6393accb37b1"
   },
   "C:\\scripting\\issue-flow\\src\\issue_flow\\agent.py": {
-    "mtime": 1785409653.5540438,
-    "hash": "ea0fe6f91d9b38de21de195a51be40ea"
+    "mtime": 1788557044.7332537,
+    "hash": "e8c583941cac6037ff5e06b008cb16f0"
   },
   "C:\\scripting\\issue-flow\\src\\issue_flow\\cli.py": {
-    "mtime": 1785409653.5540438,
-    "hash": "75384e767e5ca921c188fd6ae1609128"
+    "mtime": 1788556951.475219,
+    "hash": "1f5328b007f377461596e66ccbae890c"
   },
   "C:\\scripting\\issue-flow\\src\\issue_flow\\config.py": {
-    "mtime": 1785409653.5650342,
-    "hash": "70662d41521db49f3007dcaff4975830"
+    "mtime": 1788543629.6184723,
+    "hash": "85ef7522efbff0143d7dcdddc9ee5a05"
   },
   "C:\\scripting\\issue-flow\\src\\issue_flow\\console_io.py": {
     "mtime": 1784393282.9917774,
@@ -44,20 +44,24 @@
     "hash": "60ef0755f210da86f54d9a0198b1b7cc"
   },
   "C:\\scripting\\issue-flow\\src\\issue_flow\\gitutils.py": {
-    "mtime": 1785409653.5650342,
-    "hash": "99587e88b02c4d43cd25b842c3ff418f"
+    "mtime": 1788557050.7846155,
+    "hash": "e85a33f91611e508915460cbea43ae12"
   },
   "C:\\scripting\\issue-flow\\src\\issue_flow\\graphify.py": {
     "mtime": 1783098709.8527877,
     "hash": "b30a5a45088580df7cc4f07481b05677"
+  },
+  "C:\\scripting\\issue-flow\\src\\issue_flow\\history.py": {
+    "mtime": 1788548596.6565535,
+    "hash": "27f5926fc9733e27a5fc9cf23ff8cbf0"
   },
   "C:\\scripting\\issue-flow\\src\\issue_flow\\init.py": {
     "mtime": 1785409653.5650342,
     "hash": "b49d3fb631422acfd974902086b872eb"
   },
   "C:\\scripting\\issue-flow\\src\\issue_flow\\modes.py": {
-    "mtime": 1785409653.574646,
-    "hash": "53861d08b736f1419a9d9f9358c709c3"
+    "mtime": 1788543629.626192,
+    "hash": "a7b928c4d4b2eff6344337ec67847edd"
   },
   "C:\\scripting\\issue-flow\\src\\issue_flow\\project.py": {
     "mtime": 1783673286.14007,
@@ -80,8 +84,8 @@
     "hash": "621d8971ed553ae4ec64156758f2efa2"
   },
   "C:\\scripting\\issue-flow\\src\\issue_flow\\templating.py": {
-    "mtime": 1785409653.6392982,
-    "hash": "6948786af47cc8e57b8344b33b6dd159"
+    "mtime": 1788543629.6672065,
+    "hash": "916ecb32133bc140a4d922a6b7819f0e"
   },
   "C:\\scripting\\issue-flow\\src\\issue_flow\\tracking.py": {
     "mtime": 1784813123.2669466,
@@ -115,13 +119,21 @@
     "mtime": 1776624131.4964983,
     "hash": "163c4916357069e7b557452d3ef0198d"
   },
+  "C:\\scripting\\issue-flow\\tests\\test_agent_local_branches.py": {
+    "mtime": 1788557545.604707,
+    "hash": "1658eec08fc057c4a5124eac1a070d85"
+  },
+  "C:\\scripting\\issue-flow\\tests\\test_agent_sync_branch.py": {
+    "mtime": 1788548596.6722262,
+    "hash": "6099146b5ac92da4822493e32b45a9a2"
+  },
   "C:\\scripting\\issue-flow\\tests\\test_cli.py": {
-    "mtime": 1785409653.648941,
-    "hash": "7095cc1c4fb0714c16eddd919fce2b19"
+    "mtime": 1788557764.0324636,
+    "hash": "33f2980ca7bcfb9ae5935a7ffe689cf8"
   },
   "C:\\scripting\\issue-flow\\tests\\test_config.py": {
-    "mtime": 1785409653.6520844,
-    "hash": "21f63c462c15f4cb93b8704e76e0fbfe"
+    "mtime": 1788543629.672987,
+    "hash": "51c265fb7523669c2f0363207ac3a136"
   },
   "C:\\scripting\\issue-flow\\tests\\test_convert.py": {
     "mtime": 1784813123.2715275,
@@ -140,16 +152,20 @@
     "hash": "b91ea3d3454726934e5904f1938c9707"
   },
   "C:\\scripting\\issue-flow\\tests\\test_gitutils.py": {
-    "mtime": 1785409653.6547985,
-    "hash": "765c079b2c32185a112f596964771db9"
+    "mtime": 1788543629.6739647,
+    "hash": "1e87ea809bac761e043a7accfcce2915"
   },
   "C:\\scripting\\issue-flow\\tests\\test_graphify.py": {
     "mtime": 1783098709.9139256,
     "hash": "72a0034ccb5415075a3c78e0bcd9c29a"
   },
+  "C:\\scripting\\issue-flow\\tests\\test_history.py": {
+    "mtime": 1788548596.674863,
+    "hash": "a6e1333775a65b5264a9b0eb943566d0"
+  },
   "C:\\scripting\\issue-flow\\tests\\test_init.py": {
-    "mtime": 1785410418.4776535,
-    "hash": "f0b46b6f4ac737d38945376d7153dd80"
+    "mtime": 1788557813.6166317,
+    "hash": "2606f5568fbd4d9a81faf6cf5544db68"
   },
   "C:\\scripting\\issue-flow\\tests\\test_init_skill_level.py": {
     "mtime": 1783333313.2904713,
@@ -160,8 +176,8 @@
     "hash": "508a35352062e60dd1a52bb9675021e7"
   },
   "C:\\scripting\\issue-flow\\tests\\test_modes.py": {
-    "mtime": 1785409653.6609366,
-    "hash": "44622527ddae29f3a7c610686db9c320"
+    "mtime": 1788543629.6752682,
+    "hash": "2925568f6855b8cb37747b0aee2c10aa"
   },
   "C:\\scripting\\issue-flow\\tests\\test_project.py": {
     "mtime": 1783673286.1523015,
@@ -184,8 +200,8 @@
     "hash": "ba4049532b740c50f11363f0a78c4fb2"
   },
   "C:\\scripting\\issue-flow\\tests\\test_templating.py": {
-    "mtime": 1785410400.493754,
-    "hash": "300b78e1dadc070d301c7520792084bd"
+    "mtime": 1788543629.6776433,
+    "hash": "447a7fc47929676e9edf8224b520d7f6"
   },
   "C:\\scripting\\issue-flow\\tests\\test_tracking.py": {
     "mtime": 1784813123.282389,
@@ -204,16 +220,16 @@
     "hash": "d41d8cd98f00b204e9800998ecf8427e"
   },
   "C:\\scripting\\issue-flow\\AGENTS.md": {
-    "mtime": 1785409653.5250134,
-    "hash": "7c31700eb580a00b0313c5a95a6ee970"
+    "mtime": 1788557949.2342489,
+    "hash": "c264b74ca42e6aa1960e47e1da30a95b"
   },
   "C:\\scripting\\issue-flow\\HISTORY.md": {
-    "mtime": 1785409653.5250134,
-    "hash": "f936b37a42c554355881a9f0078c2b25"
+    "mtime": 1788548596.6396766,
+    "hash": "17c0ffc026ecf33ce5bab4b88ea97907"
   },
   "C:\\scripting\\issue-flow\\README.md": {
-    "mtime": 1784813123.185709,
-    "hash": "6e32b949b30cf17f0fcc03b36c9467dc"
+    "mtime": 1788543629.6058953,
+    "hash": "3da737238c4d669caab42db2e8cd2779"
   },
   "C:\\scripting\\issue-flow\\docs\\acknowledgements.md": {
     "mtime": 1783667928.2031243,
@@ -224,16 +240,16 @@
     "hash": "eb05f4af70fc6f1e9d6e7d9b5c5ae838"
   },
   "C:\\scripting\\issue-flow\\docs\\cli.md": {
-    "mtime": 1785409653.5348032,
-    "hash": "125df478e989c4de684fea04a113bd00"
+    "mtime": 1788557502.37169,
+    "hash": "32f62c27497f19df0a5711db5037702b"
   },
   "C:\\scripting\\issue-flow\\docs\\configuration.md": {
-    "mtime": 1785409653.5348032,
-    "hash": "9690c20341f29773955c99d1a7219221"
+    "mtime": 1788543629.6098378,
+    "hash": "2fc92c7058d7b4321ccd6e2ae951d58e"
   },
   "C:\\scripting\\issue-flow\\docs\\developing.md": {
-    "mtime": 1783885676.7125387,
-    "hash": "56389cc539da4051d4ac954732cc5866"
+    "mtime": 1788543128.133371,
+    "hash": "758e63e607331049ecf225acd9161714"
   },
   "C:\\scripting\\issue-flow\\docs\\editors.md": {
     "mtime": 1783673286.1343255,
@@ -248,8 +264,8 @@
     "hash": "23131e6fb584d1da764b22451b66c127"
   },
   "C:\\scripting\\issue-flow\\docs\\issue-workflow.md": {
-    "mtime": 1785410431.7749836,
-    "hash": "147b9a2e21fa282b72360b9b478dc262"
+    "mtime": 1788557968.137668,
+    "hash": "b0d7b3f39bd4fa2c0518add4f9b68524"
   },
   "C:\\scripting\\issue-flow\\local\\copy-of-other-repo\\README.md": {
     "mtime": 1775240858.4569998,

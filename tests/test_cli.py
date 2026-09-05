@@ -665,17 +665,18 @@ def test_agent_branches_json_classifies_remotes(
         lambda _cwd, name, _repo=None: name == "protected-x",
     )
 
-    def _cherry(_cwd: Path, _default: str, branch: str) -> int | None:
-        return {"merged-feat": 0, "wip": 2}.get(branch)
+    def _cherry(_cwd: Path, base_ref: str, target_ref: str) -> int | None:
+        assert base_ref == "origin/main"
+        return {"origin/merged-feat": 0, "origin/wip": 2}.get(target_ref)
 
     monkeypatch.setattr(gitutils_module, "cherry_unique_count", _cherry)
     monkeypatch.setattr(
         gitutils_module,
         "unique_commit_onelines",
-        lambda _cwd, _d, _b, limit=20: ["abc WIP commit"],
+        lambda _cwd, _b, _t, limit=20, no_merges=False: ["abc WIP commit"],
     )
     monkeypatch.setattr(
-        gitutils_module, "unique_diff_shortstat", lambda _cwd, _d, _b: " 1 file changed"
+        gitutils_module, "unique_diff_shortstat", lambda _cwd, _b, _t: " 1 file changed"
     )
 
     def _prs(_cwd: Path, head: str, _repo: str | None = None, limit: int = 20):
