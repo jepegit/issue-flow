@@ -378,7 +378,7 @@ def test_agent_state_no_epic_hint_falls_back_to_init(
     payload = _json(result.stdout)
     assert payload["focus"] is None
     assert payload["epic_hint"] == {"epics": []}
-    assert payload["next_command"] == "/iflow-init"
+    assert payload["next_command"] == "/iflow-capture"
 
 
 def test_agent_sweep_dry_run_does_not_move(runner: CliRunner, tmp_path: Path) -> None:

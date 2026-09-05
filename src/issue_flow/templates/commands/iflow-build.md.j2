@@ -2,7 +2,7 @@
 
 `/iflow-build` **implements** the plan that `/iflow-plan` already wrote. Planning itself now lives in `/iflow-plan` — this command no longer produces the plan.
 
-The issue should already be explained in `{{ issueflows_dir }}/{{ current_issues_folder }}/issue<N>_original.md` (from `/iflow-init`) and a confirmed plan in `issue<N>_plan.md` (from `/iflow-plan`).
+The issue should already be explained in `{{ issueflows_dir }}/{{ current_issues_folder }}/issue<N>_original.md` (from `/iflow-capture`) and a confirmed plan in `issue<N>_plan.md` (from `/iflow-plan`).
 
 {% include "skills/_model_directive.md.j2" %}
 
@@ -27,7 +27,7 @@ If additional input is added, use that as implementation hints (scope, constrain
 > fall back to the manual steps below. (`issue-flow` is only present when the
 > user installed it, e.g. `uv tool install issue-flow`.)
 
-0. **Find the focus issue.** Look in `{{ issueflows_dir }}/{{ current_issues_folder }}/` for `issue<N>_original.md`. If missing or multiple groups are ambiguous, ask. Could the user have skipped `/iflow-init`?
+0. **Find the focus issue.** Look in `{{ issueflows_dir }}/{{ current_issues_folder }}/` for `issue<N>_original.md`. If missing or multiple groups are ambiguous, ask. Could the user have skipped `/iflow-capture`?
 
 0.5 **Branch status preflight** (non-destructive — report, do not delete).
    - Detect the default branch: `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`. If `gh` is unavailable, use `git symbolic-ref --quiet --short refs/remotes/origin/HEAD | sed 's|^origin/||'`, else fall back to `main`.

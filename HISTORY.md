@@ -9,6 +9,7 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- **`/iflow-capture` for issues; `/iflow-init` for the harness (#241).** Issue capture moves to `/iflow-capture` (matches `issue-flow agent capture`). `/iflow-init` is now off-path harness cold-start / check (guides `issue-flow init` / `update`); it never pulls GitHub issues. Lifecycle stage id is `capture` (`STAGE_INIT` kept as a back-compat alias). No one-release dual-meaning alias — same prune-on-update stance as `iflow-start` → `iflow-build` (#183).
 - **Linked GitHub sub-issues via `/iflow-split` (#12).** Confirm-gated split of one over-large issue into 2–5 flat children, linked as native sub-issues; `issue-flow agent sub-issue-add` sends integer JSON via `--input`. Pick / issue / plan offer split or epic and never auto-create.
 - **Doctor flags un-scaffolded editors (#237).** `issue-flow doctor` (and `/iflow-doctor`) now emit a `missing_editor_scaffold` INFO finding when an editor config dir exists on disk (e.g. `.claude/` from opening the project in Claude Code) but has no issue-flow scaffold, so its `/iflow-*` commands never appear. Suggests `issue-flow update --editor <id>`. Skipped when `ISSUEFLOW_AGENT_DIR` overrides the layout.
 - **README badges (#231).** PyPI version, Read the Docs, and Pepy downloads badges under the title.

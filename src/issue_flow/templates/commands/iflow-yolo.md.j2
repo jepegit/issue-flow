@@ -1,6 +1,6 @@
 # All-in-one flow for small, low-risk issues
 
-Chains `/iflow-init` → `/iflow-plan` → `/iflow-build` → `/iflow-close` in a single run, with safeguards. Use this **only** for minor fixes, docs tweaks, and similar low-risk changes where a full plan/review loop would be overkill.
+Chains `/iflow-capture` → `/iflow-plan` → `/iflow-build` → `/iflow-close` in a single run, with safeguards. Use this **only** for minor fixes, docs tweaks, and similar low-risk changes where a full plan/review loop would be overkill.
 
 For anything non-trivial, use the individual commands so you get confirmation checkpoints.
 
@@ -12,7 +12,7 @@ The chained commands still consult and update `{{ issueflows_dir }}/{{ designs_f
 
 ## Input
 
-Same as `/iflow-init` (issue number, URL, or empty to infer from the branch). Optional extra tokens are forwarded to the downstream commands:
+Same as `/iflow-capture` (issue number, URL, or empty to infer from the branch). Optional extra tokens are forwarded to the downstream commands:
 
 - `bump` / `patch` / `minor` / `major` — forwarded to `/iflow-close` for the version bump.
 - `nohistory` / `skip history` — forwarded to `/iflow-close` to skip the `{{ history_file }}` update step.
@@ -35,7 +35,7 @@ Same as `/iflow-init` (issue number, URL, or empty to infer from the branch). Op
    ```
    /iflow-yolo will run, without further prompts:
 
-     1. /iflow-init 123
+     1. /iflow-capture 123
      2. /iflow-plan              (auto-confirmed, short plan)
      3. /iflow-build             (implement directly)
      4. /iflow-close yolo patch  (tests, bump, commit, push, PR, merge, pull)
@@ -52,7 +52,7 @@ Same as `/iflow-init` (issue number, URL, or empty to infer from the branch). Op
 
 Once the preflight has passed and the user confirmed:
 
-1. **`/iflow-init`** — capture the issue (or skip if the `*_original.md` already exists for the focus issue).
+1. **`/iflow-capture`** — capture the issue (or skip if the `*_original.md` already exists for the focus issue).
 
 2. **`/iflow-plan`** — auto-confirmed. Write a **short** `issue<N>_plan.md` (Goal + Approach + Files to touch + Test strategy). Do not stop for user confirmation; the consolidated confirm above already covered it. For trivial yolo scope, prior-art discovery may be abbreviated to a quick grep (skip graph skim); the full checklist still applies to normal `/iflow-plan`. If the scope check reveals the change is not actually small (touches many unrelated files, mixes refactors, etc.), **abort** the yolo chain and tell the user to run the commands individually.
 

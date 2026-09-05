@@ -72,7 +72,7 @@ than you need. Three modes ship built in:
 | Mode | What you get |
 | --- | --- |
 | `standard` (default) | The full workflow: planning, PRs, history, cleanup, graphify, and all helpers. |
-| `novice` | Guided setup plus the straight-line lifecycle and the safety nets: `/iflow`, `/iflow-setup`, `/iflow-pick`, `/iflow-init`, `/iflow-issue`, `/iflow-plan`, `/iflow-build`, `/iflow-pause`, `/iflow-close`, `/iflow-cleanup`, `/iflow-status`, `/iflow-doctor`. No yolo / cycle / auto / epic / split / fix / review / archive / graphify. |
+| `novice` | Guided setup plus the straight-line lifecycle and the safety nets: `/iflow`, `/iflow-setup`, `/iflow-pick`, `/iflow-init`, `/iflow-capture`, `/iflow-issue`, `/iflow-plan`, `/iflow-build`, `/iflow-pause`, `/iflow-close`, `/iflow-cleanup`, `/iflow-status`, `/iflow-doctor`. No yolo / cycle / auto / epic / split / fix / review / archive / graphify. |
 | `simple` | A markdown-only lifecycle (capture, plan, implement, park, status, archive). No PR/cleanup/yolo/fix/graphify automation. Includes `/iflow-archive` for condensing a large `03-solved-issues/` folder. |
 
 ```bash

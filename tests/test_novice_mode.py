@@ -29,7 +29,13 @@ def test_novice_is_a_strict_subset_that_keeps_the_linear_lifecycle() -> None:
 
     assert mode.skills < frozenset(SKILL_DIRS)
     assert mode.commands < frozenset(COMMAND_NAMES)
-    for stem in ("iflow_setup", "iflow_plan", "iflow_build", "iflow_close"):
+    for stem in (
+        "iflow_setup",
+        "iflow_capture",
+        "iflow_plan",
+        "iflow_build",
+        "iflow_close",
+    ):
         assert stem in mode.skills
     # The hands-off, batch, and decomposition machinery is what novice drops.
     for stem in ("iflow_yolo", "iflow_cycle", "iflow_auto", "iflow_epic"):

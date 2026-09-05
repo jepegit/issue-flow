@@ -1,6 +1,6 @@
 # Create a normal issue (`/iflow-issue`)
 
-`/iflow-issue` authors and creates **one well-specified GitHub issue** (a single deliverable), then optionally sets up the normal lifecycle: branch + `/iflow-init`, then hand off to `/iflow-plan`.
+`/iflow-issue` authors and creates **one well-specified GitHub issue** (a single deliverable), then optionally sets up the normal lifecycle: branch + `/iflow-capture`, then hand off to `/iflow-plan`.
 
 Use it when you want a real issue body (context, spec, acceptance criteria) — not a general-fixes chore bucket and not a multi-issue epic.
 
@@ -47,10 +47,10 @@ Optional free-form text after the command — a seed for the title and/or short 
    - Build a kebab-case slug from the title; branch name `<N>-<slug>`. Confirm a non-obvious slug.
    - **On the default branch** → `git switch -c <N>-<slug>`.
    - **On a non-default branch** → **ask** whether to branch from the **current** branch or from the **default** branch.
-   - Delegate local capture to `/iflow-init` for `<N>` (follow `{{ agent_dir }}/commands/iflow-init.md`). Do not re-implement that logic.
+   - Delegate local capture to `/iflow-capture` for `<N>` (follow `{{ agent_dir }}/commands/iflow-capture.md`). Do not re-implement that logic.
    - **Ask** whether to continue with `/iflow-plan`. Do **not** auto-run it.
 
-6. **Create-only.** If the user declines Phase 2, stop after create. Remind them they can pick it up later with `/iflow-pick` / `/iflow-init`.
+6. **Create-only.** If the user declines Phase 2, stop after create. Remind them they can pick it up later with `/iflow-pick` / `/iflow-capture`.
 
 ## Constraints
 
@@ -58,5 +58,5 @@ Optional free-form text after the command — a seed for the title and/or short 
 - Never create a GitHub issue or branch without explicit confirmation; show what will be created first.
 - GitHub only (`gh`); GitLab is not supported.
 - Branch off the detected default (or the current branch when chosen); never force-push or delete branches from this skill.
-- Delegate local capture to `/iflow-init`; do not write `issue<N>_plan.md` here.
+- Delegate local capture to `/iflow-capture`; do not write `issue<N>_plan.md` here.
 - Do not merge with `/iflow-fix` or `/iflow-pick fix` — different intents.

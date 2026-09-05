@@ -2,7 +2,7 @@
 name: iflow-pick
 description: >-
   Front door: choose the next issue, create the issue branch, and run
-  /iflow-init.
+  /iflow-capture.
 disable-model-invocation: true
 issue-flow-version: 0.4.2a4
 ---
@@ -77,7 +77,7 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 5. **Create a `fix` issue (only when requested).** Use `gh issue create` (e.g. `chore: general fixes`), confirm title/body first, capture the new number. A fresh issue is created each time — never reuse an existing open general-fixes issue.
 6. **Over-large issue (offer only).** If the chosen issue is too big for one PR, **mention** `/iflow-split` (flat parent/child) or `/iflow-epic` (staged) and ask. Default is proceed with the whole issue. Do **not** create children here.
 
-7. **Label-driven yolo flow.** If the chosen issue carries the **`yolo`** label (case-insensitive), announce it and fold `/iflow-yolo`'s consolidated confirm into the pick confirmation (one prompt: branch + full `init → plan → build → close yolo` chain). On yes, run Phase 2 then follow the `iflow-yolo` skill **instead of** the Phase 3 handoff — its preflight still applies, but do not re-ask its confirm. Configurable via `label_flows` / `yolo_label` under `[issueflow]` in `.issueflows/config.toml` (re-run `issue-flow update` after changing).
+7. **Label-driven yolo flow.** If the chosen issue carries the **`yolo`** label (case-insensitive), announce it and fold `/iflow-yolo`'s consolidated confirm into the pick confirmation (one prompt: branch + full `capture → plan → build → close yolo` chain). On yes, run Phase 2 then follow the `iflow-yolo` skill **instead of** the Phase 3 handoff — its preflight still applies, but do not re-ask its confirm. Configurable via `label_flows` / `yolo_label` under `[issueflow]` in `.issueflows/config.toml` (re-run `issue-flow update` after changing).
 
 
 
@@ -98,7 +98,7 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
    - **Mixed / code dirty** — **stop**; list non-`.issueflows/` paths;
      ask commit / stash / abort. Do **not** auto-offer “commit everything”.
 2. **Branch off the default** — switch to default, fast-forward, then `git switch -c <N>-<short-slug>` (GitHub numeric convention). Confirm a non-obvious slug.
-3. **Run `/iflow-init`** for the now-known `<N>` by following the `iflow-init` skill. Do not duplicate its fetch/archive logic.
+3. **Run `/iflow-capture`** for the now-known `<N>` by following the `iflow-capture` skill. Do not duplicate its fetch/archive logic.
 
 ### Phase 3 — hand off
 
@@ -106,7 +106,7 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 1. **Chain into `/iflow-plan`** (this project has `auto_plan = true`). After Phase 2, follow the `iflow-plan` skill immediately — briefly note that `auto_plan` chained the handoff. Trailing **`noplan`** (or the user declining on confirm) skips the chain once and falls back to asking.
 
 
-2. **Exception:** when the `yolo`-label routing was confirmed in Phase 1, skip this handoff — the `iflow-yolo` chain (which includes `/iflow-init`) takes over after the branch is created.
+2. **Exception:** when the `yolo`-label routing was confirmed in Phase 1, skip this handoff — the `iflow-yolo` chain (which includes `/iflow-capture`) takes over after the branch is created.
 
 
 ## Constraints
@@ -115,5 +115,5 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 - Never create a GitHub issue or branch without explicit confirmation; show what will be created first.
 - Branch off the detected default; never force-push or delete branches from this skill.
 - Over-large splits are **offer-only**: never create child issues from this skill. Point at `/iflow-split` (flat) or `/iflow-epic` (staged).
-- Delegate issue capture to `/iflow-init` rather than re-implementing it.
+- Delegate issue capture to `/iflow-capture` rather than re-implementing it.
 - `auto_plan` only skips the post-init pause; pick confirm and yolo routing stay gated.

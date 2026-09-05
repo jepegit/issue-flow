@@ -137,6 +137,7 @@ def _verify_novice(keep: bool) -> None:
 
         for rel in (
             ".cursor/skills/iflow-setup/SKILL.md",
+            ".cursor/skills/iflow-capture/SKILL.md",
             ".cursor/skills/iflow-plan/SKILL.md",
             ".cursor/skills/iflow-close/SKILL.md",
         ):

@@ -4,25 +4,61 @@ description: >-
   Guide a new user from an empty folder or an unprepared existing project to
   a working issue-flow setup: uv project, git repo, GitHub remote, and scaffold.
 disable-model-invocation: true
+issue-flow-version: 0.4.2a4
 ---
 
 # issue-flow — guided project setup (`/iflow-setup`)
 
-Follow this skill to get a project **ready to use issue-flow** — for someone who may never have driven an agentic workflow before.{% if commands_supported %} Matches `{{ agent_dir }}/{{ commands_dir }}/iflow-setup.md`.{% endif %}
+Follow this skill to get a project **ready to use issue-flow** — for someone who may never have driven an agentic workflow before.
 
 It covers both entry paths from a standing start:
 
 - **New project** — an empty (or nearly empty) folder that needs a Python project, a git repo, and a GitHub remote.
 - **Existing project** — real code already, but some piece is missing (no remote, `gh` not authenticated, no issue-flow scaffold).
 
-This is **not** the issue-capture step. Capturing a GitHub issue into `{{ issueflows_dir }}/{{ current_issues_folder }}/` is `/iflow-capture`; picking what to work on is `/iflow-pick`. `/iflow-init` only cold-starts the harness.
+This is **not** the issue-capture step. Capturing a GitHub issue into `.issueflows/01-current-issues/` is `/iflow-capture`; picking what to work on is `/iflow-pick`. `/iflow-init` only cold-starts the harness.
 
-{% set iflow_step = "setup" %}
-{% include "skills/_invocation_forms.md.j2" %}
 
-{% include "skills/_model_directive.md.j2" %}
+**Invoke:** type `iflow setup` in chat, or `/iflow-setup` from the slash menu (`iflow-setup` also works).
 
-{% include "skills/_resolve_project_root.md.j2" %}
+
+
+
+### MODEL & EXECUTION DIRECTIVE
+
+
+**Profile: reasoning** — Prioritize deep thinking and careful trade-offs over speed or token economy.
+
+In Cursor: switch to a thinking-capable model before invoking this step (not Auto-only).
+
+
+
+Keep scope tight to what this step requires.
+
+
+
+
+### Resolve project root (multi-root workspaces)
+
+Before any `git`, `gh`, or `.issueflows/` path operation in this workflow:
+
+**Resolution order** (stop when unambiguous):
+
+1. **Explicit hints** in slash input — `root:<path>`, `repo:<folder-basename>` (directory name, e.g. `cellpy-core`), or `repo:owner/name`.
+2. **CLI fast path** — `issue-flow agent resolve [-C <start>] [--from-file <active-file>] [--json]`. Use the returned `project_root` and `repo`; pass `-C <project_root>` to other `issue-flow agent …` subcommands. When the answer came from the workspace registry, the payload sets `resolved_via_workspace_default: true`.
+3. **Branch context** — exactly one workspace repo whose branch matches `^\d+-` → that root.
+4. **Single scaffold** — exactly one `.issueflows/` tree visible in the workspace → that root.
+5. **Workspace default** — an `issueflow-workspace.toml` at the workspace root (created with `issue-flow workspace init`) may name a `default` member repo; use it when no scaffold matched above. Tell the user the default was used.
+6. **Ambiguous** → **stop and ask**; never guess between sibling repos.
+
+After resolution, treat the result as `<project_root>` and `<owner/repo>`:
+
+- **Git:** `git -C <project_root> …` (or `issue-flow agent … -C <project_root>` for supported ops).
+- **GitHub:** pass an explicit repo on every `gh` call — never rely on `gh`'s implicit cwd default. For most commands use `--repo <owner/repo>`; **exception:** `gh repo view` takes the repo as a **positional** arg (`gh repo view <owner/repo> …`) and rejects `--repo`.
+- **Paths:** all `.issueflows/…` paths are under `<project_root>`.
+
+When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read it for layout and cross-repo guidance.
+
 
 ## Input
 
@@ -41,7 +77,7 @@ This is **not** the issue-capture step. Capturing a GitHub issue into `{{ issuef
 > even when the project is not ready. If the CLI is missing, run the equivalent
 > probes by hand (`git rev-parse --is-inside-work-tree`, `git remote get-url
 > origin`, `gh auth status`, and file checks for `pyproject.toml` /
-> `{{ issueflows_dir }}/`).
+> `.issueflows/`).
 
 1. **Read the state.** Run the readiness check and summarise it in a few plain lines — what is already fine, what is missing. Do not use issue-flow jargon the user has not met yet.
 
@@ -65,7 +101,7 @@ This is **not** the issue-capture step. Capturing a GitHub issue into `{{ issuef
 5. **Choose a starting mode when scaffolding.** For someone new to agentic coding, recommend **`issue-flow init --mode novice`**: it installs the linear lifecycle plus the safety nets (`/iflow`, `/iflow-setup`, `/iflow-pick`, `/iflow-init`, `/iflow-capture`, `/iflow-issue`, `/iflow-plan`, `/iflow-build`, `/iflow-pause`, `/iflow-close`, `/iflow-cleanup`, `/iflow-status`, `/iflow-doctor`) and leaves out the hands-off and batch machinery, and it seeds settings that ask before each step instead of chaining. Mention that `issue-flow init --mode standard` adds everything later — switching mode is just a re-run.
 
 6. **Hand off — never auto-dispatch.** End with the single next thing to type:
-   - GitHub issues already exist → **`/iflow-pick`**{% if not commands_supported %} (`iflow pick` in chat){% endif %}.
+   - GitHub issues already exist → **`/iflow-pick`** (`iflow pick` in chat).
    - No issues yet → **`/iflow-issue`** to write a good first one.
    - Then the ordinary path: `/iflow-plan` → `/iflow-build` → `/iflow-close`.
 

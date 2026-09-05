@@ -42,7 +42,7 @@ Run this only when there is no active session for the current branch yet (no `is
    - **On a non-default branch** → **ask** whether to branch from the **current** branch or from the **default** branch, then create `<N>-<slug>` accordingly.
    - Require a clean tree before switching; confirm a non-obvious slug.
 
-4. **Capture locally.** Delegate to the `/iflow-init` flow for `<N>` (follow `{{ agent_dir }}/commands/iflow-init.md`): fetch the issue, write `{{ issueflows_dir }}/{{ current_issues_folder }}/issue<N>_original.md`, and run its archive sweep on the other groups. Do not re-implement that logic here.
+4. **Capture locally.** Delegate to the `/iflow-capture` flow for `<N>` (follow `{{ agent_dir }}/commands/iflow-capture.md`): fetch the issue, write `{{ issueflows_dir }}/{{ current_issues_folder }}/issue<N>_original.md`, and run its archive sweep on the other groups. Do not re-implement that logic here.
 
 5. **Seed the status file.** Create `{{ issueflows_dir }}/{{ current_issues_folder }}/issue<N>_status.md` with:
    - a short header noting this is an interactive `/iflow-fix` session,
@@ -59,7 +59,7 @@ Each time the user proposes a small fix (or runs `/iflow-fix <description>` duri
 4. **Implement** the confirmed fix. Keep changes focused on that one fix.
 5. **Record it.** Append a dated bullet to the **`## Iterative fixes log`** in `issue<N>_status.md` summarizing what changed (and any follow-ups). Offer to update the log proactively; always update when asked.
 
-If a proposed "fix" turns out to be a substantial feature or touches many unrelated areas, say so and suggest handling it as its own issue (`/iflow-init` → `/iflow-plan` → `/iflow-build`) rather than as a loop iteration.
+If a proposed "fix" turns out to be a substantial feature or touches many unrelated areas, say so and suggest handling it as its own issue (`/iflow-capture` → `/iflow-plan` → `/iflow-build`) rather than as a loop iteration.
 
 ## Phase 3 — finish
 
@@ -72,7 +72,7 @@ If a proposed "fix" turns out to be a substantial feature or touches many unrela
 - **GitHub only.** Session issues are created with `gh` (GitHub). GitLab is not supported.
 - **Respect git safety norms.** Branch off the detected default (or the current branch when the user chooses), never force-push, never delete branches from this command.
 - **Keep the status checkbox accurate.** Leave `- [ ] Done` unchecked during the session; `/iflow-close` flips it to `- [x] Done` when the work lands.
-- **Delegate, don't duplicate.** Use `/iflow-init` for local capture and `/iflow-close` to finish, rather than re-implementing their logic here.
+- **Delegate, don't duplicate.** Use `/iflow-capture` for local capture and `/iflow-close` to finish, rather than re-implementing their logic here.
 - One fix per loop iteration; implement only on explicit confirmation.
 
 ## Output to user
