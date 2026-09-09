@@ -258,6 +258,45 @@ checks are empty. Always pass `--repo <owner/repo>`. `/iflow-close` owns the
 merge sequence; this skill is the shared command cheatsheet.
 
 {% endif %}
+{% if pstack_skills %}
+### pstack skills
+
+This project opted into a curated subset of Lauren Tan's (poteto) **pstack**
+skills library ([cursor/plugins/pstack](https://github.com/cursor/plugins/tree/main/pstack),
+MIT), vendored verbatim by issue-flow under `{{ agent_dir }}/skills/<name>/`.
+They are **user-invoked** (`/<name>` or `<name>` in chat) and never auto-run by
+the `iflow-*` lifecycle; the lifecycle skills only *suggest* them where they fit.
+
+{% for name in pstack_skills %}
+{%- if name == "unslop" %}
+- **`unslop`** — cut AI tells from prose: PR bodies, `{{ history_file }}` bullets, issue specs, docs.
+{%- elif name == "tdd" %}
+- **`tdd`** — bug fixes with a cheap local test path: failing regression test first, then the fix.
+{%- elif name == "blast-radius" %}
+- **`blast-radius`** — before a PR, find what a small-looking change could break elsewhere and prove the one fact it is safe because of by running code.
+{%- elif name == "technical-writing" %}
+- **`technical-writing`** — layered standard (Diátaxis, Google developer style, STE, Global English) for docs, READMEs, RFCs, PR descriptions, commit messages.
+{%- elif name == "bro" %}
+- **`bro`** — restate the last message in plain human language, no jargon.
+{%- elif name == "principle-prove-it-works" %}
+- **`principle-prove-it-works`** — verify against the real artifact before declaring done (before ticking `- [x] Done`).
+{%- elif name == "principle-subtract-before-you-add" %}
+- **`principle-subtract-before-you-add`** — remove or simplify before adding; planning discipline.
+{%- elif name == "principle-fix-root-causes" %}
+- **`principle-fix-root-causes`** — fix the cause, not the symptom; build / fix discipline.
+{%- elif name == "principle-test-behavior-not-implementation" %}
+- **`principle-test-behavior-not-implementation`** — tests assert observable behaviour, not internals.
+{%- else %}
+- **`{{ name }}`** — see `{{ agent_dir }}/skills/{{ name }}/SKILL.md`.
+{%- endif %}
+{% endfor %}
+
+Selection lives in `pstack_skills` under `[issueflow]` in
+`{{ issueflows_dir }}/config.toml` (a list of upstream names or `"all"`); re-run
+`issue-flow update` after changing it — removed skills are pruned. If the full
+pstack Cursor plugin is also installed, the same-named skills coexist.
+
+{% endif %}
 ### Designs and guides
 
 Long-lived design docs, design decisions, and project "good practices" live under `{{ issueflows_dir }}/{{ designs_folder }}/`. Unlike the issue folders, content here is **not** tied to a single issue and is **not** archived when an issue closes — it is the project's durable memory.
