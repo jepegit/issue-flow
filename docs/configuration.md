@@ -29,6 +29,7 @@ don't already have. `issue-flow update` does not touch `.env` at all.
 | `ISSUEFLOW_LABEL_FLOWS`  | `true`         | Fallback for the [label-driven flows](#label-driven-flows) toggle. Full order: `config.toml` > `ISSUEFLOW_LABEL_FLOWS` > `true`. Only honored when the `iflow-pick` and `iflow-yolo` commands are in the active mode. |
 | `ISSUEFLOW_YOLO_LABEL`   | `yolo`         | Fallback for the [yolo trigger label](#label-driven-flows). Full order: `config.toml` > `ISSUEFLOW_YOLO_LABEL` > `yolo`. |
 | `ISSUEFLOW_LINGUIST_ATTRIBUTES` | `false` | Fallback for the [Linguist `.gitattributes`](#linguist-gitattributes) toggle. Full order: `config.toml` > `ISSUEFLOW_LINGUIST_ATTRIBUTES` > `false` (opt-in). |
+| `ISSUEFLOW_PSTACK_SKILLS` | *(none)* | Fallback for the [pstack skills](#pstack-skills) selection: comma-separated upstream names (`unslop,tdd`) or `all`. Full order: `config.toml` > `ISSUEFLOW_PSTACK_SKILLS` > none. |
 
 The optional [graphify integration](graphify.md) additionally reads an LLM API
 key (`GEMINI_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`,
@@ -52,7 +53,7 @@ It writes the keys issue-flow actually reads from `config.toml` — `mode`,
 `auto_switchback`, `pr_merge_method`, `cycle_max_issues`,
 `confirm_version_bump`, `ruff_autofix`, `auto_close`, `auto_plan`,
 `auto_build`, `confirm_changelog_update`, `essential_tests`,
-`test_runner`, `essential_marker`, `essential_review` — taking each value from
+`test_runner`, `essential_marker`, `essential_review`, `pstack_skills` — taking each value from
 its `ISSUEFLOW_*` env var / `.env`
 when set, otherwise the issue-flow default.
 The other `ISSUEFLOW_*` settings are **environment-only** and are deliberately
@@ -223,6 +224,54 @@ This renders an always-on grill-me pointer into the managed rule body and the
 `/iflow-plan` skill, so planning starts with a grilling pass every session; you
 can still drop it for the rest of a session with "stop grilling" / "normal mode".
 The flag is only honored when the `grill_me` skill is part of the active mode.
+
+## pstack skills
+
+[pstack](https://github.com/cursor/plugins/tree/main/pstack) is Lauren Tan's
+(poteto) MIT-licensed skills library for rigorous agent work. Cursor users can
+install all of it with `/add-plugin pstack`; issue-flow additionally ships a
+**curated subset** of its single-file skills so any project — on any supported
+editor — can opt them in next to the `iflow-*` skills and have them refreshed
+by `issue-flow update`.
+
+The vendored skills (upstream names; bodies are verbatim, only an
+`issue-flow-version` stamp and a provenance comment are added):
+
+| Skill | Use it when |
+| --- | --- |
+| `unslop` | cutting AI tells from prose — PR bodies, `HISTORY.md` bullets, issue specs, docs |
+| `tdd` | fixing a bug that has a cheap local test path: failing regression test first, then the fix |
+| `blast-radius` | a small-looking diff might break something elsewhere; proves the one fact it is safe because of by running code |
+| `technical-writing` | writing or reviewing docs, READMEs, RFCs, PR descriptions, commit messages |
+| `bro` | restating the last message in plain human language |
+| `principle-prove-it-works` | verifying against the real artifact before declaring done |
+| `principle-subtract-before-you-add` | removing or simplifying before adding |
+| `principle-fix-root-causes` | fixing the cause, not the symptom |
+| `principle-test-behavior-not-implementation` | keeping tests on observable behaviour |
+
+They are **off by default** and never part of a mode's `skills = "all"`. Opt in
+with `pstack_skills` under `[issueflow]` — a list of upstream names or `"all"` —
+then re-run `issue-flow update`:
+
+```toml
+[issueflow]
+pstack_skills = ["unslop", "tdd", "blast-radius"]
+```
+
+Each selected skill lands at `<agent_dir>/skills/<name>/SKILL.md` (so `/unslop`
+works exactly as in pstack's own docs), the managed rule body gains a short
+"pstack skills" section listing what is installed, and `/iflow-close` /
+`/iflow-build` gain soft, membership-gated suggestions (unslop the PR body,
+blast-radius before the PR, tdd for bug-shaped issues). Nothing is ever run
+automatically. Removing a name and re-running `update` prunes that folder.
+Custom modes can also `add = ["pstack_tdd"]` (stem form: `pstack_` + name with
+hyphens as underscores).
+
+Skills that depend on Cursor multi-model subagents, bundled scripts, MCP
+fan-out, or pstack's own lifecycle (`poteto-mode`, `interrogate`, `arena`,
+`swarm`, `why`, …) are deliberately not vendored — install the full plugin for
+those. If both are installed, the same-named skills simply coexist. Upstream
+licence text ships as `_pstack_LICENSE.txt` next to the templates.
 
 ## Label-driven flows
 
