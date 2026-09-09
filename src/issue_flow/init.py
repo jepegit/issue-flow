@@ -374,7 +374,11 @@ def run_init(
     explicit_mode = mode is not None
     mode_id = mode if explicit_mode else settings.resolve_active_mode_id(project_root)
     try:
-        mode_obj = modes_module.resolve_mode(mode_id, cfg_path)
+        mode_obj = modes_module.resolve_mode(
+            mode_id,
+            cfg_path,
+            pstack_skills=settings.resolve_pstack_skills(project_root),
+        )
     except ValueError as exc:
         console_io.console.print(f"[red]error[/red]  {exc}")
         raise typer.Exit(code=2) from None

@@ -13,17 +13,20 @@ import tomllib
 from importlib import resources
 from typing import Literal
 
-from issue_flow.templating import COMMAND_NAMES, SKILL_DIRS
+from issue_flow.templating import COMMAND_NAMES, OPTIONAL_SKILL_DIRS, SKILL_DIRS
 
 StepProfile = Literal["economy", "reasoning"]
 
 _PROFILES_RESOURCE = "step_profiles.toml"
 _VALID_PROFILES: frozenset[str] = frozenset({"economy", "reasoning"})
 
-# Lifecycle skills that receive a MODEL & EXECUTION DIRECTIVE (excludes
-# model-invoked helpers: caveman / grill_me / gh_ci).
+# Lifecycle skills that receive a MODEL & EXECUTION DIRECTIVE (excludes the
+# model-invoked helpers caveman / grill_me / gh_ci and the vendored optional
+# skills, whose bodies issue-flow does not edit).
 LIFECYCLE_SKILL_STEMS: frozenset[str] = frozenset(
-    stem for stem in SKILL_DIRS if stem not in {"caveman", "grill_me", "gh_ci"}
+    stem
+    for stem in SKILL_DIRS
+    if stem not in {"caveman", "grill_me", "gh_ci"} and stem not in OPTIONAL_SKILL_DIRS
 )
 
 _COMMAND_TO_SKILL: dict[str, str] = {

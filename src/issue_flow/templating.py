@@ -143,7 +143,11 @@ COMMAND_NAMES: list[str] = [
 # Skill template sub-directories (underscored). Output folder name is the same
 # with underscores swapped for hyphens (``iflow_iflow`` -> ``iflow-iflow``).
 # Skills are the portable core and are emitted for every editor.
-SKILL_DIRS: list[str] = [
+#
+# ``DEFAULT_SKILL_DIRS`` is what a mode's ``skills = "all"`` expands to; the
+# optional pstack stems below are appended into ``SKILL_DIRS`` (every packaged
+# stem) but must be opted into explicitly.
+DEFAULT_SKILL_DIRS: list[str] = [
     "iflow_iflow",
     "iflow_setup",
     "iflow_pick",
@@ -181,10 +185,49 @@ SKILL_DIRS: list[str] = [
     "gh_ci",
 ]
 
+# Curated subset of Lauren Tan's (poteto) pstack skills library
+# (https://github.com/cursor/plugins/tree/main/pstack, MIT), vendored verbatim
+# as ``skills/pstack_<name>/SKILL.md.j2``. Upstream folder names; re-sync with
+# ``.issueflows/00-tools/vendor_pstack.py`` (keep its CURATED tuple in step).
+PSTACK_SKILL_NAMES: tuple[str, ...] = (
+    "unslop",
+    "tdd",
+    "blast-radius",
+    "technical-writing",
+    "bro",
+    "principle-prove-it-works",
+    "principle-subtract-before-you-add",
+    "principle-fix-root-causes",
+    "principle-test-behavior-not-implementation",
+)
+
+
+def pstack_stem(name: str) -> str:
+    """Map an upstream pstack skill name to its template stem (``unslop`` -> ``pstack_unslop``)."""
+    return "pstack_" + name.replace("-", "_")
+
+
+PSTACK_NAME_TO_STEM: dict[str, str] = {
+    name: pstack_stem(name) for name in PSTACK_SKILL_NAMES
+}
+
+# Optional stems: valid surfaces (custom-mode ``add``, ``pstack_skills``), but
+# never part of the ``"all"`` universe, so ``standard`` renders without them.
+PSTACK_SKILL_DIRS: list[str] = [
+    PSTACK_NAME_TO_STEM[name] for name in PSTACK_SKILL_NAMES
+]
+OPTIONAL_SKILL_DIRS: list[str] = list(PSTACK_SKILL_DIRS)
+
+# Every packaged skill stem, default and optional, in manifest order.
+SKILL_DIRS: list[str] = DEFAULT_SKILL_DIRS + OPTIONAL_SKILL_DIRS
+
 SKILL_OUTPUT_NAMES: dict[str, str] = {
     # Keep the template directory stable while exposing the dispatcher as
     # `/iflow`, not the awkward `/iflow-iflow`, in skills-first editors.
     "iflow_iflow": "iflow",
+    # pstack skills keep their upstream folder names so `/unslop`, `/tdd`, ...
+    # match pstack's own docs and the `name:` frontmatter.
+    **{stem: name for name, stem in PSTACK_NAME_TO_STEM.items()},
 }
 
 # Retired command names (pre-v0.5.0 rename) to be removed on update.
@@ -233,6 +276,18 @@ DOCS_ENTRY: tuple[str, str] = (
 )
 
 
+def _selected_skill_dirs(mode: Mode | None) -> list[str]:
+    """Skill stems to emit for ``mode`` in manifest order.
+
+    ``mode=None`` keeps the back-compat default surface (``DEFAULT_SKILL_DIRS``);
+    optional stems such as the pstack skills are only emitted when the resolved
+    mode lists them.
+    """
+    if mode is None:
+        return list(DEFAULT_SKILL_DIRS)
+    return [skill_dir for skill_dir in SKILL_DIRS if skill_dir in mode.skills]
+
+
 def build_canonical_manifest(
     mode: Mode | None = None, skill_level: str | None = None
 ) -> list[tuple[str, str]]:
@@ -241,12 +296,9 @@ def build_canonical_manifest(
     Canonical snapshots use editor-neutral skill bodies (rendered with the codex
     profile context) and omit per-editor rules, commands, and workflow docs.
     """
-    skills_filter = None if mode is None else mode.skills
     entries: list[tuple[str, str]] = []
 
-    for skill_dir in SKILL_DIRS:
-        if skills_filter is not None and skill_dir not in skills_filter:
-            continue
+    for skill_dir in _selected_skill_dirs(mode):
         output_name = SKILL_OUTPUT_NAMES.get(skill_dir, skill_dir.replace("_", "-"))
         entries.append(
             (
@@ -285,7 +337,6 @@ def build_manifest(
     ``AGENTS.md`` rules file is written separately by the init layer (as a managed
     block) and is intentionally not part of this manifest.
     """
-    skills_filter = None if mode is None else mode.skills
     commands_filter = None if mode is None else mode.commands
 
     entries: list[tuple[str, str]] = []
@@ -298,9 +349,7 @@ def build_manifest(
                 (f"commands/{name}.md.j2", "{agent_dir}/{commands_dir}/" + f"{name}.md")
             )
 
-    for skill_dir in SKILL_DIRS:
-        if skills_filter is not None and skill_dir not in skills_filter:
-            continue
+    for skill_dir in _selected_skill_dirs(mode):
         output_name = SKILL_OUTPUT_NAMES.get(skill_dir, skill_dir.replace("_", "-"))
         entries.append(
             (

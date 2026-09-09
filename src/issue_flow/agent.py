@@ -2912,6 +2912,11 @@ def _print_config_guide(console: Console, cfg_path: Path) -> None:
         "/iflow-auto inter-epoch budget (default 2; trailing loops:<n>).[/dim]"
     )
     console.print(
+        "  [dim]- [bold]pstack_skills[/bold]: vendored pstack skills to scaffold "
+        "(list of upstream names, e.g. ['unslop', 'tdd'], or \"all\"; default []); "
+        "re-run 'issue-flow update' after changing.[/dim]"
+    )
+    console.print(
         "  [dim]Other ISSUEFLOW_* settings are environment-only (set them in "
         ".env), not in config.toml.[/dim]"
     )

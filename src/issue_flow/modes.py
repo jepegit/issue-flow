@@ -27,7 +27,13 @@ from pathlib import Path
 
 import tomlkit
 
-from issue_flow.templating import COMMAND_NAMES, SKILL_DIRS
+from issue_flow.templating import (
+    COMMAND_NAMES,
+    DEFAULT_SKILL_DIRS,
+    PSTACK_NAME_TO_STEM,
+    PSTACK_SKILL_NAMES,
+    SKILL_DIRS,
+)
 
 DEFAULT_MODE = "standard"
 
@@ -55,6 +61,11 @@ DEFAULT_FAST_MODEL_LABEL = "fast"
 
 # Optional managed `.gitattributes` for GitHub Linguist (opt-in; default off).
 DEFAULT_LINGUIST_ATTRIBUTES = False
+
+# Vendored pstack skills to scaffold (upstream names, or the "all" sentinel).
+# Empty by default: pstack is opt-in and never part of a mode's "all".
+DEFAULT_PSTACK_SKILLS: tuple[str, ...] = ()
+PSTACK_ALL = "all"
 
 # Skill-behaviour knobs (baked into templates on ``issue-flow update``).
 DEFAULT_REMIND_CLEANUP = True
@@ -126,7 +137,11 @@ _MODES_RESOURCE = "modes.toml"
 # Per-project config file (relative to the issueflows dir).
 _CONFIG_FILE = "config.toml"
 
+# Every packaged skill stem is a valid reference (explicit lists, ``add``); the
+# ``"all"`` sentinel expands only to the default surface, so optional stems such
+# as the vendored pstack skills need an explicit opt-in.
 _SKILL_SET: frozenset[str] = frozenset(SKILL_DIRS)
+_DEFAULT_SKILL_SET: frozenset[str] = frozenset(DEFAULT_SKILL_DIRS)
 _COMMAND_SET: frozenset[str] = frozenset(COMMAND_NAMES)
 
 
@@ -192,14 +207,17 @@ def _merged_raw(cfg_path: Path | None) -> dict[str, dict]:
 # ---------------------------------------------------------------------------
 
 
-def _expand(value: object, universe: frozenset[str]) -> set[str]:
+def _expand(
+    value: object, universe: frozenset[str], all_set: frozenset[str] | None = None
+) -> set[str]:
     """Expand a ``skills``/``commands`` value into a concrete set.
 
-    ``"all"`` (or ``None``) expands to the whole universe; a list is taken
-    verbatim (validated later).
+    ``"all"`` (or ``None``) expands to ``all_set`` (defaults to the whole
+    ``universe``); a list is taken verbatim (validated later against
+    ``universe``).
     """
     if value is None or value == "all":
-        return set(universe)
+        return set(all_set if all_set is not None else universe)
     if isinstance(value, list):
         return {str(item) for item in value}
     raise ValueError(f'mode field must be "all" or a list of stems, got {value!r}')
@@ -241,16 +259,16 @@ def _resolve_sets(
     if base_id is not None:
         skills, commands = _resolve_sets(str(base_id), raw, (*_seen, mode_id))
     elif "skills" in table or "commands" in table:
-        skills = _expand(table.get("skills"), _SKILL_SET)
+        skills = _expand(table.get("skills"), _SKILL_SET, _DEFAULT_SKILL_SET)
         commands = _expand(table.get("commands"), _COMMAND_SET)
     else:
-        # A mode that only lists add/remove starts from the full set.
-        skills, commands = set(_SKILL_SET), set(_COMMAND_SET)
+        # A mode that only lists add/remove starts from the default surface.
+        skills, commands = set(_DEFAULT_SKILL_SET), set(_COMMAND_SET)
 
     # An explicit skills/commands list alongside extends replaces the base.
     if base_id is not None:
         if "skills" in table:
-            skills = _expand(table.get("skills"), _SKILL_SET)
+            skills = _expand(table.get("skills"), _SKILL_SET, _DEFAULT_SKILL_SET)
         if "commands" in table:
             commands = _expand(table.get("commands"), _COMMAND_SET)
 
@@ -283,18 +301,33 @@ def available_modes(cfg_path: Path | None = None) -> list[str]:
     return sorted(_merged_raw(cfg_path))
 
 
-def resolve_mode(mode_id: str, cfg_path: Path | None = None) -> Mode:
+def resolve_mode(
+    mode_id: str,
+    cfg_path: Path | None = None,
+    *,
+    pstack_skills: object = None,
+) -> Mode:
     """Resolve ``mode_id`` into a concrete :class:`Mode`.
 
     Merges built-in modes with any project ``[modes.*]`` tables found at
     ``cfg_path`` (project wins on id clash). Raises :class:`ValueError` for an
     unknown mode id or a mode referencing unknown surface stems.
+
+    ``pstack_skills`` opts vendored pstack skills into the resolved surface: a
+    list of upstream names or ``"all"``. ``None`` reads the persisted
+    ``[issueflow].pstack_skills`` from ``cfg_path`` (callers that also honour
+    the ``ISSUEFLOW_PSTACK_SKILLS`` env fallback pass the resolved value in).
+    The union happens here so manifests, pruning, ``included_skills``, and the
+    canonical snapshot all see the same skill set.
     """
     raw = _merged_raw(cfg_path)
     if mode_id not in raw:
         known = ", ".join(sorted(raw))
         raise ValueError(f"Unknown mode {mode_id!r}. Choose one of: {known}.")
     skills, commands = _resolve_sets(mode_id, raw)
+    if pstack_skills is None and cfg_path is not None:
+        pstack_skills = read_pstack_skills(cfg_path)
+    skills = skills | pstack_stems(pstack_skills)
     table = raw[mode_id]
     return Mode(
         id=mode_id,
@@ -320,6 +353,77 @@ def read_active_mode(cfg_path: Path) -> str | None:
         value = section.get("mode")
         if value:
             return str(value)
+    return None
+
+
+def normalize_pstack_skills(value: object) -> list[str]:
+    """Normalize a ``pstack_skills`` value into a validated list of upstream names.
+
+    Accepts ``None`` / empty (→ ``[]``), the ``"all"`` sentinel (→ every
+    vendored skill), a comma-separated string (env form), or a list of names.
+    Names are matched case-insensitively against :data:`PSTACK_SKILL_NAMES`;
+    unknown names raise :class:`ValueError` listing the valid ones.
+    """
+    if value is None:
+        return []
+    if isinstance(value, str):
+        text = value.strip()
+        if not text:
+            return []
+        if text.lower() == PSTACK_ALL:
+            return list(PSTACK_SKILL_NAMES)
+        items: list[object] = [part for part in text.split(",")]
+    elif isinstance(value, (list, tuple, set, frozenset)):
+        items = list(value)
+    else:
+        raise ValueError(
+            f'pstack_skills must be "all" or a list of skill names, got {value!r}'
+        )
+
+    names: list[str] = []
+    bad: list[str] = []
+    for item in items:
+        name = str(item).strip().lower()
+        if not name:
+            continue
+        if name == PSTACK_ALL:
+            return list(PSTACK_SKILL_NAMES)
+        if name in PSTACK_NAME_TO_STEM:
+            if name not in names:
+                names.append(name)
+        else:
+            bad.append(str(item).strip())
+    if bad:
+        raise ValueError(
+            f"unknown pstack skill(s) {sorted(bad)}; valid names: "
+            f'{list(PSTACK_SKILL_NAMES)} (or "all")'
+        )
+    return names
+
+
+def pstack_stems(value: object) -> set[str]:
+    """Map a ``pstack_skills`` value to the skill stems it selects."""
+    return {PSTACK_NAME_TO_STEM[name] for name in normalize_pstack_skills(value)}
+
+
+def pstack_names_for(skills: frozenset[str] | set[str]) -> list[str]:
+    """Return the upstream pstack names present in a resolved skill set (upstream order)."""
+    return [name for name in PSTACK_SKILL_NAMES if PSTACK_NAME_TO_STEM[name] in skills]
+
+
+def read_pstack_skills(cfg_path: Path) -> list[str] | None:
+    """Return the persisted ``[issueflow].pstack_skills`` selection.
+
+    Returns ``None`` when the file is missing or the key is unset, so callers can
+    fall through to the env / default. Raises :class:`ValueError` on unknown
+    skill names.
+    """
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "pstack_skills" in section:
+        return normalize_pstack_skills(section.get("pstack_skills"))
     return None
 
 
@@ -909,6 +1013,7 @@ def write_default_config(
     test_runner: str = DEFAULT_TEST_RUNNER,
     essential_marker: str = DEFAULT_ESSENTIAL_MARKER,
     essential_review: str = DEFAULT_ESSENTIAL_REVIEW,
+    pstack_skills: object = DEFAULT_PSTACK_SKILLS,
     overwrite: bool = False,
 ) -> bool:
     """Create (or, with ``overwrite``, refresh) the project's ``config.toml``.
@@ -970,6 +1075,7 @@ def write_default_config(
         section["test_runner"] = test_runner
         section["essential_marker"] = essential_marker
         section["essential_review"] = essential_review
+        section["pstack_skills"] = normalize_pstack_skills(pstack_skills)
     else:
         doc = tomlkit.document()
         doc.add(
@@ -1015,6 +1121,7 @@ def write_default_config(
             test_runner,
             essential_marker,
             essential_review,
+            normalize_pstack_skills(pstack_skills),
         )
 
     cfg_path.write_text(tomlkit.dumps(doc), encoding="utf-8")
@@ -1068,6 +1175,7 @@ def _commented_issueflow_table(
     test_runner: str,
     essential_marker: str,
     essential_review: str,
+    pstack_skills: list[str] | None = None,
 ) -> tomlkit.items.Table:
     """Build a fresh ``[issueflow]`` table with explanatory comments per key."""
     table = tomlkit.table()
@@ -1297,4 +1405,18 @@ def _commented_issueflow_table(
         )
     )
     table["essential_review"] = essential_review
+    table.add(tomlkit.nl())
+    table.add(
+        tomlkit.comment(
+            "Vendored pstack skills (https://github.com/cursor/plugins/tree/main/pstack, "
+            "MIT) to scaffold next to the iflow-* skills: a list of upstream names "
+            'or "all" (default []). Valid names: ' + ", ".join(PSTACK_SKILL_NAMES) + "."
+        )
+    )
+    table.add(
+        tomlkit.comment(
+            "Re-run 'issue-flow update' after changing (removed skills are pruned)."
+        )
+    )
+    table["pstack_skills"] = list(pstack_skills or [])
     return table
