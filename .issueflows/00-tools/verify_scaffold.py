@@ -16,7 +16,12 @@ Built-in check groups:
    surfaces after ``issue-flow update``.
 3. **yolo_label = "fast-track"** — a custom label is interpolated into the
    pick surfaces after ``issue-flow update``.
-4. **novice mode** — a second throwaway scaffolded with ``--mode novice``
+4. **pstack_skills** — no ``skills/unslop`` etc. by default; setting
+   ``pstack_skills = ["unslop", "tdd"]`` and re-running ``update`` renders the
+   two vendored skills under their upstream folder names for every editor, the
+   "pstack skills" rule section, and the membership-gated close/build nudges;
+   emptying the list prunes them again (issue #249).
+5. **novice mode** — a second throwaway scaffolded with ``--mode novice``
    installs the guided-setup surface, omits the hands-off/batch surfaces, seeds
    the settings preset, and renders a rule that does not advertise commands the
    mode did not install.
@@ -101,6 +106,14 @@ def _check(surface: Path, needle: str, expect_present: bool, label: str) -> None
         print(f"  FAIL  {label}: {verb} {needle!r}")
 
 
+def _check_absent(surface: Path, label: str) -> None:
+    if surface.exists():
+        _failures.append(f"{label}: {surface} should not exist")
+        print(f"  FAIL  {label}: unexpected file {surface}")
+    else:
+        print(f"  ok    {label}: {surface.name} absent")
+
+
 def _set_config(project: Path, **issueflow_keys: object) -> None:
     """Upsert ``[issueflow]`` keys (plain ``init`` does not create config.toml)."""
     cfg_path = project / ".issueflows" / "config.toml"
@@ -130,7 +143,7 @@ def _rmtree(path: Path) -> None:
 def _verify_novice(keep: bool) -> None:
     """Scaffold a second throwaway with ``--mode novice`` and check the surface."""
     project = Path(tempfile.mkdtemp(prefix="issueflow-novice-"))
-    print(f"\n[4/4] novice mode (throwaway: {project})")
+    print(f"\n[5/5] novice mode (throwaway: {project})")
     try:
         _run(["git", "init", "--quiet"], cwd=project)
         _issue_flow(project, "init", ".", "--skip-dep-check", "--mode", "novice")
@@ -191,7 +204,7 @@ def main() -> int:
         editor_flags = [flag for e in EDITORS for flag in ("-e", e)]
         _issue_flow(project, "init", ".", "--skip-dep-check", *editor_flags)
 
-        print("\n[1/4] defaults (label_flows on, yolo_label = yolo)")
+        print("\n[1/5] defaults (label_flows on, yolo_label = yolo)")
         for rel in PICK_SURFACES:
             _check(project / rel, LABEL_ROUTING_MARKER, True, rel)
             _check(project / rel, "`yolo`", True, rel)
@@ -210,18 +223,55 @@ def main() -> int:
                 _check(path, "Early pull request", True, rel)
                 _check(path, "gh pr create --draft", True, rel)
 
-        print("\n[2/4] label_flows = false → routing text disappears")
+        print("\n[2/5] label_flows = false → routing text disappears")
         _set_config(project, label_flows=False)
         _issue_flow(project, "update", *editor_flags)
         for rel in PICK_SURFACES:
             _check(project / rel, LABEL_ROUTING_MARKER, False, rel)
 
-        print('\n[3/4] yolo_label = "fast-track" → custom label rendered')
+        print('\n[3/5] yolo_label = "fast-track" → custom label rendered')
         _set_config(project, label_flows=True, yolo_label="fast-track")
         _issue_flow(project, "update", *editor_flags)
         for rel in PICK_SURFACES:
             _check(project / rel, LABEL_ROUTING_MARKER, True, rel)
             _check(project / rel, "fast-track", True, rel)
+
+        print("\n[4/5] pstack_skills → vendored skills appear, then prune")
+        rules = project / ".cursor/rules/issueflow-rules.mdc"
+        for e in EDITORS:
+            _check_absent(project / f".{e}/skills/unslop/SKILL.md", "pstack off by default")
+        _check(rules, "### pstack skills", False, "rules (pstack off)")
+        _set_config(project, pstack_skills=["unslop", "tdd"])
+        _issue_flow(project, "update", *editor_flags)
+        for e in EDITORS:
+            unslop = project / f".{e}/skills/unslop/SKILL.md"
+            _check(unslop, "name: unslop", True, f".{e} unslop")
+            _check(
+                unslop,
+                "vendored verbatim from cursor/plugins pstack",
+                True,
+                f".{e} unslop",
+            )
+            _check(project / f".{e}/skills/tdd/SKILL.md", "name: tdd", True, f".{e} tdd")
+            _check_absent(project / f".{e}/skills/bro/SKILL.md", f".{e} bro not selected")
+        _check(rules, "### pstack skills", True, "rules (pstack on)")
+        _check(rules, "**`unslop`**", True, "rules (pstack on)")
+        for rel in CLOSE_SURFACES:
+            _check(project / rel, "Unslop (pstack, optional)", True, rel)
+            _check(project / rel, "Blast radius (pstack", False, rel)
+        for rel in (
+            ".cursor/skills/iflow-build/SKILL.md",
+            ".claude/commands/iflow-build.md",
+        ):
+            _check(project / rel, "TDD (pstack, optional)", True, rel)
+        _set_config(project, pstack_skills=[])
+        _issue_flow(project, "update", *editor_flags)
+        for e in EDITORS:
+            _check_absent(project / f".{e}/skills/unslop/SKILL.md", f".{e} unslop pruned")
+            _check_absent(project / f".{e}/skills/tdd/SKILL.md", f".{e} tdd pruned")
+        _check(rules, "### pstack skills", False, "rules (pstack off again)")
+        for rel in CLOSE_SURFACES:
+            _check(project / rel, "Unslop (pstack, optional)", False, rel)
     finally:
         if args.keep:
             print(f"\nkept throwaway project at {project}")

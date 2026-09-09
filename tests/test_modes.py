@@ -26,17 +26,33 @@ from issue_flow.modes import (
     write_active_mode,
     write_default_config,
 )
-from issue_flow.templating import COMMAND_NAMES, SKILL_DIRS
+from issue_flow.templating import (
+    COMMAND_NAMES,
+    DEFAULT_SKILL_DIRS,
+    PSTACK_SKILL_DIRS,
+    PSTACK_SKILL_NAMES,
+    SKILL_DIRS,
+)
 
 
 def test_default_mode_is_standard() -> None:
     assert DEFAULT_MODE == "standard"
 
 
-def test_standard_includes_every_surface() -> None:
+def test_standard_includes_every_default_surface() -> None:
     mode = resolve_mode("standard")
-    assert mode.skills == frozenset(SKILL_DIRS)
+    assert mode.skills == frozenset(DEFAULT_SKILL_DIRS)
     assert mode.commands == frozenset(COMMAND_NAMES)
+
+
+def test_standard_excludes_optional_pstack_stems() -> None:
+    """``skills = "all"`` never pulls in the opt-in vendored pstack skills."""
+    mode = resolve_mode("standard")
+    assert PSTACK_SKILL_DIRS
+    assert not (mode.skills & frozenset(PSTACK_SKILL_DIRS))
+    assert frozenset(SKILL_DIRS) == frozenset(DEFAULT_SKILL_DIRS) | frozenset(
+        PSTACK_SKILL_DIRS
+    )
 
 
 def test_simple_is_strict_subset() -> None:
@@ -401,3 +417,107 @@ def test_write_default_config_upserts_label_flow_keys(tmp_path: Path) -> None:
 def test_resolve_mode_module_alias() -> None:
     """The module exposes resolve_mode at package import (used by config/init)."""
     assert modes.resolve_mode("standard").id == "standard"
+
+
+# ---------------------------------------------------------------------------
+# pstack skills (issue #249)
+# ---------------------------------------------------------------------------
+
+
+def test_normalize_pstack_skills_accepts_list_all_and_env_string() -> None:
+    assert modes.normalize_pstack_skills(None) == []
+    assert modes.normalize_pstack_skills([]) == []
+    assert modes.normalize_pstack_skills("") == []
+    assert modes.normalize_pstack_skills("all") == list(PSTACK_SKILL_NAMES)
+    assert modes.normalize_pstack_skills(["ALL"]) == list(PSTACK_SKILL_NAMES)
+    assert modes.normalize_pstack_skills(["unslop", "tdd", "unslop"]) == [
+        "unslop",
+        "tdd",
+    ]
+    assert modes.normalize_pstack_skills(" unslop, Blast-Radius ") == [
+        "unslop",
+        "blast-radius",
+    ]
+
+
+def test_normalize_pstack_skills_rejects_unknown_names() -> None:
+    with pytest.raises(ValueError, match="unknown pstack skill"):
+        modes.normalize_pstack_skills(["unslop", "poteto-mode"])
+    with pytest.raises(ValueError, match="pstack_skills must be"):
+        modes.normalize_pstack_skills(42)
+
+
+def test_pstack_stems_and_names_round_trip() -> None:
+    stems = modes.pstack_stems(["tdd", "unslop"])
+    assert stems == {"pstack_tdd", "pstack_unslop"}
+    assert modes.pstack_names_for(frozenset(stems) | {"iflow_plan"}) == [
+        "unslop",
+        "tdd",
+    ]
+    assert modes.pstack_names_for(frozenset({"iflow_plan"})) == []
+
+
+def test_resolve_mode_unions_pstack_skills_argument() -> None:
+    mode = resolve_mode("standard", pstack_skills=["unslop", "tdd"])
+    assert {"pstack_unslop", "pstack_tdd"} <= mode.skills
+    assert "pstack_bro" not in mode.skills
+    everything = resolve_mode("simple", pstack_skills="all")
+    assert frozenset(PSTACK_SKILL_DIRS) <= everything.skills
+    assert "iflow_close" not in everything.skills
+
+
+def test_resolve_mode_reads_persisted_pstack_skills(tmp_path: Path) -> None:
+    cfg = config_path(tmp_path, ".issueflows")
+    cfg.parent.mkdir(parents=True)
+    cfg.write_text('[issueflow]\npstack_skills = ["bro"]\n', encoding="utf-8")
+    assert modes.read_pstack_skills(cfg) == ["bro"]
+    mode = resolve_mode("standard", cfg)
+    assert "pstack_bro" in mode.skills
+    assert "pstack_unslop" not in mode.skills
+    # An explicit argument beats the persisted value (env-fallback path).
+    assert "pstack_bro" not in resolve_mode("standard", cfg, pstack_skills=[]).skills
+
+
+def test_read_pstack_skills_missing_or_unset_returns_none(tmp_path: Path) -> None:
+    cfg = config_path(tmp_path, ".issueflows")
+    assert modes.read_pstack_skills(cfg) is None
+    cfg.parent.mkdir(parents=True)
+    cfg.write_text("[issueflow]\nmode = 'standard'\n", encoding="utf-8")
+    assert modes.read_pstack_skills(cfg) is None
+
+
+def test_custom_mode_can_add_pstack_stems(tmp_path: Path) -> None:
+    cfg = config_path(tmp_path, ".issueflows")
+    cfg.parent.mkdir(parents=True)
+    cfg.write_text(
+        '[modes.mine]\nextends = "simple"\nadd = ["pstack_tdd"]\n', encoding="utf-8"
+    )
+    mode = resolve_mode("mine", cfg)
+    assert "pstack_tdd" in mode.skills
+    assert "iflow_close" not in mode.skills
+
+
+def test_write_default_config_includes_pstack_skills(tmp_path: Path) -> None:
+    cfg = config_path(tmp_path, ".issueflows")
+    assert write_default_config(
+        cfg,
+        mode="standard",
+        skill_level="standard",
+        caveman_default=False,
+        grill_me_default=False,
+    )
+    text = cfg.read_text(encoding="utf-8")
+    assert "pstack_skills = []" in text
+    assert "cursor/plugins/tree/main/pstack" in text
+    assert modes.read_pstack_skills(cfg) == []
+    # Upsert path keeps the key in step with the supplied value.
+    assert write_default_config(
+        cfg,
+        mode="standard",
+        skill_level="standard",
+        caveman_default=False,
+        grill_me_default=False,
+        pstack_skills="all",
+        overwrite=True,
+    )
+    assert modes.read_pstack_skills(cfg) == list(PSTACK_SKILL_NAMES)
