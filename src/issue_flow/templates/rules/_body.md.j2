@@ -267,28 +267,28 @@ MIT), vendored verbatim by issue-flow under `{{ agent_dir }}/skills/<name>/`.
 They are **user-invoked** (`/<name>` or `<name>` in chat) and never auto-run by
 the `iflow-*` lifecycle; the lifecycle skills only *suggest* them where they fit.
 
-{% for name in pstack_skills %}
-{%- if name == "unslop" %}
+{% for name in pstack_skills -%}
+{% if name == "unslop" -%}
 - **`unslop`** — cut AI tells from prose: PR bodies, `{{ history_file }}` bullets, issue specs, docs.
-{%- elif name == "tdd" %}
+{% elif name == "tdd" -%}
 - **`tdd`** — bug fixes with a cheap local test path: failing regression test first, then the fix.
-{%- elif name == "blast-radius" %}
+{% elif name == "blast-radius" -%}
 - **`blast-radius`** — before a PR, find what a small-looking change could break elsewhere and prove the one fact it is safe because of by running code.
-{%- elif name == "technical-writing" %}
+{% elif name == "technical-writing" -%}
 - **`technical-writing`** — layered standard (Diátaxis, Google developer style, STE, Global English) for docs, READMEs, RFCs, PR descriptions, commit messages.
-{%- elif name == "bro" %}
+{% elif name == "bro" -%}
 - **`bro`** — restate the last message in plain human language, no jargon.
-{%- elif name == "principle-prove-it-works" %}
+{% elif name == "principle-prove-it-works" -%}
 - **`principle-prove-it-works`** — verify against the real artifact before declaring done (before ticking `- [x] Done`).
-{%- elif name == "principle-subtract-before-you-add" %}
+{% elif name == "principle-subtract-before-you-add" -%}
 - **`principle-subtract-before-you-add`** — remove or simplify before adding; planning discipline.
-{%- elif name == "principle-fix-root-causes" %}
+{% elif name == "principle-fix-root-causes" -%}
 - **`principle-fix-root-causes`** — fix the cause, not the symptom; build / fix discipline.
-{%- elif name == "principle-test-behavior-not-implementation" %}
+{% elif name == "principle-test-behavior-not-implementation" -%}
 - **`principle-test-behavior-not-implementation`** — tests assert observable behaviour, not internals.
-{%- else %}
+{% else -%}
 - **`{{ name }}`** — see `{{ agent_dir }}/skills/{{ name }}/SKILL.md`.
-{%- endif %}
+{% endif -%}
 {% endfor %}
 
 Selection lives in `pstack_skills` under `[issueflow]` in
