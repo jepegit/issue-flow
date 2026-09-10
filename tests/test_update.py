@@ -300,3 +300,55 @@ def test_update_recreates_removed_designs_folder(tmp_path: Path) -> None:
 
     assert removed.is_dir()
     assert (removed / ".gitkeep").is_file()
+
+
+def test_init_and_update_honour_pstack_skills_key(tmp_path: Path) -> None:
+    """pstack skills appear when opted in and are pruned when the key is emptied."""
+    import tomlkit
+
+    from issue_flow.modes import config_path
+
+    run_init(tmp_path)
+    skills = tmp_path / ".cursor" / "skills"
+    assert not (skills / "unslop").exists()
+    assert not (skills / "tdd").exists()
+    rules = (tmp_path / ".cursor" / "rules" / "issueflow-rules.mdc").read_text(
+        encoding="utf-8"
+    )
+    assert "### pstack skills" not in rules
+
+    cfg = config_path(tmp_path, ".issueflows")
+    cfg.write_text('[issueflow]\npstack_skills = ["unslop", "tdd"]\n', encoding="utf-8")
+    run_update(tmp_path)
+
+    unslop = skills / "unslop" / "SKILL.md"
+    assert unslop.is_file()
+    assert (skills / "tdd" / "SKILL.md").is_file()
+    assert not (skills / "bro").exists()
+    text = unslop.read_text(encoding="utf-8")
+    assert text.startswith("---\nname: unslop\n")
+    assert f"issue-flow-version: {ISSUE_FLOW_VERSION}" in text
+    assert "vendored verbatim from cursor/plugins pstack" in text
+    rules = (tmp_path / ".cursor" / "rules" / "issueflow-rules.mdc").read_text(
+        encoding="utf-8"
+    )
+    assert "### pstack skills" in rules
+    assert "**`unslop`**" in rules
+    agents = (tmp_path / "AGENTS.md").read_text(encoding="utf-8")
+    assert "### pstack skills" in agents
+    close = (skills / "iflow-close" / "SKILL.md").read_text(encoding="utf-8")
+    assert "Unslop (pstack, optional)" in close
+    assert "Blast radius (pstack" not in close
+
+    doc = tomlkit.parse(cfg.read_text(encoding="utf-8"))
+    doc["issueflow"]["pstack_skills"] = []
+    cfg.write_text(tomlkit.dumps(doc), encoding="utf-8")
+    run_update(tmp_path)
+
+    assert not (skills / "unslop").exists()
+    assert not (skills / "tdd").exists()
+    assert (skills / "iflow-close" / "SKILL.md").is_file()
+    rules = (tmp_path / ".cursor" / "rules" / "issueflow-rules.mdc").read_text(
+        encoding="utf-8"
+    )
+    assert "### pstack skills" not in rules

@@ -964,7 +964,8 @@ def config_add(
     ``cycle_max_issues``, ``auto_adversarial_loops``, ``confirm_version_bump``,
     ``ruff_autofix``, ``auto_close``, ``auto_plan``, ``auto_build``,
     ``early_pr``, ``confirm_changelog_update``, ``essential_tests``,
-    ``test_runner``, ``essential_marker``, ``essential_review``
+    ``test_runner``, ``essential_marker``, ``essential_review``,
+    ``pstack_skills``
     — taking each from its ``ISSUEFLOW_*`` env var when set, else the default.
     Other ``ISSUEFLOW_*`` settings are environment-only and are not written
     here. Existing files are left untouched unless ``--force`` is passed.

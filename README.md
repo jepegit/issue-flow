@@ -258,7 +258,7 @@ Full option tables and the `agent` subcommand reference live in the [CLI referen
 
 ## Going further
 
-- **[Configuration](https://github.com/jepegit/issue-flow/blob/main/docs/configuration.md)** — `.env` variables and `.issueflows/config.toml`; **modes** (`standard` vs the markdown-only `simple`), **skill levels** (`basic` / `standard` / `advanced` quality-tooling guidance), the optional **caveman** and **grill-me** skills, and **label-driven flows** (a `yolo` label routes an issue through the hands-off chain).
+- **[Configuration](https://github.com/jepegit/issue-flow/blob/main/docs/configuration.md)** — `.env` variables and `.issueflows/config.toml`; **modes** (`standard` vs the markdown-only `simple`), **skill levels** (`basic` / `standard` / `advanced` quality-tooling guidance), the optional **caveman** and **grill-me** skills, the opt-in vendored **pstack** skills (`pstack_skills`), and **label-driven flows** (a `yolo` label routes an issue through the hands-off chain).
 - **[Editor support](https://github.com/jepegit/issue-flow/blob/main/docs/editors.md)** — what gets scaffolded per editor (Cursor, Claude Code, opencode, Codex), and how multi-root workspaces resolve the right repo.
 - **[Graphify integration](https://github.com/jepegit/issue-flow/blob/main/docs/graphify.md)** — optional knowledge graph of your codebase that agents can read instead of grepping; enabled simply by installing `graphifyy`.
 - **[Issue workflow](https://github.com/jepegit/issue-flow/blob/main/docs/issue-workflow.md)** — the human-readable walkthrough of the full lifecycle (also scaffolded into your project).
@@ -362,6 +362,7 @@ Thanks to the authors and communities behind these projects:
 | --- | --- | --- |
 | [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) | Inspiration for the bundled `caveman` Agent Skill (terse, token-greedy response style). Our version is a trimmed adaptation — full intensity only, English only. | [MIT](https://github.com/JuliusBrussee/caveman/blob/main/LICENSE) |
 | [mattpocock/skills](https://github.com/mattpocock/skills) | Matt Pocock's `grill-me` skill inspired the bundled `grill-me` Agent Skill (relentless planning interview). Our version is adapted to issue-flow's planning workflow, feeding conclusions into `issue<N>_plan.md`. | [MIT](https://github.com/mattpocock/skills/blob/main/LICENSE) |
+| [cursor/plugins — pstack](https://github.com/cursor/plugins/tree/main/pstack) | Lauren Tan's (poteto) `pstack` skills library. A curated subset of its single-file skills (`unslop`, `tdd`, `blast-radius`, `technical-writing`, `bro`, four `principle-*` skills) is vendored **verbatim** as opt-in templates (`pstack_skills` in `config.toml`); the upstream MIT text ships alongside. | [MIT](https://github.com/cursor/plugins/blob/main/pstack/LICENSE) |
 | [safishamsi/graphify](https://github.com/safishamsi/graphify) (`graphifyy` on PyPI) | Powers the optional knowledge-graph integration (`issue-flow graphify`, `graphify-out/`). Installed separately and invoked as an external tool. | [MIT](https://github.com/safishamsi/graphify/blob/main/LICENSE) |
 | [Typer](https://github.com/fastapi/typer) | The `issue-flow` command-line interface. | MIT |
 | [Rich](https://github.com/Textualize/rich) | Formatted terminal output during `init` / `update`. | MIT |

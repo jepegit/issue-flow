@@ -82,6 +82,7 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "test_runner",
         "essential_marker",
         "essential_review",
+        "pstack_skills",
     }
     assert set(context.keys()) == expected_keys
 
@@ -527,3 +528,50 @@ def test_step_profiles_override_in_context(tmp_path: Path) -> None:
     profiles = settings.template_context(tmp_path)["step_profiles"]
     assert profiles["iflow_init"] == "reasoning"
     assert profiles["iflow_plan"] == "reasoning"
+
+
+def test_pstack_skills_empty_by_default(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    monkeypatch.delenv("ISSUEFLOW_PSTACK_SKILLS", raising=False)
+    settings = Settings()
+    assert settings.resolve_pstack_skills(tmp_path) == []
+    mode = settings.resolve_mode(tmp_path)
+    assert not any(stem.startswith("pstack_") for stem in mode.skills)
+    context = settings.template_context(tmp_path)
+    assert context["pstack_skills"] == []
+
+
+def test_pstack_skills_from_config(tmp_path: Path) -> None:
+    _write_config(tmp_path, '[issueflow]\npstack_skills = ["tdd", "unslop"]\n')
+    settings = Settings()
+    assert settings.resolve_pstack_skills(tmp_path) == ["tdd", "unslop"]
+    mode = settings.resolve_mode(tmp_path)
+    assert {"pstack_tdd", "pstack_unslop"} <= mode.skills
+    context = settings.template_context(tmp_path)
+    assert context["pstack_skills"] == ["unslop", "tdd"]
+    assert "pstack_unslop" in context["included_skills"]
+
+
+def test_pstack_skills_from_env(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    monkeypatch.setenv("ISSUEFLOW_PSTACK_SKILLS", "bro, blast-radius")
+    settings = Settings()
+    assert settings.resolve_pstack_skills(tmp_path) == ["bro", "blast-radius"]
+    assert "pstack_bro" in settings.resolve_mode(tmp_path).skills
+    assert settings.seed_config_values()["pstack_skills"] == ["bro", "blast-radius"]
+    monkeypatch.setenv("ISSUEFLOW_PSTACK_SKILLS", "all")
+    assert len(settings.resolve_pstack_skills(tmp_path)) == 9
+
+
+def test_pstack_skills_config_beats_env(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    _write_config(tmp_path, "[issueflow]\npstack_skills = []\n")
+    monkeypatch.setenv("ISSUEFLOW_PSTACK_SKILLS", "all")
+    settings = Settings()
+    assert settings.resolve_pstack_skills(tmp_path) == []

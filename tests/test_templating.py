@@ -9,8 +9,12 @@ from issue_flow.editors import EDITORS, get_profile
 from issue_flow.step_profiles import PACKAGED_DEFAULTS, enrich_render_context
 from issue_flow.templating import (
     COMMAND_NAMES,
+    DEFAULT_SKILL_DIRS,
+    PSTACK_NAME_TO_STEM,
+    PSTACK_SKILL_NAMES,
     SKILL_DIRS,
     TEMPLATE_MANIFEST,
+    build_canonical_manifest,
     build_manifest,
     is_skill_template,
     render_template,
@@ -18,7 +22,8 @@ from issue_flow.templating import (
     stamp_skill_version,
 )
 
-_ALL_SKILLS = sorted(SKILL_DIRS)
+# The standard surface: every default stem, no opt-in (pstack) stems.
+_ALL_SKILLS = sorted(DEFAULT_SKILL_DIRS)
 _ALL_COMMANDS = sorted(COMMAND_NAMES)
 _MODE_CONTEXT = {
     "mode": "standard",
@@ -54,6 +59,7 @@ _MODE_CONTEXT = {
     "test_runner": "pytest",
     "essential_marker": "essential",
     "essential_review": "close",
+    "pstack_skills": [],
 }
 
 
@@ -1668,3 +1674,157 @@ def test_render_template_stamps_skill_outputs() -> None:
 def test_render_template_does_not_stamp_commands() -> None:
     rendered = render_template("commands/iflow-capture.md.j2", _default_context())
     assert "issue-flow-version:" not in rendered
+
+
+# ---------------------------------------------------------------------------
+# Vendored pstack skills (issue #249)
+# ---------------------------------------------------------------------------
+
+_BASE_CONTEXT = {
+    "issue_flow_version": ISSUE_FLOW_VERSION,
+    "issueflows_dir": ".issueflows",
+    "agent_dir": ".cursor",
+    "docs_dir": "docs",
+    "history_file": "HISTORY.md",
+    "tools_folder": "00-tools",
+    "current_issues_folder": "01-current-issues",
+    "partly_solved_folder": "02-partly-solved-issues",
+    "solved_folder": "03-solved-issues",
+    "designs_folder": "04-designs-and-guides",
+    "epics_folder": "05-epics",
+    "project_name": "test-project",
+    "editor": "cursor",
+    "editor_name": "Cursor",
+    "commands_dir": "commands",
+    "commands_supported": False,
+    "graphify_installer": "cursor",
+    "skill_level": "standard",
+}
+
+
+def _pstack_mode(names: list[str]):
+    from issue_flow.modes import resolve_mode
+
+    return resolve_mode("standard", pstack_skills=names)
+
+
+def test_pstack_stems_are_optional_not_default() -> None:
+    assert len(PSTACK_SKILL_NAMES) == 9
+    for name in PSTACK_SKILL_NAMES:
+        stem = PSTACK_NAME_TO_STEM[name]
+        assert stem in SKILL_DIRS
+        assert stem not in DEFAULT_SKILL_DIRS
+        assert stem.startswith("pstack_")
+    assert PSTACK_NAME_TO_STEM["blast-radius"] == "pstack_blast_radius"
+
+
+def test_default_manifest_has_no_pstack_entries() -> None:
+    template_names = {name for name, _ in TEMPLATE_MANIFEST}
+    assert not any("/pstack_" in name for name in template_names)
+    for profile in EDITORS.values():
+        for name, _ in build_manifest(profile):
+            assert "/pstack_" not in name
+
+
+def test_manifest_emits_pstack_skills_under_upstream_folder_names() -> None:
+    mode = _pstack_mode(["unslop", "blast-radius"])
+    for profile in EDITORS.values():
+        manifest = build_manifest(profile, mode=mode)
+        assert (
+            "skills/pstack_unslop/SKILL.md.j2",
+            "{agent_dir}/skills/unslop/SKILL.md",
+        ) in manifest
+        assert (
+            "skills/pstack_blast_radius/SKILL.md.j2",
+            "{agent_dir}/skills/blast-radius/SKILL.md",
+        ) in manifest
+        assert not any("/pstack_tdd/" in name for name, _ in manifest)
+        # Default surface is still there alongside.
+        assert any(name == "skills/iflow_plan/SKILL.md.j2" for name, _ in manifest)
+    canonical = build_canonical_manifest(mode=mode)
+    assert (
+        "skills/pstack_unslop/SKILL.md.j2",
+        "{issueflows_dir}/agent/skills/unslop/SKILL.md",
+    ) in canonical
+
+
+def test_every_pstack_template_renders_verbatim_with_provenance() -> None:
+    context = {**_BASE_CONTEXT, **_MODE_CONTEXT}
+    for name in PSTACK_SKILL_NAMES:
+        stem = PSTACK_NAME_TO_STEM[name]
+        rendered = render_template(f"skills/{stem}/SKILL.md.j2", context)
+        assert rendered.startswith("---\n")
+        assert f"\nname: {name}\n" in rendered
+        assert "disable-model-invocation: true" in rendered
+        assert f"issue-flow-version: {ISSUE_FLOW_VERSION}" in rendered
+        assert "vendored verbatim from cursor/plugins pstack v" in rendered
+        # Jinja never touched the body.
+        assert "{% raw %}" not in rendered
+        assert "{% endraw %}" not in rendered
+        assert "{{" not in rendered.split("-->", 1)[1] or "{{" in rendered
+
+
+def test_pstack_license_ships_with_templates() -> None:
+    from importlib import resources
+
+    text = (
+        resources.files("issue_flow.templates.skills")
+        .joinpath("_pstack_LICENSE.txt")
+        .read_text(encoding="utf-8")
+    )
+    assert text.startswith("MIT License")
+    assert "Lauren Tan" in text
+
+
+def test_rules_body_pstack_section_is_membership_gated() -> None:
+    off = render_template(
+        "rules/issueflow-rules.mdc.j2", {**_BASE_CONTEXT, **_MODE_CONTEXT}
+    )
+    assert "### pstack skills" not in off
+
+    mode = _pstack_mode(["unslop", "tdd"])
+    on_ctx = {
+        **_BASE_CONTEXT,
+        **_MODE_CONTEXT,
+        "included_skills": sorted(mode.skills),
+        "pstack_skills": ["unslop", "tdd"],
+    }
+    on = render_template("rules/issueflow-rules.mdc.j2", on_ctx)
+    assert "### pstack skills" in on
+    assert "**`unslop`**" in on
+    assert "**`tdd`**" in on
+    assert "**`bro`**" not in on
+    assert "cursor/plugins/tree/main/pstack" in on
+    assert "pstack_skills" in on
+
+
+def test_close_and_build_nudges_are_membership_gated() -> None:
+    base = {**_BASE_CONTEXT, **_MODE_CONTEXT}
+    close_off = render_template(
+        "skills/iflow_close/SKILL.md.j2", enrich_render_context(base, "skills/iflow_close/SKILL.md.j2")
+    )
+    build_off = render_template(
+        "skills/iflow_build/SKILL.md.j2", enrich_render_context(base, "skills/iflow_build/SKILL.md.j2")
+    )
+    assert "Unslop (pstack" not in close_off
+    assert "Blast radius (pstack" not in close_off
+    assert "TDD (pstack" not in build_off
+
+    mode = _pstack_mode(["unslop", "tdd", "blast-radius"])
+    on = {**base, "included_skills": sorted(mode.skills)}
+    for template in (
+        "skills/iflow_close/SKILL.md.j2",
+        "commands/iflow-close.md.j2",
+    ):
+        rendered = render_template(template, enrich_render_context(on, template))
+        assert "Unslop (pstack, optional)" in rendered
+        assert "Blast radius (pstack, optional)" in rendered
+        assert "skills/unslop/SKILL.md" in rendered
+        assert "Never run it unasked" in rendered
+    for template in (
+        "skills/iflow_build/SKILL.md.j2",
+        "commands/iflow-build.md.j2",
+    ):
+        rendered = render_template(template, enrich_render_context(on, template))
+        assert "TDD (pstack, optional)" in rendered
+        assert "skills/tdd/SKILL.md" in rendered

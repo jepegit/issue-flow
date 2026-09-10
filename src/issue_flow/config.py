@@ -29,6 +29,7 @@ from issue_flow.modes import (
     DEFAULT_FAST_MODEL_LABEL,
     DEFAULT_LABEL_FLOWS,
     DEFAULT_LINGUIST_ATTRIBUTES,
+    DEFAULT_PSTACK_SKILLS,
     DEFAULT_MODE,
     DEFAULT_MODEL_LABEL_FLOWS,
     DEFAULT_PR_MERGE_METHOD,
@@ -138,10 +139,31 @@ class Settings:
         return DEFAULT_MODE
 
     def resolve_mode(self, project_root: Path) -> Mode:
-        """Resolve the active :class:`Mode` (built-ins + project overrides)."""
+        """Resolve the active :class:`Mode` (built-ins + project overrides).
+
+        Opted-in pstack skills (:meth:`resolve_pstack_skills`) are unioned into the
+        resolved surface.
+        """
         return modes_module.resolve_mode(
             self.resolve_active_mode_id(project_root),
             self.config_path(project_root),
+            pstack_skills=self.resolve_pstack_skills(project_root),
+        )
+
+    def resolve_pstack_skills(self, project_root: Path) -> list[str]:
+        """Resolve which vendored pstack skills to scaffold (upstream names).
+
+        Order: persisted ``.issueflows/config.toml [issueflow].pstack_skills`` >
+        ``ISSUEFLOW_PSTACK_SKILLS`` env/``.env`` (comma-separated names or
+        ``all``) > none. The persisted value beats the environment so a stray env
+        var cannot silently add skills on ``update``. Unknown names raise
+        :class:`ValueError`.
+        """
+        persisted = modes_module.read_pstack_skills(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        return modes_module.normalize_pstack_skills(
+            os.getenv("ISSUEFLOW_PSTACK_SKILLS") or list(DEFAULT_PSTACK_SKILLS)
         )
 
     def resolve_caveman_default(self, project_root: Path) -> bool:
@@ -592,6 +614,9 @@ class Settings:
                 "ISSUEFLOW_LINGUIST_ATTRIBUTES",
                 default=DEFAULT_LINGUIST_ATTRIBUTES,
             ),
+            "pstack_skills": modes_module.normalize_pstack_skills(
+                os.getenv("ISSUEFLOW_PSTACK_SKILLS") or list(DEFAULT_PSTACK_SKILLS)
+            ),
             "remind_cleanup": _env_flag(
                 "ISSUEFLOW_REMIND_CLEANUP", default=DEFAULT_REMIND_CLEANUP
             ),
@@ -686,6 +711,9 @@ class Settings:
             "mode_name": mode.name,
             "included_skills": sorted(mode.skills),
             "included_commands": sorted(mode.commands),
+            # Upstream names of the vendored pstack skills in the surface (also
+            # covers custom modes that `add` pstack stems directly).
+            "pstack_skills": modes_module.pstack_names_for(mode.skills),
             "caveman_default": self.resolve_caveman_default(project_root),
             "grill_me_default": self.resolve_grill_me_default(project_root),
             "label_flows": self.resolve_label_flows(project_root),

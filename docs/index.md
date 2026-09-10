@@ -145,8 +145,8 @@ else ranked open GitHub issues).
 - **[CLI reference](cli.md)** — every `issue-flow` command, including the
   deterministic `agent` helpers.
 - **[Configuration](configuration.md)** — `.env` variables,
-  `.issueflows/config.toml`, modes, skill levels, and the optional caveman /
-  grill-me skills.
+  `.issueflows/config.toml`, modes, skill levels, the optional caveman /
+  grill-me skills, and the opt-in vendored pstack skills.
 - **[Editor support](editors.md)** — what gets scaffolded per editor, and how
   multi-root workspaces resolve the right repo.
 - **[Graphify integration](graphify.md)** — an optional knowledge graph of your
