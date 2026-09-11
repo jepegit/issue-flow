@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- **Opt-in vendored pstack skills (#249).** Config `pstack_skills` (or `ISSUEFLOW_PSTACK_SKILLS`) scaffolds a curated subset of Lauren Tan's pstack library next to the iflow skills; off by default. Shipped in #250; this close adds the missed changelog line and archives tracking.
+
 ## [0.4.12] - 2026-09-11
 
 - Separate editor workspaces for parallel / multi-repo agent work: `issue-flow agent open-workspace`, design guide, cycle skill wiring. (#253)
