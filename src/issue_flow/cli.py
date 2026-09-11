@@ -956,7 +956,7 @@ def config_add(
 
     Writes the ``[issueflow]`` keys issue-flow reads from ``config.toml`` —
     ``mode``, ``skill_level``, ``caveman_default``, ``grill_me_default``,
-    ``label_flows``, ``yolo_label``, ``checks_watch_minutes``,
+    ``label_flows``, ``yolo_label``, ``ops_label``, ``checks_watch_minutes``,
     ``step_directives``, ``model_label_flows``, ``deep_model_label``,
     ``fast_model_label``, ``linguist_attributes``, ``remind_cleanup``,
     ``cleanup_include_github``, ``suggest_graphify``,

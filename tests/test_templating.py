@@ -34,6 +34,7 @@ _MODE_CONTEXT = {
     "grill_me_default": False,
     "label_flows": True,
     "yolo_label": "yolo",
+    "ops_label": "ops",
     "checks_watch_minutes": 15,
     "step_directives": True,
     "model_label_flows": False,
@@ -131,8 +132,8 @@ def test_resolve_output_path() -> None:
 
 
 def test_manifest_entry_count() -> None:
-    # Cursor is skills-first: 1 rule + 1 doc + 28 skills = 30
-    assert len(TEMPLATE_MANIFEST) == 30
+    # Cursor is skills-first: 1 rule + 1 doc + 29 skills = 31
+    assert len(TEMPLATE_MANIFEST) == 31
 
 
 def _resolved_paths(profile_id: str) -> set[str]:
@@ -152,7 +153,7 @@ def _resolved_paths(profile_id: str) -> set[str]:
 def test_build_manifest_cursor_matches_default() -> None:
     """The default TEMPLATE_MANIFEST is the cursor profile manifest."""
     assert build_manifest(EDITORS["cursor"]) == TEMPLATE_MANIFEST
-    assert len(build_manifest(EDITORS["cursor"])) == 30
+    assert len(build_manifest(EDITORS["cursor"])) == 31
 
 
 def test_build_manifest_cursor_has_skills_and_rules_but_no_commands() -> None:
@@ -167,15 +168,15 @@ def test_build_manifest_cursor_has_skills_and_rules_but_no_commands() -> None:
 
 
 def test_build_manifest_codex_has_skills_and_docs_but_no_commands() -> None:
-    """Codex: skills (28) + docs (1), no slash commands and no rules extra."""
+    """Codex: skills (29) + docs (1), no slash commands and no rules extra."""
     manifest = build_manifest(get_profile("codex"))
     template_names = [name for name, _ in manifest]
     assert not any(name.startswith("commands/") for name in template_names)
-    assert sum(name.startswith("skills/") for name in template_names) == 28
+    assert sum(name.startswith("skills/") for name in template_names) == 29
     assert "docs/issue-workflow.md.j2" in template_names
     # No .mdc / CLAUDE.md rules extra for Codex.
     assert not any(name.startswith("rules/") for name in template_names)
-    assert len(manifest) == 29
+    assert len(manifest) == 30
 
 
 def test_build_manifest_opencode_uses_singular_command_dir() -> None:
@@ -368,8 +369,12 @@ def test_iflow_setup_points_at_capture_not_init() -> None:
     command = render_template("commands/iflow-setup.md.j2", _default_context())
     skill = render_template("skills/iflow_setup/SKILL.md.j2", _default_context())
     for rendered in (command, skill):
-        assert "that is `/iflow-capture`" in rendered or "is `/iflow-capture`" in rendered
-        assert "Capturing a GitHub issue" not in rendered or "/iflow-capture" in rendered
+        assert (
+            "that is `/iflow-capture`" in rendered or "is `/iflow-capture`" in rendered
+        )
+        assert (
+            "Capturing a GitHub issue" not in rendered or "/iflow-capture" in rendered
+        )
         assert "that is `/iflow-init`" not in rendered
         assert "is `/iflow-init`;" not in rendered
 
@@ -850,6 +855,45 @@ def test_issue_pick_routes_yolo_label_when_label_flows_on() -> None:
         assert "iflow-yolo" in rendered, template_name
 
 
+def test_issue_pick_routes_ops_label_when_label_flows_on() -> None:
+    """/iflow-pick surfaces the label-driven ops routing when label_flows is on."""
+    context = {**_default_context(), "label_flows": True, "ops_label": "no-pr"}
+    for template_name in (
+        "commands/iflow-pick.md.j2",
+        "skills/iflow_pick/SKILL.md.j2",
+    ):
+        rendered = render_template(template_name, context)
+        assert "no-pr" in rendered, template_name
+        assert "Label-driven ops flow" in rendered, template_name
+        assert "iflow-ops" in rendered, template_name
+
+
+def test_issue_close_documents_ops_token() -> None:
+    """/iflow-close documents the ops / no-PR token and path."""
+    for template_name in (
+        "commands/iflow-close.md.j2",
+        "skills/iflow_close/SKILL.md.j2",
+    ):
+        rendered = render_template(template_name, _default_context())
+        assert "ops" in rendered.lower(), template_name
+        assert "Ops close path" in rendered or "no-PR close" in rendered, template_name
+        assert "nopr" in rendered, template_name
+
+
+def test_iflow_ops_skill_is_off_path_no_pr() -> None:
+    """/iflow-ops is off-path and ends at close ops."""
+    for template_name in (
+        "commands/iflow-ops.md.j2",
+        "skills/iflow_ops/SKILL.md.j2",
+    ):
+        rendered = render_template(template_name, _default_context())
+        assert "off-path" in rendered.lower() or "Off-path" in rendered, template_name
+        assert "/iflow-close ops" in rendered, template_name
+        assert (
+            "no-PR" in rendered or "no PR" in rendered or "without a PR" in rendered
+        ), template_name
+
+
 def test_issue_pick_omits_label_routing_when_label_flows_off() -> None:
     """With label_flows off, /iflow-pick renders no label-driven routing text."""
     context = {**_default_context(), "label_flows": False, "yolo_label": "yolo"}
@@ -859,6 +903,7 @@ def test_issue_pick_omits_label_routing_when_label_flows_off() -> None:
     ):
         rendered = render_template(template_name, context)
         assert "Label-driven yolo flow" not in rendered, template_name
+        assert "Label-driven ops flow" not in rendered, template_name
 
 
 def test_issue_fix_describes_interactive_session() -> None:
@@ -1801,10 +1846,12 @@ def test_rules_body_pstack_section_is_membership_gated() -> None:
 def test_close_and_build_nudges_are_membership_gated() -> None:
     base = {**_BASE_CONTEXT, **_MODE_CONTEXT}
     close_off = render_template(
-        "skills/iflow_close/SKILL.md.j2", enrich_render_context(base, "skills/iflow_close/SKILL.md.j2")
+        "skills/iflow_close/SKILL.md.j2",
+        enrich_render_context(base, "skills/iflow_close/SKILL.md.j2"),
     )
     build_off = render_template(
-        "skills/iflow_build/SKILL.md.j2", enrich_render_context(base, "skills/iflow_build/SKILL.md.j2")
+        "skills/iflow_build/SKILL.md.j2",
+        enrich_render_context(base, "skills/iflow_build/SKILL.md.j2"),
     )
     assert "Unslop (pstack" not in close_off
     assert "Blast radius (pstack" not in close_off

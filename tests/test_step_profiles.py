@@ -23,6 +23,7 @@ def test_packaged_defaults_cover_lifecycle_skills() -> None:
     assert PACKAGED_DEFAULTS["iflow_init"] == "economy"
     assert PACKAGED_DEFAULTS["iflow_plan"] == "reasoning"
     assert PACKAGED_DEFAULTS["iflow_yolo"] == "reasoning"
+    assert PACKAGED_DEFAULTS["iflow_ops"] == "economy"
     assert PACKAGED_DEFAULTS["iflow_auto"] == "reasoning"
 
 

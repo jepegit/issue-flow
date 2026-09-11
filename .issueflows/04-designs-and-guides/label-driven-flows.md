@@ -53,3 +53,10 @@ GitHub labels already carry intent.
 
 **Link.** Issue #106, `issue106_plan.md` (archived with the issue group).
 Issue #175 (batch alias).
+
+## Ops / no-PR label (issue #251)
+
+- `[issueflow].ops_label` (default `"ops"`) under the same `label_flows` gate.
+- `/iflow-pick` routes to `/iflow-ops` → `/iflow-close ops` (no PR).
+- When both `ops_label` and `yolo_label` are present on an issue, **ops wins**.
+- See [ops-no-pr.md](./ops-no-pr.md).

@@ -46,9 +46,11 @@ NOVICE_MODE = "novice"
 SKILL_LEVELS: tuple[str, ...] = ("basic", "standard", "advanced")
 DEFAULT_SKILL_LEVEL = "standard"
 
-# Label-driven flow selection: allowed by default, "yolo" label triggers yolo.
+# Label-driven flow selection: allowed by default, "yolo" label triggers yolo,
+# "ops" label triggers the no-PR / ops close path.
 DEFAULT_LABEL_FLOWS = True
 DEFAULT_YOLO_LABEL = "yolo"
+DEFAULT_OPS_LABEL = "ops"
 
 # Hard wall-clock budget for `gh pr checks --watch` during /iflow-close yolo.
 DEFAULT_CHECKS_WATCH_MINUTES = 15
@@ -499,6 +501,19 @@ def read_yolo_label(cfg_path: Path) -> str | None:
     section = data.get("issueflow")
     if isinstance(section, dict):
         value = section.get("yolo_label")
+        if value:
+            return str(value)
+    return None
+
+
+def read_ops_label(cfg_path: Path) -> str | None:
+    """Return the persisted ``[issueflow].ops_label`` value, or ``None`` if unset."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict):
+        value = section.get("ops_label")
         if value:
             return str(value)
     return None
@@ -988,6 +1003,7 @@ def write_default_config(
     grill_me_default: bool,
     label_flows: bool = DEFAULT_LABEL_FLOWS,
     yolo_label: str = DEFAULT_YOLO_LABEL,
+    ops_label: str = DEFAULT_OPS_LABEL,
     checks_watch_minutes: int = DEFAULT_CHECKS_WATCH_MINUTES,
     step_directives: bool = DEFAULT_STEP_DIRECTIVES,
     model_label_flows: bool = DEFAULT_MODEL_LABEL_FLOWS,
@@ -1050,6 +1066,7 @@ def write_default_config(
         section["grill_me_default"] = grill_me_default
         section["label_flows"] = label_flows
         section["yolo_label"] = yolo_label
+        section["ops_label"] = ops_label
         section["checks_watch_minutes"] = checks_watch_minutes
         section["step_directives"] = step_directives
         section["model_label_flows"] = model_label_flows
@@ -1096,6 +1113,7 @@ def write_default_config(
             grill_me_default,
             label_flows,
             yolo_label,
+            ops_label,
             checks_watch_minutes,
             step_directives,
             model_label_flows,
@@ -1150,6 +1168,7 @@ def _commented_issueflow_table(
     grill_me_default: bool,
     label_flows: bool,
     yolo_label: str,
+    ops_label: str,
     checks_watch_minutes: int,
     step_directives: bool,
     model_label_flows: bool,
@@ -1215,13 +1234,20 @@ def _commented_issueflow_table(
     table.add(
         tomlkit.comment(
             "Let issue labels select the flow (true/false): an issue carrying "
-            "the yolo label is run through /iflow-yolo when picked. Re-run "
+            "the yolo label is run through /iflow-yolo when picked; the ops "
+            "label routes to /iflow-ops (no-PR close). Re-run "
             "'issue-flow update' after changing so the commands re-render."
         )
     )
     table["label_flows"] = label_flows
     table.add(tomlkit.comment("The GitHub label that triggers the yolo flow."))
     table["yolo_label"] = yolo_label
+    table.add(
+        tomlkit.comment(
+            "The GitHub label that triggers the ops / no-PR flow (/iflow-ops)."
+        )
+    )
+    table["ops_label"] = ops_label
     table.add(tomlkit.nl())
     table.add(
         tomlkit.comment(

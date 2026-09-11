@@ -146,6 +146,8 @@ When the user message is **exactly** one of these forms, or **starts with** it f
 
 | `iflow issue`, `iflow-issue`, `/iflow-issue`, `/iflow issue` | `iflow-issue` |
 
+| `iflow ops`, `iflow-ops`, `/iflow-ops`, `/iflow ops` | `iflow-ops` |
+
 | `iflow pause`, `iflow-pause`, `/iflow-pause`, `/iflow pause` | `iflow-pause` |
 
 | `iflow pick`, `iflow-pick`, `/iflow-pick`, `/iflow pick` | `iflow-pick` |
@@ -173,7 +175,7 @@ If the project itself is not ready yet — no git repo, no remote, `gh` not auth
 
 If you have not chosen an issue yet, run **`/iflow-pick`** (or type **`iflow pick`** in chat) — the front door that helps you select the next issue (parked work first, else ranked open GitHub issues), creates the branch, and runs `/iflow-capture`. It is off-path (never auto-dispatched).
 
-If you just want the next right step, run **`/iflow`** (or type **`iflow`** in chat) — it detects state (by file presence under `.issueflows/01-current-issues/` and the status-file `- [x] Done` marker) and dispatches to `/iflow-capture`, `/iflow-plan`, `/iflow-build`, or `/iflow-close`. With no focus issue, it checks active-epic `next_candidates` (`agent state` → `epic_hint`) and **recommends** `/iflow-pick` instead of a blind capture — it never auto-dispatches to the off-path commands (`/iflow-pick`, `/iflow-init`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`).
+If you just want the next right step, run **`/iflow`** (or type **`iflow`** in chat) — it detects state (by file presence under `.issueflows/01-current-issues/` and the status-file `- [x] Done` marker) and dispatches to `/iflow-capture`, `/iflow-plan`, `/iflow-build`, or `/iflow-close`. With no focus issue, it checks active-epic `next_candidates` (`agent state` → `epic_hint`) and **recommends** `/iflow-pick` instead of a blind capture — it never auto-dispatches to the off-path commands (`/iflow-pick`, `/iflow-init`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-ops`).
 
 The full slash-command lifecycle is:
 
@@ -188,12 +190,15 @@ The full slash-command lifecycle is:
 `/iflow-yolo` chains `capture → plan → build → close yolo` for small, low-risk issues with up-front safeguards (clean tree, passing tests, single consolidated confirm). Its close step is hands-off: changelog decided without a prompt, PR merged (`gh pr merge --squash`; on pending checks may `gh pr checks --watch` then retry, with `--auto` as last resort), then default-branch switch + pull.
 
 
+`/iflow-ops` runs **ops / no-PR** work (staging→prod, flag flips, external deploys): execute the checklist, then `/iflow-close ops` — no push/PR. Product-code dirty trees are refused. Off-path (never auto-dispatched).
+
+
 
 `/iflow-init` cold-starts or checks the issue-flow harness (guides `issue-flow init` / `update`). It does **not** capture GitHub issues — that is `/iflow-capture`. Off-path (never auto-dispatched).
 
 
 
-Issue labels can select the flow: when an issue picked via `/iflow-pick` carries the **`yolo`** label, it is routed through `/iflow-yolo` (one combined confirmation). Controlled by `label_flows` (default `true`) and `yolo_label` (default `"yolo"`) under `[issueflow]` in `.issueflows/config.toml`; re-run `issue-flow update` after changing them.
+Issue labels can select the flow: when an issue picked via `/iflow-pick` carries the **`yolo`** label, it is routed through `/iflow-yolo` (one combined confirmation). The **`ops`** label routes to `/iflow-ops` (no PR); when both labels are present, **ops wins**. Controlled by `label_flows` (default `true`), `yolo_label` (default `"yolo"`), and `ops_label` (default `"ops"`) under `[issueflow]` in `.issueflows/config.toml`; re-run `issue-flow update` after changing them.
 
 
 
@@ -284,6 +289,7 @@ it whenever you need to know if CI finished: prefer `gh pr checks` /
 15); fall back to `gh run list` / `gh run watch` when PR
 checks are empty. Always pass `--repo <owner/repo>`. `/iflow-close` owns the
 merge sequence; this skill is the shared command cheatsheet.
+
 
 
 ### Designs and guides

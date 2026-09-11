@@ -19,6 +19,7 @@ Optional text after the command (same line). Examples:
 - **`stay`**, **`stay on branch`**, **`don't switch`**, or **`dont switch to main`** — after the PR step, stay on the issue branch instead of switching back to the default branch.
 - **`yolo`** — hands-off close (used by `/iflow-yolo`): decide the `{{ history_file }}` update yourself without a confirm prompt (step 3), **merge the PR** after opening/updating it (step 7a), then switch back to the default branch and pull (step 8). See the per-step notes below.
 - **`draft`** — when creating a PR in step 7, use `gh pr create --draft`. If an open PR already exists, leave it draft (do not mark ready). **`draft` skips yolo merge** entirely (step 7a).
+- **`ops`**, **`nopr`**, or **`no-pr`** — **no-PR close** (used by `/iflow-ops`): skip push/PR/version-bump/`{{ history_file }}` (default; honour `log "..."` if given). Require an ops checklist confirm; refuse when product-code paths are dirty or unique product commits exist on the branch; update local tracking; optionally commit `{{ issueflows_dir }}/` changes (default branch OK); `gh issue close`. Mutually exclusive with `yolo` / `draft`. When present, follow the **Ops close path** in the `iflow-close` skill instead of the PR steps below.
 
 Other optional notes still apply: branch name, PR title, skip issue doc update, commit all changes, etc.
 

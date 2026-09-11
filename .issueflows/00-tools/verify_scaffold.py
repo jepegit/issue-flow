@@ -10,12 +10,13 @@ Built-in check groups:
 
 1. **defaults** — label-driven yolo routing is rendered (``label_flows``
    defaults to true), the close surfaces carry the hands-off ``yolo`` token
-   (``gh pr merge --squash`` + ``--auto`` fallback), and the yolo surfaces
-   chain ``/iflow-close yolo``.
+   (``gh pr merge --squash`` + ``--auto`` fallback), the yolo surfaces
+   chain ``/iflow-close yolo``, and ops surfaces / ops close token are present.
 2. **label_flows = false** — the label routing text disappears from the pick
    surfaces after ``issue-flow update``.
 3. **yolo_label = "fast-track"** — a custom label is interpolated into the
    pick surfaces after ``issue-flow update``.
+3b. **ops_label = "ship-it"** — custom ops label rendered into pick surfaces.
 4. **pstack_skills** — no ``skills/unslop`` etc. by default; setting
    ``pstack_skills = ["unslop", "tdd"]`` and re-running ``update`` renders the
    two vendored skills under their upstream folder names for every editor, the
@@ -65,8 +66,13 @@ YOLO_SURFACES = (
     ".cursor/skills/iflow-yolo/SKILL.md",
     ".claude/commands/iflow-yolo.md",
 )
+OPS_SURFACES = (
+    ".cursor/skills/iflow-ops/SKILL.md",
+    ".claude/commands/iflow-ops.md",
+)
 
 LABEL_ROUTING_MARKER = "Label-driven yolo flow"
+OPS_ROUTING_MARKER = "Label-driven ops flow"
 
 _failures: list[str] = []
 
@@ -207,13 +213,18 @@ def main() -> int:
         print("\n[1/5] defaults (label_flows on, yolo_label = yolo)")
         for rel in PICK_SURFACES:
             _check(project / rel, LABEL_ROUTING_MARKER, True, rel)
+            _check(project / rel, OPS_ROUTING_MARKER, True, rel)
             _check(project / rel, "`yolo`", True, rel)
+            _check(project / rel, "`ops`", True, rel)
         for rel in CLOSE_SURFACES:
             _check(project / rel, "gh pr merge", True, rel)
             _check(project / rel, "--squash --auto", True, rel)
             _check(project / rel, "gh pr create --draft", True, rel)
+            _check(project / rel, "Ops close path", True, rel)
         for rel in YOLO_SURFACES:
             _check(project / rel, "/iflow-close yolo", True, rel)
+        for rel in OPS_SURFACES:
+            _check(project / rel, "/iflow-close ops", True, rel)
         for rel in (
             ".cursor/skills/iflow-build/SKILL.md",
             ".cursor/commands/iflow-build.md",
@@ -228,6 +239,7 @@ def main() -> int:
         _issue_flow(project, "update", *editor_flags)
         for rel in PICK_SURFACES:
             _check(project / rel, LABEL_ROUTING_MARKER, False, rel)
+            _check(project / rel, OPS_ROUTING_MARKER, False, rel)
 
         print('\n[3/5] yolo_label = "fast-track" → custom label rendered')
         _set_config(project, label_flows=True, yolo_label="fast-track")
@@ -235,6 +247,13 @@ def main() -> int:
         for rel in PICK_SURFACES:
             _check(project / rel, LABEL_ROUTING_MARKER, True, rel)
             _check(project / rel, "fast-track", True, rel)
+
+        print('\n[3b] ops_label = "ship-it" → custom ops label rendered')
+        _set_config(project, label_flows=True, ops_label="ship-it")
+        _issue_flow(project, "update", *editor_flags)
+        for rel in PICK_SURFACES:
+            _check(project / rel, OPS_ROUTING_MARKER, True, rel)
+            _check(project / rel, "ship-it", True, rel)
 
         print("\n[4/5] pstack_skills → vendored skills appear, then prune")
         rules = project / ".cursor/rules/issueflow-rules.mdc"

@@ -56,6 +56,7 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "grill_me_default",
         "label_flows",
         "yolo_label",
+        "ops_label",
         "checks_watch_minutes",
         "step_directives",
         "model_label_flows",
@@ -314,6 +315,31 @@ def test_yolo_label_config_beats_env(
     monkeypatch.setenv("ISSUEFLOW_YOLO_LABEL", "speedy")
     settings = Settings()
     assert settings.resolve_yolo_label(tmp_path) == "fast-track"
+
+
+def test_ops_label_default(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    monkeypatch.delenv("ISSUEFLOW_OPS_LABEL", raising=False)
+    settings = Settings()
+    assert settings.resolve_ops_label(tmp_path) == "ops"
+    assert settings.template_context(tmp_path)["ops_label"] == "ops"
+
+
+def test_ops_label_from_config(tmp_path: Path) -> None:
+    _write_config(tmp_path, '[issueflow]\nops_label = "no-pr"\n')
+    settings = Settings()
+    assert settings.resolve_ops_label(tmp_path) == "no-pr"
+
+
+def test_ops_label_from_env(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    monkeypatch.setenv("ISSUEFLOW_OPS_LABEL", "ship-it")
+    settings = Settings()
+    assert settings.resolve_ops_label(tmp_path) == "ship-it"
 
 
 def test_checks_watch_minutes_default(
