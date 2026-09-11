@@ -16,7 +16,7 @@ It covers both entry paths from a standing start:
 - **New project** — an empty (or nearly empty) folder that needs a Python project, a git repo, and a GitHub remote.
 - **Existing project** — real code already, but some piece is missing (no remote, `gh` not authenticated, no issue-flow scaffold).
 
-This is **not** the issue-capture step. Capturing a GitHub issue into `.issueflows/01-current-issues/` is `/iflow-capture`; picking what to work on is `/iflow-pick`. `/iflow-init` only cold-starts the harness.
+This is **not** the issue-capture step. Capturing a GitHub issue into `.issueflows/01-current-issues/` is `/iflow-init`; picking what to work on is `/iflow-pick`.
 
 
 **Invoke:** type `iflow setup` in chat, or `/iflow-setup` from the slash menu (`iflow-setup` also works).
@@ -98,7 +98,7 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
    | no `origin` remote | Offer `gh repo create <name> --source=. --private --remote=origin --push`. Confirm the name and the private/public choice explicitly — this creates a repository on their GitHub account. |
    | no issue-flow scaffold | `issue-flow init` (see step 5 for the mode choice). |
 
-5. **Choose a starting mode when scaffolding.** For someone new to agentic coding, recommend **`issue-flow init --mode novice`**: it installs the linear lifecycle plus the safety nets (`/iflow`, `/iflow-setup`, `/iflow-pick`, `/iflow-init`, `/iflow-capture`, `/iflow-issue`, `/iflow-plan`, `/iflow-build`, `/iflow-pause`, `/iflow-close`, `/iflow-cleanup`, `/iflow-status`, `/iflow-doctor`) and leaves out the hands-off and batch machinery, and it seeds settings that ask before each step instead of chaining. Mention that `issue-flow init --mode standard` adds everything later — switching mode is just a re-run.
+5. **Choose a starting mode when scaffolding.** For someone new to agentic coding, recommend **`issue-flow init --mode novice`**: it installs the linear lifecycle plus the safety nets (`/iflow`, `/iflow-setup`, `/iflow-pick`, `/iflow-init`, `/iflow-issue`, `/iflow-plan`, `/iflow-build`, `/iflow-pause`, `/iflow-close`, `/iflow-cleanup`, `/iflow-status`, `/iflow-doctor`) and leaves out the hands-off and batch machinery, and it seeds settings that ask before each step instead of chaining. Mention that `issue-flow init --mode standard` adds everything later — switching mode is just a re-run.
 
 6. **Hand off — never auto-dispatch.** End with the single next thing to type:
    - GitHub issues already exist → **`/iflow-pick`** (`iflow pick` in chat).
@@ -113,5 +113,5 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 - **Never run `gh auth login` yourself**, and never install `uv` or `gh` on the user's behalf — print the command and stop.
 - **Never run `uv init` in a directory that already holds a project.** When in doubt, ask.
 - **`check` is read-only.** With that token, report and stop: no prompts, no commands.
-- **Off-path.** Never auto-dispatch this skill from `/iflow`, `/iflow-plan`, or `/iflow-build`; the user invokes it. It never captures an issue, creates a branch, or opens a PR — that is `/iflow-capture` onward.
+- **Off-path.** Never auto-dispatch this skill from `/iflow`, `/iflow-plan`, or `/iflow-build`; the user invokes it. It never captures an issue, creates a branch, or opens a PR — that is `/iflow-init` onward.
 - **Plain language.** Assume the user has not read the workflow doc. Explain what each command will do to their machine or their GitHub account before asking.
