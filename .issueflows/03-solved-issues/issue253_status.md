@@ -1,6 +1,6 @@
 # Issue #253 — status
 
-- [ ] Done
+- [x] Done
 
 ## What's done
 
@@ -9,7 +9,8 @@
 - Templates: `iflow_cycle` skill, `iflow-cycle` command, `issue-workflow.md` parallel/multi-repo notes.
 - Tests: five `open-workspace` CLI cases + cycle skill asserts `open-workspace` / `--open` / design doc ref.
 - `uv run pytest` (702 passed), `uv run ruff check src/ tests/` clean.
+- Bumped to 0.4.12; HISTORY promoted; archived under `03-solved-issues/`.
 
 ## Remaining work
 
-- `/iflow-close` (changelog, commit, PR). Optional: `issue-flow update` in this repo to refresh local skills from templates.
+- None.
