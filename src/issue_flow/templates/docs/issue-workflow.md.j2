@@ -18,7 +18,7 @@ This repo uses {{ editor_name }} **Agent Skills** under `{{ agent_dir }}/skills/
 
 It also seeds `{{ issueflows_dir }}/{{ tools_folder }}/README.md` — the index of the project's **shared toolbox**. Drop reusable helper scripts there during issue work and add a one-line index entry; check the folder before writing a new one-off helper. Like the project brief, this README is never overwritten by `issue-flow update`, so its index grows over time.
 
-**Multi-root workspaces:** when several sibling repos share one editor workspace, resolve the target repo first (`root:` / `repo:` hints, or `issue-flow agent resolve`). A workspace-root `issueflow-workspace.toml` (create it with `issue-flow workspace init`) can name a **default member repo** used when a command runs from outside any single scaffold. Never let `git` or `gh` infer the repository from cwd alone. See `{{ issueflows_dir }}/{{ designs_folder }}/multi-repo-workspaces.md` when present.
+**Multi-root workspaces:** when several sibling repos share one editor workspace, resolve the target repo first (`root:` / `repo:` hints, or `issue-flow agent resolve`). A workspace-root `issueflow-workspace.toml` (create it with `issue-flow workspace init`) can name a **default member repo** used when a command runs from outside any single scaffold. Never let `git` or `gh` infer the repository from cwd alone. See `{{ issueflows_dir }}/{{ designs_folder }}/multi-repo-workspaces.md` when present. For parallel agents, prefer **separate editor windows** per worktree/member (`issue-flow agent open-workspace`; see `{{ designs_folder }}/separate-workspaces.md`) instead of packing workers into one multi-root session.
 {% if mode != "standard" %}
 > **Scaffolding mode: `{{ mode }}`.** This project was scaffolded in the **{{ mode_name }}** mode, so only a subset of the surfaces below are installed: `{{ included_skills | join("`, `") }}`. Entries for surfaces this mode does not install are listed below for reference but are not present in `{{ agent_dir }}/skills/`. Switch modes with `issue-flow init --mode <id>`.
 {% endif %}
@@ -523,7 +523,7 @@ iflow cycle yolo
 # → back on default, clean, between issues
 ```
 
-**Conflict stance:** sequential cycles merge each PR and return to a clean default before the next issue, so shared files like `{{ history_file }}` stay single-writer. See `{{ designs_folder }}/parallel-cycle.md` for experimental `parallel:<n>` (merges still serialized).
+**Conflict stance:** sequential cycles merge each PR and return to a clean default before the next issue, so shared files like `{{ history_file }}` stay single-writer. See `{{ designs_folder }}/parallel-cycle.md` for experimental `parallel:<n>` (merges still serialized) and `{{ designs_folder }}/separate-workspaces.md` for one-window-per-worktree layout.
 
 **Off-path:** `/iflow` never auto-dispatches to `/iflow-cycle`.
 

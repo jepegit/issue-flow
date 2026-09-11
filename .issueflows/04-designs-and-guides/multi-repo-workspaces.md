@@ -79,6 +79,14 @@ members = ["cellpy", "cellpy-core"]  # optional; auto-discovered when omitted
 - **Multi-repo status dashboard** — `issue-flow status --workspace` aggregating
   the per-repo payloads across registry members (Phase 4; extends #20).
 
+## Separate editor windows (execution layout)
+
+When parallel agents or heavy concurrent work on sibling repos would mix
+rules/cwd in one multi-root window, open **one editor workspace per member
+or worktree** instead. Registry + `agent resolve` stay unchanged — see
+[separate-workspaces.md](./separate-workspaces.md) (issue #253) and
+`issue-flow agent open-workspace`.
+
 ## Manual cross-repo work (until Phase 3)
 
 For paired changes (engine + consumer):

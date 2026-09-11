@@ -1075,6 +1075,119 @@ def test_agent_resolve_fails_without_scaffold(
 
 
 # ---------------------------------------------------------------------------
+# agent open-workspace (issue #253)
+# ---------------------------------------------------------------------------
+
+
+def test_agent_open_workspace_print_default_path(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    (tmp_path / ".issueflows" / "01-current-issues").mkdir(parents=True)
+
+    result = runner.invoke(
+        app, ["agent", "open-workspace", "-C", str(tmp_path), "--json"]
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["path"] == str(tmp_path.resolve())
+    assert payload["resolved_via"] == "project_dir"
+    assert payload["opened"] is False
+    assert payload["suggested_argv"]
+    assert payload["suggested_argv"][-1] == str(tmp_path.resolve())
+
+
+def test_agent_open_workspace_member_name(runner: CliRunner, tmp_path: Path) -> None:
+    workspace = tmp_path / "ws"
+    alpha = workspace / "alpha"
+    beta = workspace / "beta"
+    (alpha / ".issueflows").mkdir(parents=True)
+    (beta / ".issueflows").mkdir(parents=True)
+    (workspace / "issueflow-workspace.toml").write_text(
+        '[workspace]\ndefault = "alpha"\nmembers = ["alpha", "beta"]\n',
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(
+        app,
+        ["agent", "open-workspace", "beta", "-C", str(alpha), "--json"],
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["path"] == str(beta.resolve())
+    assert payload["resolved_via"] == "workspace_member"
+    assert payload["opened"] is False
+
+
+def test_agent_open_workspace_missing_target(runner: CliRunner, tmp_path: Path) -> None:
+    (tmp_path / ".issueflows").mkdir()
+    result = runner.invoke(
+        app,
+        [
+            "agent",
+            "open-workspace",
+            "no-such-member",
+            "-C",
+            str(tmp_path),
+            "--json",
+        ],
+    )
+    assert result.exit_code == 1
+    payload = _json(result.stdout)
+    assert payload["path"] is None
+    assert payload["error"]
+
+
+def test_agent_open_workspace_open_without_binary(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    (tmp_path / ".issueflows" / "01-current-issues").mkdir(parents=True)
+    monkeypatch.setattr("issue_flow.agent.shutil.which", lambda _name: None)
+
+    result = runner.invoke(
+        app,
+        ["agent", "open-workspace", "-C", str(tmp_path), "--open", "--json"],
+    )
+
+    assert result.exit_code == 1
+    payload = _json(result.stdout)
+    assert payload["path"] == str(tmp_path.resolve())
+    assert payload["opened"] is False
+    assert payload["binary_found"] is False
+    assert "no editor binary" in (payload["error"] or "")
+
+
+def test_agent_open_workspace_open_launches(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    (tmp_path / ".issueflows" / "01-current-issues").mkdir(parents=True)
+    calls: list[list[str]] = []
+
+    monkeypatch.setattr(
+        "issue_flow.agent.shutil.which",
+        lambda name: "/usr/bin/cursor" if name == "cursor" else None,
+    )
+
+    def _fake_popen(argv: list[str], **_kwargs: Any) -> object:
+        calls.append(list(argv))
+        return object()
+
+    monkeypatch.setattr("issue_flow.agent.subprocess.Popen", _fake_popen)
+
+    result = runner.invoke(
+        app,
+        ["agent", "open-workspace", "-C", str(tmp_path), "--open", "--json"],
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["opened"] is True
+    assert payload["binary"] == "/usr/bin/cursor"
+    assert calls == [["/usr/bin/cursor", str(tmp_path.resolve())]]
+
+
+# ---------------------------------------------------------------------------
 # agent version-plan (issue #133)
 # ---------------------------------------------------------------------------
 

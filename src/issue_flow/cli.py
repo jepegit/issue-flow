@@ -22,9 +22,9 @@ agent_app = typer.Typer(
         "Agent-facing helpers that read the .issueflows/ tree and git/gh so "
         "AI agents get deterministic answers instead of re-deriving lifecycle "
         "state by hand. All are read-only except `sweep`, `archive`, `capture`, "
-        "`switchback`, `sync-branch`, `repair`, and `label-apply`. `branches` "
-        "(remote) and `local-branches` (local) only classify: every delete "
-        "stays in `/iflow-cleanup`."
+        "`switchback`, `sync-branch`, `repair`, `label-apply`, and "
+        "`open-workspace --open`. `branches` (remote) and `local-branches` "
+        "(local) only classify: every delete stays in `/iflow-cleanup`."
     ),
 )
 
@@ -802,6 +802,51 @@ def agent_resolve(
     from issue_flow.agent import run_resolve
 
     raise typer.Exit(code=run_resolve(project_dir, _console, from_file, json_output))
+
+
+@agent_app.command("open-workspace")
+def agent_open_workspace(
+    target: str | None = typer.Argument(
+        None,
+        help=(
+            "Directory path or workspace member name to address as its own "
+            "editor window. Defaults to the project root from -C."
+        ),
+    ),
+    project_dir: Path = typer.Option(
+        Path("."),
+        "--project-dir",
+        "-C",
+        help="Start directory for workspace-member lookup (defaults to cwd).",
+        exists=True,
+        file_okay=False,
+        resolve_path=True,
+    ),
+    do_open: bool = typer.Option(
+        False,
+        "--open",
+        help=(
+            "Launch the editor binary on the resolved path (non-blocking). "
+            "Default is print-only; skills must confirm before passing --open."
+        ),
+    ),
+    editor: str | None = typer.Option(
+        None,
+        "--editor",
+        help="Editor id for binary lookup (default: ISSUEFLOW_EDITOR / cursor).",
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Print (optionally open) a path as a separate editor workspace."""
+    from issue_flow.agent import run_open_workspace
+
+    raise typer.Exit(
+        code=run_open_workspace(
+            project_dir, _console, target, do_open, json_output, editor_id=editor
+        )
+    )
 
 
 @agent_app.command("sweep")

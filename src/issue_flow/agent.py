@@ -2,9 +2,10 @@
 
 These functions back ``issue-flow status`` (human-facing, top-level) and the
 ``issue-flow agent ...`` sub-commands (``state`` / ``preflight`` / ``switchback`` /
-``sync-branch`` / ``branches`` / ``version-plan`` / ``resolve`` / ``sweep`` /
-``archive`` / ``capture`` / ``sub-issue-add``) that exist so AI agents can ask the tool
-for a deterministic answer instead of re-deriving lifecycle state by hand on every run.
+``sync-branch`` / ``branches`` / ``version-plan`` / ``resolve`` / ``open-workspace`` /
+``sweep`` / ``archive`` / ``capture`` / ``sub-issue-add``) that exist so AI agents
+can ask the tool for a deterministic answer instead of re-deriving lifecycle
+state by hand on every run.
 
 Each ``run_*`` returns a process exit code and emits either a short human
 report (via :class:`rich.console.Console`) or a stable JSON object on stdout
@@ -17,6 +18,8 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
+import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -25,7 +28,7 @@ from rich.markup import escape
 
 from issue_flow import gitutils, history, modes, project, readiness, tracking
 from issue_flow.config import Settings
-from issue_flow.editors import EDITORS
+from issue_flow.editors import DEFAULT_EDITOR, EDITORS
 
 
 def _folders(project_root: Path, settings: Settings) -> dict[str, Path]:
@@ -1249,6 +1252,175 @@ def run_resolve(
         console.print(
             f"[bold]Workspace members[/bold]: {len(workspace.members)} "
             f"(default: {escape(workspace.default) if workspace.default else 'none'})"
+        )
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# agent open-workspace (issue #253)
+# ---------------------------------------------------------------------------
+
+
+def _editor_binary_candidates(editor_id: str) -> list[str]:
+    """Ordered binary names to try for launching an editor workspace."""
+    primary = {
+        "cursor": "cursor",
+        "claude": "claude",
+        "opencode": "opencode",
+        "codex": "codex",
+    }.get(editor_id, editor_id)
+    out: list[str] = []
+    for name in (primary, "cursor", "code"):
+        if name and name not in out:
+            out.append(name)
+    return out
+
+
+def _resolve_open_workspace_target(
+    project_dir: Path,
+    target: str | None,
+    *,
+    issueflows_dir: str,
+) -> tuple[Path | None, str | None, str]:
+    """Resolve a folder path for ``open-workspace``.
+
+    Returns ``(path, error, resolved_via)``. ``resolved_via`` is one of
+    ``project_dir``, ``path``, ``workspace_member``.
+    """
+    start = project_dir.resolve()
+    if target is None or not target.strip():
+        root = project.find_project_root(start, issueflows_dir=issueflows_dir) or start
+        return root, None, "project_dir"
+
+    raw = target.strip()
+    as_path = Path(raw)
+    if as_path.is_absolute():
+        if as_path.is_dir():
+            return as_path.resolve(), None, "path"
+        return None, f"target path does not exist or is not a directory: {raw}", "path"
+
+    for base in (Path.cwd(), start):
+        candidate = (base / raw).resolve()
+        if candidate.is_dir():
+            return candidate, None, "path"
+
+    workspace = project.discover_workspace(start, issueflows_dir=issueflows_dir)
+    if workspace is not None and raw in workspace.members:
+        member_path = (workspace.root / raw).resolve()
+        if member_path.is_dir():
+            return member_path, None, "workspace_member"
+        return (
+            None,
+            f"workspace member '{raw}' path missing: {member_path}",
+            "workspace_member",
+        )
+
+    return None, f"target not found as path or workspace member: {raw}", "none"
+
+
+def run_open_workspace(
+    project_dir: Path,
+    console: Console,
+    target: str | None,
+    do_open: bool,
+    as_json: bool,
+    *,
+    editor_id: str | None = None,
+) -> int:
+    """Print (and optionally launch) a path as its own editor workspace.
+
+    Default is print-only. ``--open`` spawns the editor binary when found;
+    skills must confirm before passing ``--open``. Never creates worktrees or
+    ``.code-workspace`` files.
+    """
+    settings = Settings()
+    resolved_editor = (editor_id or settings.editor or DEFAULT_EDITOR).strip().lower()
+    path, error, via = _resolve_open_workspace_target(
+        project_dir,
+        target,
+        issueflows_dir=settings.issueflows_dir,
+    )
+
+    candidates = _editor_binary_candidates(resolved_editor)
+    binary: str | None = None
+    for name in candidates:
+        found = shutil.which(name)
+        if found:
+            binary = found
+            break
+
+    suggested_argv = [binary or candidates[0], str(path)] if path is not None else []
+
+    payload: dict[str, Any] = {
+        "path": str(path) if path is not None else None,
+        "resolved_via": via,
+        "editor": resolved_editor,
+        "binary": binary,
+        "binary_found": binary is not None,
+        "suggested_argv": suggested_argv,
+        "opened": False,
+        "error": error,
+    }
+
+    if path is None:
+        if as_json:
+            _emit_json(console, payload)
+        else:
+            console.print(f"[red]error[/red]  {escape(error or 'target not found')}")
+        return 1
+
+    if do_open:
+        if binary is None:
+            msg = (
+                "no editor binary found on PATH "
+                f"(tried: {', '.join(candidates)}); print-only still works"
+            )
+            payload["error"] = msg
+            if as_json:
+                _emit_json(console, payload)
+            else:
+                console.print(f"[red]error[/red]  {escape(msg)}")
+                console.print(f"[bold]Path[/bold]: {path}")
+            return 1
+        try:
+            subprocess.Popen(  # noqa: S603 — argv is our resolved binary + path
+                [binary, str(path)],
+                start_new_session=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+        except OSError as exc:
+            msg = f"failed to launch editor: {exc}"
+            payload["error"] = msg
+            if as_json:
+                _emit_json(console, payload)
+            else:
+                console.print(f"[red]error[/red]  {escape(msg)}")
+            return 1
+        payload["opened"] = True
+
+    if as_json:
+        _emit_json(console, payload)
+        return 0
+
+    console.print(f"[bold]Path[/bold]: {path}")
+    console.print(f"[bold]Resolved via[/bold]: {via}")
+    console.print(f"[bold]Editor[/bold]: {resolved_editor}")
+    if binary:
+        console.print(f"[bold]Binary[/bold]: {binary}")
+    else:
+        console.print(
+            "[bold]Binary[/bold]: [yellow]not found[/yellow] "
+            f"(tried: {', '.join(candidates)})"
+        )
+    if suggested_argv:
+        console.print(f"[bold]Suggested[/bold]: {' '.join(suggested_argv)}")
+    if do_open and payload["opened"]:
+        console.print("[green]Opened[/green] (non-blocking).")
+    elif not do_open:
+        console.print(
+            "[dim]Print-only. Pass --open after confirm to launch "
+            "(skills must never auto-open).[/dim]"
         )
     return 0
 

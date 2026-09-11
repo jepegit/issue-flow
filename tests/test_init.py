@@ -580,6 +580,9 @@ def test_init_cycle_skill_parallel_dispatch_is_opt_in_and_gated(
     assert "refuse `parallel:<n>` and run sequentially" in content
     assert "worktree" in content.lower()
     assert "Serialize merges" in content or "serial merge" in content.lower()
+    assert "open-workspace" in content
+    assert "separate-workspaces.md" in content
+    assert "--open" in content
 
 
 def test_init_cycle_skill_has_state_file_resume_and_onfail(tmp_path: Path) -> None:
