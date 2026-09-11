@@ -49,8 +49,9 @@ Do **not** use this skill from `/iflow`, `/iflow-build`, or `/iflow-close`. `/if
 
 5. **Offer branch + init (default path).** Ask whether to start work now. On yes (require a clean tree; if dirty, stop and ask to commit/stash):
    - Slug from the title (kebab-case); branch `<N>-<slug>`. Confirm a non-obvious slug.
-   - On the default branch → `git switch -c <N>-<slug>`. On a non-default branch → **ask** whether to branch from current or default.
-   - Run `/iflow-capture` (or the `iflow-capture` skill) for `<N>`. Do not duplicate its fetch/archive logic.
+{% include "skills/_worktree_start.md.j2" %}
+   - On a non-default **home** branch → **ask** whether to FF/switch home to default first (required for worktree-add) or use `inplace` from current.
+   - Run `/iflow-capture` (or the `iflow-capture` skill) for `<N>` with `-C <worktree>` (or home if `inplace`). Do not duplicate its fetch/archive logic.
    - **Ask** whether to continue with `/iflow-plan`. Do **not** auto-run it.
 6. **Create-only.** If the user declines Phase 2, stop after create. Remind them they can pick it up later with `/iflow-pick` / `/iflow-capture`.
 

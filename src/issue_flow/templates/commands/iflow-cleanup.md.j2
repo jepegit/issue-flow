@@ -46,9 +46,10 @@ Optional free-form text after the command. Examples:
    - `git branch -d` applies git's **reachability** test, while `git cherry` proves **patch equivalence**. A {% if pr_merge_method == "squash" %}squash merge (this project's `pr_merge_method`){% else %}squash merge{% endif %} rewrites commits onto a new commit, so the branch tip stays unreachable and `-d` refuses it no matter how thoroughly the work landed.
 
 5. **Consolidated confirm for post-merge cleanup (Phase A1).** Gather the full action list into a single yes/no prompt:
-   - `git switch <default>`
+   - `git switch <default>` (home only)
    - `git pull --ff-only`
    - `git fetch --prune`
+   - `issue-flow agent worktree-remove` for each linked worktree whose branch is `reachable` (**before** deleting the branch)
    - `git branch -d <branch>` for each **`reachable`** branch, listed explicitly by name before asking.
    - **Planned release tag (tag-derived projects only).** When `/iflow-close` planned a tag it did not create — check the focus issue's status file and the newest `{{ history_file }}` release section for a version whose tag is missing from `git tag -l` — include creating it in the same confirm: `git tag <planned>` then `git push origin <planned>` (or `gh release create <planned> --generate-notes`). Run it **after** the pull so the tag lands on the merged {{ pr_merge_method }} commit.
    - If `-d` still refuses a branch, report it and leave it alone — do not escalate to `-D` here.
@@ -57,7 +58,7 @@ Optional free-form text after the command. Examples:
    - Explain that these branches need `git branch -D` because the {{ pr_merge_method }} merge left no reachable tip, and that `-D` bypasses git's safety check.
    - List `squash_landed` as `<name>  <tip>`, and list `merged_pr_divergent` **separately** with each branch's merged PR link and unique-commit subjects so the user can see what differs.
    - Include the recovery line: `git branch <name> <tip>` restores anything deleted.
-   - Ask **once**, separately from Phase A1. On yes, try `git branch -d <name>` first and fall back to `-D` only when it refuses (`-d` also accepts branches merged into their own upstream, so it can still succeed while the remote-tracking ref exists); report every `<name> <tip>` and the flag used. On no, nothing is deleted.
+   - Ask **once**, separately from Phase A1. On yes, `worktree-remove` matching linked worktrees first, then try `git branch -d <name>` and fall back to `-D` only when it refuses (`-d` also accepts branches merged into their own upstream, so it can still succeed while the remote-tracking ref exists); report every `<name> <tip>` and the flag used. On no, nothing is deleted.
    - Never list a `unique_work` or `skipped` branch here, whatever the user asks for.
 
 7. **Optional folder sweep** (safe; no destructive git).

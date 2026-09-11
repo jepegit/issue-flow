@@ -14,9 +14,11 @@ source of truth for *which* repo a command targets.
 | Situation | Prefer |
 | --- | --- |
 | One human, one focus repo, light sibling glance | Multi-root (see [multi-repo-workspaces.md](./multi-repo-workspaces.md)) |
+| `/iflow-pick` / `/iflow-issue` / `/iflow-fix` start (#255) | Sibling worktree `../<repo>-<N>`; home stays on default |
 | Parallel cycle workers (`parallel:<n>`) | Separate window **per worktree** |
 | Concurrent agents on sibling member repos | Separate window **per member** |
 | Headless / CI / no GUI editor | Print path only — never force-open |
+| Opt out of worktree on start | Token `inplace` / `no worktree` (legacy `git switch -c` on home) |
 
 ## Coordinator / worker split
 
@@ -30,6 +32,12 @@ source of truth for *which* repo a command targets.
 ## CLI helper
 
 ```bash
+# Create ../<repo>-<N> on <N>-<slug>; home checkout is not switched
+issue-flow agent worktree-add <N> --slug <slug> -C <home> --json
+
+issue-flow agent worktree-list -C <home> --json
+issue-flow agent worktree-remove <path-or-N> -C <home> --json
+
 # Print path + suggested launch argv (default — safe everywhere)
 issue-flow agent open-workspace [<path-or-member>] -C <start> --json
 
@@ -37,13 +45,14 @@ issue-flow agent open-workspace [<path-or-member>] -C <start> --json
 issue-flow agent open-workspace <worktree-path> --open
 ```
 
-- **Target:** absolute/relative directory, or a registry **member name** under
-  the workspace discovered from `-C`. With no target, uses the project root
-  from `-C`.
-- **Print-only by default.** `--open` spawns the editor binary (non-blocking)
-  when found on `PATH` (`cursor` / configured editor id, then `code`).
-- Does **not** create worktrees or `.code-workspace` files — callers own
-  `git worktree add`.
+- **`worktree-add`:** path is `<home.parent>/<home.name>-<N>`. Idempotent if
+  that branch already has a worktree. Capture/plan/build/close use
+  `-C <worktree>`.
+- **`open-workspace`:** print-only by default. `--open` is confirm-gated.
+- **Close:** `agent switchback` in a linked worktree skips switching to
+  default (`in_worktree: true`); pull default from **home**.
+- **Cleanup:** `worktree-remove` **before** `git branch -d/-D`. Never remove a
+  worktree whose branch is `unique_work`.
 
 ## Confirm-before-open
 

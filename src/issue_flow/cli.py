@@ -22,9 +22,10 @@ agent_app = typer.Typer(
         "Agent-facing helpers that read the .issueflows/ tree and git/gh so "
         "AI agents get deterministic answers instead of re-deriving lifecycle "
         "state by hand. All are read-only except `sweep`, `archive`, `capture`, "
-        "`switchback`, `sync-branch`, `repair`, `label-apply`, and "
-        "`open-workspace --open`. `branches` (remote) and `local-branches` "
-        "(local) only classify: every delete stays in `/iflow-cleanup`."
+        "`switchback`, `sync-branch`, `repair`, `label-apply`, "
+        "`open-workspace --open`, `worktree-add`, and `worktree-remove`. "
+        "`branches` (remote) and `local-branches` (local) only classify: "
+        "every delete stays in `/iflow-cleanup`."
     ),
 )
 
@@ -845,6 +846,90 @@ def agent_open_workspace(
     raise typer.Exit(
         code=run_open_workspace(
             project_dir, _console, target, do_open, json_output, editor_id=editor
+        )
+    )
+
+
+@agent_app.command("worktree-add")
+def agent_worktree_add(
+    number: int = typer.Argument(..., help="Issue number (branch prefix)."),
+    slug: str = typer.Option(
+        ...,
+        "--slug",
+        help="Kebab-case slug; branch becomes <N>-<slug>.",
+    ),
+    project_dir: Path = typer.Option(
+        Path("."),
+        "--project-dir",
+        "-C",
+        help="Home checkout (must stay on default). Defaults to cwd.",
+        exists=True,
+        file_okay=False,
+        resolve_path=True,
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Add ../<repo>-<N> on <N>-<slug> without switching the home checkout."""
+    from issue_flow.agent import run_worktree_add
+
+    raise typer.Exit(
+        code=run_worktree_add(project_dir, _console, number, slug, json_output)
+    )
+
+
+@agent_app.command("worktree-list")
+def agent_worktree_list(
+    project_dir: Path = typer.Option(
+        Path("."),
+        "--project-dir",
+        "-C",
+        help="Any worktree of the repo. Defaults to cwd.",
+        exists=True,
+        file_okay=False,
+        resolve_path=True,
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """List git worktrees (home + linked)."""
+    from issue_flow.agent import run_worktree_list
+
+    raise typer.Exit(code=run_worktree_list(project_dir, _console, json_output))
+
+
+@agent_app.command("worktree-remove")
+def agent_worktree_remove(
+    target: str = typer.Argument(
+        ...,
+        help="Worktree path or issue number.",
+    ),
+    project_dir: Path = typer.Option(
+        Path("."),
+        "--project-dir",
+        "-C",
+        help="Home checkout used to run git worktree remove.",
+        exists=True,
+        file_okay=False,
+        resolve_path=True,
+    ),
+    force: bool = typer.Option(
+        False,
+        "--force",
+        help="Pass --force to git worktree remove (still refuse unique work in skills).",
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Remove a linked worktree. Refuses a dirty tree unless --force."""
+    from issue_flow.agent import run_worktree_remove
+
+    raise typer.Exit(
+        code=run_worktree_remove(
+            project_dir, _console, target, json_output, force=force
         )
     )
 

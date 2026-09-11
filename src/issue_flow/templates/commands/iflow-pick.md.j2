@@ -81,7 +81,7 @@ Optional free-form text after the command:
      `{{ issueflows_dir }}/`; ask commit / stash / abort. Do not offer “commit
      everything”.
 
-2. **Branch off the default.** Switch to the default branch and fast-forward if needed, then create the issue branch using GitHub's numeric convention `git switch -c <N>-<short-slug>` (leading issue number, then a short kebab-case slug derived from the title). Confirm the branch name with the user if the slug is non-obvious. **Ops exception:** when Phase 1 confirmed ops routing, ask whether to create the issue branch or stay on current/default; default branch is allowed.
+2. **Issue worktree (default).** Confirm slug `<N>-<short-slug>`. Home stays on default (`git pull --ff-only`). `issue-flow agent worktree-add <N> --slug <slug> -C <home> --json` then `open-workspace <path> --json`; `--open` only after confirm. Capture with `-C <worktree>`. Token `inplace` / `no worktree` keeps `git switch -c` on home. Worktree-add failure → stop; never silent inplace. **Ops exception:** ask whether to create the worktree/branch or stay on current/default.
 
 3. **Run `/iflow-capture` automatically.** The issue number is now known, so follow the `{{ agent_dir }}/commands/iflow-capture.md` playbook for `<N>` (fetch the issue + comments, write `{{ issueflows_dir }}/{{ current_issues_folder }}/issue<N>_original.md`, run its archive sweep). Do not re-implement that logic here — delegate to it.
 
