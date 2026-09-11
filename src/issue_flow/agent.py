@@ -2873,9 +2873,10 @@ def _print_config_guide(console: Console, cfg_path: Path) -> None:
         "true/false; re-run 'issue-flow update' so the rule re-renders.[/dim]"
     )
     console.print(
-        "  [dim]- [bold]label_flows[/bold] / [bold]yolo_label[/bold]: let issue "
-        "labels pick the flow (e.g. a 'yolo' label runs /iflow-yolo); re-run "
-        "'issue-flow update' so the commands re-render.[/dim]"
+        "  [dim]- [bold]label_flows[/bold] / [bold]yolo_label[/bold] / "
+        "[bold]ops_label[/bold]: let issue labels pick the flow (e.g. a "
+        "'yolo' label runs /iflow-yolo; 'ops' runs /iflow-ops no-PR close); "
+        "re-run 'issue-flow update' so the commands re-render.[/dim]"
     )
     console.print(
         "  [dim]- [bold]checks_watch_minutes[/bold]: hard wall-clock budget "

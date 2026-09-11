@@ -30,6 +30,7 @@ It also seeds `.issueflows/00-tools/README.md` — the index of the project's **
 | `/iflow-close` | `iflow-close/SKILL.md` | Finish: tests, optional semver bump (`uv version --bump …`), `HISTORY.md` update, issue-folder housekeeping, commit, push, PR, and switch back to default when clean unless `stay` is passed. |
 | `/iflow-cleanup` | `iflow-cleanup/SKILL.md` | Post-merge hygiene: switch to default, `git pull --ff-only`, `git fetch --prune`, delete merged local branches (single consolidated confirm). Optional `include GitHub` runs a remote-branch audit (second confirm). |
 | `/iflow-yolo` | `iflow-yolo/SKILL.md` | All-in-one for small, low-risk issues: chains `capture → plan → build → close` with up-front safeguards and a single confirmation. |
+| `/iflow-ops` | `iflow-ops/SKILL.md` | **Off-path.** Ops / no-PR work (staging→prod, flag flips, external deploys): checklist then `/iflow-close ops`. |
 | `/iflow-fix` | `iflow-fix/SKILL.md` | **Off-path.** Interactive iterative-fixes session: create one issue + long-lived branch, then loop over many small fixes (short plan each, recorded in `issue<N>_status.md`), ending with `/iflow-close`. |
 | `/iflow-issue` | `iflow-issue/SKILL.md` | **Off-path.** Create one well-specified normal GitHub issue (context / spec / acceptance), then optionally branch + `/iflow-capture` into the standard lifecycle. Epic anchors: `/iflow-issue epic …`. |
 | `/iflow-split` | `iflow-split/SKILL.md` | **Off-path.** Cut one over-large existing issue into 2–5 flat GitHub native sub-issues (confirm-gated). Parent stays open as the tracker. Staged work → `/iflow-epic`. |
@@ -63,6 +64,7 @@ It also seeds `.issueflows/00-tools/README.md` — the index of the project's **
 | `iflow-close` | `iflow close`, `iflow-close`, `/iflow-close` | Tests, bump, commit, push, PR. |
 | `iflow-cleanup` | `iflow cleanup`, `iflow-cleanup`, `/iflow-cleanup` | Post-merge branch cleanup; optional `include GitHub` remote audit. |
 | `iflow-yolo` | `iflow yolo`, `iflow-yolo`, `/iflow-yolo` | Chain `capture → plan → build → close`. |
+| `iflow-ops` | `iflow ops`, `iflow-ops`, `/iflow-ops` | Ops / no-PR work; ends with `/iflow-close ops`. Off-path. |
 | `iflow-fix` | `iflow fix`, `iflow-fix`, `/iflow-fix` | Interactive iterative-fixes session. Off-path. |
 | `iflow-issue` | `iflow issue`, `iflow-issue`, `/iflow-issue` | Create one well-specified normal GitHub issue. Off-path. |
 | `iflow-split` | `iflow split`, `iflow-split`, `/iflow-split` | Split an over-large issue into linked sub-issues. Off-path. |
@@ -133,7 +135,7 @@ All workflows that touch git also run a short **branch-status preflight**: `git 
 
 **Focus-issue resolution:** prefer the leading digits of the current branch when it matches `^<N>-.+`; else the single group in `.issueflows/01-current-issues/`; else the epic gap check; else ask. See `04-designs-and-guides/iflow-epic-awareness.md`.
 
-**Not auto-dispatched:** `/iflow-setup`, `/iflow-init`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-split`, `/iflow-status`, `/iflow-doctor`, `/iflow-review`, `/iflow-epic`, `/iflow-cycle`, `/iflow-auto`, and `/iflow-archive`. `/iflow` will mention them in its output when relevant (e.g. "after the PR merges, run `/iflow-cleanup`") but never picks them for you. The epic gap only **recommends** `/iflow-pick`.
+**Not auto-dispatched:** `/iflow-setup`, `/iflow-init`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-ops`, `/iflow-fix`, `/iflow-issue`, `/iflow-split`, `/iflow-status`, `/iflow-doctor`, `/iflow-review`, `/iflow-epic`, `/iflow-cycle`, `/iflow-auto`, and `/iflow-archive`. `/iflow` will mention them in its output when relevant (e.g. "after the PR merges, run `/iflow-cleanup`") but never picks them for you. The epic gap only **recommends** `/iflow-pick`.
 
 **Result:** One of the four linear commands runs (with its own checkpoints), or a stop with epic candidates listed.
 
@@ -315,6 +317,23 @@ The bump runs **after** tests and **before** issue-folder moves and **before** c
 **Chain:** `/iflow-capture` → `/iflow-plan` (auto-confirmed short plan; aborts if the scope check reveals the change isn't actually small) → `/iflow-build` → `uv run pytest` again → `/iflow-close` (with any forwarded `bump`/`patch`/`minor`/`major`/`draft`/`stay`). Does **not** run `/iflow-cleanup` — the PR hasn't merged yet.
 
 **Result:** A commit, push, and PR ready for review, with the final branch reported — or an abort at the first ambiguity.
+
+---
+
+## 8b. `/iflow-ops` — ops / no-PR work
+
+**When:** The work should not open a PR — staging→production promote, feature-flag flip, external deploy checklist, tag-only steps with no product diff.
+
+**What the assistant does:**
+
+1. Resolve / capture the focus issue.
+2. Preflight: refuse product-code dirty trees; default branch allowed.
+3. Run the ops checklist with user confirms; log bullets in `issue<N>_status.md`.
+4. Finish with `/iflow-close ops` (aliases `nopr` / `no-pr`): checklist confirm, local archive, optional `.issueflows/` commit (default branch OK), `gh issue close` — **no PR**.
+
+**Label:** when `label_flows` is on, `/iflow-pick` routes issues carrying `ops` (default `"ops"`) here. If both `ops` and `yolo` are present, **ops wins**.
+
+**Result:** Local tracking solved + GitHub issue closed, without a pull request.
 
 ---
 
@@ -579,6 +598,7 @@ Detours:
   /iflow-init   — cold-start / check the harness (off-path; does not capture issues)
   /iflow-pause  — park mid-stream; moves issueN_* to 02-partly-solved-issues/
   /iflow-yolo   — chain capture → plan → build → close for tiny fixes (safeguarded)
+  /iflow-ops    — ops / no-PR work (staging→prod, flags, external deploys)
   /iflow-fix    — interactive session: one branch, many small fixes, then /iflow-close
   /iflow-issue  — create one well-specified normal GitHub issue (optional branch + capture)
   /iflow-split  — cut an over-large issue into linked GitHub sub-issues

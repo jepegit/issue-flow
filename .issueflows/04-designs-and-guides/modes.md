@@ -67,8 +67,8 @@ ladders (the scenarios that motivated the design):
   The `iflow` dispatcher's done-state is membership-gated (no `/iflow-close` route
   when close isn't installed; it points at moving files to `03-solved-issues/`
   instead), and the workflow doc prints a mode banner listing the installed
-  surfaces. Deeper per-mode rewording of individual skills (e.g. a no-PR `close`
-  variant) is intentionally deferred — the mode *mechanism* is the deliverable.
+  surfaces. A no-PR close path ships as the `/iflow-ops` skill + `ops` close
+  token (issue #251), not as a separate mode id.
 
 ## Rejected
 

@@ -39,12 +39,31 @@ The exact semantics and the default rule live in `{{ agent_dir }}/skills/iflow-v
 
 - **`yolo`** (used by `/iflow-yolo`) → close the loop without user input: write the `{{ history_file }}` bullet without a confirm prompt (step 3), **merge the PR** right after opening/updating it (step 8a), then switch back to the default branch and `git pull --ff-only` (step 9, unless `stay` was also passed).
 
+## Ops / no-PR token (command input)
+
+- **`ops`**, **`nopr`**, or **`no-pr`** (used by `/iflow-ops`) → finish **without** a PR: skip version-bump prompts, skip `{{ history_file }}` by default (same as `nohistory`; honour explicit `log "..."` / `note "..."` if the user insists on a bullet), skip sync/push/PR/yolo-merge. Still update local tracking, optionally commit `{{ issueflows_dir }}/`-only changes (default branch allowed with confirm), run an ops checklist confirm, and `gh issue close`. **Mutually exclusive** with `yolo` and `draft` on the same invocation — if combined, stop and ask. When this token is present, follow **Ops close path** below instead of steps 1–11.
+
 {% set iflow_step = "close" %}
 {% include "skills/_invocation_forms.md.j2" %}
 
 {% include "skills/_model_directive.md.j2" %}
 
 {% include "skills/_resolve_project_root.md.j2" %}
+
+## Ops close path (`ops` / `nopr` / `no-pr`)
+
+Use this path **only** when the command input included `ops`, `nopr`, or `no-pr`.
+
+1. **Safeguard — dirty tree.** Prefer `issue-flow agent preflight --json` (`dirty_paths`, `issueflows_only`). If any dirty path is outside `{{ issueflows_dir }}/`, **stop**: refuse silent no-PR; tell the user to use normal close or stash/discard product changes. `.issueflows/`-only dirty is OK.
+2. **Safeguard — unique commits.** If on an issue-style branch `^\d+-.+` that has commits not reachable from `origin/<default>` **and** those commits touch product files (anything outside `{{ issueflows_dir }}/`), **abort** ops close — that work needs a normal PR (or explicit discard). Tracking-only unique commits may proceed after confirm.
+3. **Ops checklist confirm (always).** Show: what ran / where (env) / result / residual risk. Require an explicit yes before finishing. Include intent to `gh issue close <N>` and whether to commit `{{ issueflows_dir }}/` tracking updates (on current branch, including default when that is where you stand).
+4. **Skip** full pytest when the tree is clean or issueflows-only dirty. Never take this path when product files changed (already refused above). Skip version bump. Skip `{{ history_file }}` unless the user passed `log "..."` / `note "..."` (then write that bullet under `## [Unreleased]` with confirm unless they also passed nothing conflicting — still no PR).
+5. **Issue tracking.** Update `issue<N>_status.md` (`- [x] Done` when fully resolved). Move the issue group to `{{ solved_folder }}/` or `{{ partly_solved_folder }}/` per the Done checkbox.
+6. **Optional commit.** If there are staged/unstaged `{{ issueflows_dir }}/` (or intentional ops-doc) changes worth keeping, commit on the **current** branch after confirm — default branch is allowed for ops. Never open a PR for this commit.
+7. **Close on GitHub.** `gh issue close <N> --repo <owner/repo>` (covered by the checklist confirm).
+8. **Branch hygiene (light).** If on `<N>-*` with **no** unique commits vs `origin/<default>`, offer switch to default (no delete). Unique commits already aborted in step 2 when they touch product files.
+9. **Output.** Summarize checklist, local archive path, whether a tracking commit was made, GitHub close result, and that **no PR** was opened. Do not remind `/iflow-cleanup` for a non-existent PR merge.
+
 ## Instructions
 
 1. **Sanity check** — Run the project test suite (e.g. `uv run pytest`) and any checks the repo relies on.{%- include "skills/_essential_tests_close_sanity.md.j2" -%}{% if ruff_autofix %} **Ruff (when present):** if the project uses ruff (`[tool.ruff]` in `pyproject.toml`, ruff in dev dependencies, or `{{ issueflows_dir }}/{{ designs_folder }}/python-quality-tools.md` exists), run auto-fix lint through the documented Python runner before committing — e.g. `uv run ruff check --fix …` then `uv run ruff format …` (match paths to what the project documents).{% endif %} Skim the diff; avoid bundling unrelated changes. Confirm that any design decisions or good practices that emerged from this issue are captured under `{{ issueflows_dir }}/{{ designs_folder }}/` before committing.{% if suggest_graphify %} If this change touched project structure (new modules, big refactor, removed files) and `graphify-out/` exists, *suggest* `/iflow-graphify` (AST-only default) — do not run it automatically.{% endif %}{% if "pstack_blast_radius" in included_skills %} **Blast radius (pstack, optional):** for a small-looking diff you do not fully trust, *suggest* the `blast-radius` skill (`{{ agent_dir }}/skills/blast-radius/SKILL.md`) before the PR — it looks for breakage beyond the diff and proves the one fact the change is safe because of by running code. Never run it unasked.{% endif %}
@@ -99,4 +118,5 @@ The exact semantics and the default rule live in `{{ agent_dir }}/skills/iflow-v
 - Prefer focused commits; do not rewrite unrelated history unless asked.
 - Never delete branches from `/iflow-close`. Branch deletion belongs to `/iflow-cleanup`.
 - **Conflicts:** only a `{{ history_file }}`-only conflict of two additive `## [Unreleased]` bullet lists is resolved automatically (step 6). Every other conflict aborts the sync and stops the flow. Never `gh pr merge --admin`, never skip CI, never force-push anything but the issue branch (`--force-with-lease`).
+- The `ops` / `nopr` / `no-pr` token takes the **Ops close path** above and must not open a PR.
 - **Changelog timing:** unless `nohistory`, the `{{ history_file }}` bullet must be written in step 3 and staged in the close commit that feeds (or updates) the PR — including when a draft was opened earlier via `/iflow-build` early PR. Never offer a HISTORY/CHANGELOG update after close has finished or after merge.

@@ -41,6 +41,7 @@ from issue_flow.modes import (
     DEFAULT_SUGGEST_GRAPHIFY,
     DEFAULT_TEST_RUNNER,
     DEFAULT_YOLO_LABEL,
+    DEFAULT_OPS_LABEL,
     Mode,
     normalize_essential_review,
     normalize_pr_merge_method,
@@ -239,6 +240,20 @@ class Settings:
         if env and env.strip():
             return env.strip()
         return DEFAULT_YOLO_LABEL
+
+    def resolve_ops_label(self, project_root: Path) -> str:
+        """Resolve the GitHub label that triggers the ops / no-PR flow.
+
+        Order: persisted ``.issueflows/config.toml [issueflow].ops_label`` >
+        ``ISSUEFLOW_OPS_LABEL`` env/``.env`` > ``"ops"``.
+        """
+        persisted = modes_module.read_ops_label(self.config_path(project_root))
+        if persisted:
+            return persisted
+        env = os.getenv("ISSUEFLOW_OPS_LABEL")
+        if env and env.strip():
+            return env.strip()
+        return DEFAULT_OPS_LABEL
 
     def resolve_checks_watch_minutes(self, project_root: Path) -> int:
         """Resolve the ``gh pr checks --watch`` wall-clock budget (minutes).
@@ -541,6 +556,7 @@ class Settings:
         mode = os.getenv("ISSUEFLOW_MODE")
         skill_level = os.getenv("ISSUEFLOW_SKILL_LEVEL")
         yolo_label = os.getenv("ISSUEFLOW_YOLO_LABEL")
+        ops_label = os.getenv("ISSUEFLOW_OPS_LABEL")
         deep_model_label = os.getenv("ISSUEFLOW_DEEP_MODEL_LABEL")
         fast_model_label = os.getenv("ISSUEFLOW_FAST_MODEL_LABEL")
         checks_watch_raw = os.getenv("ISSUEFLOW_CHECKS_WATCH_MINUTES")
@@ -592,6 +608,11 @@ class Settings:
                 yolo_label.strip()
                 if yolo_label and yolo_label.strip()
                 else DEFAULT_YOLO_LABEL
+            ),
+            "ops_label": (
+                ops_label.strip()
+                if ops_label and ops_label.strip()
+                else DEFAULT_OPS_LABEL
             ),
             "checks_watch_minutes": checks_watch_minutes,
             "step_directives": _env_flag(
@@ -718,6 +739,7 @@ class Settings:
             "grill_me_default": self.resolve_grill_me_default(project_root),
             "label_flows": self.resolve_label_flows(project_root),
             "yolo_label": self.resolve_yolo_label(project_root),
+            "ops_label": self.resolve_ops_label(project_root),
             "checks_watch_minutes": self.resolve_checks_watch_minutes(project_root),
             "step_directives": self.resolve_step_directives(project_root),
             "model_label_flows": self.resolve_model_label_flows(project_root),

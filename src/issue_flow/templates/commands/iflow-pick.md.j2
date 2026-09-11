@@ -45,15 +45,23 @@ Optional free-form text after the command:
 4. **Create a `fix` issue (only when requested).** When the user passed `fix` (or explicitly asks for a general-fixes bucket): create a **new** GitHub issue with `gh issue create` (e.g. title `chore: general fixes`, body noting it is a catch-all for small fixes/typos/chores). Confirm the title/body with the user first. Record the returned issue number and use it as the chosen issue. A fresh issue is created each time — existing open general-fixes issues are **not** reused.
 
 5. **Over-large issue (offer only).** If the chosen issue looks too involved to land in one PR, **mention** `/iflow-split` (flat parent/child) or `/iflow-epic` (staged) and ask. Default is proceed with the whole issue. Do **not** create children here.
+{% if label_flows and "iflow-ops" in included_commands %}
+6. **Label-driven ops flow.** If the chosen issue carries the **`{{ ops_label }}`** label (case-insensitive; check `labels` from `gh issue list` / `gh issue view`), mark it for `/iflow-ops`:
+   - Announce: "issue #<N> has the `{{ ops_label }}` label → running it through `/iflow-ops` (no PR)".
+   - Fold ops confirm into the pick confirmation (optional branch vs stay on default + ops work + `close ops`). Require explicit yes.
+   - On yes: Phase 2 may stay on default (ask); then follow `{{ agent_dir }}/commands/iflow-ops.md` instead of Phase 3 / yolo.
+   - If the issue also carries **`{{ yolo_label }}`**, **ops wins** — announce the conflict.
+   - Configurable via `label_flows` / `ops_label` (re-run `issue-flow update` after changing).
+{% endif %}
 {% if label_flows and "iflow-yolo" in included_commands %}
-6. **Label-driven yolo flow.** If the chosen issue carries the **`{{ yolo_label }}`** label (case-insensitive; check the `labels` field from `gh issue list`, or `gh issue view <n> --json labels` when the issue was given directly), the issue is marked for the hands-off `/iflow-yolo` chain:
+7. **Label-driven yolo flow.** If the chosen issue carries the **`{{ yolo_label }}`** label (case-insensitive; check the `labels` field from `gh issue list`, or `gh issue view <n> --json labels` when the issue was given directly) **and** was not already routed to ops above, the issue is marked for the hands-off `/iflow-yolo` chain:
    - Announce it: "issue #<N> has the `{{ yolo_label }}` label → running it through `/iflow-yolo`".
    - Fold `/iflow-yolo`'s single consolidated confirm into the pick confirmation — one prompt total, listing the branch to create and the full chain (`capture → plan → build → close yolo`). Require an explicit yes; any other answer falls back to the normal (non-yolo) flow or aborts, per the user's answer.
    - On yes: run Phase 2 (create the branch) as usual, then follow `{{ agent_dir }}/commands/iflow-yolo.md` **instead of** the plain Phase 3 handoff. The yolo preflight (clean tree, passing tests) still runs and can still abort; do not re-ask its consolidated confirm — the combined prompt above already covered it.
    - This routing is configurable: `label_flows = false` under `[issueflow]` in `{{ issueflows_dir }}/config.toml` turns it off, and `yolo_label` renames the trigger label (re-run `issue-flow update` after changing either).
 {% endif %}
 {% if model_label_flows %}
-7. **Label-driven model profile.** If the chosen issue carries the **`{{ deep_model_label }}`** label (case-insensitive), announce that the session should use the **reasoning** profile for all steps. If it carries **`{{ fast_model_label }}`**, announce **economy**. When both match, **reasoning** wins. Configurable via `model_label_flows`, `deep_model_label`, and `fast_model_label` under `[issueflow]` in `{{ issueflows_dir }}/config.toml` (re-run `issue-flow update` after changing).
+8. **Label-driven model profile.** If the chosen issue carries the **`{{ deep_model_label }}`** label (case-insensitive), announce that the session should use the **reasoning** profile for all steps. If it carries **`{{ fast_model_label }}`**, announce **economy**. When both match, **reasoning** wins. Configurable via `model_label_flows`, `deep_model_label`, and `fast_model_label` under `[issueflow]` in `{{ issueflows_dir }}/config.toml` (re-run `issue-flow update` after changing).
 {% endif %}
 
 ### Phase 2 — create the branch
@@ -73,7 +81,7 @@ Optional free-form text after the command:
      `{{ issueflows_dir }}/`; ask commit / stash / abort. Do not offer “commit
      everything”.
 
-2. **Branch off the default.** Switch to the default branch and fast-forward if needed, then create the issue branch using GitHub's numeric convention `git switch -c <N>-<short-slug>` (leading issue number, then a short kebab-case slug derived from the title). Confirm the branch name with the user if the slug is non-obvious.
+2. **Branch off the default.** Switch to the default branch and fast-forward if needed, then create the issue branch using GitHub's numeric convention `git switch -c <N>-<short-slug>` (leading issue number, then a short kebab-case slug derived from the title). Confirm the branch name with the user if the slug is non-obvious. **Ops exception:** when Phase 1 confirmed ops routing, ask whether to create the issue branch or stay on current/default; default branch is allowed.
 
 3. **Run `/iflow-capture` automatically.** The issue number is now known, so follow the `{{ agent_dir }}/commands/iflow-capture.md` playbook for `<N>` (fetch the issue + comments, write `{{ issueflows_dir }}/{{ current_issues_folder }}/issue<N>_original.md`, run its archive sweep). Do not re-implement that logic here — delegate to it.
 
@@ -84,8 +92,11 @@ Optional free-form text after the command:
 {% else %}
 1. The issue is now captured on a fresh branch. **Ask the user whether to continue with `/iflow-plan`** next (the usual next step). Do **not** auto-run it — make the handoff explicit so the user stays in control.
 {% endif %}
+{% if label_flows and "iflow-ops" in included_commands %}
+2. **Exception (ops):** when Phase 1 confirmed the `{{ ops_label }}`-label ops routing, skip this handoff — `/iflow-ops` takes over after capture.
+{% endif %}
 {% if label_flows and "iflow-yolo" in included_commands %}
-2. **Exception:** when Phase 1 step 6 confirmed the `{{ yolo_label }}`-label yolo routing, skip this handoff — the `/iflow-yolo` chain (which includes its own `/iflow-capture`) takes over after the branch is created.
+3. **Exception (yolo):** when Phase 1 confirmed the `{{ yolo_label }}`-label yolo routing (and ops did not win), skip this handoff — the `/iflow-yolo` chain (which includes its own `/iflow-capture`) takes over after the branch is created.
 {% endif %}
 
 ## Constraints
@@ -105,6 +116,9 @@ Report:
 - the handoff prompt result (whether the user wants `/iflow-plan` next)
 {% if label_flows and "iflow-yolo" in included_commands %}
 - whether the `{{ yolo_label }}` label routed the issue into `/iflow-yolo` (and, if so, defer the rest of the report to that command's output)
+{% endif %}
+{% if label_flows and "iflow-ops" in included_commands %}
+- whether the `{{ ops_label }}` label routed the issue into `/iflow-ops` (and, if so, defer the rest of the report to that command's output)
 {% endif %}
 
 ## Example invocations

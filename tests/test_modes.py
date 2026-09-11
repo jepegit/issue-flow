@@ -12,6 +12,7 @@ from issue_flow.modes import (
     DEFAULT_LABEL_FLOWS,
     DEFAULT_LINGUIST_ATTRIBUTES,
     DEFAULT_MODE,
+    DEFAULT_OPS_LABEL,
     DEFAULT_YOLO_LABEL,
     available_modes,
     config_path,
@@ -21,6 +22,7 @@ from issue_flow.modes import (
     read_grill_me_default,
     read_label_flows,
     read_linguist_attributes,
+    read_ops_label,
     read_yolo_label,
     resolve_mode,
     write_active_mode,
@@ -286,6 +288,15 @@ def test_read_yolo_label_value(tmp_path: Path) -> None:
     assert read_yolo_label(cfg) == "fast-track"
 
 
+def test_read_ops_label_missing_returns_none(tmp_path: Path) -> None:
+    assert read_ops_label(config_path(tmp_path, ".issueflows")) is None
+
+
+def test_read_ops_label_value(tmp_path: Path) -> None:
+    cfg = _write_config(tmp_path, '[issueflow]\nops_label = "no-pr"\n')
+    assert read_ops_label(cfg) == "no-pr"
+
+
 def test_read_checks_watch_minutes_missing_returns_none(tmp_path: Path) -> None:
     assert read_checks_watch_minutes(config_path(tmp_path, ".issueflows")) is None
 
@@ -324,6 +335,7 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
     )
     assert read_label_flows(cfg) is DEFAULT_LABEL_FLOWS
     assert read_yolo_label(cfg) == DEFAULT_YOLO_LABEL
+    assert read_ops_label(cfg) == DEFAULT_OPS_LABEL
     assert read_checks_watch_minutes(cfg) == DEFAULT_CHECKS_WATCH_MINUTES
     assert read_linguist_attributes(cfg) is DEFAULT_LINGUIST_ATTRIBUTES
     from issue_flow.modes import (
@@ -402,6 +414,7 @@ def test_write_default_config_upserts_label_flow_keys(tmp_path: Path) -> None:
         grill_me_default=False,
         label_flows=True,
         yolo_label="speedy",
+        ops_label="ship-it",
         checks_watch_minutes=25,
         linguist_attributes=True,
         overwrite=True,
@@ -410,6 +423,7 @@ def test_write_default_config_upserts_label_flow_keys(tmp_path: Path) -> None:
     assert "# keep me" in text
     assert read_label_flows(cfg) is True
     assert read_yolo_label(cfg) == "speedy"
+    assert read_ops_label(cfg) == "ship-it"
     assert read_checks_watch_minutes(cfg) == 25
     assert read_linguist_attributes(cfg) is True
 

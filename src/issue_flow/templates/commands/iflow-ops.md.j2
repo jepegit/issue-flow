@@ -1,0 +1,28 @@
+# Ops / no-PR work
+
+Run this for work that should **not** open a pull request: staging→production promote, feature-flag flips, external deploy checklists, tag-only steps with no product diff on an issue branch.
+
+For product code changes use the normal lifecycle (or `/iflow-yolo` when small).
+
+{% include "skills/_model_directive.md.j2" %}
+
+{% include "skills/_resolve_project_root.md.j2" %}
+
+## Input
+
+- Issue number / URL (optional when a focus issue already exists under `{{ issueflows_dir }}/{{ current_issues_folder }}/`).
+- Free-form notes for the ops checklist / `log "..."` forwarded to `/iflow-close ops`.
+
+## Steps
+
+1. **Resolve / capture** the focus issue (`/iflow-capture` when needed).
+2. **Preflight** via `issue-flow agent preflight --json` when available. Refuse when product-code paths are dirty. Default branch is allowed. Ask whether to create `<N>-<slug>` or stay on current/default.
+3. **Do the ops work** from the issue body; confirm risky steps; log bullets in `issue<N>_status.md`.
+4. **Finish** with `/iflow-close ops` (close also accepts `nopr` / `no-pr`).
+
+## Constraints
+
+- Off-path — never auto-dispatched by `/iflow`.
+- No PR. No force-push. No branch deletes.
+- Product-code dirty tree or unique unpushed product commits → abort to normal close.
+- If the issue carries both `{{ ops_label }}` and `{{ yolo_label }}`, **ops wins**.
