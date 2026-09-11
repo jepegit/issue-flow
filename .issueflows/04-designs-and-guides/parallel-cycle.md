@@ -35,13 +35,19 @@ sequential cycle must always work everywhere without it.
 1. Resolve the independent subset from `agent queue`.
 2. For each, `git worktree add ../<repo>-<N> <N>-<slug>` so every issue gets
    an isolated working tree on its own branch — no shared index, no collisions.
-3. Run the yolo chain (minus its own merge/close-to-default steps) in each
+3. Prefer a **separate editor workspace (window) per worktree** when the
+   harness allows concurrent agents — see
+   [separate-workspaces.md](./separate-workspaces.md). Print with
+   `issue-flow agent open-workspace <worktree> --json`; pass `--open` only
+   after confirm. Worktree-only parallel remains valid when windows are
+   unavailable.
+4. Run the yolo chain (minus its own merge/close-to-default steps) in each
    worktree, in the background where the harness allows.
-4. **Serial merge queue:** the coordinator opens/merges each PR one at a time
+5. **Serial merge queue:** the coordinator opens/merges each PR one at a time
    (`--squash`), pulling the default branch between merges; on a non-fast-forward
    or CI refusal it rebases that branch and retries, or falls back to sequential
    for the remainder.
-5. Append the deferred `HISTORY.md` bullets in merge order, then
+6. Append the deferred `HISTORY.md` bullets in merge order, then
    `git worktree remove` each worktree.
 
 ## Per-harness notes (capabilities move fast — verify before relying)

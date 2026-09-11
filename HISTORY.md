@@ -9,6 +9,10 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+## [0.4.12] - 2026-09-11
+
+- Separate editor workspaces for parallel / multi-repo agent work: `issue-flow agent open-workspace`, design guide, cycle skill wiring. (#253)
+
 ## [0.4.11] - 2026-09-11
 
 - **`/iflow-capture` for issues; `/iflow-init` for the harness (#241).** Issue capture moves to `/iflow-capture` (matches `issue-flow agent capture`). `/iflow-init` is now off-path harness cold-start / check (guides `issue-flow init` / `update`); it never pulls GitHub issues. Lifecycle stage id is `capture` (`STAGE_INIT` kept as a back-compat alias). No one-release dual-meaning alias — same prune-on-update stance as `iflow-start` → `iflow-build` (#183).
