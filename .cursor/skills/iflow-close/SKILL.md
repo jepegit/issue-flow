@@ -40,6 +40,10 @@ The exact semantics and the default rule live in `.cursor/skills/iflow-version-b
 
 - **`yolo`** (used by `/iflow-yolo`) → close the loop without user input: write the `HISTORY.md` bullet without a confirm prompt (step 3), **merge the PR** right after opening/updating it (step 8a), then switch back to the default branch and `git pull --ff-only` (step 9, unless `stay` was also passed).
 
+## Ops / no-PR token (command input)
+
+- **`ops`**, **`nopr`**, or **`no-pr`** (used by `/iflow-ops`) → finish **without** a PR: skip version-bump prompts, skip `HISTORY.md` by default (same as `nohistory`; honour explicit `log "..."` / `note "..."` if the user insists on a bullet), skip sync/push/PR/yolo-merge. Still update local tracking, optionally commit `.issueflows/`-only changes (default branch allowed with confirm), run an ops checklist confirm, and `gh issue close`. **Mutually exclusive** with `yolo` and `draft` on the same invocation — if combined, stop and ask. When this token is present, follow **Ops close path** below instead of steps 1–11.
+
 
 **Invoke:** type `iflow close` in chat, or `/iflow-close` from the slash menu (`iflow-close` also works).
 
@@ -80,6 +84,21 @@ After resolution, treat the result as `<project_root>` and `<owner/repo>`:
 - **Paths:** all `.issueflows/…` paths are under `<project_root>`.
 
 When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read it for layout and cross-repo guidance.
+
+
+## Ops close path (`ops` / `nopr` / `no-pr`)
+
+Use this path **only** when the command input included `ops`, `nopr`, or `no-pr`.
+
+1. **Safeguard — dirty tree.** Prefer `issue-flow agent preflight --json` (`dirty_paths`, `issueflows_only`). If any dirty path is outside `.issueflows/`, **stop**: refuse silent no-PR; tell the user to use normal close or stash/discard product changes. `.issueflows/`-only dirty is OK.
+2. **Safeguard — unique commits.** If on an issue-style branch `^\d+-.+` that has commits not reachable from `origin/<default>` **and** those commits touch product files (anything outside `.issueflows/`), **abort** ops close — that work needs a normal PR (or explicit discard). Tracking-only unique commits may proceed after confirm.
+3. **Ops checklist confirm (always).** Show: what ran / where (env) / result / residual risk. Require an explicit yes before finishing. Include intent to `gh issue close <N>` and whether to commit `.issueflows/` tracking updates (on current branch, including default when that is where you stand).
+4. **Skip** full pytest when the tree is clean or issueflows-only dirty. Never take this path when product files changed (already refused above). Skip version bump. Skip `HISTORY.md` unless the user passed `log "..."` / `note "..."` (then write that bullet under `## [Unreleased]` with confirm unless they also passed nothing conflicting — still no PR).
+5. **Issue tracking.** Update `issue<N>_status.md` (`- [x] Done` when fully resolved). Move the issue group to `03-solved-issues/` or `02-partly-solved-issues/` per the Done checkbox.
+6. **Optional commit.** If there are staged/unstaged `.issueflows/` (or intentional ops-doc) changes worth keeping, commit on the **current** branch after confirm — default branch is allowed for ops. Never open a PR for this commit.
+7. **Close on GitHub.** `gh issue close <N> --repo <owner/repo>` (covered by the checklist confirm).
+8. **Branch hygiene (light).** If on `<N>-*` with **no** unique commits vs `origin/<default>`, offer switch to default (no delete). Unique commits already aborted in step 2 when they touch product files.
+9. **Output.** Summarize checklist, local archive path, whether a tracking commit was made, GitHub close result, and that **no PR** was opened. Do not remind `/iflow-cleanup` for a non-existent PR merge.
 
 ## Instructions
 
@@ -130,4 +149,5 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 - Prefer focused commits; do not rewrite unrelated history unless asked.
 - Never delete branches from `/iflow-close`. Branch deletion belongs to `/iflow-cleanup`.
 - **Conflicts:** only a `HISTORY.md`-only conflict of two additive `## [Unreleased]` bullet lists is resolved automatically (step 6). Every other conflict aborts the sync and stops the flow. Never `gh pr merge --admin`, never skip CI, never force-push anything but the issue branch (`--force-with-lease`).
+- The `ops` / `nopr` / `no-pr` token takes the **Ops close path** above and must not open a PR.
 - **Changelog timing:** unless `nohistory`, the `HISTORY.md` bullet must be written in step 3 and staged in the close commit that feeds (or updates) the PR — including when a draft was opened earlier via `/iflow-build` early PR. Never offer a HISTORY/CHANGELOG update after close has finished or after merge.
