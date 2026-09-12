@@ -78,6 +78,7 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "auto_plan",
         "auto_build",
         "early_pr",
+        "fix_auto_name",
         "confirm_changelog_update",
         "essential_tests",
         "test_runner",
@@ -405,6 +406,7 @@ def test_skill_behaviour_knob_defaults(
         "ISSUEFLOW_AUTO_PLAN",
         "ISSUEFLOW_AUTO_BUILD",
         "ISSUEFLOW_EARLY_PR",
+        "ISSUEFLOW_FIX_AUTO_NAME",
         "ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE",
         "ISSUEFLOW_AUTO_GRAPHIFY_ON_PLAN",
         "ISSUEFLOW_CLEANUP_INCLUDE_GITHUB",
@@ -429,6 +431,7 @@ def test_skill_behaviour_knob_defaults(
     assert settings.resolve_auto_plan(tmp_path) is True
     assert settings.resolve_auto_build(tmp_path) is True
     assert settings.resolve_early_pr(tmp_path) is False
+    assert settings.resolve_fix_auto_name(tmp_path) is False
     assert settings.resolve_confirm_changelog_update(tmp_path) is False
     assert settings.resolve_essential_tests(tmp_path) is False
     assert settings.resolve_test_runner(tmp_path) == "pytest"
@@ -454,6 +457,7 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
         "auto_plan = false\n"
         "auto_build = false\n"
         "early_pr = true\n"
+        "fix_auto_name = true\n"
         "confirm_changelog_update = false\n"
         "essential_tests = true\n"
         'test_runner = "pytest"\n'
@@ -475,6 +479,7 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
     assert settings.resolve_auto_plan(tmp_path) is False
     assert settings.resolve_auto_build(tmp_path) is False
     assert settings.resolve_early_pr(tmp_path) is True
+    assert settings.resolve_fix_auto_name(tmp_path) is True
     assert settings.resolve_confirm_changelog_update(tmp_path) is False
     assert settings.resolve_essential_tests(tmp_path) is True
     assert settings.resolve_test_runner(tmp_path) == "pytest"

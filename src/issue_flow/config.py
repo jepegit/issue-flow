@@ -18,6 +18,7 @@ from issue_flow.modes import (
     DEFAULT_CHECKS_WATCH_MINUTES,
     DEFAULT_CONFIRM_CHANGELOG_UPDATE,
     DEFAULT_EARLY_PR,
+    DEFAULT_FIX_AUTO_NAME,
     DEFAULT_ESSENTIAL_MARKER,
     DEFAULT_ESSENTIAL_REVIEW,
     DEFAULT_ESSENTIAL_TESTS,
@@ -472,6 +473,13 @@ class Settings:
             return persisted
         return _env_flag("ISSUEFLOW_EARLY_PR", default=DEFAULT_EARLY_PR)
 
+    def resolve_fix_auto_name(self, project_root: Path) -> bool:
+        """Resolve whether ``/iflow-fix`` lets the agent invent the session name."""
+        persisted = modes_module.read_fix_auto_name(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        return _env_flag("ISSUEFLOW_FIX_AUTO_NAME", default=DEFAULT_FIX_AUTO_NAME)
+
     def resolve_confirm_changelog_update(self, project_root: Path) -> bool:
         """Resolve whether ``/iflow-close`` confirms before writing the changelog."""
         persisted = modes_module.read_confirm_changelog_update(
@@ -668,6 +676,9 @@ class Settings:
             "auto_plan": _env_flag("ISSUEFLOW_AUTO_PLAN", default=DEFAULT_AUTO_PLAN),
             "auto_build": _env_flag("ISSUEFLOW_AUTO_BUILD", default=DEFAULT_AUTO_BUILD),
             "early_pr": _env_flag("ISSUEFLOW_EARLY_PR", default=DEFAULT_EARLY_PR),
+            "fix_auto_name": _env_flag(
+                "ISSUEFLOW_FIX_AUTO_NAME", default=DEFAULT_FIX_AUTO_NAME
+            ),
             "confirm_changelog_update": _env_flag(
                 "ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE",
                 default=DEFAULT_CONFIRM_CHANGELOG_UPDATE,
@@ -682,6 +693,51 @@ class Settings:
                 else DEFAULT_ESSENTIAL_MARKER
             ),
             "essential_review": essential_review or DEFAULT_ESSENTIAL_REVIEW,
+        }
+
+    def effective_config(self, project_root: Path) -> dict[str, object]:
+        """Resolved ``[issueflow]`` values for ``project_root`` (config > env > default).
+
+        Same key set as :meth:`seed_config_values`, but honouring a persisted
+        ``config.toml`` via the ``resolve_*`` helpers.
+        """
+        return {
+            "mode": self.resolve_mode(project_root).id,
+            "skill_level": self.resolve_skill_level(project_root),
+            "caveman_default": self.resolve_caveman_default(project_root),
+            "grill_me_default": self.resolve_grill_me_default(project_root),
+            "label_flows": self.resolve_label_flows(project_root),
+            "yolo_label": self.resolve_yolo_label(project_root),
+            "ops_label": self.resolve_ops_label(project_root),
+            "checks_watch_minutes": self.resolve_checks_watch_minutes(project_root),
+            "step_directives": self.resolve_step_directives(project_root),
+            "model_label_flows": self.resolve_model_label_flows(project_root),
+            "deep_model_label": self.resolve_deep_model_label(project_root),
+            "fast_model_label": self.resolve_fast_model_label(project_root),
+            "linguist_attributes": self.resolve_linguist_attributes(project_root),
+            "pstack_skills": self.resolve_pstack_skills(project_root),
+            "remind_cleanup": self.resolve_remind_cleanup(project_root),
+            "cleanup_include_github": self.resolve_cleanup_include_github(project_root),
+            "suggest_graphify": self.resolve_suggest_graphify(project_root),
+            "auto_graphify_on_plan": self.resolve_auto_graphify_on_plan(project_root),
+            "auto_switchback": self.resolve_auto_switchback(project_root),
+            "pr_merge_method": self.resolve_pr_merge_method(project_root),
+            "cycle_max_issues": self.resolve_cycle_max_issues(project_root),
+            "auto_adversarial_loops": self.resolve_auto_adversarial_loops(project_root),
+            "confirm_version_bump": self.resolve_confirm_version_bump(project_root),
+            "ruff_autofix": self.resolve_ruff_autofix(project_root),
+            "auto_close": self.resolve_auto_close(project_root),
+            "auto_plan": self.resolve_auto_plan(project_root),
+            "auto_build": self.resolve_auto_build(project_root),
+            "early_pr": self.resolve_early_pr(project_root),
+            "fix_auto_name": self.resolve_fix_auto_name(project_root),
+            "confirm_changelog_update": self.resolve_confirm_changelog_update(
+                project_root
+            ),
+            "essential_tests": self.resolve_essential_tests(project_root),
+            "test_runner": self.resolve_test_runner(project_root),
+            "essential_marker": self.resolve_essential_marker(project_root),
+            "essential_review": self.resolve_essential_review(project_root),
         }
 
     def template_context(
@@ -763,6 +819,7 @@ class Settings:
             "auto_plan": self.resolve_auto_plan(project_root),
             "auto_build": self.resolve_auto_build(project_root),
             "early_pr": self.resolve_early_pr(project_root),
+            "fix_auto_name": self.resolve_fix_auto_name(project_root),
             "confirm_changelog_update": self.resolve_confirm_changelog_update(
                 project_root
             ),

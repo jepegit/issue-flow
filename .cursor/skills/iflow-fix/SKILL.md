@@ -18,7 +18,7 @@ It **coexists** with `/iflow-pick fix` (one-shot general-fixes setup into `/iflo
 ## Input
 
 - **a name** (e.g. `polish-cli-output`) — used for the issue title and branch slug.
-- **(nothing)** — default the slug to `iterative-small-fixes` (made unique via the new issue number).
+- **(nothing)** — invent a short kebab slug from context (or fall back to `iterative-small-fixes`).
 - **a description** during an active session — run the next fix in the loop.
 
 
@@ -67,10 +67,11 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 ### Phase 1 — set up the session (once)
 
 1. **Preflight.** Detect the default branch (`gh repo view --json defaultBranchRef -q .defaultBranchRef.name`; fall back to `git symbolic-ref --quiet --short refs/remotes/origin/HEAD`, else `main`). Run `git fetch --prune`. Report current branch + clean/dirty tree (`git status --porcelain`); if dirty with unrelated changes, ask to commit/stash first.
-2. **Create the GitHub issue (always, with confirmation).** Show the proposed title (e.g. `Iterative fixes: <name>`, or `Iterative small fixes`) and a body noting it is an interactive `/iflow-fix` session whose individual fixes are recorded in the status markdown and landed together via `/iflow-close`. Create it with `gh issue create` (add `--repo owner/repo` if ambiguous). Capture the returned number `N`. A fresh issue is created each time. Set the chat tab title to `Issue <N> <session name>`.
-3. **Create the branch (with confirmation).** Slug from the name (kebab-case; default `iterative-small-fixes`); branch name `<N>-<slug>`. On the default branch → `git switch -c <N>-<slug>`. On a non-default branch → **ask** whether to branch from the current branch or the default. Require a clean tree before switching.
-4. **Capture locally.** Delegate to the `/iflow-capture` flow (or the `iflow-capture` skill) for `<N>`: write `.issueflows/01-current-issues/issue<N>_original.md` and run its archive sweep. Do not duplicate that logic.
-5. **Seed the status file.** Create `.issueflows/01-current-issues/issue<N>_status.md` with a short header (interactive `/iflow-fix` session), an unchecked `- [ ] Done`, and an empty **`## Iterative fixes log`** section.
+2. **Resolve the session name.** Baked `fix_auto_name = true`: pick the kebab slug yourself from an explicit invoke name, else invent a short descriptive slug from the user's intent/context (fallback `iterative-small-fixes`). Do **not** ask the user to approve or rename the title/slug — show it only inside the create confirm below. Configurable via `fix_auto_name` under `[issueflow]` in `.issueflows/config.toml` (re-run `issue-flow update` after changing).
+3. **Create the GitHub issue (always, with confirmation).** Show the chosen title (e.g. `Iterative fixes: <name>`, or `Iterative small fixes`) and a body noting it is an interactive `/iflow-fix` session whose individual fixes are recorded in the status markdown and landed together via `/iflow-close`. Create it with `gh issue create` (add `--repo owner/repo` if ambiguous). Capture the returned number `N`. A fresh issue is created each time. Set the chat tab title to `Issue <N> <session name>`.
+4. **Create the branch (with confirmation).** Slug from the resolved name (kebab-case); branch name `<N>-<slug>`. On the default branch → `git switch -c <N>-<slug>`. On a non-default branch → **ask** whether to branch from the current branch or the default. Require a clean tree before switching.
+5. **Capture locally.** Delegate to the `/iflow-capture` flow (or the `iflow-capture` skill) for `<N>`: write `.issueflows/01-current-issues/issue<N>_original.md` and run its archive sweep. Do not duplicate that logic.
+6. **Seed the status file.** Create `.issueflows/01-current-issues/issue<N>_status.md` with a short header (interactive `/iflow-fix` session), an unchecked `- [ ] Done`, and an empty **`## Iterative fixes log`** section.
 
 ### Phase 2 — the fix loop (repeat)
 
@@ -91,7 +92,7 @@ Tell the user to run **`/iflow-close`** to land the session (tests, optional bum
 ## Constraints
 
 - Off-path: never auto-dispatch from `/iflow`, `/iflow-build`, or `/iflow-close`.
-- Never create a GitHub issue or branch without explicit confirmation; show what will be created first.
+- Never create a GitHub issue or branch without explicit confirmation; show what will be created first. Naming itself is not a separate confirm when `fix_auto_name` is on — the create confirm still lists the title/branch.
 - GitHub only (`gh`); GitLab is not supported.
 - Branch off the detected default (or the current branch when chosen); never force-push or delete branches from this skill.
 - Keep `- [ ] Done` unchecked during the session; `/iflow-close` flips it.

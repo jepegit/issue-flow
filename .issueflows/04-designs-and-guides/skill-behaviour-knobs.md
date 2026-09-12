@@ -16,6 +16,7 @@ templates by hand.
 | Cleanup defaults (`cleanup_*`) | `cleanup_include_github` |
 | Auto behaviours (`auto_*`) | `auto_switchback`, `auto_close`, `auto_plan`, `auto_build`, `auto_graphify_on_plan` |
 | Timing / PR | `early_pr` |
+| Fix-session | `fix_auto_name` |
 | Auto / advanced | `auto_adversarial_loops` (see [advanced-auto-mode.md](./advanced-auto-mode.md)) |
 | Confirm gates (`confirm_*`) | `confirm_version_bump`, `confirm_changelog_update` |
 | Tool / value | `ruff_autofix`, `pr_merge_method`, `cycle_max_issues`, `test_runner`, `essential_marker`, `essential_review` |
@@ -32,6 +33,7 @@ templates by hand.
 | `auto_plan` | `true` | `/iflow-pick` chains into `/iflow-plan` after pick confirm + branch/init; trailing `noplan` skips once (issue #219) |
 | `auto_build` | `true` | `/iflow-plan` chains into `/iflow-build` on plan Accept; trailing `nobuild` skips once (issue #219) |
 | `early_pr` | `false` | `/iflow-build` opens a draft PR after the first push; trailing `early`/`pr` / `noearly` override per run |
+| `fix_auto_name` | `false` | `/iflow-fix` invents session title/slug without a naming confirm; create issue+branch still confirms (issue #258). CLI: `issue-flow config show\|set\|edit` |
 | `auto_adversarial_loops` | `2` | `/iflow-auto` inter-epoch adversarial loop budget; trailing `loops:<n>` overrides per run ([advanced-auto-mode.md](./advanced-auto-mode.md)) |
 | `confirm_version_bump` | `false` | Non-yolo close confirms once about bump when unset |
 | `confirm_changelog_update` | `false` | Changelog diff confirm before write; `false` = write without ask (bullet lands in the PR). Decline (when true) **stops** close — no silent skip. |

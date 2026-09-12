@@ -85,6 +85,7 @@ DEFAULT_AUTO_CLOSE = False
 DEFAULT_AUTO_PLAN = True
 DEFAULT_AUTO_BUILD = True
 DEFAULT_EARLY_PR = False
+DEFAULT_FIX_AUTO_NAME = False
 DEFAULT_CONFIRM_CHANGELOG_UPDATE = False
 
 # Essential-tests paradigm (pytest); opt-in, baked into close/build/doctor.
@@ -123,6 +124,7 @@ NOVICE_CONFIG: dict[str, object] = {
     # A stray label should not silently switch a beginner into the hands-off path.
     "label_flows": False,
     "early_pr": False,
+    "fix_auto_name": False,
     # Ask before the two bookkeeping writes that are otherwise silent.
     "confirm_version_bump": True,
     "confirm_changelog_update": True,
@@ -790,6 +792,17 @@ def read_early_pr(cfg_path: Path) -> bool | None:
     return None
 
 
+def read_fix_auto_name(cfg_path: Path) -> bool | None:
+    """Return the persisted ``[issueflow].fix_auto_name`` flag."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "fix_auto_name" in section:
+        return bool(section.get("fix_auto_name"))
+    return None
+
+
 def read_confirm_changelog_update(cfg_path: Path) -> bool | None:
     """Return the persisted ``[issueflow].confirm_changelog_update`` flag."""
     if not cfg_path.is_file():
@@ -1024,6 +1037,7 @@ def write_default_config(
     auto_plan: bool = DEFAULT_AUTO_PLAN,
     auto_build: bool = DEFAULT_AUTO_BUILD,
     early_pr: bool = DEFAULT_EARLY_PR,
+    fix_auto_name: bool = DEFAULT_FIX_AUTO_NAME,
     confirm_changelog_update: bool = DEFAULT_CONFIRM_CHANGELOG_UPDATE,
     essential_tests: bool = DEFAULT_ESSENTIAL_TESTS,
     test_runner: str = DEFAULT_TEST_RUNNER,
@@ -1087,6 +1101,7 @@ def write_default_config(
         section["auto_plan"] = auto_plan
         section["auto_build"] = auto_build
         section["early_pr"] = early_pr
+        section["fix_auto_name"] = fix_auto_name
         section["confirm_changelog_update"] = confirm_changelog_update
         section["essential_tests"] = essential_tests
         section["test_runner"] = test_runner
@@ -1134,6 +1149,7 @@ def write_default_config(
             auto_plan,
             auto_build,
             early_pr,
+            fix_auto_name,
             confirm_changelog_update,
             essential_tests,
             test_runner,
@@ -1189,6 +1205,7 @@ def _commented_issueflow_table(
     auto_plan: bool,
     auto_build: bool,
     early_pr: bool,
+    fix_auto_name: bool,
     confirm_changelog_update: bool,
     essential_tests: bool,
     test_runner: str,
@@ -1380,6 +1397,15 @@ def _commented_issueflow_table(
         )
     )
     table["early_pr"] = early_pr
+    table.add(
+        tomlkit.comment(
+            "When true, /iflow-fix lets the agent invent the session title/"
+            "slug from invoke text or context without a naming confirm "
+            "(default false). Create issue+branch still needs one confirm. "
+            "Re-run 'issue-flow update' after changing."
+        )
+    )
+    table["fix_auto_name"] = fix_auto_name
     table.add(
         tomlkit.comment(
             "When true, non-yolo /iflow-close confirms once about a version "

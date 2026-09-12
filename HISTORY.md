@@ -10,6 +10,13 @@ than the GitHub release notes they link to.
 ## [Unreleased]
 
 - **Opt-in vendored pstack skills (#249).** Config `pstack_skills` (or `ISSUEFLOW_PSTACK_SKILLS`) scaffolds a curated subset of Lauren Tan's pstack library next to the iflow skills; off by default. Shipped in #250; this close adds the missed changelog line and archives tracking.
+
+## [0.4.14] - 2026-09-12
+
+- Iterative fixes: agent-name-issue-no-confirm. (#258)
+  - `[issueflow].fix_auto_name` — agent invents `/iflow-fix` session title/slug without a separate naming confirm (create issue+branch still confirms).
+  - `issue-flow config show|set|edit` — view effective/persisted knobs, set one key, or open `config.toml` in `$VISUAL`/`$EDITOR`.
+
 ## [0.4.13] - 2026-09-11
 
 - Worktree + separate window on pick/issue start (keep home on default). (#255)

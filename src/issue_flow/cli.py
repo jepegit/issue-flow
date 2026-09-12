@@ -1093,9 +1093,9 @@ def config_add(
     ``auto_graphify_on_plan``, ``auto_switchback``, ``pr_merge_method``,
     ``cycle_max_issues``, ``auto_adversarial_loops``, ``confirm_version_bump``,
     ``ruff_autofix``, ``auto_close``, ``auto_plan``, ``auto_build``,
-    ``early_pr``, ``confirm_changelog_update``, ``essential_tests``,
-    ``test_runner``, ``essential_marker``, ``essential_review``,
-    ``pstack_skills``
+    ``early_pr``, ``fix_auto_name``, ``confirm_changelog_update``,
+    ``essential_tests``, ``test_runner``, ``essential_marker``,
+    ``essential_review``, ``pstack_skills``
     — taking each from its ``ISSUEFLOW_*`` env var when set, else the default.
     Other ``ISSUEFLOW_*`` settings are environment-only and are not written
     here. Existing files are left untouched unless ``--force`` is passed.
@@ -1103,6 +1103,111 @@ def config_add(
     from issue_flow.agent import run_config_add
 
     raise typer.Exit(code=run_config_add(project_dir, _console, force, json_output))
+
+
+@config_app.command("show")
+def config_show(
+    key: str | None = typer.Argument(
+        None,
+        help="Optional single key to print (default: all effective keys).",
+    ),
+    project_dir: Path = typer.Option(
+        Path("."),
+        "--project-dir",
+        "-C",
+        help="Project root directory (defaults to current directory).",
+        exists=True,
+        file_okay=False,
+        resolve_path=True,
+    ),
+    persisted: bool = typer.Option(
+        False,
+        "--persisted",
+        help="Show only keys written in config.toml (no defaults).",
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Show effective (or persisted) [issueflow] config values."""
+    from issue_flow.agent import run_config_show
+
+    raise typer.Exit(
+        code=run_config_show(
+            project_dir,
+            _console,
+            key,
+            persisted_only=persisted,
+            as_json=json_output,
+        )
+    )
+
+
+@config_app.command("set")
+def config_set(
+    key: str = typer.Argument(help="Config key under [issueflow]."),
+    value: str = typer.Argument(help="New value (bool/int/str/list as text)."),
+    project_dir: Path = typer.Option(
+        Path("."),
+        "--project-dir",
+        "-C",
+        help="Project root directory (defaults to current directory).",
+        exists=True,
+        file_okay=False,
+        resolve_path=True,
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Set one [issueflow] key in config.toml (creates the file if missing)."""
+    from issue_flow.agent import run_config_set
+
+    raise typer.Exit(
+        code=run_config_set(project_dir, _console, key, value, as_json=json_output)
+    )
+
+
+@config_app.command("edit")
+def config_edit(
+    project_dir: Path = typer.Option(
+        Path("."),
+        "--project-dir",
+        "-C",
+        help="Project root directory (defaults to current directory).",
+        exists=True,
+        file_okay=False,
+        resolve_path=True,
+    ),
+    editor: str | None = typer.Option(
+        None,
+        "--editor",
+        "-e",
+        help="Text editor command (default: $VISUAL, then $EDITOR, then nano/vi).",
+    ),
+    create: bool = typer.Option(
+        False,
+        "--create",
+        help="Seed a default config.toml when the file is missing.",
+    ),
+    json_output: bool = typer.Option(
+        False,
+        "--json",
+        help="Emit path/editor info without opening an interactive editor.",
+    ),
+) -> None:
+    """Open config.toml in your text editor ($VISUAL / $EDITOR)."""
+    from issue_flow.agent import run_config_edit
+
+    raise typer.Exit(
+        code=run_config_edit(
+            project_dir,
+            _console,
+            editor=editor,
+            create=create,
+            as_json=json_output,
+        )
+    )
 
 
 @workspace_app.command("init")
