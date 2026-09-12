@@ -80,7 +80,8 @@ Key behaviour:
 - **Config:** reads a `.env` from the project root (`ISSUEFLOW_DIR`,
   `ISSUEFLOW_AGENT_DIR`, `ISSUEFLOW_DOCS_DIR`, `ISSUEFLOW_HISTORY_FILE`).
   Project-level toggles live in `.issueflows/config.toml` under `[issueflow]`
-  (e.g. `mode`, `caveman_default`, `grill_me_default`).
+  (e.g. `mode`, `caveman_default`, `grill_me_default`, `fix_auto_name`).
+  View/edit via `issue-flow config show` / `set` / `edit` (issue #258).
 
 ## Release & version bump
 
@@ -92,12 +93,13 @@ Key behaviour:
 
 ## Entry points
 
-- **CLI:** `src/issue_flow/cli.py` (Typer) — `init` / `update` / `graphify`
-  plus agent-facing subcommands (`agent capture` / `sweep` / `preflight` /
-  `status` / `state`).
+- **CLI:** `src/issue_flow/cli.py` (Typer) — `init` / `update` / `graphify` /
+  `config` (`add` / `show` / `set` / `edit`) plus agent-facing subcommands
+  (`agent capture` / `sweep` / `preflight` / `status` / `state`).
 - **Scaffolding logic:** `src/issue_flow/init.py` (writes `.issueflows/` +
   editor config).
-- **Other core modules:** `config.py` (env/config), `modes.py` (scaffolding
+- **Other core modules:** `config.py` (env/config), `config_ops.py` (config
+  CLI parse/upsert/editor), `modes.py` (scaffolding
   modes), `editors.py` (editor profiles), `templating.py` (Jinja2 helpers),
   `dependencies.py` (git/gh/graphify checks), `gitutils.py`, `agent.py`,
   `graphify.py`.

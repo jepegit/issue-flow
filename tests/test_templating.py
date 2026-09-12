@@ -55,6 +55,7 @@ _MODE_CONTEXT = {
     "auto_plan": True,
     "auto_build": True,
     "early_pr": False,
+    "fix_auto_name": False,
     "confirm_changelog_update": True,
     "essential_tests": False,
     "test_runner": "pytest",
@@ -934,6 +935,26 @@ def test_issue_fix_skill_mirrors_command() -> None:
     assert "Iterative fixes log" in rendered
     assert "/iflow-capture" in rendered
     assert "/iflow-close" in rendered
+
+
+def test_issue_fix_auto_name_knob() -> None:
+    """fix_auto_name bakes agent-names vs ask-once naming into /iflow-fix."""
+    off = render_template("commands/iflow-fix.md.j2", _default_context())
+    assert "fix_auto_name = false" in off
+    assert "ask once" in off.lower()
+
+    on = render_template(
+        "commands/iflow-fix.md.j2",
+        {**_default_context(), "fix_auto_name": True},
+    )
+    assert "fix_auto_name = true" in on
+    assert "Do **not** ask the user to approve or rename" in on
+    skill_on = render_template(
+        "skills/iflow_fix/SKILL.md.j2",
+        {**_default_context(), "fix_auto_name": True},
+    )
+    assert "fix_auto_name = true" in skill_on
+    assert "Naming itself is not a separate confirm" in skill_on
 
 
 def test_iflow_archive_command_documents_gated_deletion() -> None:

@@ -206,7 +206,7 @@ Lifecycle skills include a **`### MODEL & EXECUTION DIRECTIVE`** section that te
 
 
 
-`/iflow-fix` opens an interactive iterative-fixes session: it creates one GitHub issue + long-lived branch, then loops over many small fixes (each gets a short plan and is implemented only on confirmation, recorded as a dated bullet in `issue<N>_status.md`), and ends with `/iflow-close`. It is off-path (never auto-dispatched); while a session is active, drive it with `/iflow-fix` + `/iflow-close`, not `/iflow`.
+`/iflow-fix` opens an interactive iterative-fixes session: it creates one GitHub issue + long-lived branch, then loops over many small fixes (each gets a short plan and is implemented only on confirmation, recorded as a dated bullet in `issue<N>_status.md`), and ends with `/iflow-close`. It is off-path (never auto-dispatched); while a session is active, drive it with `/iflow-fix` + `/iflow-close`, not `/iflow`. With `fix_auto_name = true`, the agent invents the session title/slug without a separate naming confirm (create issue+branch still confirms). Toggle via `fix_auto_name` under `[issueflow]` in `.issueflows/config.toml`; re-run `issue-flow update` after changing.
 
 
 `/iflow-issue` creates **one well-specified normal GitHub issue** (context / spec / acceptance criteria), then optionally branches and runs `/iflow-capture` into the standard lifecycle. It fills the gap between `/iflow-fix` (iterative small-fixes) and `/iflow-epic` (multi-issue staged work). Off-path (never auto-dispatched). For an epic anchor: `/iflow-issue epic <intent>`.

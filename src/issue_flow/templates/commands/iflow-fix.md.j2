@@ -21,7 +21,7 @@ This is an **off-path** command — the lifecycle dispatcher (`/iflow`) never au
 Optional free-form text after the command — a short **proposed name** for the session (used for the issue title and branch slug). Examples:
 
 - `/iflow-fix polish-cli-output` — name the session `polish-cli-output`.
-- `/iflow-fix` — no name: default the slug to `iterative-small-fixes` (made unique by appending the new issue number, e.g. `iterative-small-fixes`/branch `<N>-iterative-small-fixes`).
+- `/iflow-fix` — no name: {% if fix_auto_name %}agent invents a short kebab slug from context (fallback `iterative-small-fixes`){% else %}default the slug to `iterative-small-fixes` (made unique by appending the new issue number, e.g. `iterative-small-fixes`/branch `<N>-iterative-small-fixes`){% endif %}.
 
 After the session is set up, a bare `/iflow-fix <description>` (or just describing a fix in chat) means "run the next fix in this session".
 
@@ -31,19 +31,21 @@ Run this only when there is no active session for the current branch yet (no `is
 
 1. **Preflight.** Detect the default branch (`gh repo view --json defaultBranchRef -q .defaultBranchRef.name`; fall back to `git symbolic-ref --quiet --short refs/remotes/origin/HEAD | sed 's|^origin/||'`, else `main`). Run `git fetch --prune`. Report the current branch and whether the working tree is clean (`git status --porcelain`). If the tree is dirty with unrelated changes, ask the user to commit/stash first.
 
-2. **Create the GitHub issue (always, with confirmation).** Show the proposed title and body, then create it with `gh issue create` (add `--repo owner/repo` if the default remote is ambiguous):
-   - **Title** — from the proposed name (e.g. `Iterative fixes: polish-cli-output`), or a generic `Iterative small fixes` when no name was given.
+2. **Resolve the session name.**{% if fix_auto_name %} Baked `fix_auto_name = true`: pick the kebab slug yourself from an explicit invoke name, else invent a short descriptive slug from the user's intent/context (fallback `iterative-small-fixes`). Do **not** ask the user to approve or rename the title/slug — show it only inside the create confirm below.{% else %} Baked `fix_auto_name = false`: use an explicit invoke name when given; otherwise default to `iterative-small-fixes`. If the invoke text is free-form (not already a slug) and you would invent a better name, **ask once** whether to use your proposed slug or keep the default — then proceed to create confirm.{% endif %} Configurable via `fix_auto_name` under `[issueflow]` in `{{ issueflows_dir }}/config.toml` (re-run `issue-flow update` after changing).
+
+3. **Create the GitHub issue (always, with confirmation).** Show the chosen title and body, then create it with `gh issue create` (add `--repo owner/repo` if the default remote is ambiguous):
+   - **Title** — from the resolved name (e.g. `Iterative fixes: polish-cli-output`), or a generic `Iterative small fixes` when the slug is the default.
    - **Body** — note this is an interactive iterative-fixes session opened via `/iflow-fix`; individual fixes are recorded in the issue's status markdown and landed together via `/iflow-close`.
    - Capture the returned **issue number `N`**. A fresh issue is created each time — existing open fixes issues are not reused.
    - Change the chat/agent tab title to `Issue <N> <short session name>`.
 
-3. **Create the worktree (with confirmation).** Build the slug from the proposed name (kebab-case), defaulting to `iterative-small-fixes`. The branch name is `<N>-<slug>`.
+4. **Create the worktree (with confirmation).** Build the slug from the resolved name (kebab-case), defaulting to `iterative-small-fixes`. The branch name is `<N>-<slug>`.
    - Home stays on default; `issue-flow agent worktree-add <N> --slug <slug>` then `open-workspace` (print; `--open` only after confirm). `inplace` keeps `git switch -c` on home.
    - Require a clean tree; confirm a non-obvious slug.
 
-4. **Capture locally.** Delegate to the `/iflow-capture` flow for `<N>` (follow `{{ agent_dir }}/commands/iflow-capture.md`): fetch the issue, write `{{ issueflows_dir }}/{{ current_issues_folder }}/issue<N>_original.md`, and run its archive sweep on the other groups. Do not re-implement that logic here.
+5. **Capture locally.** Delegate to the `/iflow-capture` flow for `<N>` (follow `{{ agent_dir }}/commands/iflow-capture.md`): fetch the issue, write `{{ issueflows_dir }}/{{ current_issues_folder }}/issue<N>_original.md`, and run its archive sweep on the other groups. Do not re-implement that logic here.
 
-5. **Seed the status file.** Create `{{ issueflows_dir }}/{{ current_issues_folder }}/issue<N>_status.md` with:
+6. **Seed the status file.** Create `{{ issueflows_dir }}/{{ current_issues_folder }}/issue<N>_status.md` with:
    - a short header noting this is an interactive `/iflow-fix` session,
    - an unchecked `- [ ] Done` checkbox (kept unchecked until `/iflow-close`),
    - an **`## Iterative fixes log`** section (initially empty) where each fix is appended as a dated bullet.
@@ -67,7 +69,7 @@ If a proposed "fix" turns out to be a substantial feature or touches many unrela
 ## Constraints
 
 - **Off-path.** Never auto-dispatch `/iflow-fix` from `/iflow`, `/iflow-build`, or `/iflow-close`. The user opts in.
-- **Never create a GitHub issue or branch without explicit confirmation.** Show what will be created first.
+- **Never create a GitHub issue or branch without explicit confirmation.** Show what will be created first.{% if fix_auto_name %} Naming itself is not a separate confirm when `fix_auto_name` is on — the create confirm still lists the title/branch.{% endif %}
 - **GitHub only.** Session issues are created with `gh` (GitHub). GitLab is not supported.
 - **Respect git safety norms.** Branch off the detected default (or the current branch when the user chooses), never force-push, never delete branches from this command.
 - **Keep the status checkbox accurate.** Leave `- [ ] Done` unchecked during the session; `/iflow-close` flips it to `- [x] Done` when the work lands.

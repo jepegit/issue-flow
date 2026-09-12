@@ -3440,7 +3440,7 @@ def run_sub_issue_add(
 
 
 # ---------------------------------------------------------------------------
-# config add
+# config add / show / set / edit
 # ---------------------------------------------------------------------------
 
 
@@ -3485,7 +3485,7 @@ def _print_config_guide(console: Console, cfg_path: Path) -> None:
         "[bold]auto_graphify_on_plan[/bold]; "
         "[bold]auto_switchback[/bold] / [bold]auto_close[/bold] / "
         "[bold]auto_plan[/bold] / [bold]auto_build[/bold] / "
-        "[bold]early_pr[/bold]; "
+        "[bold]early_pr[/bold] / [bold]fix_auto_name[/bold]; "
         "[bold]confirm_version_bump[/bold] / [bold]confirm_changelog_update[/bold]; "
         "[bold]ruff_autofix[/bold]; [bold]essential_tests[/bold] / "
         "[bold]test_runner[/bold] / [bold]essential_marker[/bold] / "
@@ -3504,8 +3504,9 @@ def _print_config_guide(console: Console, cfg_path: Path) -> None:
         "re-run 'issue-flow update' after changing.[/dim]"
     )
     console.print(
-        "  [dim]Other ISSUEFLOW_* settings are environment-only (set them in "
-        ".env), not in config.toml.[/dim]"
+        "  [dim]Or use [bold]issue-flow config show|set|edit[/bold]. Other "
+        "ISSUEFLOW_* settings are environment-only (set them in .env), not in "
+        "config.toml.[/dim]"
     )
 
 
@@ -3553,6 +3554,232 @@ def run_config_add(
     verb = "regenerated" if existed else "wrote"
     console.print(f"[green]{verb}[/green]  {cfg_path}")
     _print_config_guide(console, cfg_path)
+    return 0
+
+
+def run_config_show(
+    project_root: Path,
+    console: Console,
+    key: str | None,
+    *,
+    persisted_only: bool,
+    as_json: bool,
+) -> int:
+    """Print effective (or persisted-only) ``[issueflow]`` config values."""
+    from issue_flow import config_ops
+
+    settings = Settings()
+    cfg_path = settings.config_path(project_root)
+    effective = settings.effective_config(project_root)
+    persisted = config_ops.read_persisted_section(cfg_path) or {}
+
+    if key is not None:
+        if key not in config_ops.CONFIG_KEYS:
+            msg = (
+                f"unknown key {key!r}; known keys: "
+                f"{', '.join(config_ops.known_config_keys())}"
+            )
+            if as_json:
+                _emit_json(console, {"ok": False, "error": msg, "path": str(cfg_path)})
+            else:
+                console.print(f"[red]error[/red]  {msg}")
+            return 1
+        if persisted_only and key not in persisted:
+            if as_json:
+                _emit_json(
+                    console,
+                    {
+                        "ok": True,
+                        "path": str(cfg_path),
+                        "key": key,
+                        "value": None,
+                        "set": False,
+                        "persisted": True,
+                    },
+                )
+            else:
+                console.print(f"[dim]{key}[/dim]  (not set in {escape(str(cfg_path))})")
+            return 0
+        value = persisted[key] if persisted_only else effective[key]
+        payload = {
+            "ok": True,
+            "path": str(cfg_path),
+            "key": key,
+            "value": value,
+            "set": key in persisted,
+            "persisted": persisted_only,
+        }
+        if as_json:
+            _emit_json(console, payload)
+            return 0
+        console.print(f"[bold]{key}[/bold] = {value!r}")
+        if not persisted_only and key not in persisted:
+            console.print("  [dim](default / env; not set in config.toml)[/dim]")
+        return 0
+
+    values = persisted if persisted_only else effective
+    payload = {
+        "ok": True,
+        "path": str(cfg_path),
+        "exists": cfg_path.is_file(),
+        "persisted": persisted_only,
+        "values": values,
+        "persisted_keys": sorted(persisted),
+    }
+    if as_json:
+        _emit_json(console, payload)
+        return 0
+
+    if not cfg_path.is_file():
+        console.print(
+            f"[yellow]missing[/yellow]  {escape(str(cfg_path))} "
+            "(showing defaults; run 'issue-flow config add' to create)"
+        )
+    else:
+        console.print(f"[dim]{escape(str(cfg_path))}[/dim]")
+    label = "persisted" if persisted_only else "effective"
+    console.print(f"[bold]{label} [issueflow][/bold]")
+    if persisted_only and not values:
+        console.print("  [dim](empty)[/dim]")
+        return 0
+    for name in config_ops.known_config_keys():
+        if persisted_only and name not in values:
+            continue
+        val = values.get(name, effective.get(name))
+        marker = ""
+        if not persisted_only and name not in persisted:
+            marker = "  [dim](default)[/dim]"
+        console.print(f"  {name} = {val!r}{marker}")
+    return 0
+
+
+def run_config_set(
+    project_root: Path,
+    console: Console,
+    key: str,
+    raw_value: str,
+    *,
+    as_json: bool,
+) -> int:
+    """Upsert one ``[issueflow]`` key in ``config.toml``."""
+    from issue_flow import config_ops
+
+    settings = Settings()
+    cfg_path = settings.config_path(project_root)
+    try:
+        value = config_ops.parse_config_value(key, raw_value)
+        config_ops.upsert_config_value(cfg_path, key, value)
+    except ValueError as exc:
+        if as_json:
+            _emit_json(
+                console,
+                {"ok": False, "error": str(exc), "path": str(cfg_path), "key": key},
+            )
+        else:
+            console.print(f"[red]error[/red]  {exc}")
+        return 1
+
+    needs_update = config_ops.CONFIG_KEYS[key].needs_update
+    payload = {
+        "ok": True,
+        "path": str(cfg_path),
+        "key": key,
+        "value": value,
+        "needs_update": needs_update,
+    }
+    if as_json:
+        _emit_json(console, payload)
+        return 0
+
+    console.print(f"[green]set[/green]  {key} = {value!r}")
+    console.print(f"  [dim]{escape(str(cfg_path))}[/dim]")
+    if needs_update:
+        console.print(
+            "  [dim]Re-run [bold]issue-flow update[/bold] so scaffolded "
+            "skills/rules pick this up.[/dim]"
+        )
+    return 0
+
+
+def run_config_edit(
+    project_root: Path,
+    console: Console,
+    *,
+    editor: str | None,
+    create: bool,
+    as_json: bool,
+) -> int:
+    """Open ``config.toml`` in ``$VISUAL`` / ``$EDITOR`` (or ``--editor``)."""
+    from issue_flow import config_ops
+
+    settings = Settings()
+    cfg_path = settings.config_path(project_root)
+    created = False
+    if not cfg_path.is_file():
+        if not create:
+            msg = (
+                f"{cfg_path} does not exist; pass --create to seed defaults, "
+                "or run 'issue-flow config add' first."
+            )
+            if as_json:
+                _emit_json(
+                    console,
+                    {"ok": False, "error": msg, "path": str(cfg_path), "opened": False},
+                )
+            else:
+                console.print(f"[red]error[/red]  {msg}")
+            return 1
+        values = settings.seed_config_values()
+        modes.write_default_config(cfg_path, overwrite=False, **values)
+        created = True
+
+    try:
+        editor_argv = config_ops.resolve_text_editor(editor)
+    except RuntimeError as exc:
+        if as_json:
+            _emit_json(
+                console,
+                {
+                    "ok": False,
+                    "error": str(exc),
+                    "path": str(cfg_path),
+                    "opened": False,
+                    "created": created,
+                },
+            )
+        else:
+            console.print(f"[red]error[/red]  {exc}")
+        return 1
+
+    if as_json:
+        # JSON mode is for agents/scripts — do not block on an interactive editor.
+        _emit_json(
+            console,
+            {
+                "ok": True,
+                "path": str(cfg_path),
+                "created": created,
+                "editor": editor_argv,
+                "opened": False,
+                "hint": "re-invoke without --json to open the editor",
+            },
+        )
+        return 0
+
+    if created:
+        console.print(f"[green]created[/green]  {escape(str(cfg_path))}")
+    console.print(
+        f"[dim]opening[/dim]  {escape(str(cfg_path))}  "
+        f"([bold]{' '.join(editor_argv)}[/bold])"
+    )
+    code = config_ops.open_in_editor(cfg_path, editor=editor)
+    if code != 0:
+        console.print(f"[yellow]editor exited {code}[/yellow]")
+        return code if code > 0 else 1
+    console.print(
+        "  [dim]If you changed bake-into-template knobs, re-run "
+        "[bold]issue-flow update[/bold].[/dim]"
+    )
     return 0
 
 
