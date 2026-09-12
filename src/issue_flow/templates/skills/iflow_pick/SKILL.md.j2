@@ -66,7 +66,9 @@ Do **not** use this skill from `/iflow`, `/iflow-build`, or `/iflow-close`. `/if
      the dirty tree.
    - **Mixed / code dirty** — **stop**; list non-`{{ issueflows_dir }}/` paths;
      ask commit / stash / abort. Do **not** auto-offer “commit everything”.
-2. **Branch off the default** — switch to default, fast-forward, then `git switch -c <N>-<short-slug>` (GitHub numeric convention). Confirm a non-obvious slug. **Ops exception:** when Phase 1 confirmed ops routing, ask whether to create the issue branch or stay on current/default; default branch is allowed.
+2. **Issue worktree (default)** — confirm a non-obvious slug (`<N>-<short-slug>`).
+{% include "skills/_worktree_start.md.j2" %}
+   **Ops exception:** when Phase 1 confirmed ops routing, ask whether to create the issue worktree/branch or stay on current/default; default branch is allowed (no worktree).
 3. **Run `/iflow-capture`** for the now-known `<N>` by following {% if commands_supported %}`{{ agent_dir }}/{{ commands_dir }}/iflow-capture.md` (or the `iflow-capture` skill){% else %}the `iflow-capture` skill{% endif %}. Do not duplicate its fetch/archive logic.
 
 ### Phase 3 — hand off

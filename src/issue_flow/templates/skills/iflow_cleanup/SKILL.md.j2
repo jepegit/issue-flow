@@ -53,9 +53,10 @@ Optional free-form text after the command:
    > **Why the extra buckets:** `git branch -d` only accepts branches *reachable* from the default branch. Any squash-merged branch (this project's `pr_merge_method` is **{{ pr_merge_method }}**, but GitHub's merge button can still squash) keeps a tip that is not an ancestor, so `-d` refuses it forever.
 {% endif %}
 5. **Consolidated confirm (Phase A1 — local)** — one yes/no prompt listing every action:
-   - `git switch <default>`
+   - `git switch <default>` (home only; skip if already on default)
    - `git pull --ff-only`
    - `git fetch --prune`
+   - `issue-flow agent worktree-list --json` — for each **linked** worktree whose branch is **`reachable`**, `issue-flow agent worktree-remove <path>` (or the issue number) **before** deleting the branch. Git cannot `-d` a branch that is still checked out in a worktree. Never remove a worktree whose branch is `unique_work`.
    - `git branch -d <branch>` for each **`reachable`** branch, listed explicitly by name first. If `-d` still refuses, report that branch and move on.
    - **Planned release tag (tag-derived projects only).** When `/iflow-close` planned a tag it did not create — check the focus issue's status file and the newest `{{ history_file }}` release section for a version whose tag is missing from `git tag -l` — include creating it here: `git tag <planned>` then `git push origin <planned>` (or `gh release create <planned> --generate-notes`). Run it **after** the pull so the tag lands on the merged {{ pr_merge_method }} commit.
 
@@ -64,7 +65,7 @@ Optional free-form text after the command:
    - List **`squash_landed`** as `<name>  <tip>` with the evidence (every commit patch-equivalent to the default; merged PR number when known).
    - List **`merged_pr_divergent`** *separately*, each with its `<tip>`, merged PR link, and unique-commit subjects — these are landed per GitHub but their tips differ, so the user should eyeball the subjects before agreeing.
    - Show the recovery line: any deletion is undone with `git branch <name> <tip>`.
-   - On yes, try `git branch -d <name>` first and only fall back to `git branch -D <name>` when it refuses — `-d` also accepts a branch merged into its own upstream, so it sometimes still works while the remote-tracking ref survives. Report each `<name> <tip>` and which flag was used, so the SHAs stay in the transcript. On no, leave every branch in place.
+   - On yes, `worktree-remove` each linked worktree whose branch is in these buckets (clean trees only; never `unique_work`), **then** try `git branch -d <name>` first and only fall back to `git branch -D <name>` when it refuses — `-d` also accepts a branch merged into its own upstream, so it sometimes still works while the remote-tracking ref survives. Report each `<name> <tip>` and which flag was used, so the SHAs stay in the transcript. On no, leave every branch and worktree in place.
    - **Never** include a `unique_work` or `skipped` branch in this prompt, even if the user asks to "delete them all" — point at the branch's unique commits instead and let them delete it by hand.
 
 7. **Optional folder sweep** (safe; no destructive git). In `{{ issueflows_dir }}/{{ current_issues_folder }}/`, for each `issue<N>_*` group whose status file contains `- [x] Done` (case-insensitive on `done`), move the group to `{{ issueflows_dir }}/{{ solved_folder }}/`. Leave groups without a checked `Done` in place — routing them to `{{ issueflows_dir }}/{{ partly_solved_folder }}/` is `/iflow-pause`'s job.

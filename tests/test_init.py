@@ -585,6 +585,37 @@ def test_init_cycle_skill_parallel_dispatch_is_opt_in_and_gated(
     assert "--open" in content
 
 
+def test_init_pick_issue_fix_use_worktree_start(tmp_path: Path) -> None:
+    """Start-work skills: worktree-add, no silent --open, inplace opt-out."""
+    run_init(tmp_path)
+    for name in ("iflow-pick", "iflow-issue", "iflow-fix"):
+        content = (tmp_path / ".cursor" / "skills" / name / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        assert "worktree-add" in content, name
+        assert "inplace" in content, name
+        assert (
+            "Never auto `--open`" in content or "never auto `--open`" in content.lower()
+        ), name
+
+
+def test_init_cleanup_removes_worktree_before_branch_delete(tmp_path: Path) -> None:
+    run_init(tmp_path)
+    content = (
+        tmp_path / ".cursor" / "skills" / "iflow-cleanup" / "SKILL.md"
+    ).read_text(encoding="utf-8")
+    assert "worktree-remove" in content
+    assert "before" in content.lower()
+
+
+def test_init_close_skill_skips_switchback_in_worktree(tmp_path: Path) -> None:
+    run_init(tmp_path)
+    content = (tmp_path / ".cursor" / "skills" / "iflow-close" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    assert "in_worktree" in content
+
+
 def test_init_cycle_skill_has_state_file_resume_and_onfail(tmp_path: Path) -> None:
     """iflow-cycle skill: durable state file, resume action, onfail policy."""
     run_init(tmp_path)

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -807,6 +808,36 @@ def test_agent_switchback_already_on_default_still_pulls(
     assert any("already on main" in note for note in payload["notes"])
 
 
+def test_agent_switchback_skips_linked_worktree(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from issue_flow import gitutils as gitutils_module
+
+    monkeypatch.setattr(gitutils_module, "git_available", lambda: True)
+    monkeypatch.setattr(gitutils_module, "current_branch", lambda _cwd: "42-fix")
+    monkeypatch.setattr(gitutils_module, "default_branch", lambda _cwd: "main")
+    monkeypatch.setattr(gitutils_module, "dirty_paths", lambda _cwd: [])
+    monkeypatch.setattr(gitutils_module, "is_linked_worktree", lambda _cwd: True)
+    monkeypatch.setattr(
+        gitutils_module, "worktree_home_path", lambda _cwd: tmp_path / "home"
+    )
+
+    def explode(*_a: object, **_kw: object) -> object:
+        raise AssertionError("must not switch or pull inside a linked worktree")
+
+    monkeypatch.setattr(gitutils_module, "switch_branch", explode)
+    monkeypatch.setattr(gitutils_module, "pull_ff_only", explode)
+
+    result = runner.invoke(app, ["agent", "switchback", "-C", str(tmp_path), "--json"])
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["in_worktree"] is True
+    assert payload["switched"] is False
+    assert payload["pulled"] is False
+    assert any("worktree" in note for note in payload["notes"])
+
+
 def test_agent_switchback_reports_ff_refusal(
     runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -1185,6 +1216,160 @@ def test_agent_open_workspace_open_launches(
     assert payload["opened"] is True
     assert payload["binary"] == "/usr/bin/cursor"
     assert calls == [["/usr/bin/cursor", str(tmp_path.resolve())]]
+
+
+# ---------------------------------------------------------------------------
+# agent worktree-add / list / remove (issue #255)
+# ---------------------------------------------------------------------------
+
+
+def _init_git_repo(path: Path, *, branch: str = "main") -> None:
+    path.mkdir(parents=True, exist_ok=True)
+    subprocess.run(
+        ["git", "init", "-b", branch],
+        cwd=path,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.email", "t@example.com"],
+        cwd=path,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "tester"],
+        cwd=path,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    subprocess.run(
+        ["git", "commit", "--allow-empty", "-m", "init"],
+        cwd=path,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+
+def test_agent_worktree_add_keeps_home_on_default(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    home = tmp_path / "demo"
+    _init_git_repo(home)
+
+    result = runner.invoke(
+        app,
+        [
+            "agent",
+            "worktree-add",
+            "12",
+            "--slug",
+            "fix-login",
+            "-C",
+            str(home),
+            "--json",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    expected = tmp_path / "demo-12"
+    assert payload["path"] == str(expected.resolve())
+    assert payload["branch"] == "12-fix-login"
+    assert payload["created"] is True
+    assert payload["home_branch"] == "main"
+    home_branch = subprocess.run(
+        ["git", "branch", "--show-current"],
+        cwd=home,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    assert home_branch == "main"
+    wt_branch = subprocess.run(
+        ["git", "branch", "--show-current"],
+        cwd=expected,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    assert wt_branch == "12-fix-login"
+
+
+def test_agent_worktree_add_is_idempotent(runner: CliRunner, tmp_path: Path) -> None:
+    home = tmp_path / "demo"
+    _init_git_repo(home)
+    args = [
+        "agent",
+        "worktree-add",
+        "12",
+        "--slug",
+        "fix-login",
+        "-C",
+        str(home),
+        "--json",
+    ]
+    first = runner.invoke(app, args)
+    assert first.exit_code == 0, first.output
+    second = runner.invoke(app, args)
+    assert second.exit_code == 0, second.output
+    payload = _json(second.stdout)
+    assert payload["created"] is False
+    assert payload["path"] == str((tmp_path / "demo-12").resolve())
+
+
+def test_agent_worktree_remove_refuses_dirty(runner: CliRunner, tmp_path: Path) -> None:
+    home = tmp_path / "demo"
+    _init_git_repo(home)
+    add = runner.invoke(
+        app,
+        [
+            "agent",
+            "worktree-add",
+            "3",
+            "--slug",
+            "wip",
+            "-C",
+            str(home),
+            "--json",
+        ],
+    )
+    assert add.exit_code == 0, add.output
+    wt = tmp_path / "demo-3"
+    (wt / "dirty.txt").write_text("x", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        ["agent", "worktree-remove", "3", "-C", str(home), "--json"],
+    )
+    assert result.exit_code == 1
+    payload = _json(result.stdout)
+    assert payload["removed"] is False
+    assert "dirty" in (payload["error"] or "")
+    assert wt.is_dir()
+
+
+def test_agent_worktree_remove_by_number(runner: CliRunner, tmp_path: Path) -> None:
+    home = tmp_path / "demo"
+    _init_git_repo(home)
+    add = runner.invoke(
+        app,
+        ["agent", "worktree-add", "3", "--slug", "wip", "-C", str(home), "--json"],
+    )
+    assert add.exit_code == 0, add.output
+
+    result = runner.invoke(
+        app,
+        ["agent", "worktree-remove", "3", "-C", str(home), "--json"],
+    )
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["removed"] is True
+    assert not (tmp_path / "demo-3").exists()
 
 
 # ---------------------------------------------------------------------------

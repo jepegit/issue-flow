@@ -9,6 +9,10 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+## [0.4.13] - 2026-09-11
+
+- Worktree + separate window on pick/issue start (keep home on default). (#255)
+
 ## [0.4.12] - 2026-09-11
 
 - Separate editor workspaces for parallel / multi-repo agent work: `issue-flow agent open-workspace`, design guide, cycle skill wiring. (#253)
