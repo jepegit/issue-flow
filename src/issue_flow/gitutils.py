@@ -19,6 +19,7 @@ import json
 import re
 import shutil
 import subprocess
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -1094,3 +1095,186 @@ def gh_prs_by_head(
             continue
         by_head.setdefault(str(head), []).append(pr)
     return by_head
+
+
+# ---------------------------------------------------------------------------
+# Worktrees (issue #255)
+# ---------------------------------------------------------------------------
+
+
+def _abs_rev_parse(cwd: Path, flag: str) -> Path | None:
+    """Resolve a ``git rev-parse`` path flag to an absolute path."""
+    out = _stdout([GIT, "rev-parse", flag], cwd)
+    if not out:
+        return None
+    path = Path(out)
+    if not path.is_absolute():
+        path = cwd.resolve() / path
+    return path.resolve()
+
+
+def is_linked_worktree(cwd: Path) -> bool:
+    """True when ``cwd`` is an added worktree, not the main checkout.
+
+    Compares ``--git-dir`` to ``--git-common-dir``. Equal (or unreadable)
+    means the main tree or not a repo.
+    """
+    git_dir = _abs_rev_parse(cwd, "--git-dir")
+    common = _abs_rev_parse(cwd, "--git-common-dir")
+    if git_dir is None or common is None:
+        return False
+    return git_dir != common
+
+
+def worktree_home_path(cwd: Path) -> Path | None:
+    """Absolute path of the main worktree (the folder that holds ``.git/``)."""
+    common = _abs_rev_parse(cwd, "--git-common-dir")
+    if common is None:
+        return None
+    if common.name == ".git":
+        return common.parent
+    listed = list_worktrees(cwd)
+    if listed:
+        return listed[0].path
+    return None
+
+
+@dataclass
+class WorktreeInfo:
+    path: Path
+    branch: str | None
+    head: str | None
+    is_main: bool
+
+
+def list_worktrees(cwd: Path) -> list[WorktreeInfo]:
+    """Parse ``git worktree list --porcelain``. Empty list on failure."""
+    result = _run([GIT, "worktree", "list", "--porcelain"], cwd)
+    if result is None or result.returncode != 0 or not result.stdout:
+        return []
+    entries: list[WorktreeInfo] = []
+    path: Path | None = None
+    branch: str | None = None
+    head: str | None = None
+
+    def flush() -> None:
+        nonlocal path, branch, head
+        if path is None:
+            return
+        entries.append(
+            WorktreeInfo(
+                path=path,
+                branch=branch,
+                head=head,
+                is_main=len(entries) == 0,
+            )
+        )
+        path = None
+        branch = None
+        head = None
+
+    for raw in result.stdout.splitlines():
+        line = raw.rstrip("\n")
+        if not line:
+            flush()
+            continue
+        if line.startswith("worktree "):
+            path = Path(line[len("worktree ") :]).resolve()
+        elif line.startswith("HEAD "):
+            head = line[len("HEAD ") :].strip()
+        elif line.startswith("branch "):
+            ref = line[len("branch ") :].strip()
+            branch = ref.removeprefix("refs/heads/")
+        elif line == "detached":
+            branch = None
+    flush()
+    return entries
+
+
+def worktree_path_for_issue(home: Path, number: int) -> Path:
+    """Sibling folder ``<home.name>-<N>`` next to the main checkout."""
+    resolved = home.resolve()
+    return resolved.parent / f"{resolved.name}-{number}"
+
+
+def add_worktree(
+    home: Path,
+    *,
+    number: int,
+    slug: str,
+    start_point: str | None = None,
+) -> tuple[Path | None, bool, str | None]:
+    """Add ``../<repo>-<N>`` checked out at ``<N>-<slug>``.
+
+    Returns ``(path, created, error)``. Idempotent when that branch is already
+    in a worktree or the target path is already that worktree. Never switches
+    ``home``.
+    """
+    home = home.resolve()
+    branch = f"{number}-{slug}"
+    target = worktree_path_for_issue(home, number)
+
+    existing = list_worktrees(home)
+    for info in existing:
+        if info.branch == branch:
+            return info.path, False, None
+        if info.path == target:
+            return info.path, False, None
+
+    if target.exists():
+        return None, False, f"target path already exists: {target}"
+
+    start = start_point or _worktree_start_point(home)
+    if branch_exists(home, branch):
+        result = _run([GIT, "worktree", "add", str(target), branch], home)
+    else:
+        result = _run(
+            [GIT, "worktree", "add", "-b", branch, str(target), start],
+            home,
+        )
+    if result is None:
+        return None, False, "git is not on PATH"
+    if result.returncode != 0:
+        message = _stream_text(result.stderr) or _stream_text(result.stdout)
+        return None, False, message or "git worktree add failed"
+    return target, True, None
+
+
+def branch_exists(cwd: Path, name: str) -> bool:
+    """True iff ``refs/heads/<name>`` resolves."""
+    return (
+        _stdout([GIT, "rev-parse", "--verify", f"refs/heads/{name}"], cwd) is not None
+    )
+
+
+def _worktree_start_point(home: Path) -> str:
+    default = default_branch(home)
+    if _stdout([GIT, "rev-parse", "--verify", f"origin/{default}"], home):
+        return f"origin/{default}"
+    if _stdout([GIT, "rev-parse", "--verify", default], home):
+        return default
+    return "HEAD"
+
+
+def remove_worktree(
+    home: Path, path: Path, *, force: bool = False
+) -> tuple[bool, str | None]:
+    """``git worktree remove`` from the main repo. Refuses a dirty tree."""
+    home = home.resolve()
+    target = path.resolve()
+    dirty = dirty_paths(target)
+    if dirty is None:
+        return False, f"not a git worktree: {target}"
+    if dirty and not force:
+        return False, f"worktree is dirty: {', '.join(dirty[:8])}"
+    argv = [GIT, "worktree", "remove"]
+    if force:
+        argv.append("--force")
+    argv.append(str(target))
+    result = _run(argv, home)
+    if result is None:
+        return False, "git is not on PATH"
+    if result.returncode != 0:
+        message = _stream_text(result.stderr) or _stream_text(result.stdout)
+        return False, message or "git worktree remove failed"
+    return True, None

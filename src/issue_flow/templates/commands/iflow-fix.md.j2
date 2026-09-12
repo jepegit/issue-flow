@@ -37,10 +37,9 @@ Run this only when there is no active session for the current branch yet (no `is
    - Capture the returned **issue number `N`**. A fresh issue is created each time — existing open fixes issues are not reused.
    - Change the chat/agent tab title to `Issue <N> <short session name>`.
 
-3. **Create the branch (with confirmation).** Build the slug from the proposed name (kebab-case), defaulting to `iterative-small-fixes`. The branch name is `<N>-<slug>`.
-   - **On the default branch** → branch off it: `git switch -c <N>-<slug>`.
-   - **On a non-default branch** → **ask** whether to branch from the **current** branch or from the **default** branch, then create `<N>-<slug>` accordingly.
-   - Require a clean tree before switching; confirm a non-obvious slug.
+3. **Create the worktree (with confirmation).** Build the slug from the proposed name (kebab-case), defaulting to `iterative-small-fixes`. The branch name is `<N>-<slug>`.
+   - Home stays on default; `issue-flow agent worktree-add <N> --slug <slug>` then `open-workspace` (print; `--open` only after confirm). `inplace` keeps `git switch -c` on home.
+   - Require a clean tree; confirm a non-obvious slug.
 
 4. **Capture locally.** Delegate to the `/iflow-capture` flow for `<N>` (follow `{{ agent_dir }}/commands/iflow-capture.md`): fetch the issue, write `{{ issueflows_dir }}/{{ current_issues_folder }}/issue<N>_original.md`, and run its archive sweep on the other groups. Do not re-implement that logic here.
 

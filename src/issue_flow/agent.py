@@ -3,7 +3,8 @@
 These functions back ``issue-flow status`` (human-facing, top-level) and the
 ``issue-flow agent ...`` sub-commands (``state`` / ``preflight`` / ``switchback`` /
 ``sync-branch`` / ``branches`` / ``version-plan`` / ``resolve`` / ``open-workspace`` /
-``sweep`` / ``archive`` / ``capture`` / ``sub-issue-add``) that exist so AI agents
+``worktree-add`` / ``worktree-list`` / ``worktree-remove`` / ``sweep`` /
+``archive`` / ``capture`` / ``sub-issue-add``) that exist so AI agents
 can ask the tool for a deterministic answer instead of re-deriving lifecycle
 state by hand on every run.
 
@@ -791,6 +792,7 @@ def run_switchback(project_root: Path, console: Console, as_json: bool) -> int:
         "default_branch": None,
         "switched": False,
         "pulled": False,
+        "in_worktree": False,
         "dirty_paths": [],
         "notes": notes,
     }
@@ -811,6 +813,7 @@ def run_switchback(project_root: Path, console: Console, as_json: bool) -> int:
     dirty = gitutils.dirty_paths(project_root)
     payload["previous_branch"] = branch
     payload["default_branch"] = default
+    payload["in_worktree"] = gitutils.is_linked_worktree(project_root)
 
     if dirty is None:
         notes.append("could not read the working tree state (not a git repo?)")
@@ -822,6 +825,17 @@ def run_switchback(project_root: Path, console: Console, as_json: bool) -> int:
             "are committed, stashed, or discarded."
         )
         return emit(1)
+
+    payload["in_worktree"] = gitutils.is_linked_worktree(project_root)
+    if payload["in_worktree"]:
+        home = gitutils.worktree_home_path(project_root)
+        notes.append(
+            "linked worktree — skip switch to default (home already holds it). "
+            "Pull default from home"
+            + (f" (`issue-flow agent switchback -C {home}`)" if home else "")
+            + "."
+        )
+        return emit(0)
 
     if branch == default:
         notes.append(f"already on {default}")
@@ -1423,6 +1437,150 @@ def run_open_workspace(
             "(skills must never auto-open).[/dim]"
         )
     return 0
+
+
+# ---------------------------------------------------------------------------
+# agent worktree-add / list / remove (issue #255)
+# ---------------------------------------------------------------------------
+
+
+def run_worktree_add(
+    project_dir: Path,
+    console: Console,
+    number: int,
+    slug: str,
+    as_json: bool,
+) -> int:
+    """Create ``../<repo>-<N>`` on ``<N>-<slug>`` without switching home."""
+    home = project_dir.resolve()
+    cleaned = slug.strip().lstrip("/")
+    if cleaned.startswith(f"{number}-"):
+        cleaned = cleaned[len(f"{number}-") :]
+    if not cleaned or "/" in cleaned or "\\" in cleaned:
+        error = f"invalid slug: {slug!r}"
+        payload = {
+            "path": None,
+            "branch": None,
+            "home_path": str(home),
+            "home_branch": gitutils.current_branch(home),
+            "created": False,
+            "error": error,
+        }
+        if as_json:
+            _emit_json(console, payload)
+        else:
+            console.print(f"[red]error[/red]  {escape(error)}")
+        return 1
+
+    path, created, error = gitutils.add_worktree(home, number=number, slug=cleaned)
+    payload = {
+        "path": str(path) if path is not None else None,
+        "branch": f"{number}-{cleaned}",
+        "home_path": str(home),
+        "home_branch": gitutils.current_branch(home),
+        "created": created,
+        "error": error,
+    }
+    if error or path is None:
+        if as_json:
+            _emit_json(console, payload)
+        else:
+            console.print(f"[red]error[/red]  {escape(error or 'worktree add failed')}")
+        return 1
+    if as_json:
+        _emit_json(console, payload)
+        return 0
+    verb = "Created" if created else "Reused"
+    console.print(f"[bold]{verb}[/bold]: {path}")
+    console.print(f"[bold]Branch[/bold]: {payload['branch']}")
+    console.print(f"[bold]Home[/bold]: {home} ({payload['home_branch']})")
+    return 0
+
+
+def run_worktree_list(
+    project_dir: Path,
+    console: Console,
+    as_json: bool,
+) -> int:
+    """List git worktrees for the repo that contains ``project_dir``."""
+    home = gitutils.worktree_home_path(project_dir) or project_dir.resolve()
+    entries = gitutils.list_worktrees(project_dir)
+    payload = {
+        "home_path": str(home),
+        "worktrees": [
+            {
+                "path": str(info.path),
+                "branch": info.branch,
+                "head": info.head,
+                "is_main": info.is_main,
+            }
+            for info in entries
+        ],
+    }
+    if as_json:
+        _emit_json(console, payload)
+        return 0
+    if not entries:
+        console.print("[dim]No worktrees found.[/dim]")
+        return 0
+    for info in entries:
+        kind = "home" if info.is_main else "linked"
+        branch = info.branch or "(detached)"
+        console.print(f"  {info.path}  {branch}  [dim]{kind}[/dim]")
+    return 0
+
+
+def run_worktree_remove(
+    project_dir: Path,
+    console: Console,
+    target: str,
+    as_json: bool,
+    *,
+    force: bool = False,
+) -> int:
+    """Remove a linked worktree by path or issue number."""
+    home = gitutils.worktree_home_path(project_dir) or project_dir.resolve()
+    path: Path | None = None
+    raw = target.strip()
+    if raw.isdigit():
+        number = int(raw)
+        expected = gitutils.worktree_path_for_issue(home, number)
+        prefix = f"{number}-"
+        for info in gitutils.list_worktrees(home):
+            if info.is_main:
+                continue
+            if info.path == expected.resolve() or (
+                info.branch is not None and info.branch.startswith(prefix)
+            ):
+                path = info.path
+                break
+        if path is None:
+            path = expected if expected.is_dir() else None
+    else:
+        candidate = Path(raw)
+        path = candidate.resolve() if candidate.exists() else None
+
+    error = None
+    removed = False
+    if path is None:
+        error = f"worktree not found: {raw}"
+    else:
+        removed, error = gitutils.remove_worktree(home, path, force=force)
+
+    payload = {
+        "path": str(path) if path is not None else None,
+        "removed": removed,
+        "error": error,
+        "home_path": str(home),
+    }
+    if as_json:
+        _emit_json(console, payload)
+        return 0 if removed else 1
+    if removed:
+        console.print(f"[green]Removed[/green] {path}")
+        return 0
+    console.print(f"[red]error[/red]  {escape(error or 'remove failed')}")
+    return 1
 
 
 # ---------------------------------------------------------------------------
