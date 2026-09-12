@@ -11,5 +11,5 @@ Interactive `/iflow-fix` session. Individual fixes logged below; land via `/iflo
 
 ## Close
 
-- Version bump: `0.4.12` → `0.4.13` (patch; stable channel).
+- Version bump: `0.4.13` → `0.4.14` (patch; stable channel).
 - Landed via `/iflow-close bump`.
