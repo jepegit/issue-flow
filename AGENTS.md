@@ -272,6 +272,8 @@ When the user message is **exactly** one of these forms, or **starts with** it f
 
 | `iflow plan`, `iflow-plan`, `/iflow-plan`, `/iflow plan` | `iflow-plan` |
 
+| `iflow pr-sync`, `iflow-pr-sync`, `/iflow-pr-sync`, `/iflow pr-sync` | `iflow-pr-sync` |
+
 | `iflow review`, `iflow-review`, `/iflow-review`, `/iflow review` | `iflow-review` |
 
 | `iflow setup`, `iflow-setup`, `/iflow-setup`, `/iflow setup` | `iflow-setup` |
@@ -352,6 +354,10 @@ Lifecycle skills include a **`### MODEL & EXECUTION DIRECTIVE`** section that te
 
 
 `/iflow-archive` condenses old solved issue groups under `.issueflows/03-solved-issues/` into a single dated `YYYY-MM-DD_archived_issues.md` summary file (recording the pre-archive git ref for recovery via `git show <ref>:<path>`), then deletes the original `issue<N>_*` files. It is off-path and destructive: nothing is deleted before one consolidated confirmation.
+
+
+`/iflow-pr-sync` refreshes **open** PR heads that went `DIRTY` after another merge (usually `HISTORY.md`): worktree → `issue-flow agent sync-branch` keep-both → `git push --force-with-lease`. Off-path; see `.issueflows/04-designs-and-guides/pr-queue-sync.md` (issue #260).
+
 
 
 > On tools without project slash commands (e.g. Codex CLI), invoke the mirrored Agent Skills instead (for example `iflow-capture` in place of `/iflow-capture`).
