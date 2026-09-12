@@ -1,0 +1,71 @@
+---
+name: iflow-pr-sync
+description: >-
+  Refresh open PR heads onto the default branch after another merge left them
+  DIRTY (usually HISTORY.md). Uses sync-branch keep-both + force-with-lease.
+disable-model-invocation: true
+---
+
+# issue-flow — PR queue sync (`/iflow-pr-sync`)
+
+Follow this skill when **one or more open PRs need updating** after another PR
+merged — typically `mergeable: CONFLICTING` / `mergeStateStatus: DIRTY` because
+both sides edited `{{ history_file }}`.{% if commands_supported %} Matches
+`{{ agent_dir }}/{{ commands_dir }}/iflow-pr-sync.md`.{% endif %}
+
+Do **not** use this from `/iflow`. Off-path only. Sibling of `/iflow-cleanup`
+(post-merge local hygiene) and of `issue-flow agent sync-branch` (single branch).
+
+{% set iflow_step = "pr-sync" %}
+{% include "skills/_invocation_forms.md.j2" %}
+
+{% include "skills/_model_directive.md.j2" %}
+
+{% include "skills/_resolve_project_root.md.j2" %}
+
+## Input
+
+- **(nothing)** — refresh every open PR GitHub marks as needing update (DIRTY /
+  BEHIND / CONFLICTING).
+- **PR numbers** — e.g. `/iflow-pr-sync 259 261` — only those heads.
+- **`dry-run` / `dryrun`** — list candidates; do not sync or push.
+- **`nopush` / `no-push`** — sync locally but do not push.
+- **`all`** — every open PR, not only dirty ones (rare).
+
+## Instructions
+
+1. **Preflight.** Resolve `<project_root>` / `<owner/repo>`. Prefer standing on
+   the **default** branch with a clean home tree (worktrees are used for each
+   head). `git fetch --prune`.
+2. **List candidates.** Prefer CLI:
+   ```bash
+   issue-flow agent pr-sync --dry-run --json -C <project_root>
+   # or with numbers:
+   issue-flow agent pr-sync 259 261 --dry-run --json -C <project_root>
+   ```
+   Show the user: PR number, head branch, mergeable / mergeStateStatus, URL.
+3. **Confirm once.** Consolidated yes/no listing every head that will be
+   rebased (or merged) onto `origin/<default>` and force-with-lease pushed.
+   Decline → stop; nothing rewritten.
+4. **Run.** On yes:
+   ```bash
+   issue-flow agent pr-sync [numbers…] --json -C <project_root>
+   ```
+   Honour trailing `nopush` / `dry-run` / `all` as flags (`--no-push`,
+   `--dry-run`, `--all-open`). Default is `--fail-fast`: first non-HISTORY /
+   non-keep-both conflict stops the batch and leaves later PRs untouched.
+5. **Report.** Per PR: synced / pushed / changelog_resolved / failure notes.
+   Remind that CI must re-run on rewritten heads. Do **not** auto-merge.
+6. **When to offer.** After `/iflow-cleanup` when other open PRs remain dirty;
+   after `/iflow-yolo` / `/iflow-close` merge when siblings are open; whenever
+   the user says a PR “needs update” and the only conflict is changelog-shaped.
+
+## Constraints
+
+- Off-path; never auto-dispatch from `/iflow`.
+- Never bare `--force`; only `--force-with-lease` via the CLI.
+- Never `--admin` merge; never skip required checks.
+- Non-changelog / heading-promote conflicts → stop that head (and the batch
+  under fail-fast); human decides.
+- Prevention (`defer_changelog`) is separate — see
+  `{{ issueflows_dir }}/{{ designs_folder }}/pr-queue-sync.md`.

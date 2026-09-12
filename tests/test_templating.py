@@ -132,8 +132,8 @@ def test_resolve_output_path() -> None:
 
 
 def test_manifest_entry_count() -> None:
-    # Cursor is skills-first: 1 rule + 1 doc + 29 skills = 31
-    assert len(TEMPLATE_MANIFEST) == 31
+    # Cursor is skills-first: 1 rule + 1 doc + 30 skills = 32
+    assert len(TEMPLATE_MANIFEST) == 32
 
 
 def _resolved_paths(profile_id: str) -> set[str]:
@@ -153,7 +153,7 @@ def _resolved_paths(profile_id: str) -> set[str]:
 def test_build_manifest_cursor_matches_default() -> None:
     """The default TEMPLATE_MANIFEST is the cursor profile manifest."""
     assert build_manifest(EDITORS["cursor"]) == TEMPLATE_MANIFEST
-    assert len(build_manifest(EDITORS["cursor"])) == 31
+    assert len(build_manifest(EDITORS["cursor"])) == 32
 
 
 def test_build_manifest_cursor_has_skills_and_rules_but_no_commands() -> None:
@@ -168,15 +168,15 @@ def test_build_manifest_cursor_has_skills_and_rules_but_no_commands() -> None:
 
 
 def test_build_manifest_codex_has_skills_and_docs_but_no_commands() -> None:
-    """Codex: skills (29) + docs (1), no slash commands and no rules extra."""
+    """Codex: skills (30) + docs (1), no slash commands and no rules extra."""
     manifest = build_manifest(get_profile("codex"))
     template_names = [name for name, _ in manifest]
     assert not any(name.startswith("commands/") for name in template_names)
-    assert sum(name.startswith("skills/") for name in template_names) == 29
+    assert sum(name.startswith("skills/") for name in template_names) == 30
     assert "docs/issue-workflow.md.j2" in template_names
     # No .mdc / CLAUDE.md rules extra for Codex.
     assert not any(name.startswith("rules/") for name in template_names)
-    assert len(manifest) == 30
+    assert len(manifest) == 31
 
 
 def test_build_manifest_opencode_uses_singular_command_dir() -> None:

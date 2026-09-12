@@ -187,6 +187,10 @@ Lifecycle skills include a **`### MODEL & EXECUTION DIRECTIVE`** section that te
 {% endif %}
 {% if "iflow_archive" in included_skills %}
 `/iflow-archive` condenses old solved issue groups under `{{ issueflows_dir }}/{{ solved_folder }}/` into a single dated `YYYY-MM-DD_archived_issues.md` summary file (recording the pre-archive git ref for recovery via `git show <ref>:<path>`), then deletes the original `issue<N>_*` files. It is off-path and destructive: nothing is deleted before one consolidated confirmation.
+
+{% if "iflow_pr_sync" in included_skills %}
+`/iflow-pr-sync` refreshes **open** PR heads that went `DIRTY` after another merge (usually `{{ history_file }}`): worktree → `issue-flow agent sync-branch` keep-both → `git push --force-with-lease`. Off-path; see `{{ issueflows_dir }}/{{ designs_folder }}/pr-queue-sync.md` (issue #260).
+{% endif %}
 {% endif %}
 
 > On tools without project slash commands (e.g. Codex CLI), invoke the mirrored Agent Skills instead (for example `iflow-capture` in place of `/iflow-capture`).
