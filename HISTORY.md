@@ -9,7 +9,10 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+## [0.4.15] - 2026-09-12
+
 - **Opt-in vendored pstack skills (#249).** Config `pstack_skills` (or `ISSUEFLOW_PSTACK_SKILLS`) scaffolds a curated subset of Lauren Tan's pstack library next to the iflow skills; off by default. Shipped in #250; this close adds the missed changelog line and archives tracking.
+- **Multi-PR HISTORY refresh via `/iflow-pr-sync` (#260).** New `issue-flow agent pr-sync` loops open DIRTY/behind PR heads through worktrees, reuses keep-both `[Unreleased]` resolution from `sync-branch`, and force-with-leases; skill + cleanup offer; design doc `pr-queue-sync.md`. Part B `defer_changelog` deferred.
 
 ## [0.4.14] - 2026-09-12
 
