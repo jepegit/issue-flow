@@ -26,7 +26,7 @@ nav = [
   { "Home" = "index.md" },
   { "Getting started" = "getting-started.md" },
   { "How-to" = [
-    { "Overview" = "how-to/index.md" },
+    "how-to/index.md",
     { "Work one issue end-to-end" = "how-to/work-one-issue.md" },
     { "Fast-track a small issue" = "how-to/yolo.md" },
     { "Park and resume" = "how-to/park-and-resume.md" },
