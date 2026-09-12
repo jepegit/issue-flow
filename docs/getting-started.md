@@ -133,6 +133,8 @@ well-specified one first.
 
 ## Where to go next
 
+- **[How-to guides](how-to/index.md)** — short task paths (one issue, yolo,
+  pause, cleanup, epics, auto, …).
 - **[The workflow](issue-workflow.md)** — every command in detail.
 - **[Configuration](configuration.md)** — the settings `--mode novice` chose
   for you, and how to change them.

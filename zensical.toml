@@ -25,6 +25,17 @@ Copyright &copy; 2026 jepegit — MIT License
 nav = [
   { "Home" = "index.md" },
   { "Getting started" = "getting-started.md" },
+  { "How-to" = [
+    { "Overview" = "how-to/index.md" },
+    { "Work one issue end-to-end" = "how-to/work-one-issue.md" },
+    { "Fast-track a small issue" = "how-to/yolo.md" },
+    { "Park and resume" = "how-to/park-and-resume.md" },
+    { "After a squash merge" = "how-to/after-squash-merge.md" },
+    { "Refresh dirty open PRs" = "how-to/pr-sync.md" },
+    { "Choose a mode" = "how-to/choose-a-mode.md" },
+    { "Create and run epics" = "how-to/epics.md" },
+    { "Use auto mode" = "how-to/auto-mode.md" },
+  ] },
   { "The workflow" = "issue-workflow.md" },
   { "CLI reference" = "cli.md" },
   { "Configuration" = "configuration.md" },
