@@ -1,8 +1,8 @@
 # Status — Issue #249: use parts of pstack
 
-Branch: `cursor/249-pstack-3dc1` · PR: https://github.com/jepegit/issue-flow/pull/250 (#250, draft)
+Branch: `cursor/249-close-history-e6bd` · impl PR: https://github.com/jepegit/issue-flow/pull/250 (#250, merged)
 
-- [ ] Done
+- [x] Done
 
 ## What's done
 
@@ -35,4 +35,10 @@ Branch: `cursor/249-pstack-3dc1` · PR: https://github.com/jepegit/issue-flow/pu
 
 ## Remaining work
 
-- `/iflow-close`: `HISTORY.md` bullet, optional version bump, mark PR ready.
+- None.
+
+## Close notes (2026-09-11)
+
+- Impl already on `main` via squash of #250 (`52bbb4c`). No version bump (already in 0.4.11/0.4.12 line).
+- `HISTORY.md` `[Unreleased]` bullet added (missed when #250 used `Refs` not `Closes`).
+- GitHub issue closed via close PR `Closes #249`.
