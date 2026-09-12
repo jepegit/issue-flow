@@ -1,6 +1,6 @@
 # Issue #260 status
 
-- [ ] Done
+- [x] Done
 
 ## Progress
 
