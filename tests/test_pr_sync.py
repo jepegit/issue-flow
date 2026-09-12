@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any
 from unittest.mock import patch
@@ -11,6 +12,12 @@ from typer.testing import CliRunner
 
 from issue_flow.agent import _pr_needs_sync, run_pr_sync
 from issue_flow.cli import app
+
+_ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
+
+
+def _strip_ansi(text: str) -> str:
+    return _ANSI_RE.sub("", text)
 
 
 def test_pr_needs_sync_dirty_and_conflicting() -> None:
@@ -78,8 +85,10 @@ def test_pr_sync_cli_help() -> None:
     runner = CliRunner()
     result = runner.invoke(app, ["agent", "pr-sync", "--help"])
     assert result.exit_code == 0
-    assert "force-with-lease" in result.stdout
-    assert "--dry-run" in result.stdout
+    out = _strip_ansi(result.stdout)
+    # Rich styles ``--force-with-lease`` with ANSI mid-token; strip first.
+    assert "force-with-lease" in out
+    assert "--dry-run" in out
 
 
 def test_pr_sync_template_renders() -> None:
