@@ -1,6 +1,6 @@
 {
   "/home/jepe/scripting/issue-flow/tests/test_config.py": {
-    "mtime": 1789200115.882656,
+    "mtime": 1789208031.3637543,
     "ast_hash": "dcd49ab83ca40c13ac9443ea3c89730d",
     "semantic_hash": ""
   },
@@ -30,7 +30,7 @@
     "semantic_hash": ""
   },
   "/home/jepe/scripting/issue-flow/tests/test_cli.py": {
-    "mtime": 1789200115.882656,
+    "mtime": 1789208031.3637543,
     "ast_hash": "6f9c6d199789b8f8bd819c771a32c4ab",
     "semantic_hash": ""
   },
@@ -90,7 +90,7 @@
     "semantic_hash": ""
   },
   "/home/jepe/scripting/issue-flow/tests/test_modes.py": {
-    "mtime": 1789200115.882656,
+    "mtime": 1789208031.3637543,
     "ast_hash": "a87b2ad4958221f7f879614c586f7f84",
     "semantic_hash": ""
   },
@@ -110,8 +110,8 @@
     "semantic_hash": ""
   },
   "/home/jepe/scripting/issue-flow/tests/test_templating.py": {
-    "mtime": 1789200115.882656,
-    "ast_hash": "19de133c2d21bd0a331a55c3fad7f061",
+    "mtime": 1789208037.4197526,
+    "ast_hash": "b604bf1ac11cbe4599f7bd5ae017e50c",
     "semantic_hash": ""
   },
   "/home/jepe/scripting/issue-flow/tests/test_editors.py": {
@@ -145,7 +145,7 @@
     "semantic_hash": ""
   },
   "/home/jepe/scripting/issue-flow/src/issue_flow/modes.py": {
-    "mtime": 1789200115.8786561,
+    "mtime": 1789208031.3517542,
     "ast_hash": "39d1bb2c6ff20d170199bd190161a962",
     "semantic_hash": ""
   },
@@ -155,7 +155,7 @@
     "semantic_hash": ""
   },
   "/home/jepe/scripting/issue-flow/src/issue_flow/config.py": {
-    "mtime": 1789200115.8786561,
+    "mtime": 1789208031.3517542,
     "ast_hash": "aa12db45e0d2d9a9d4da949e8cf885e3",
     "semantic_hash": ""
   },
@@ -175,8 +175,8 @@
     "semantic_hash": ""
   },
   "/home/jepe/scripting/issue-flow/src/issue_flow/cli.py": {
-    "mtime": 1789200115.8786561,
-    "ast_hash": "f8156afa1a50abe447c572f6733572ca",
+    "mtime": 1789208037.4117527,
+    "ast_hash": "7ebdb98d55dffdc99f28202d3df6970c",
     "semantic_hash": ""
   },
   "/home/jepe/scripting/issue-flow/src/issue_flow/init.py": {
@@ -190,8 +190,8 @@
     "semantic_hash": ""
   },
   "/home/jepe/scripting/issue-flow/src/issue_flow/agent.py": {
-    "mtime": 1789200115.8786561,
-    "ast_hash": "7bcc00d248d4b7ebe4522c40a583318c",
+    "mtime": 1789208037.4117527,
+    "ast_hash": "1e2ae197bde7c1c49171f011c533bd28",
     "semantic_hash": ""
   },
   "/home/jepe/scripting/issue-flow/src/issue_flow/editors.py": {
@@ -210,8 +210,8 @@
     "semantic_hash": ""
   },
   "/home/jepe/scripting/issue-flow/src/issue_flow/templating.py": {
-    "mtime": 1789113006.2719738,
-    "ast_hash": "69a73cbf1b60c2d864a71f1be98bdc5a",
+    "mtime": 1789208037.4157526,
+    "ast_hash": "5e59cb5ec223b2805b9585c257fea896",
     "semantic_hash": ""
   },
   "/home/jepe/scripting/issue-flow/src/issue_flow/graphify.py": {
@@ -235,8 +235,8 @@
     "semantic_hash": ""
   },
   "/home/jepe/scripting/issue-flow/src/issue_flow/gitutils.py": {
-    "mtime": 1789200115.834656,
-    "ast_hash": "f2f6342ae8ab221e624d044e2b67ec0b",
+    "mtime": 1789208037.4117527,
+    "ast_hash": "0c8e0a171193c1759c454abb43797bd4",
     "semantic_hash": ""
   },
   "/home/jepe/scripting/issue-flow/src/issue_flow/versionplan.py": {
@@ -290,7 +290,7 @@
     "semantic_hash": ""
   },
   "/home/jepe/scripting/issue-flow/AGENTS.md": {
-    "mtime": 1789200115.874656,
+    "mtime": 1789208031.3357542,
     "ast_hash": "20ab4bb4bf921f26dccd586d451596b5",
     "semantic_hash": ""
   },
@@ -300,7 +300,7 @@
     "semantic_hash": ""
   },
   "/home/jepe/scripting/issue-flow/HISTORY.md": {
-    "mtime": 1789200166.182639,
+    "mtime": 1789208031.3397543,
     "ast_hash": "2179f84bba4f6a2bfef60b5605ba0b88",
     "semantic_hash": ""
   },
@@ -395,7 +395,7 @@
     "semantic_hash": ""
   },
   "/home/jepe/scripting/issue-flow/.cursor/skills/iflow-cycle/SKILL.md": {
-    "mtime": 1789200115.874656,
+    "mtime": 1789208031.3277543,
     "ast_hash": "09879f8d9684c739237e9958a1eae666",
     "semantic_hash": ""
   },
@@ -415,7 +415,7 @@
     "semantic_hash": ""
   },
   "/home/jepe/scripting/issue-flow/.cursor/skills/iflow-fix/SKILL.md": {
-    "mtime": 1789200115.874656,
+    "mtime": 1789208031.3317542,
     "ast_hash": "0a4a6c34c8d1359c9f43c4fdd5b93f8d",
     "semantic_hash": ""
   },
@@ -495,7 +495,7 @@
     "semantic_hash": ""
   },
   "/home/jepe/scripting/issue-flow/docs/issue-workflow.md": {
-    "mtime": 1789200115.874656,
+    "mtime": 1789208031.3397543,
     "ast_hash": "2b4cabbb90a34bc1b6a878043ccf9dfc",
     "semantic_hash": ""
   },
@@ -660,7 +660,7 @@
     "semantic_hash": ""
   },
   "/home/jepe/scripting/issue-flow/.issueflows/04-designs-and-guides/skill-behaviour-knobs.md": {
-    "mtime": 1789200115.874656,
+    "mtime": 1789208031.3317542,
     "ast_hash": "1be7c49d5c2a4a0cd2c6e5295ec3dcbc",
     "semantic_hash": ""
   },
@@ -690,13 +690,13 @@
     "semantic_hash": ""
   },
   "/home/jepe/scripting/issue-flow/.issueflows/04-designs-and-guides/this-project.md": {
-    "mtime": 1789200115.874656,
+    "mtime": 1789208031.3357542,
     "ast_hash": "7501b50290233150be23279f07d1c56b",
     "semantic_hash": ""
   },
   "/home/jepe/scripting/issue-flow/.issueflows/04-designs-and-guides/changelog-conflicts.md": {
-    "mtime": 1789111826.6643093,
-    "ast_hash": "5d7a9966e337bc37583c5bd5c612159c",
+    "mtime": 1789208037.4077528,
+    "ast_hash": "92f9a0ce947568f35f111cd8ca905b08",
     "semantic_hash": ""
   },
   "/home/jepe/scripting/issue-flow/.issueflows/04-designs-and-guides/graphify-integration.md": {
@@ -1515,12 +1515,12 @@
     "semantic_hash": ""
   },
   "/home/jepe/scripting/issue-flow/tests/test_config_cli.py": {
-    "mtime": 1789200115.882656,
+    "mtime": 1789208031.3637543,
     "ast_hash": "b7188c964d571de9b9aa68d516333b55",
     "semantic_hash": ""
   },
   "/home/jepe/scripting/issue-flow/src/issue_flow/config_ops.py": {
-    "mtime": 1789200115.8786561,
+    "mtime": 1789208031.3517542,
     "ast_hash": "fb10785f5db0491c48310a9d1ba72a91",
     "semantic_hash": ""
   },
@@ -1530,8 +1530,8 @@
     "semantic_hash": ""
   },
   "/home/jepe/scripting/issue-flow/.issueflows/03-solved-issues/issue258_status.md": {
-    "mtime": 1789200115.874656,
-    "ast_hash": "e97fbe2638a598e79bdb14820dfa5563",
+    "mtime": 1789208031.3317542,
+    "ast_hash": "1664f4843f64878e17d765c5e18c92f8",
     "semantic_hash": ""
   },
   "/home/jepe/scripting/issue-flow/.issueflows/03-solved-issues/issue249_plan.md": {
@@ -1555,13 +1555,38 @@
     "semantic_hash": ""
   },
   "/home/jepe/scripting/issue-flow/.issueflows/03-solved-issues/issue258_original.md": {
-    "mtime": 1789200115.874656,
+    "mtime": 1789208031.3317542,
     "ast_hash": "cb75ab32cb9a0b87bd6dcadc80065a86",
     "semantic_hash": ""
   },
   "/home/jepe/scripting/issue-flow/.issueflows/03-solved-issues/issue249_status.md": {
     "mtime": 1789200115.826656,
     "ast_hash": "b316916f427e2194bc5579376e310b8b",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow/tests/test_pr_sync.py": {
+    "mtime": 1789208037.4197526,
+    "ast_hash": "c340738afcc7266c1faf3a286a015813",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow/.issueflows/04-designs-and-guides/pr-queue-sync.md": {
+    "mtime": 1789208037.4077528,
+    "ast_hash": "d392299516e293b475d81c619b430bac",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow/.issueflows/01-current-issues/issue260_plan.md": {
+    "mtime": 1789208037.4077528,
+    "ast_hash": "1bb548c5b04f35cb1f49d8ded1961c2b",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow/.issueflows/01-current-issues/issue260_original.md": {
+    "mtime": 1789208037.4077528,
+    "ast_hash": "19e8ef361442956ad0a6c45faced3a8a",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow/.issueflows/01-current-issues/issue260_status.md": {
+    "mtime": 1789208037.4077528,
+    "ast_hash": "62ce3ee6995776ef2108bc1b5eff143a",
     "semantic_hash": ""
   }
 }

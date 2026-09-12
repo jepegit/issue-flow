@@ -22,7 +22,7 @@ agent_app = typer.Typer(
         "Agent-facing helpers that read the .issueflows/ tree and git/gh so "
         "AI agents get deterministic answers instead of re-deriving lifecycle "
         "state by hand. All are read-only except `sweep`, `archive`, `capture`, "
-        "`switchback`, `sync-branch`, `repair`, `label-apply`, "
+        "`switchback`, `sync-branch`, `pr-sync`, `repair`, `label-apply`, "
         "`open-workspace --open`, `worktree-add`, and `worktree-remove`. "
         "`branches` (remote) and `local-branches` (local) only classify: "
         "every delete stays in `/iflow-cleanup`."
@@ -515,6 +515,77 @@ def agent_sync_branch(
     from issue_flow.agent import run_sync_branch
 
     raise typer.Exit(code=run_sync_branch(project_dir, _console, strategy, json_output))
+
+
+@agent_app.command("pr-sync")
+def agent_pr_sync(
+    numbers: list[int] = typer.Argument(
+        default=None,
+        help="Optional PR numbers to refresh (default: open PRs that need sync).",
+    ),
+    project_dir: Path = _PROJECT_DIR_OPTION,
+    all_open: bool = typer.Option(
+        False,
+        "--all-open",
+        help="Include every open PR (not only DIRTY/BEHIND/CONFLICTING).",
+    ),
+    dirty_only: bool = typer.Option(
+        True,
+        "--dirty-only/--all-needing",
+        help="When no numbers given, only PRs GitHub marks as needing update.",
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="List candidates only; do not sync or push.",
+    ),
+    push: bool = typer.Option(
+        True,
+        "--push/--no-push",
+        help="After a successful sync, `git push --force-with-lease` the head.",
+    ),
+    fail_fast: bool = typer.Option(
+        True,
+        "--fail-fast/--continue",
+        help="Stop on the first sync/push failure (default).",
+    ),
+    strategy: str = typer.Option(
+        "rebase",
+        "--strategy",
+        help="Passed through to sync-branch: `rebase` (default) or `merge`.",
+    ),
+    cleanup_worktrees: bool = typer.Option(
+        True,
+        "--cleanup-worktrees/--keep-worktrees",
+        help="Remove ephemeral *-prsync-* worktrees after each PR.",
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Refresh open PR heads onto origin/<default> (changelog keep-both).
+
+    For each candidate head: worktree → sync-branch → optional
+    ``git push --force-with-lease``. Never bare ``--force``. Used by
+    ``/iflow-pr-sync`` when a merge left sibling PRs DIRTY (issue #260).
+    """
+    from issue_flow.agent import run_pr_sync
+
+    raise typer.Exit(
+        code=run_pr_sync(
+            project_dir,
+            _console,
+            numbers=list(numbers) if numbers else None,
+            all_open=all_open,
+            dirty_only=dirty_only,
+            dry_run=dry_run,
+            push=push,
+            fail_fast=fail_fast,
+            strategy=strategy,
+            cleanup_worktrees=cleanup_worktrees,
+            as_json=json_output,
+        )
+    )
 
 
 @agent_app.command("branches")
