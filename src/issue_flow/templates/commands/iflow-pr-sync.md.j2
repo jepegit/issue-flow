@@ -1,0 +1,34 @@
+# Refresh dirty open PRs (`/iflow-pr-sync`)
+
+`/iflow-pr-sync` brings **open PR heads** up to date with the default branch after
+another merge left them `DIRTY` / “needs update” — almost always because both
+sides edited `{{ history_file }}`.
+
+It is **off-path** (never auto-run by `/iflow`). Prefer it over clicking GitHub’s
+Update branch when the conflict is changelog bookkeeping.
+
+{% include "skills/_model_directive.md.j2" %}
+
+{% include "skills/_resolve_project_root.md.j2" %}
+
+## Input
+
+- Nothing → every open PR GitHub marks as needing update.
+- PR numbers → only those (e.g. `/iflow-pr-sync 259`).
+- `dry-run` → list only.
+- `nopush` → sync without pushing.
+- `all` → every open PR.
+
+## What the assistant does
+
+1. Prefers standing on the default branch; fetches.
+2. Lists candidates via `issue-flow agent pr-sync --dry-run --json`.
+3. One consolidated confirm (rebase/merge onto default + `--force-with-lease`).
+4. Runs `issue-flow agent pr-sync …` (reuses `sync-branch` keep-both).
+5. Reports per-PR results; does not merge.
+
+## Constraints
+
+- Never bare `--force`, never `--admin`, never skip checks.
+- Fail-fast on non-auto-resolvable conflicts.
+- Design: `{{ issueflows_dir }}/{{ designs_folder }}/pr-queue-sync.md`.

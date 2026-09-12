@@ -1152,6 +1152,262 @@ def _render_sync_branch_text(
 
 
 # ---------------------------------------------------------------------------
+# agent pr-sync (multi-PR HISTORY refresh, issue #260)
+# ---------------------------------------------------------------------------
+
+_NEEDS_SYNC_STATES = frozenset({"DIRTY", "BEHIND", "BLOCKED", "UNKNOWN"})
+
+
+def _pr_needs_sync(pr: dict[str, Any]) -> bool:
+    """True when GitHub says the PR is behind or conflicted."""
+    mergeable = str(pr.get("mergeable") or "").upper()
+    state = str(pr.get("mergeStateStatus") or "").upper()
+    if mergeable == "CONFLICTING":
+        return True
+    if state in _NEEDS_SYNC_STATES:
+        return True
+    return False
+
+
+def run_pr_sync(
+    project_root: Path,
+    console: Console,
+    *,
+    numbers: list[int] | None,
+    all_open: bool,
+    dirty_only: bool,
+    dry_run: bool,
+    push: bool,
+    fail_fast: bool,
+    strategy: str,
+    cleanup_worktrees: bool,
+    as_json: bool,
+) -> int:
+    """Refresh open PR heads onto ``origin/<default>`` (changelog keep-both).
+
+    Loops ``sync-branch`` over each candidate head in an isolated worktree, then
+    optionally ``git push --force-with-lease``. Never uses bare ``--force``.
+    """
+    notes: list[str] = []
+    results: list[dict[str, Any]] = []
+    payload: dict[str, Any] = {
+        "git_available": gitutils.git_available(),
+        "gh_available": gitutils.gh_available(),
+        "default_branch": None,
+        "repo": None,
+        "dry_run": dry_run,
+        "push": push and not dry_run,
+        "strategy": strategy,
+        "candidates": [],
+        "results": results,
+        "notes": notes,
+    }
+
+    def emit(exit_code: int) -> int:
+        if as_json:
+            _emit_json(console, payload)
+        else:
+            _render_pr_sync_text(console, payload, exit_code)
+        return exit_code
+
+    if strategy not in SYNC_STRATEGIES:
+        notes.append(
+            f"unknown strategy {strategy!r}; expected one of "
+            f"{', '.join(SYNC_STRATEGIES)}"
+        )
+        return emit(1)
+    if not payload["git_available"]:
+        notes.append("git is not on PATH")
+        return emit(1)
+    if not payload["gh_available"]:
+        notes.append("gh is not on PATH")
+        return emit(1)
+
+    home = gitutils.worktree_home_path(project_root) or project_root.resolve()
+    default = gitutils.default_branch(home)
+    payload["default_branch"] = default
+    remote = gitutils.remote_owner_repo(home)
+    repo = f"{remote[0]}/{remote[1]}" if remote else None
+    payload["repo"] = repo
+
+    if not gitutils.fetch_prune(home):
+        notes.append("git fetch --prune failed; continuing with stale refs")
+
+    candidates: list[dict[str, Any]] = []
+    if numbers:
+        for number in numbers:
+            pr = gitutils.gh_pr_view(home, number, repo=repo)
+            if pr is None:
+                notes.append(f"could not load PR #{number}")
+                if fail_fast:
+                    return emit(1)
+                continue
+            if str(pr.get("state") or "").upper() != "OPEN":
+                notes.append(f"PR #{number} is not open; skipped")
+                continue
+            candidates.append(pr)
+    else:
+        listed = gitutils.gh_open_prs(home, repo=repo)
+        if listed is None:
+            notes.append("gh pr list failed")
+            return emit(1)
+        for pr in listed:
+            if dirty_only or not all_open:
+                if not _pr_needs_sync(pr):
+                    continue
+            candidates.append(pr)
+
+    filtered: list[dict[str, Any]] = []
+    for pr in candidates:
+        base = pr.get("baseRefName") or default
+        if base != default:
+            notes.append(
+                f"PR #{pr.get('number')} bases on {base!r}, not {default!r}; skipped"
+            )
+            continue
+        head = pr.get("headRefName")
+        if not head or head == default:
+            notes.append(f"PR #{pr.get('number')} has unusable head; skipped")
+            continue
+        filtered.append(pr)
+    candidates = filtered
+    payload["candidates"] = [
+        {
+            "number": p.get("number"),
+            "title": p.get("title"),
+            "url": p.get("url"),
+            "head": p.get("headRefName"),
+            "mergeable": p.get("mergeable"),
+            "mergeStateStatus": p.get("mergeStateStatus"),
+        }
+        for p in candidates
+    ]
+
+    if not candidates:
+        notes.append("no open PRs need sync")
+        return emit(0)
+
+    if dry_run:
+        notes.append("dry-run: no sync or push performed")
+        return emit(0)
+
+    overall_ok = True
+    for pr in candidates:
+        number = int(pr["number"])
+        head = str(pr["headRefName"])
+        entry: dict[str, Any] = {
+            "number": number,
+            "head": head,
+            "url": pr.get("url"),
+            "ok": False,
+            "synced": False,
+            "pushed": False,
+            "changelog_resolved": False,
+            "worktree": None,
+            "ephemeral_worktree": False,
+            "notes": [],
+        }
+        path, _created, ephemeral, error = gitutils.ensure_branch_worktree(home, head)
+        if path is None:
+            entry["notes"].append(error or "could not create worktree")
+            results.append(entry)
+            overall_ok = False
+            if fail_fast:
+                notes.append(f"stopped on PR #{number}")
+                return emit(1)
+            continue
+        entry["worktree"] = str(path)
+        entry["ephemeral_worktree"] = ephemeral
+
+        from io import StringIO
+
+        buf = StringIO()
+        quiet = Console(file=buf, force_terminal=False, soft_wrap=True, no_color=True)
+        code = run_sync_branch(path, quiet, strategy, as_json=True)
+        raw = buf.getvalue().strip()
+        # Rich print_json may leave a trailing newline; take the last JSON object.
+        sync_payload: dict[str, Any] = {}
+        if raw:
+            try:
+                # Prefer the last line that looks like JSON.
+                for line in reversed(raw.splitlines()):
+                    line = line.strip()
+                    if line.startswith("{"):
+                        sync_payload = json.loads(line)
+                        break
+                else:
+                    sync_payload = json.loads(raw)
+            except json.JSONDecodeError:
+                entry["notes"].append("could not parse sync-branch JSON")
+        entry["synced"] = code == 0
+        entry["changelog_resolved"] = bool(sync_payload.get("changelog_resolved"))
+        entry["needs_force_push"] = bool(sync_payload.get("needs_force_push"))
+        entry["notes"].extend(sync_payload.get("notes") or [])
+        if code != 0:
+            entry["ok"] = False
+            results.append(entry)
+            overall_ok = False
+            if cleanup_worktrees and ephemeral:
+                gitutils.remove_worktree(home, path, force=True)
+            if fail_fast:
+                notes.append(f"stopped on PR #{number} (sync failed)")
+                return emit(1)
+            continue
+
+        if push:
+            # After a successful sync, push with --force-with-lease whenever the
+            # branch tip may have moved (rebase) or still be ahead.
+            ok, push_err = gitutils.push_force_with_lease(path, branch=head)
+            entry["pushed"] = ok
+            if not ok:
+                entry["notes"].append(push_err or "push failed")
+                entry["ok"] = False
+                overall_ok = False
+                results.append(entry)
+                if cleanup_worktrees and ephemeral:
+                    gitutils.remove_worktree(home, path, force=True)
+                if fail_fast:
+                    notes.append(f"stopped on PR #{number} (push failed)")
+                    return emit(1)
+                continue
+
+        entry["ok"] = True
+        results.append(entry)
+        if cleanup_worktrees and ephemeral:
+            gitutils.remove_worktree(home, path, force=True)
+
+    return emit(0 if overall_ok else 1)
+
+
+def _render_pr_sync_text(
+    console: Console, payload: dict[str, Any], exit_code: int
+) -> None:
+    cands = payload.get("candidates") or []
+    console.print(
+        f"[bold]pr-sync[/bold]  {len(cands)} candidate(s)"
+        + (" [dim](dry-run)[/dim]" if payload.get("dry_run") else "")
+    )
+    for item in cands:
+        console.print(
+            f"  #{item.get('number')}  {escape(str(item.get('head')))}  "
+            f"{item.get('mergeable')}/{item.get('mergeStateStatus')}"
+        )
+    for entry in payload.get("results") or []:
+        mark = "green" if entry.get("ok") else "red"
+        console.print(
+            f"  [{mark}]{'ok' if entry.get('ok') else 'fail'}[/{mark}]  "
+            f"#{entry.get('number')} {escape(str(entry.get('head')))}"
+            f"{' synced' if entry.get('synced') else ''}"
+            f"{' pushed' if entry.get('pushed') else ''}"
+        )
+        for note in entry.get("notes") or []:
+            console.print(f"    [dim]{escape(str(note))}[/dim]")
+    for note in payload.get("notes") or []:
+        style = "red" if exit_code != 0 else "dim"
+        console.print(f"  [{style}]{escape(note)}[/{style}]")
+
+
+# ---------------------------------------------------------------------------
 # agent resolve
 # ---------------------------------------------------------------------------
 

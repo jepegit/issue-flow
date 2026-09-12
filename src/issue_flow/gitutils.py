@@ -1278,3 +1278,146 @@ def remove_worktree(
         message = _stream_text(result.stderr) or _stream_text(result.stdout)
         return False, message or "git worktree remove failed"
     return True, None
+
+
+def push_force_with_lease(
+    cwd: Path,
+    *,
+    remote: str = "origin",
+    branch: str | None = None,
+) -> tuple[bool, str | None]:
+    """``git push --force-with-lease`` for ``branch`` (or current HEAD)."""
+    ref = branch or current_branch(cwd)
+    if not ref:
+        return False, "no branch to push (detached HEAD?)"
+    result = _run(
+        [GIT, "push", "--force-with-lease", remote, f"HEAD:refs/heads/{ref}"],
+        cwd,
+    )
+    if result is None:
+        return False, "git is not on PATH"
+    if result.returncode != 0:
+        message = _stream_text(result.stderr) or _stream_text(result.stdout)
+        return False, message or "git push --force-with-lease failed"
+    return True, None
+
+
+def ensure_branch_worktree(
+    home: Path,
+    branch: str,
+    *,
+    remote: str = "origin",
+) -> tuple[Path | None, bool, bool, str | None]:
+    """Ensure ``branch`` is checked out in some worktree.
+
+    Returns ``(path, created, ephemeral, error)``. ``ephemeral`` is true when
+    this call created a temporary ``*-prsync-*`` worktree the caller may remove.
+    Fetches ``refs/heads/<branch>`` from ``remote`` when the local ref is missing.
+    """
+    home = home.resolve()
+    for info in list_worktrees(home):
+        if info.branch == branch:
+            return info.path, False, False, None
+
+    if not branch_exists(home, branch):
+        fetch = _run(
+            [
+                GIT,
+                "fetch",
+                remote,
+                f"+refs/heads/{branch}:refs/heads/{branch}",
+            ],
+            home,
+        )
+        if fetch is None:
+            return None, False, False, "git is not on PATH"
+        if fetch.returncode != 0 and not branch_exists(home, branch):
+            # Fall back to remote-tracking checkout name.
+            if _stdout([GIT, "rev-parse", "--verify", f"{remote}/{branch}"], home):
+                result = _run(
+                    [
+                        GIT,
+                        "branch",
+                        "--track",
+                        branch,
+                        f"{remote}/{branch}",
+                    ],
+                    home,
+                )
+                if result is None or result.returncode != 0:
+                    message = (
+                        _stream_text(result.stderr) if result else None
+                    ) or f"missing branch {branch!r} on {remote}"
+                    return None, False, False, message
+            else:
+                message = _stream_text(fetch.stderr) or f"cannot fetch {branch!r}"
+                return None, False, False, message
+
+    safe = re.sub(r"[^A-Za-z0-9._-]+", "-", branch).strip("-") or "branch"
+    target = home.parent / f"{home.name}-prsync-{safe}"
+    if target.exists():
+        return None, False, False, f"target path already exists: {target}"
+
+    result = _run([GIT, "worktree", "add", str(target), branch], home)
+    if result is None:
+        return None, False, False, "git is not on PATH"
+    if result.returncode != 0:
+        message = _stream_text(result.stderr) or _stream_text(result.stdout)
+        return None, False, False, message or "git worktree add failed"
+    return target, True, True, None
+
+
+def gh_open_prs(
+    cwd: Path,
+    repo: str | None = None,
+    *,
+    limit: int = 50,
+) -> list[dict[str, Any]] | None:
+    """Open PRs with mergeability fields, or ``None`` if ``gh`` fails."""
+    argv = [
+        GH,
+        "pr",
+        "list",
+        "--state",
+        "open",
+        "--limit",
+        str(limit),
+        "--json",
+        "number,title,url,headRefName,mergeable,mergeStateStatus,baseRefName",
+    ]
+    if repo:
+        argv += ["--repo", repo]
+    out = _stdout(argv, cwd)
+    if out is None:
+        return None
+    try:
+        data = json.loads(out)
+    except json.JSONDecodeError:
+        return None
+    return data if isinstance(data, list) else None
+
+
+def gh_pr_view(
+    cwd: Path,
+    number: int,
+    repo: str | None = None,
+) -> dict[str, Any] | None:
+    """One PR by number with mergeability fields."""
+    argv = [
+        GH,
+        "pr",
+        "view",
+        str(number),
+        "--json",
+        "number,title,url,headRefName,mergeable,mergeStateStatus,baseRefName,state",
+    ]
+    if repo:
+        argv += ["--repo", repo]
+    out = _stdout(argv, cwd)
+    if out is None:
+        return None
+    try:
+        data = json.loads(out)
+    except json.JSONDecodeError:
+        return None
+    return data if isinstance(data, dict) else None

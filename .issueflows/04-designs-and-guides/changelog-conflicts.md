@@ -74,4 +74,5 @@ cycle, but says nothing about the default branch moving externally.
 ## Links
 
 Issue #240; timing rules in [changelog-timing.md](./changelog-timing.md);
-parallel coordinator in [parallel-cycle.md](./parallel-cycle.md).
+parallel coordinator in [parallel-cycle.md](./parallel-cycle.md);
+multi-PR refresh in [pr-queue-sync.md](./pr-queue-sync.md) (issue #260).
