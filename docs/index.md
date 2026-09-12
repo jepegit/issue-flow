@@ -109,14 +109,15 @@ The full lifecycle is described in [The workflow](issue-workflow.md).
 
 ## Recipes
 
-Short paths for common multi-issue work. Fuller examples live in the
+Short paths for common jobs. Step-by-step pages live under
+**[How-to guides](how-to/index.md)**. Fuller command detail is in the
 scaffolded [workflow doc](issue-workflow.md) after `issue-flow init`.
 
-**One issue, linear path** — `/iflow-capture` → `/iflow-plan` → `/iflow-build` →
-`/iflow-close` → `/iflow-cleanup` (or just `/iflow` between steps).
+**One issue, linear path** — see [Work one issue end-to-end](how-to/work-one-issue.md)
+(`/iflow-pick` → plan → build → close → cleanup, or just `/iflow` between steps).
 
-**One small issue, hands-off** — `/iflow-yolo <N>` (or pick an issue that
-already has the `yolo` label via `/iflow-pick`).
+**One small issue, hands-off** — see [Fast-track a small issue](how-to/yolo.md)
+(`/iflow-yolo <N>`, or pick an issue that already has the `yolo` label).
 
 **Label and ship a batch**
 
@@ -125,7 +126,7 @@ iflow review yolo    # propose yolo labels; confirm once; apply
 iflow cycle yolo     # process every open yolo-labelled issue
 ```
 
-**Plan a large change as an epic**
+**Plan a large change as an epic** — see [Create and run epics](how-to/epics.md)
 
 ```text
 iflow epic 42                 # draft .issueflows/05-epics/epic42_plan.md
@@ -140,6 +141,7 @@ else ranked open GitHub issues).
 
 - **[Getting started](getting-started.md)** — the from-scratch path for new
   users: install uv, scaffold, and let the agent finish the setup.
+- **[How-to guides](how-to/index.md)** — task-oriented paths for common jobs.
 - **[The workflow](issue-workflow.md)** — the human-readable walkthrough of the
   full issue lifecycle (also scaffolded into your project).
 - **[CLI reference](cli.md)** — every `issue-flow` command, including the

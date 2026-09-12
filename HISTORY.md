@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- **Task-oriented How-to guides on the docs site (#262).** New `docs/how-to/` section (nav + ≥8 short procedural pages including epics and auto), linked from Getting started and Home.
+
 ## [0.4.15] - 2026-09-12
 
 - **Opt-in vendored pstack skills (#249).** Config `pstack_skills` (or `ISSUEFLOW_PSTACK_SKILLS`) scaffolds a curated subset of Lauren Tan's pstack library next to the iflow skills; off by default. Shipped in #250; this close adds the missed changelog line and archives tracking.
