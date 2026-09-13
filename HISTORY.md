@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- **Epic/auto docs: stage publish, revise, and auto examples (#271).** Expand `docs/how-to/epics.md` and `auto-mode.md`, and mirror the same guidance in `docs/issue-workflow.md` §§ `/iflow-epic` and `/iflow-auto`.
+
 - **How-to nav as section index (#265).** Use bare `how-to/index.md` as the Zensical section index so guides render as proper subchapters (drop labeled Overview row).
 
 - **Task-oriented How-to guides on the docs site (#262).** New `docs/how-to/` section (nav + ≥8 short procedural pages including epics and auto), linked from Getting started and Home.

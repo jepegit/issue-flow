@@ -6,8 +6,10 @@ title: Use auto mode
 
 ## Goal
 
-Run an **unattended** path over a **confirmed** epic stage: cycle the stage's
-issues, then adversarial review between epochs, honouring a loop budget.
+Run an **unattended** path over a **confirmed epic**: cycle one published
+stage's issues, then adversarial review between epochs, honouring a loop
+budget. Auto does **not** create epics — draft, confirm, and publish first
+([Create and run epics](epics.md)).
 
 ## Steps
 
@@ -27,6 +29,22 @@ issues, then adversarial review between epochs, honouring a loop budget.
 
 Stop conditions (failed tests, refused merge, ambiguous scope) abort the whole
 auto run and leave you on the default branch when possible.
+
+## Example
+
+```text
+iflow epic 42                  # draft + confirm plan
+iflow epic 42 publish stage 1  # children must exist on GitHub
+iflow auto 42 dry-run          # show stage + queue (no confirm)
+iflow auto 42                  # overnight confirm → cycle + review
+iflow auto 42 stage 2          # optional: pin a stage
+iflow auto 42 loops:3          # optional: raise adversarial budget
+iflow auto 42 review           # adversarial pass only
+iflow auto 42 status           # print auto_status.md / epic-status
+```
+
+Auto vs cycle: `iflow cycle epic 42 stage 1` batch-yolos one stage with no
+review loop. `iflow auto 42` adds adversarial review and the next-stage gate.
 
 ## Related
 
