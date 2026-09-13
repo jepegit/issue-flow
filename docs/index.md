@@ -119,7 +119,7 @@ scaffolded [workflow doc](issue-workflow.md) after `issue-flow init`.
 **One small issue, hands-off** — see [Fast-track a small issue](how-to/yolo.md)
 (`/iflow-yolo <N>`, or pick an issue that already has the `yolo` label).
 
-**Label and ship a batch**
+**Label and ship a batch** — see [Run a cycle of issues](how-to/cycle.md)
 
 ```text
 iflow review yolo    # propose yolo labels; confirm once; apply

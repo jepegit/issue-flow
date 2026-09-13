@@ -38,4 +38,5 @@ existing config keeps your knobs when you only change the mode surface.
 
 - [Configuration — Modes](../configuration.md#modes)
 - [Getting started](../getting-started.md)
+- [Use pstack skills](pstack-skills.md) — opt-in rigor skills next to iflow-*
 - [Create and run epics](epics.md) — needs a mode that includes epic (not novice)

@@ -251,7 +251,7 @@ The vendored skills (upstream names; bodies are verbatim, only an
 
 They are **off by default** and never part of a mode's `skills = "all"`. Opt in
 with `pstack_skills` under `[issueflow]` — a list of upstream names or `"all"` —
-then re-run `issue-flow update`:
+then re-run `issue-flow update` (task path: [Use pstack skills](how-to/pstack-skills.md)):
 
 ```toml
 [issueflow]

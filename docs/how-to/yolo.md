@@ -32,4 +32,4 @@ unrelated tree **stops** the chain — fall back to the linear commands.
 - [Label-driven flows](../configuration.md#label-driven-flows) — `label_flows` / `yolo_label`
 - [The workflow](../issue-workflow.md) — `/iflow-yolo` section
 - [Work one issue end-to-end](work-one-issue.md) — non-hands-off path
-- Batch many yolo issues: `iflow cycle yolo`
+- [Run a cycle of issues](cycle.md) — batch many yolo-fit issues

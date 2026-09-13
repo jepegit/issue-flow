@@ -49,6 +49,7 @@ review loop. `iflow auto 42` adds adversarial review and the next-stage gate.
 ## Related
 
 - [Create and run epics](epics.md) — plan + publish first
+- [Run a cycle of issues](cycle.md) — batch yolo without the review loop
 - [Configuration](../configuration.md) — `auto_adversarial_loops`
 - [The workflow](../issue-workflow.md) — `/iflow-auto`
 - Design depth (agents): `.issueflows/04-designs-and-guides/advanced-auto-mode.md`
