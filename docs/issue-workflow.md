@@ -451,33 +451,48 @@ iflow cycle yolo
 
 **When:** The work is too big for one PR. You want a staged plan anchored to a GitHub issue, then publish one stage at a time as real issues.
 
-**What you pass:** `/iflow-epic <N>` to draft (or revise) `.issueflows/05-epics/epic<N>_plan.md`. Later: `/iflow-epic <N> publish [stage <k>]` to create that stage's issues on GitHub. No anchor yet → create one with `/iflow-issue epic <intent>`, then pass the new number.
+**What you pass:** `/iflow-epic <N>` to draft (or revise) `.issueflows/05-epics/epic<N>_plan.md`. Later: `/iflow-epic <N> publish [stage <k>]` to create that stage's issues on GitHub. No anchor yet → create one with `/iflow-issue epic <intent>`, then pass the new number. Optional free text on draft seeds the plan or a revision (e.g. `rewrite stage 2 now that sessions landed`).
 
-**What the assistant does (draft):**
+**What the assistant does (draft / revise):**
 
-1. Reads the anchor issue and any design docs under `04-designs-and-guides/`.
+1. Reads the anchor issue and any design docs under `04-designs-and-guides/`. Prefer `issue-flow agent epic-status <N> --json` before re-drafting.
 2. Drafts stages of manageable issue specs (title, scope, acceptance, dependencies, **yolo: yes|no** judgment).
 3. Writes `Status: draft` and iterates with you until you confirm → `Status: confirmed`.
 4. **Does not** create GitHub issues while drafting.
+5. **Re-running draft revises** the same plan file. Keep every existing `- Published: #<M>` line; only rewrite unpublished specs (typical after Stage 1 lands and Stage 2 needs a rethink). Hand-edits to unpublished `### Issue:` blocks are also fine.
 
 **What the assistant does (publish):**
 
-1. Requires `Status: confirmed`. Selects the named stage (or the earliest unpublished stage).
+1. Requires `Status: confirmed`. Selects the named stage (or the earliest unpublished stage). **One stage per publish** — there is no `publish all`.
 2. Dry-run lists titles + labels, then **one consolidated confirm**.
 3. Creates issues in dependency order (`gh issue create`), records `Published: #<M>` in the plan, updates the anchor issue's task list.
 4. Re-runs are idempotent (already-published specs are skipped).
+5. After a stage's children close, publish the next with `/iflow-epic <N> publish` (or `publish stage <k>`). Optionally revise the next stage's specs first via another draft pass.
 
-**Example:**
+**Example — create, publish Stage 1, then Stage 2:**
 
 ```text
+iflow issue epic rewrite auth
+# → GitHub #144 (Epic: …)
+
 iflow epic 144
 # → drafts .issueflows/05-epics/epic144_plan.md  (Status: draft)
 # → you confirm → Status: confirmed
+
 iflow epic 144 publish stage 1
 # → creates stage-1 issues (yolo labels per judgment), task list on #144
 issue-flow agent epic-status 144 --json
 # → current stage + next_candidates for /iflow-pick / /iflow-cycle
+
+# … Stage 1 children merged …
+
+iflow epic 144 rewrite stage 2 now that sessions landed
+# → revises unpublished Stage 2; keeps Published: lines for Stage 1
+iflow epic 144 publish
+# → earliest unpublished stage (= Stage 2)
 ```
+
+Flat parent/child without stages → `/iflow-split` instead. Unattended stage + review → `/iflow-auto` (after confirm + publish). Task-oriented walkthrough: [Create and run epics](how-to/epics.md).
 
 **Off-path:** `/iflow` never auto-dispatches to `/iflow-epic`. Epics decompose into the normal single-issue lifecycle; they do not replace it.
 
@@ -525,20 +540,34 @@ iflow cycle yolo
 
 ## 15. `/iflow-auto` — unattended large-change orchestration
 
-**When:** You have a **confirmed** epic plan and want overnight hands-off progress through a stage, then an adversarial inter-epoch review.
+**When:** You have a **confirmed** epic plan with a **published** stage and want overnight hands-off progress through that stage, then an adversarial inter-epoch review. Auto runs **epics only** — it does not draft or publish; use `/iflow-epic` first.
 
 **What you pass:** epic `<N>`, optional `stage <k>`, optional `loops:<n>`, `review` (adversarial only), or `status` / `dry-run`.
 
 **What the assistant does:**
 
-1. Require `epic<N>_plan.md` with `Status: confirmed`; resolve stage via `epic-status`.
+1. Require `epic<N>_plan.md` with `Status: confirmed`; resolve stage via `issue-flow agent epic-status` (stop and point at `/iflow-epic` if the plan is missing/draft, or at publish if no published stage exists).
 2. Resolve loop budget (`loops:<n>` > baked `auto_adversarial_loops` > 2).
 3. Overnight confirm once (authorizes cycle auto-merge **and** adversarial reopen/create), then write `auto_status.md` and run `/iflow-cycle` for that stage.
 4. Run adversarial review against epic/stage goals (criteria in `advanced-auto-mode.md`); record `adversarial_clear` or `adversarial_findings` in `auto_status.md`. Standalone: `/iflow-auto <N> review`.
 5. **Loop control:** on findings, increment `loop_count`; if open work remains and `loop_count` < budget, re-queue via `/iflow-cycle` and re-review; when budget exhausted, **stop and ask** (accept / grant N more loops / abort).
-6. **Next-epoch gate:** start stage `k+1` only when `epic-status` marks stage `k` `done` and no open blockers remain in `auto_status.md`; otherwise `epoch_gated`. When clear, may continue to the next unfinished stage under the same overnight confirm.
+6. **Next-epoch gate:** start stage `k+1` only when `epic-status` marks stage `k` `done` and no open blockers remain in `auto_status.md`; otherwise `epoch_gated`. When clear, may continue to the next unfinished **published** stage under the same overnight confirm (it will not publish Stage 2 for you).
 
-**Off-path:** `/iflow` never auto-dispatches to `/iflow-auto`. See `04-designs-and-guides/advanced-auto-mode.md`.
+**Example:**
+
+```text
+iflow epic 144                  # draft + confirm
+iflow epic 144 publish stage 1  # children must exist
+iflow auto 144 dry-run           # show stage + queue
+iflow auto 144                  # overnight confirm → cycle + review
+iflow auto 144 loops:3          # raise adversarial budget
+iflow auto 144 review           # adversarial only
+iflow auto 144 status           # print auto_status.md
+```
+
+**Auto vs cycle:** `/iflow-cycle epic <N> stage <k>` batch-yolos one stage with no review loop. `/iflow-auto <N>` adds adversarial review and the next-stage gate. Task-oriented walkthrough: [Use auto mode](how-to/auto-mode.md).
+
+**Off-path:** `/iflow` never auto-dispatches to `/iflow-auto`. See `04-designs-and-guides/advanced-auto-mode.md`. `/iflow-cleanup` stays out-of-band.
 
 **Result:** Stage queue processed via cycle; durable `auto_status.md`; adversarial pass may reopen/create blockers; loops honour `auto_adversarial_loops` / `loops:<n>`; epochs advance only when the queue is clear.
 
