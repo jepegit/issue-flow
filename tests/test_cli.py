@@ -2294,6 +2294,7 @@ def _clear_issueflow_env(monkeypatch: pytest.MonkeyPatch) -> None:
         "ISSUEFLOW_REMIND_CLEANUP",
         "ISSUEFLOW_SUGGEST_GRAPHIFY",
         "ISSUEFLOW_AUTO_SWITCHBACK",
+        "ISSUEFLOW_AUTO_REMOVE_WORKTREE",
         "ISSUEFLOW_PR_MERGE_METHOD",
         "ISSUEFLOW_CYCLE_MAX_ISSUES",
         "ISSUEFLOW_CONFIRM_VERSION_BUMP",
@@ -2336,6 +2337,7 @@ def test_config_add_creates_defaults(
     assert payload["suggest_graphify"] is True
     assert payload["auto_graphify_on_plan"] is False
     assert payload["auto_switchback"] is True
+    assert payload["auto_remove_worktree"] is True
     assert payload["pr_merge_method"] == "squash"
     assert payload["cycle_max_issues"] == 10
     assert payload["auto_adversarial_loops"] == 2
@@ -2363,6 +2365,7 @@ def test_config_add_creates_defaults(
     assert data["issueflow"]["linguist_attributes"] is False
     assert data["issueflow"]["remind_cleanup"] is True
     assert data["issueflow"]["cleanup_include_github"] is False
+    assert data["issueflow"]["auto_remove_worktree"] is True
     assert data["issueflow"]["pr_merge_method"] == "squash"
     assert data["issueflow"]["cycle_max_issues"] == 10
     assert data["issueflow"]["auto_adversarial_loops"] == 2

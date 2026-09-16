@@ -51,6 +51,7 @@ _DOTENV_KEYS: tuple[tuple[str, str], ...] = (
     ("ISSUEFLOW_SUGGEST_GRAPHIFY", "true"),
     ("ISSUEFLOW_AUTO_GRAPHIFY_ON_PLAN", "false"),
     ("ISSUEFLOW_AUTO_SWITCHBACK", "true"),
+    ("ISSUEFLOW_AUTO_REMOVE_WORKTREE", "true"),
     ("ISSUEFLOW_PR_MERGE_METHOD", "squash"),
     ("ISSUEFLOW_CYCLE_MAX_ISSUES", "10"),
     ("ISSUEFLOW_CONFIRM_VERSION_BUMP", "false"),

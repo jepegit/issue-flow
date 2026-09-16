@@ -75,6 +75,7 @@ DEFAULT_CLEANUP_INCLUDE_GITHUB = False
 DEFAULT_SUGGEST_GRAPHIFY = True
 DEFAULT_AUTO_GRAPHIFY_ON_PLAN = False
 DEFAULT_AUTO_SWITCHBACK = True
+DEFAULT_AUTO_REMOVE_WORKTREE = True
 DEFAULT_PR_MERGE_METHOD = "squash"
 ALLOWED_PR_MERGE_METHODS = frozenset({"squash", "merge", "rebase"})
 DEFAULT_CYCLE_MAX_ISSUES = 10
@@ -674,6 +675,17 @@ def read_auto_switchback(cfg_path: Path) -> bool | None:
     return None
 
 
+def read_auto_remove_worktree(cfg_path: Path) -> bool | None:
+    """Return the persisted ``[issueflow].auto_remove_worktree`` flag."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "auto_remove_worktree" in section:
+        return bool(section.get("auto_remove_worktree"))
+    return None
+
+
 def read_pr_merge_method(cfg_path: Path) -> str | None:
     """Return persisted ``[issueflow].pr_merge_method``, or ``None`` if unset/invalid."""
     if not cfg_path.is_file():
@@ -1028,6 +1040,7 @@ def write_default_config(
     suggest_graphify: bool = DEFAULT_SUGGEST_GRAPHIFY,
     auto_graphify_on_plan: bool = DEFAULT_AUTO_GRAPHIFY_ON_PLAN,
     auto_switchback: bool = DEFAULT_AUTO_SWITCHBACK,
+    auto_remove_worktree: bool = DEFAULT_AUTO_REMOVE_WORKTREE,
     pr_merge_method: str = DEFAULT_PR_MERGE_METHOD,
     cycle_max_issues: int = DEFAULT_CYCLE_MAX_ISSUES,
     auto_adversarial_loops: int = DEFAULT_AUTO_ADVERSARIAL_LOOPS,
@@ -1092,6 +1105,7 @@ def write_default_config(
         section["suggest_graphify"] = suggest_graphify
         section["auto_graphify_on_plan"] = auto_graphify_on_plan
         section["auto_switchback"] = auto_switchback
+        section["auto_remove_worktree"] = auto_remove_worktree
         section["pr_merge_method"] = pr_merge_method
         section["cycle_max_issues"] = cycle_max_issues
         section["auto_adversarial_loops"] = auto_adversarial_loops
@@ -1140,6 +1154,7 @@ def write_default_config(
             suggest_graphify,
             auto_graphify_on_plan,
             auto_switchback,
+            auto_remove_worktree,
             pr_merge_method,
             cycle_max_issues,
             auto_adversarial_loops,
@@ -1196,6 +1211,7 @@ def _commented_issueflow_table(
     suggest_graphify: bool,
     auto_graphify_on_plan: bool,
     auto_switchback: bool,
+    auto_remove_worktree: bool,
     pr_merge_method: str,
     cycle_max_issues: int,
     auto_adversarial_loops: int,
@@ -1346,6 +1362,15 @@ def _commented_issueflow_table(
         )
     )
     table["auto_switchback"] = auto_switchback
+    table.add(
+        tomlkit.comment(
+            "After /iflow-close opens or merges a PR, remove the sibling "
+            "issue worktree when the tree is clean (true/false; default true). "
+            "false = ask YES/NO. Never deletes the branch. Skip stay / draft / "
+            "failed merge. Re-run 'issue-flow update'."
+        )
+    )
+    table["auto_remove_worktree"] = auto_remove_worktree
     table.add(
         tomlkit.comment(
             "gh pr merge method for yolo close: 'squash', 'merge', or 'rebase'."

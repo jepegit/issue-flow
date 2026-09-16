@@ -582,11 +582,11 @@ def test_init_cycle_skill_parallel_dispatch_is_opt_in_and_gated(
     assert "Serialize merges" in content or "serial merge" in content.lower()
     assert "open-workspace" in content
     assert "separate-workspaces.md" in content
-    assert "--open" in content
+    assert "--open" not in content
 
 
 def test_init_pick_issue_fix_use_worktree_start(tmp_path: Path) -> None:
-    """Start-work skills: worktree-add, no silent --open, inplace opt-out."""
+    """Start-work skills: worktree-add, no open-window option, inplace opt-out."""
     run_init(tmp_path)
     for name in ("iflow-pick", "iflow-issue", "iflow-fix"):
         content = (tmp_path / ".cursor" / "skills" / name / "SKILL.md").read_text(
@@ -594,9 +594,8 @@ def test_init_pick_issue_fix_use_worktree_start(tmp_path: Path) -> None:
         )
         assert "worktree-add" in content, name
         assert "inplace" in content, name
-        assert (
-            "Never auto `--open`" in content or "never auto `--open`" in content.lower()
-        ), name
+        assert "--open" not in content, name
+        assert "open window" not in content.lower(), name
 
 
 def test_init_cleanup_removes_worktree_before_branch_delete(tmp_path: Path) -> None:
@@ -614,6 +613,8 @@ def test_init_close_skill_skips_switchback_in_worktree(tmp_path: Path) -> None:
         encoding="utf-8"
     )
     assert "in_worktree" in content
+    assert "worktree-remove" in content
+    assert "auto_remove_worktree" in content
 
 
 def test_init_cycle_skill_has_state_file_resume_and_onfail(tmp_path: Path) -> None:
