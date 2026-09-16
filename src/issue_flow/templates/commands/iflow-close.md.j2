@@ -99,6 +99,8 @@ Other optional notes still apply: branch name, PR title, skip issue doc update, 
    - **Planned release tag (`yolo` + tag-derived strategy only):** if step 2 planned a tag, create it now — after the pull, standing on the merge commit — with `git tag <planned>` then `git push origin <planned>` (covered by the yolo consolidated confirm). If the merge was only queued via `--auto`, leave the tag to `/iflow-cleanup` and say so.
 {% endif %}   - This step never deletes the issue branch. Branch deletion remains in `/iflow-cleanup`.
 
+8a. **Remove the issue worktree** — {% include "skills/_worktree_close_remove.md.j2" %}
+
 9. **After review**
    - With the `yolo` input the PR was already merged in step 7a —{% if remind_cleanup %} skip to the `/iflow-cleanup` reminder below.{% else %} skip further merge work.{% endif %}
    - Address feedback, push updates, and merge when approved and `gh pr checks <number> --repo <owner/repo>` is green (exit 0).

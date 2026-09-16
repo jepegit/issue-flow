@@ -18,12 +18,14 @@ default. Session opt-out is a trailing token.
 1. Home checkout stays on the **default** branch (`git pull --ff-only`).
 2. Agent creates a sibling worktree at `../<repo>-<N>` on branch
    `<N>-<slug>` via `issue-flow agent worktree-add`.
-3. It prints an `open-workspace` suggestion; opens a new editor window only
-   after you confirm (`--open` is never silent).
+3. It prints an `open-workspace` path (print-only). Skills do not open a
+   new editor window.
 4. Capture / plan / build / close run with `-C <worktree-path>`.
 5. Close in a linked worktree does **not** switch that tree to default —
-   pull default from **home**. Cleanup removes reachable worktrees before
-   deleting branches.
+   pull default from **home**. After the PR is opened (or yolo-merged),
+   close removes the sibling worktree when the tree is clean
+   (`auto_remove_worktree`, default `true`; `false` asks YES/NO). Cleanup
+   still removes leftover worktrees before deleting branches.
 
 Use this when you want home free for other work, parallel agents, or a
 clean default checkout while an issue is in progress.
@@ -46,10 +48,11 @@ If home is already on a non-default branch, the agent asks whether to
 FF/switch home to default first (needed for worktree-add) or use `inplace`
 from the current branch.
 
-## After the PR merges
+## After the PR
 
-Run `iflow cleanup` as usual. For worktree-backed branches it removes the
-linked worktree (when the branch is reachable / squash-landed) **before**
+`/iflow-close` removes the sibling worktree folder itself (see above).
+Run `iflow cleanup` afterwards to prune the local **branch**. Cleanup
+still removes any leftover worktree (reachable / squash-landed) **before**
 `git branch -d` / `-D`. See [After a squash merge](after-squash-merge.md).
 
 ## Related

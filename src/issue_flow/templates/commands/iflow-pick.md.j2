@@ -81,7 +81,7 @@ Optional free-form text after the command:
      `{{ issueflows_dir }}/`; ask commit / stash / abort. Do not offer “commit
      everything”.
 
-2. **Issue worktree (default).** Confirm slug `<N>-<short-slug>`. Home stays on default (`git pull --ff-only`). `issue-flow agent worktree-add <N> --slug <slug> -C <home> --json` then `open-workspace <path> --json`; `--open` only after confirm. Capture with `-C <worktree>`. Token `inplace` / `no worktree` keeps `git switch -c` on home. Worktree-add failure → stop; never silent inplace. **Ops exception:** ask whether to create the worktree/branch or stay on current/default.
+2. **Issue worktree (default).** Confirm slug `<N>-<short-slug>`. Home stays on default (`git pull --ff-only`). `issue-flow agent worktree-add <N> --slug <slug> -C <home> --json` then `open-workspace <path> --json` (print-only). Capture with `-C <worktree>`. Token `inplace` / `no worktree` keeps `git switch -c` on home. Worktree-add failure → stop; never silent inplace. **Ops exception:** ask whether to create the worktree/branch or stay on current/default.
 
 3. **Run `/iflow-capture` automatically.** The issue number is now known, so follow the `{{ agent_dir }}/commands/iflow-capture.md` playbook for `<N>` (fetch the issue + comments, write `{{ issueflows_dir }}/{{ current_issues_folder }}/issue<N>_original.md`, run its archive sweep). Do not re-implement that logic here — delegate to it.
 

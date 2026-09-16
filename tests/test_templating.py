@@ -46,6 +46,7 @@ _MODE_CONTEXT = {
     "suggest_graphify": True,
     "auto_graphify_on_plan": False,
     "auto_switchback": True,
+    "auto_remove_worktree": True,
     "pr_merge_method": "squash",
     "cycle_max_issues": 10,
     "auto_adversarial_loops": 2,

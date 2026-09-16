@@ -64,6 +64,7 @@ CONFIG_KEYS: dict[str, ConfigKeySpec] = {
     "suggest_graphify": ConfigKeySpec("bool"),
     "auto_graphify_on_plan": ConfigKeySpec("bool"),
     "auto_switchback": ConfigKeySpec("bool"),
+    "auto_remove_worktree": ConfigKeySpec("bool"),
     "pr_merge_method": ConfigKeySpec("enum", ALLOWED_PR_MERGE_METHODS),
     "cycle_max_issues": ConfigKeySpec("int", needs_update=False),
     "auto_adversarial_loops": ConfigKeySpec("int"),

@@ -1,0 +1,8 @@
+Skip when: no linked worktree for `<N>` (`inplace`); input included `stay`; the PR is still `draft`; a `yolo` merge failed or was only queued via `--auto`; the worktree is dirty (report paths and leave the folder — never `--force`).
+   - Run from **home**: `issue-flow agent worktree-remove <N> -C <home> --json`.
+{%- if auto_remove_worktree %}
+   - This project has `auto_remove_worktree = true`: remove without asking.
+{%- else %}
+   - This project has `auto_remove_worktree = false`: ask once YES/NO (“delete worktree folder `<path>`?”). On no, leave it; `/iflow-cleanup` can still take it later.
+{%- endif %}
+   - Never delete the issue branch here. Continue from **home**.
