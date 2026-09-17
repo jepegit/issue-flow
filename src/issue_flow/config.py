@@ -20,6 +20,7 @@ from issue_flow.modes import (
     DEFAULT_CONFIRM_CHANGELOG_UPDATE,
     DEFAULT_EARLY_PR,
     DEFAULT_FIX_AUTO_NAME,
+    DEFAULT_LOCKED,
     DEFAULT_ESSENTIAL_MARKER,
     DEFAULT_ESSENTIAL_REVIEW,
     DEFAULT_ESSENTIAL_TESTS,
@@ -575,6 +576,21 @@ class Settings:
             "early_pr", _env_flag("ISSUEFLOW_EARLY_PR", default=DEFAULT_EARLY_PR)
         )
 
+    def resolve_locked(self, project_root: Path) -> bool:
+        """Resolve whether ``update --all`` should skip this repo.
+
+        ``ISSUEFLOW_LOCKED`` wins for this process (the one exception to
+        project-beats-env). Else project ``config.toml``. User-global
+        ``locked`` is ignored. Missing key = unlocked.
+        """
+        raw = os.getenv("ISSUEFLOW_LOCKED")
+        if raw is not None and raw.strip():
+            return _env_flag("ISSUEFLOW_LOCKED", default=DEFAULT_LOCKED)
+        persisted = modes_module.read_locked(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        return DEFAULT_LOCKED
+
     def resolve_fix_auto_name(self, project_root: Path) -> bool:
         """Resolve whether ``/iflow-fix`` lets the agent invent the session name."""
         persisted = modes_module.read_fix_auto_name(self.config_path(project_root))
@@ -807,6 +823,7 @@ class Settings:
             "fix_auto_name": _env_flag(
                 "ISSUEFLOW_FIX_AUTO_NAME", default=DEFAULT_FIX_AUTO_NAME
             ),
+            "locked": _env_flag("ISSUEFLOW_LOCKED", default=DEFAULT_LOCKED),
             "confirm_changelog_update": _env_flag(
                 "ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE",
                 default=DEFAULT_CONFIRM_CHANGELOG_UPDATE,
@@ -861,6 +878,7 @@ class Settings:
             "auto_build": self.resolve_auto_build(project_root),
             "early_pr": self.resolve_early_pr(project_root),
             "fix_auto_name": self.resolve_fix_auto_name(project_root),
+            "locked": self.resolve_locked(project_root),
             "confirm_changelog_update": self.resolve_confirm_changelog_update(
                 project_root
             ),

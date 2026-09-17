@@ -241,6 +241,52 @@ def test_config_set_global_rejects_mode(tmp_path: Path) -> None:
     assert "not a user-global key" in payload["error"]
 
 
+def test_config_show_and_set_locked(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("ISSUEFLOW_LOCKED", raising=False)
+    runner = CliRunner()
+
+    show = runner.invoke(
+        app, ["config", "show", "locked", "-C", str(tmp_path), "--json"]
+    )
+    assert show.exit_code == 0, show.output
+    payload = _json(show.stdout)
+    assert payload["value"] is False
+    assert payload["set"] is False
+
+    set_result = runner.invoke(
+        app,
+        ["config", "set", "locked", "true", "-C", str(tmp_path), "--json"],
+    )
+    assert set_result.exit_code == 0, set_result.output
+    set_payload = _json(set_result.stdout)
+    assert set_payload["ok"] is True
+    assert set_payload["value"] is True
+    assert set_payload["needs_update"] is False
+
+    settings = Settings()
+    assert settings.resolve_locked(tmp_path) is True
+    assert settings.effective_config(tmp_path)["locked"] is True
+
+    show2 = runner.invoke(app, ["config", "show", "-C", str(tmp_path), "--json"])
+    assert show2.exit_code == 0, show2.output
+    all_payload = _json(show2.stdout)
+    assert all_payload["values"]["locked"] is True
+    assert "locked" in all_payload["persisted_keys"]
+
+
+def test_config_set_global_rejects_locked(tmp_path: Path) -> None:
+    runner = CliRunner()
+    result = runner.invoke(
+        app, ["config", "set", "locked", "true", "--global", "--json"]
+    )
+    assert result.exit_code == 1
+    payload = _json(result.stdout)
+    assert payload["ok"] is False
+    assert "not a user-global key" in payload["error"]
+
+
 def test_user_global_mode_key_is_ignored(tmp_path: Path) -> None:
     from issue_flow.user_global import user_global_config_path
 

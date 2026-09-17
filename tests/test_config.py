@@ -409,6 +409,7 @@ def test_skill_behaviour_knob_defaults(
         "ISSUEFLOW_AUTO_BUILD",
         "ISSUEFLOW_EARLY_PR",
         "ISSUEFLOW_FIX_AUTO_NAME",
+        "ISSUEFLOW_LOCKED",
         "ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE",
         "ISSUEFLOW_AUTO_GRAPHIFY_ON_PLAN",
         "ISSUEFLOW_CLEANUP_INCLUDE_GITHUB",
@@ -435,6 +436,7 @@ def test_skill_behaviour_knob_defaults(
     assert settings.resolve_auto_build(tmp_path) is True
     assert settings.resolve_early_pr(tmp_path) is False
     assert settings.resolve_fix_auto_name(tmp_path) is False
+    assert settings.resolve_locked(tmp_path) is False
     assert settings.resolve_confirm_changelog_update(tmp_path) is False
     assert settings.resolve_essential_tests(tmp_path) is False
     assert settings.resolve_test_runner(tmp_path) == "pytest"
@@ -462,6 +464,7 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
         "auto_build = false\n"
         "early_pr = true\n"
         "fix_auto_name = true\n"
+        "locked = true\n"
         "confirm_changelog_update = false\n"
         "essential_tests = true\n"
         'test_runner = "pytest"\n'
@@ -485,6 +488,7 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
     assert settings.resolve_auto_build(tmp_path) is False
     assert settings.resolve_early_pr(tmp_path) is True
     assert settings.resolve_fix_auto_name(tmp_path) is True
+    assert settings.resolve_locked(tmp_path) is True
     assert settings.resolve_confirm_changelog_update(tmp_path) is False
     assert settings.resolve_essential_tests(tmp_path) is True
     assert settings.resolve_test_runner(tmp_path) == "pytest"
@@ -510,6 +514,34 @@ def test_cycle_max_issues_nonpositive_falls_back(
     monkeypatch.setenv("ISSUEFLOW_CYCLE_MAX_ISSUES", "-1")
     settings = Settings()
     assert settings.resolve_cycle_max_issues(tmp_path) == 10
+
+
+def test_locked_env_overrides_project(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    _write_config(tmp_path, "[issueflow]\nlocked = true\n")
+    monkeypatch.setenv("ISSUEFLOW_LOCKED", "false")
+    settings = Settings()
+    assert settings.resolve_locked(tmp_path) is False
+    assert settings.effective_config(tmp_path)["locked"] is False
+    monkeypatch.setenv("ISSUEFLOW_LOCKED", "true")
+    assert settings.resolve_locked(tmp_path) is True
+
+
+def test_locked_user_global_ignored(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    from issue_flow.user_global import user_global_config_path
+
+    monkeypatch.delenv("ISSUEFLOW_LOCKED", raising=False)
+    path = user_global_config_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("[issueflow]\nlocked = true\n", encoding="utf-8")
+    settings = Settings()
+    assert settings.resolve_locked(tmp_path) is False
+    assert settings.seed_config_values()["locked"] is False
 
 
 def test_auto_adversarial_loops_env_override(

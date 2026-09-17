@@ -345,6 +345,7 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
         DEFAULT_AUTO_PLAN,
         DEFAULT_EARLY_PR,
         DEFAULT_FIX_AUTO_NAME,
+        DEFAULT_LOCKED,
         DEFAULT_AUTO_SWITCHBACK,
         DEFAULT_AUTO_REMOVE_WORKTREE,
         DEFAULT_CONFIRM_CHANGELOG_UPDATE,
@@ -362,6 +363,7 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
         read_auto_plan,
         read_early_pr,
         read_fix_auto_name,
+        read_locked,
         read_auto_switchback,
         read_auto_remove_worktree,
         read_confirm_changelog_update,
@@ -399,6 +401,7 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
     assert read_auto_build(cfg) is DEFAULT_AUTO_BUILD
     assert read_early_pr(cfg) is DEFAULT_EARLY_PR
     assert read_fix_auto_name(cfg) is DEFAULT_FIX_AUTO_NAME
+    assert read_locked(cfg) is DEFAULT_LOCKED
     assert read_confirm_changelog_update(cfg) is DEFAULT_CONFIRM_CHANGELOG_UPDATE
     assert read_essential_tests(cfg) is DEFAULT_ESSENTIAL_TESTS
     assert read_test_runner(cfg) == DEFAULT_TEST_RUNNER
