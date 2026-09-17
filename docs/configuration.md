@@ -13,7 +13,8 @@ when a key is **unset** above it):
 So: **project `config.toml` > user-global > env > default**. A committed
 project file stays portable; user-global fills knobs the project did not
 set. `mode` and `locked` are project-only (`config set --global mode …`
-is refused). Registry / `update --all` are a later Stage 2 issue.
+or `locked` is refused). Registry / `update --all` are a later Stage 2
+issue (#287).
 
 ```bash
 issue-flow config show --global
@@ -46,6 +47,7 @@ don't already have. `issue-flow update` does not touch `.env` at all.
 | `ISSUEFLOW_YOLO_LABEL`   | `yolo`         | Fallback for the [yolo trigger label](#label-driven-flows). Full order: `config.toml` > `ISSUEFLOW_YOLO_LABEL` > `yolo`. |
 | `ISSUEFLOW_LINGUIST_ATTRIBUTES` | `false` | Fallback for the [Linguist `.gitattributes`](#linguist-gitattributes) toggle. Full order: `config.toml` > `ISSUEFLOW_LINGUIST_ATTRIBUTES` > `false` (opt-in). |
 | `ISSUEFLOW_PSTACK_SKILLS` | *(none)* | Fallback for the [pstack skills](#pstack-skills) selection: comma-separated upstream names (`unslop,tdd`) or `all`. Full order: `config.toml` > `ISSUEFLOW_PSTACK_SKILLS` > none. |
+| `ISSUEFLOW_LOCKED` | `false` | Process override for the [per-repo lock](#per-repo-lock). **Wins over** project `config.toml` for this invocation only (the one exception to project-beats-env). |
 
 The optional [graphify integration](graphify.md) additionally reads an LLM API
 key (`GEMINI_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`,
@@ -68,7 +70,7 @@ It writes the keys issue-flow actually reads from `config.toml` — `mode`,
 `remind_cleanup`, `cleanup_include_github`, `suggest_graphify`,
 `auto_switchback`, `pr_merge_method`, `cycle_max_issues`,
 `confirm_version_bump`, `ruff_autofix`, `auto_close`, `auto_plan`,
-`auto_build`, `confirm_changelog_update`, `essential_tests`,
+`auto_build`, `confirm_changelog_update`, `locked`, `essential_tests`,
 `test_runner`, `essential_marker`, `essential_review`, `pstack_skills` — taking each value from
 its `ISSUEFLOW_*` env var / `.env`
 when set, otherwise the issue-flow default.
@@ -316,6 +318,26 @@ Related off-path flows (see [The workflow](issue-workflow.md)):
 - `/iflow-cycle yolo` — alias for `label:<yolo_label>`; batch-process every
   open issue that carries that label under one up-front confirm.
 
+## Per-repo lock
+
+`[issueflow] locked = true` lives on the **project**
+`.issueflows/config.toml` only (default `false`; missing key = unlocked).
+It is a bulk-update skip, not a write-protect: `issue-flow update --all`
+(#287) will list and skip locked roots; a single-repo
+`issue-flow update <root>` still runs.
+
+```bash
+issue-flow config set locked true
+issue-flow config show locked
+```
+
+`config set --global locked …` is refused. A `locked` key in the
+user-global file is ignored. `ISSUEFLOW_LOCKED=true|false` wins for that
+process only (CI / one-off include-or-skip without editing the file).
+
+Contract: [user-global-config.md](../.issueflows/04-designs-and-guides/user-global-config.md)
+(issue #286).
+
 ## Linguist `.gitattributes`
 
 Optionally keep GitHub Linguist language stats focused on library source by
@@ -354,6 +376,7 @@ Lifecycle skills can be tuned with additional `[issueflow]` keys (baked at
 | `auto_plan` | `true` | When `true`, `/iflow-pick` chains into `/iflow-plan` after pick confirm + branch/init; trailing `noplan` skips once |
 | `auto_build` | `true` | When `true`, `/iflow-plan` chains into `/iflow-build` on plan Accept; trailing `nobuild` skips once |
 | `early_pr` | `false` | When `true`, `/iflow-build` opens a draft PR after the first push; trailing `early` / `pr` / `noearly` override per run |
+| `locked` | `false` | `update --all` skips this root. Project `config.toml` only; see [Per-repo lock](#per-repo-lock) |
 | `confirm_changelog_update` | `false` | When `true`, `/iflow-close` shows the changelog diff and confirms once before writing (decline **stops** close); `false` writes without asking so the bullet lands in the PR (`nohistory` still skips) |
 | `essential_tests` | `false` | Opt-in essential-suite paradigm for pytest; see `.issueflows/04-designs-and-guides/essential-tests.md` |
 | `test_runner` | `"pytest"` | Test runner for essential-tests (v1: only `"pytest"` supported) |
@@ -388,7 +411,7 @@ Env fallbacks: `ISSUEFLOW_REMIND_CLEANUP`, `ISSUEFLOW_SUGGEST_GRAPHIFY`,
 `ISSUEFLOW_PR_MERGE_METHOD`, `ISSUEFLOW_CYCLE_MAX_ISSUES`,
 `ISSUEFLOW_AUTO_ADVERSARIAL_LOOPS`, `ISSUEFLOW_CONFIRM_VERSION_BUMP`,
 `ISSUEFLOW_RUFF_AUTOFIX`, `ISSUEFLOW_AUTO_CLOSE`, `ISSUEFLOW_AUTO_PLAN`,
-`ISSUEFLOW_AUTO_BUILD`, `ISSUEFLOW_EARLY_PR`,
+`ISSUEFLOW_AUTO_BUILD`, `ISSUEFLOW_EARLY_PR`, `ISSUEFLOW_LOCKED`,
 `ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE`, `ISSUEFLOW_ESSENTIAL_TESTS`,
 `ISSUEFLOW_TEST_RUNNER`, `ISSUEFLOW_ESSENTIAL_MARKER`,
 `ISSUEFLOW_ESSENTIAL_REVIEW`. Re-run `issue-flow update` after changing any of
