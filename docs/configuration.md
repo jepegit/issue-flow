@@ -1,11 +1,17 @@
 # Configuration
 
-issue-flow reads settings from two places:
+issue-flow reads settings from two places today:
 
-- **`.env`** (project root, via python-dotenv) — machine/user-level defaults.
+- **`.env`** (project root, via python-dotenv) — environment overrides.
 - **`.issueflows/config.toml`** — the project's persisted choices. Persisted
   values deliberately **beat** the environment, so a stray env var can't
   silently override your project's configuration on `update`.
+
+A **user-global** layer (XDG / `%APPDATA%` `issue-flow/config.toml`, plus a
+registry and `update --all`) is specified in
+[user-global-config.md](../.issueflows/04-designs-and-guides/user-global-config.md)
+(issue #281 / epic #269) and is not implemented yet. Planned precedence:
+project `config.toml` > user-global > `ISSUEFLOW_*` env > default.
 
 ## Environment variables (`.env`)
 

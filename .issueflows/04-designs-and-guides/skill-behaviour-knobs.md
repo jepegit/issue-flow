@@ -6,7 +6,10 @@ should tweak lifecycle *nudges* and close/yolo/cycle parameters without editing
 templates by hand.
 
 **Decision.** `[issueflow]` keys, same precedence as siblings
-(`config.toml` > `ISSUEFLOW_*` env > default), baked at `issue-flow update`.
+(`project config.toml` > user-global `config.toml` > `ISSUEFLOW_*` env >
+default), baked at `issue-flow update`. User-global path and lock
+semantics: [user-global-config.md](./user-global-config.md) (issue #281 /
+epic #269). Until Stage 2 ships, only the project file and env exist.
 
 **Naming conventions** (after consistency pass):
 
@@ -21,6 +24,7 @@ templates by hand.
 | Confirm gates (`confirm_*`) | `confirm_version_bump`, `confirm_changelog_update` |
 | Tool / value | `ruff_autofix`, `pr_merge_method`, `cycle_max_issues`, `test_runner`, `essential_marker`, `essential_review` |
 | Feature masters (`*_tests` / paradigm) | `essential_tests` |
+| Per-repo skip (`locked`) | `locked` (project `config.toml` only; `update --all` skips) |
 
 | Key | Default | Effect |
 |-----|---------|--------|
@@ -45,6 +49,7 @@ templates by hand.
 | `test_runner` | `"pytest"` | Runner for essential-tests; v1 only `"pytest"` supported |
 | `essential_marker` | `"essential"` | pytest mark name for the essential suite |
 | `essential_review` | `"close"` | When to triage issue-touched tests: `close` \| `build` \| `both` \| `never` |
+| `locked` | `false` | Per-repo skip for `issue-flow update --all`. Project `.issueflows/config.toml` only; user-global must not set it. Missing key = unlocked. Single-repo `update` still runs. Optional process override: `ISSUEFLOW_LOCKED`. See [user-global-config.md](./user-global-config.md) (issue #281) |
 
 **Consistency.** `auto_plan` / `auto_build` / `auto_close` are **independent** —
 each only skips its own next-step pause (pick confirm, plan Accept, and

@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- Design doc — user-global config, lock, registry, update-all. (#281)
+
 ## [0.4.20] - 2026-09-17
 
 - **Doctor reports unmanaged editor skills (#277).** `issue-flow doctor` / `agent audit` list skill directories under in-use editor trees whose names are not packaged `SKILL_DIRS` outputs. Report-only INFO findings; `--fix` does not delete them.
