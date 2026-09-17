@@ -577,6 +577,53 @@ def test_doctor_ignores_absent_editor_dirs(runner: CliRunner, tmp_path: Path) ->
     assert "missing_editor_scaffold" not in codes
 
 
+def test_doctor_reports_unmanaged_editor_skill(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    _seed_clean_tree(tmp_path)
+    skills = tmp_path / ".cursor" / "skills"
+    for name in ("iflow-init", "iflow-plan", "unslop"):
+        folder = skills / name
+        folder.mkdir(parents=True)
+        (folder / "SKILL.md").write_text("packaged\n", encoding="utf-8")
+    extra = skills / "my-notes"
+    extra.mkdir()
+    (extra / "notes.md").write_text("mine\n", encoding="utf-8")
+    (skills / "loose.md").write_text("file\n", encoding="utf-8")
+
+    result = runner.invoke(app, ["doctor", str(tmp_path), "--json"])
+
+    assert result.exit_code == 0, result.output  # INFO, not an error
+    unmanaged = [
+        f
+        for f in _json(result.stdout)["findings"]
+        if f["code"] == "unmanaged_editor_skill"
+    ]
+    assert len(unmanaged) == 1
+    assert unmanaged[0]["severity"] == "info"
+    assert unmanaged[0]["repairable"] is False
+    assert ".cursor/skills/my-notes" in unmanaged[0]["message"]
+    assert extra.is_dir()
+    assert (extra / "notes.md").read_text(encoding="utf-8") == "mine\n"
+
+
+def test_doctor_fix_leaves_unmanaged_editor_skill(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    _seed_clean_tree(tmp_path)
+    extra = tmp_path / ".cursor" / "skills" / "my-notes"
+    extra.mkdir(parents=True)
+    (extra / "notes.md").write_text("mine\n", encoding="utf-8")
+
+    result = runner.invoke(
+        app, ["doctor", str(tmp_path), "--fix", "--except", "5", "--json"]
+    )
+
+    assert result.exit_code == 0, result.output
+    assert extra.is_dir()
+    assert (extra / "notes.md").read_text(encoding="utf-8") == "mine\n"
+
+
 def test_agent_preflight_json_handles_missing_git(
     runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

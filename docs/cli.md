@@ -120,9 +120,11 @@ is simply skipped and noted.
 
 Audit the local `.issueflows/` tree for **dirty** conditions (multiple focus
 groups, leftovers in `01-current-issues/`, duplicates across folders, and
-similar). Optionally apply **safe repairs** on confirmation — creating missing
-tree folders and sweeping non-focus groups using the same rules as
-`issue-flow agent sweep`.
+similar) and **report-only** extras such as un-scaffolded editor dirs or
+unmanaged skill folders under an in-use `<agent_dir>/skills/`. Optionally apply
+**safe repairs** on confirmation — creating missing tree folders and sweeping
+non-focus groups using the same rules as `issue-flow agent sweep`. Unmanaged
+skill dirs are never deleted or imported.
 
 | Argument / Option | Description |
 | ----------------- | ----------- |

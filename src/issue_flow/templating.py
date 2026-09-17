@@ -383,6 +383,11 @@ def skill_output_name(skill_dir: str) -> str:
     return SKILL_OUTPUT_NAMES.get(skill_dir, skill_dir.replace("_", "-"))
 
 
+def packaged_skill_output_names() -> frozenset[str]:
+    """On-disk folder names for every packaged stem in ``SKILL_DIRS``."""
+    return frozenset(skill_output_name(stem) for stem in SKILL_DIRS)
+
+
 # Backwards-compatible default manifest (Cursor). Kept so existing imports and
 # tests that reference ``TEMPLATE_MANIFEST`` continue to work.
 TEMPLATE_MANIFEST: list[tuple[str, str]] = build_manifest(EDITORS["cursor"])

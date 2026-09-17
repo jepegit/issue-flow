@@ -30,6 +30,7 @@ from rich.markup import escape
 from issue_flow import gitutils, history, modes, project, readiness, tracking
 from issue_flow.config import Settings
 from issue_flow.editors import DEFAULT_EDITOR, EDITORS
+from issue_flow.templating import packaged_skill_output_names
 
 
 def _folders(project_root: Path, settings: Settings) -> dict[str, Path]:
@@ -3017,6 +3018,48 @@ def audit_editor_scaffolds(
     return findings
 
 
+def audit_unmanaged_editor_skills(
+    project_root: Path, settings: Settings
+) -> list[tracking.DirtyFinding]:
+    """Report skill directories that issue-flow did not scaffold.
+
+    ``update`` already leaves unknown names alone; this only makes them
+    visible. Compare directory names against every packaged ``SKILL_DIRS``
+    output name (including optional pstack stems). Report-only: never
+    delete, prune, or import.
+
+    Skipped when ``ISSUEFLOW_AGENT_DIR`` overrides the layout — the
+    per-editor default skills paths no longer describe the on-disk tree.
+    """
+    if settings.agent_dir_override:
+        return []
+
+    packaged = packaged_skill_output_names()
+    findings: list[tracking.DirtyFinding] = []
+    for profile in EDITORS.values():
+        skills_dir = project_root / profile.agent_dir / "skills"
+        if not skills_dir.is_dir():
+            continue
+        for entry in sorted(skills_dir.iterdir()):
+            if not entry.is_dir() or entry.name.startswith("."):
+                continue
+            if entry.name in packaged:
+                continue
+            rel = entry.relative_to(project_root).as_posix()
+            findings.append(
+                tracking.DirtyFinding(
+                    code="unmanaged_editor_skill",
+                    severity=tracking.SEVERITY_INFO,
+                    message=(
+                        f"Unmanaged skill directory {rel!r} is not an "
+                        "issue-flow packaged skill (left alone by update)."
+                    ),
+                    repairable=False,
+                )
+            )
+    return findings
+
+
 def run_audit(project_root: Path, console: Console, as_json: bool) -> int:
     """Audit ``.issueflows/`` for dirty conditions."""
     settings = Settings()
@@ -3030,6 +3073,7 @@ def run_audit(project_root: Path, console: Console, as_json: bool) -> int:
         expected_subdirs=settings.issueflows_subdirs,
     )
     findings.extend(audit_editor_scaffolds(project_root, settings))
+    findings.extend(audit_unmanaged_editor_skills(project_root, settings))
     has_error = any(f.severity == tracking.SEVERITY_ERROR for f in findings)
     payload: dict[str, Any] = {
         "findings": [_finding_payload(f) for f in findings],
