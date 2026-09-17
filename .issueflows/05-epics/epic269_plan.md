@@ -137,12 +137,11 @@ Implement the original issue body on top of the Stage 1 contract.
 
 ## Later (unstaged)
 
-- Materialize **global** packaged skills on `init` / `update` / first
-  install, honouring the Stage 1 table and #276 clobber-protect
-  (user-global path).
-- If Cursor does **not** read `~/.claude/skills/`, per-editor global
-  dirs (Cursor `~/.cursor/skills`, Claude `~/.claude/skills`) instead
-  of one shared tree.
+- Materialize **`both` / `global`** packaged skills on `init` /
+  `update` / first install per
+  [global-vs-local-skills.md](../04-designs-and-guides/global-vs-local-skills.md)
+  (#282) and #276 clobber-protect (per-editor user-global path).
+- Confirm opencode's user-global skill dir (marked unknown in #282).
 - Opt-in disk discovery of `.issueflows/` trees (never default).
 - `workspace update` calling through the registry when members are
   also registered (dedupe).

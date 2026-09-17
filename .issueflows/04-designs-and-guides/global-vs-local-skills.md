@@ -1,0 +1,129 @@
+# Global vs local packaged skills
+
+**Issue:** [#282](https://github.com/jepegit/issue-flow/issues/282) /
+epic [#269](https://github.com/jepegit/issue-flow/issues/269)
+**Status:** decided 2026-09-17 (Stage 1). No `src/` install in this
+issue — Later materialize honours this table and
+[user-global-config.md](./user-global-config.md).
+
+## Context
+
+User-global config (#281) is the contract for knobs / lock / registry /
+`update --all`. This doc answers the leftover product question: which
+**packaged skill stems** may also land in the editor's user-global
+skill dir, and which stay project-local. Local always wins when both
+exist.
+
+## Placement values
+
+| Value | Meaning |
+|-------|---------|
+| `local` | Write only under `<repo>/<agent_dir>/skills/<output>/`. |
+| `global` | Write only under the editor's user-global skill dir. |
+| `both` | Write the user-global copy **and** keep the project copy. Project dir with the same output name beats the user-global copy. |
+
+No stem is `global`-only in v1: a fresh clone must still work without
+a prior `update --all` or home-dir install.
+
+## Editor user-global paths (verified 2026-09-17)
+
+| Editor | User-global write target | Also reads (compat) | Notes |
+|--------|--------------------------|---------------------|-------|
+| Cursor | `~/.cursor/skills/<output>/` | Project `.cursor/skills/`, `.agents/skills/`; compat `.claude/skills/`, `.codex/skills/`, `~/.claude/skills/`, `~/.codex/skills/`; user `~/.agents/skills/` | Official docs: [Cursor Agent Skills](https://cursor.com/docs/skills). **Cloud Agents sync only `~/.cursor/skills/`** — do not install Cursor globals into `~/.claude/skills/` as the primary path. |
+| Claude Code | `~/.claude/skills/<output>/` | Project `.claude/skills/` | Comment hypothesis on #269 (`Cursor reads ~/.claude/skills/`) is **true for Cursor compat**, but Claude's own global dir is still `~/.claude/skills/`. |
+| Codex | `~/.agents/skills/<output>/` | Legacy `~/.codex/skills/` still scanned | Current Codex docs prefer `~/.agents/skills`. Do not write the legacy path as primary. |
+| opencode | **unknown** | — | Later: confirm `~/.config/opencode/skills` vs `~/.agents/skills` before any write. |
+
+WSL uses the Linux home inside the distro (`~/.cursor/skills/`), not
+the Windows `%USERPROFILE%` tree — same split as
+[user-global-config.md](./user-global-config.md).
+
+**Local wins.** A project skill directory with the same output name
+beats the user-global copy. Honour #276 stamps on **each** tree that
+`update` writes (project stamps today; user-global stamps when Later
+materialize lands).
+
+## Stem table
+
+Stems from `DEFAULT_SKILL_DIRS` + `PSTACK_SKILL_DIRS` in
+`src/issue_flow/templating.py`. Output name is `skill_output_name`
+(`iflow_iflow` → `iflow`; pstack keeps upstream names).
+
+### Lifecycle (`iflow_*`) — all `local`
+
+Bound to this repo's mode, `.issueflows/` tree, and the issue-flow
+version that last ran `update`. A machine-wide lifecycle copy would
+skew across repos on different versions.
+
+| Stem | Output | Placement |
+|------|--------|-----------|
+| `iflow_iflow` | `iflow` | `local` |
+| `iflow_setup` | `iflow-setup` | `local` |
+| `iflow_pick` | `iflow-pick` | `local` |
+| `iflow_init` | `iflow-init` | `local` |
+| `iflow_capture` | `iflow-capture` | `local` |
+| `iflow_comments` | `iflow-comments` | `local` |
+| `iflow_plan` | `iflow-plan` | `local` |
+| `iflow_build` | `iflow-build` | `local` |
+| `iflow_pause` | `iflow-pause` | `local` |
+| `iflow_close` | `iflow-close` | `local` |
+| `iflow_cleanup` | `iflow-cleanup` | `local` |
+| `iflow_pr_sync` | `iflow-pr-sync` | `local` |
+| `iflow_yolo` | `iflow-yolo` | `local` |
+| `iflow_ops` | `iflow-ops` | `local` |
+| `iflow_fix` | `iflow-fix` | `local` |
+| `iflow_issue` | `iflow-issue` | `local` |
+| `iflow_split` | `iflow-split` | `local` |
+| `iflow_status` | `iflow-status` | `local` |
+| `iflow_doctor` | `iflow-doctor` | `local` |
+| `iflow_review` | `iflow-review` | `local` |
+| `iflow_archive` | `iflow-archive` | `local` |
+| `iflow_epic` | `iflow-epic` | `local` |
+| `iflow_cycle` | `iflow-cycle` | `local` |
+| `iflow_auto` | `iflow-auto` | `local` |
+| `iflow_version_bump` | `iflow-version-bump` | `local` |
+| `iflow_history_update` | `iflow-history-update` | `local` |
+| `iflow_graphify` | `iflow-graphify` | `local` |
+
+### Behaviour (standard surface, not a slash lifecycle) — `both`
+
+User-style / cheatsheet skills are useful outside a single repo.
+Keep the project copy so `standard` mode stays self-contained.
+
+| Stem | Output | Placement |
+|------|--------|-----------|
+| `caveman` | `caveman` | `both` |
+| `grill_me` | `grill-me` | `both` |
+| `gh_ci` | `gh-ci` | `both` |
+
+### pstack (optional) — all `local`
+
+Opt-in via `[issueflow].pstack_skills`. Not in mode `"all"`. See
+[pstack-skills.md](./pstack-skills.md).
+
+| Stem | Output | Placement |
+|------|--------|-----------|
+| `pstack_unslop` | `unslop` | `local` |
+| `pstack_tdd` | `tdd` | `local` |
+| `pstack_blast_radius` | `blast-radius` | `local` |
+| `pstack_technical_writing` | `technical-writing` | `local` |
+| `pstack_bro` | `bro` | `local` |
+| `pstack_principle_prove_it_works` | `principle-prove-it-works` | `local` |
+| `pstack_principle_subtract_before_you_add` | `principle-subtract-before-you-add` | `local` |
+| `pstack_principle_fix_root_causes` | `principle-fix-root-causes` | `local` |
+| `pstack_principle_test_behavior_not_implementation` | `principle-test-behavior-not-implementation` | `local` |
+
+## Later
+
+- Materialize `both` (and any future `global`) stems on `init` /
+  `update` / first install into the **per-editor** write targets above.
+  Honour #276 stamps on the user-global tree. Not a skillbook library.
+- Confirm opencode's user-global skill dir before any write.
+- Do **not** collapse Cursor + Claude into one shared `~/.claude/skills/`
+  tree: Cursor Cloud sync is `~/.cursor/skills/` only.
+
+## Link
+
+Epic plan: `.issueflows/05-epics/epic269_plan.md`.  
+User-global knobs: [user-global-config.md](./user-global-config.md).  
+Editor profiles: [editor-profiles.md](./editor-profiles.md).
