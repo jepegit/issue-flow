@@ -6,6 +6,16 @@ import pytest
 
 
 @pytest.fixture(autouse=True)
+def _isolate_user_global_config(
+    tmp_path_factory: pytest.TempPathFactory, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Keep user-global config out of the real ``~/.config/issue-flow``."""
+    xdg = tmp_path_factory.mktemp("xdg-config")
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(xdg))
+    monkeypatch.setenv("APPDATA", str(xdg))
+
+
+@pytest.fixture(autouse=True)
 def _stub_dependency_check(monkeypatch: pytest.MonkeyPatch) -> None:
     """Make ``check_dependencies`` a no-op by default.
 

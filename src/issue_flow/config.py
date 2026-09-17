@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 from dotenv import load_dotenv
 import os
@@ -121,6 +122,17 @@ class Settings:
         """Path to the project's ``.issueflows/config.toml``."""
         return modes_module.config_path(project_root, self.issueflows_dir)
 
+    def user_global_or(self, key: str, fallback: Any) -> Any:
+        """Return the user-global value for ``key``, else ``fallback``.
+
+        ``mode`` and ``locked`` are never read from the user-global file.
+        Missing file = no layer (today's behaviour).
+        """
+        from issue_flow.user_global import user_global_value
+
+        value = user_global_value(key)
+        return fallback if value is None else value
+
     def resolve_active_mode_id(self, project_root: Path) -> str:
         """Resolve the active mode id for ``project_root`` (no CLI ``--mode``).
 
@@ -165,6 +177,9 @@ class Settings:
         persisted = modes_module.read_pstack_skills(self.config_path(project_root))
         if persisted is not None:
             return persisted
+        user = self.user_global_or("pstack_skills", None)
+        if user is not None:
+            return modes_module.normalize_pstack_skills(user)
         return modes_module.normalize_pstack_skills(
             os.getenv("ISSUEFLOW_PSTACK_SKILLS") or list(DEFAULT_PSTACK_SKILLS)
         )
@@ -183,7 +198,9 @@ class Settings:
         persisted = modes_module.read_caveman_default(self.config_path(project_root))
         if persisted is not None:
             return persisted
-        return _env_flag("ISSUEFLOW_CAVEMAN_DEFAULT")
+        return self.user_global_or(
+            "caveman_default", _env_flag("ISSUEFLOW_CAVEMAN_DEFAULT")
+        )
 
     def resolve_grill_me_default(self, project_root: Path) -> bool:
         """Resolve whether the grill-me skill is on by default for ``project_root``.
@@ -199,7 +216,9 @@ class Settings:
         persisted = modes_module.read_grill_me_default(self.config_path(project_root))
         if persisted is not None:
             return persisted
-        return _env_flag("ISSUEFLOW_GRILL_ME_DEFAULT")
+        return self.user_global_or(
+            "grill_me_default", _env_flag("ISSUEFLOW_GRILL_ME_DEFAULT")
+        )
 
     def resolve_label_flows(self, project_root: Path) -> bool:
         """Resolve whether label-driven flow selection is allowed for ``project_root``.
@@ -212,7 +231,10 @@ class Settings:
         persisted = modes_module.read_label_flows(self.config_path(project_root))
         if persisted is not None:
             return persisted
-        return _env_flag("ISSUEFLOW_LABEL_FLOWS", default=DEFAULT_LABEL_FLOWS)
+        return self.user_global_or(
+            "label_flows",
+            _env_flag("ISSUEFLOW_LABEL_FLOWS", default=DEFAULT_LABEL_FLOWS),
+        )
 
     def resolve_linguist_attributes(self, project_root: Path) -> bool:
         """Resolve whether to write a managed Linguist ``.gitattributes`` block.
@@ -225,8 +247,11 @@ class Settings:
         )
         if persisted is not None:
             return persisted
-        return _env_flag(
-            "ISSUEFLOW_LINGUIST_ATTRIBUTES", default=DEFAULT_LINGUIST_ATTRIBUTES
+        return self.user_global_or(
+            "linguist_attributes",
+            _env_flag(
+                "ISSUEFLOW_LINGUIST_ATTRIBUTES", default=DEFAULT_LINGUIST_ATTRIBUTES
+            ),
         )
 
     def resolve_yolo_label(self, project_root: Path) -> str:
@@ -238,6 +263,9 @@ class Settings:
         persisted = modes_module.read_yolo_label(self.config_path(project_root))
         if persisted:
             return persisted
+        user = self.user_global_or("yolo_label", None)
+        if user:
+            return str(user)
         env = os.getenv("ISSUEFLOW_YOLO_LABEL")
         if env and env.strip():
             return env.strip()
@@ -252,6 +280,9 @@ class Settings:
         persisted = modes_module.read_ops_label(self.config_path(project_root))
         if persisted:
             return persisted
+        user = self.user_global_or("ops_label", None)
+        if user:
+            return str(user)
         env = os.getenv("ISSUEFLOW_OPS_LABEL")
         if env and env.strip():
             return env.strip()
@@ -269,6 +300,9 @@ class Settings:
         )
         if persisted is not None and persisted > 0:
             return persisted
+        user = self.user_global_or("checks_watch_minutes", None)
+        if isinstance(user, int) and user > 0:
+            return user
         env = os.getenv("ISSUEFLOW_CHECKS_WATCH_MINUTES")
         if env and env.strip():
             try:
@@ -284,15 +318,19 @@ class Settings:
         persisted = modes_module.read_step_directives(self.config_path(project_root))
         if persisted is not None:
             return persisted
-        return _env_flag("ISSUEFLOW_STEP_DIRECTIVES", default=DEFAULT_STEP_DIRECTIVES)
+        return self.user_global_or(
+            "step_directives",
+            _env_flag("ISSUEFLOW_STEP_DIRECTIVES", default=DEFAULT_STEP_DIRECTIVES),
+        )
 
     def resolve_model_label_flows(self, project_root: Path) -> bool:
         """Resolve whether /iflow-pick announces label-driven profile overrides."""
         persisted = modes_module.read_model_label_flows(self.config_path(project_root))
         if persisted is not None:
             return persisted
-        return _env_flag(
-            "ISSUEFLOW_MODEL_LABEL_FLOWS", default=DEFAULT_MODEL_LABEL_FLOWS
+        return self.user_global_or(
+            "model_label_flows",
+            _env_flag("ISSUEFLOW_MODEL_LABEL_FLOWS", default=DEFAULT_MODEL_LABEL_FLOWS),
         )
 
     def resolve_deep_model_label(self, project_root: Path) -> str:
@@ -300,6 +338,9 @@ class Settings:
         persisted = modes_module.read_deep_model_label(self.config_path(project_root))
         if persisted:
             return persisted
+        user = self.user_global_or("deep_model_label", None)
+        if user:
+            return str(user)
         env = os.getenv("ISSUEFLOW_DEEP_MODEL_LABEL")
         if env and env.strip():
             return env.strip()
@@ -310,6 +351,9 @@ class Settings:
         persisted = modes_module.read_fast_model_label(self.config_path(project_root))
         if persisted:
             return persisted
+        user = self.user_global_or("fast_model_label", None)
+        if user:
+            return str(user)
         env = os.getenv("ISSUEFLOW_FAST_MODEL_LABEL")
         if env and env.strip():
             return env.strip()
@@ -327,6 +371,9 @@ class Settings:
         persisted = modes_module.read_skill_level(self.config_path(project_root))
         if persisted:
             return persisted
+        user = self.user_global_or("skill_level", None)
+        if user:
+            return str(user)
         env = os.getenv("ISSUEFLOW_SKILL_LEVEL")
         if env and env.strip():
             return env.strip()
@@ -337,7 +384,10 @@ class Settings:
         persisted = modes_module.read_remind_cleanup(self.config_path(project_root))
         if persisted is not None:
             return persisted
-        return _env_flag("ISSUEFLOW_REMIND_CLEANUP", default=DEFAULT_REMIND_CLEANUP)
+        return self.user_global_or(
+            "remind_cleanup",
+            _env_flag("ISSUEFLOW_REMIND_CLEANUP", default=DEFAULT_REMIND_CLEANUP),
+        )
 
     def resolve_cleanup_include_github(self, project_root: Path) -> bool:
         """Resolve whether ``/iflow-cleanup`` runs the GitHub audit by default."""
@@ -346,9 +396,12 @@ class Settings:
         )
         if persisted is not None:
             return persisted
-        return _env_flag(
-            "ISSUEFLOW_CLEANUP_INCLUDE_GITHUB",
-            default=DEFAULT_CLEANUP_INCLUDE_GITHUB,
+        return self.user_global_or(
+            "cleanup_include_github",
+            _env_flag(
+                "ISSUEFLOW_CLEANUP_INCLUDE_GITHUB",
+                default=DEFAULT_CLEANUP_INCLUDE_GITHUB,
+            ),
         )
 
     def resolve_suggest_graphify(self, project_root: Path) -> bool:
@@ -356,7 +409,10 @@ class Settings:
         persisted = modes_module.read_suggest_graphify(self.config_path(project_root))
         if persisted is not None:
             return persisted
-        return _env_flag("ISSUEFLOW_SUGGEST_GRAPHIFY", default=DEFAULT_SUGGEST_GRAPHIFY)
+        return self.user_global_or(
+            "suggest_graphify",
+            _env_flag("ISSUEFLOW_SUGGEST_GRAPHIFY", default=DEFAULT_SUGGEST_GRAPHIFY),
+        )
 
     def resolve_auto_graphify_on_plan(self, project_root: Path) -> bool:
         """Resolve whether ``/iflow-plan`` auto-runs ``issue-flow graphify``."""
@@ -365,8 +421,11 @@ class Settings:
         )
         if persisted is not None:
             return persisted
-        return _env_flag(
-            "ISSUEFLOW_AUTO_GRAPHIFY_ON_PLAN", default=DEFAULT_AUTO_GRAPHIFY_ON_PLAN
+        return self.user_global_or(
+            "auto_graphify_on_plan",
+            _env_flag(
+                "ISSUEFLOW_AUTO_GRAPHIFY_ON_PLAN", default=DEFAULT_AUTO_GRAPHIFY_ON_PLAN
+            ),
         )
 
     def resolve_auto_switchback(self, project_root: Path) -> bool:
@@ -374,7 +433,10 @@ class Settings:
         persisted = modes_module.read_auto_switchback(self.config_path(project_root))
         if persisted is not None:
             return persisted
-        return _env_flag("ISSUEFLOW_AUTO_SWITCHBACK", default=DEFAULT_AUTO_SWITCHBACK)
+        return self.user_global_or(
+            "auto_switchback",
+            _env_flag("ISSUEFLOW_AUTO_SWITCHBACK", default=DEFAULT_AUTO_SWITCHBACK),
+        )
 
     def resolve_auto_remove_worktree(self, project_root: Path) -> bool:
         """Resolve whether ``/iflow-close`` removes the sibling issue worktree."""
@@ -383,8 +445,11 @@ class Settings:
         )
         if persisted is not None:
             return persisted
-        return _env_flag(
-            "ISSUEFLOW_AUTO_REMOVE_WORKTREE", default=DEFAULT_AUTO_REMOVE_WORKTREE
+        return self.user_global_or(
+            "auto_remove_worktree",
+            _env_flag(
+                "ISSUEFLOW_AUTO_REMOVE_WORKTREE", default=DEFAULT_AUTO_REMOVE_WORKTREE
+            ),
         )
 
     def resolve_pr_merge_method(self, project_root: Path) -> str:
@@ -392,6 +457,11 @@ class Settings:
         persisted = modes_module.read_pr_merge_method(self.config_path(project_root))
         if persisted:
             return persisted
+        user = self.user_global_or("pr_merge_method", None)
+        if user:
+            normalized_user = normalize_pr_merge_method(str(user))
+            if normalized_user:
+                return normalized_user
         normalized = normalize_pr_merge_method(os.getenv("ISSUEFLOW_PR_MERGE_METHOD"))
         if normalized:
             return normalized
@@ -407,6 +477,9 @@ class Settings:
         persisted = modes_module.read_cycle_max_issues(self.config_path(project_root))
         if persisted is not None and persisted > 0:
             return persisted
+        user = self.user_global_or("cycle_max_issues", None)
+        if isinstance(user, int) and user > 0:
+            return user
         env = os.getenv("ISSUEFLOW_CYCLE_MAX_ISSUES")
         if env and env.strip():
             try:
@@ -429,6 +502,9 @@ class Settings:
         )
         if persisted is not None and persisted > 0:
             return persisted
+        user = self.user_global_or("auto_adversarial_loops", None)
+        if isinstance(user, int) and user > 0:
+            return user
         env = os.getenv("ISSUEFLOW_AUTO_ADVERSARIAL_LOOPS")
         if env and env.strip():
             try:
@@ -446,8 +522,11 @@ class Settings:
         )
         if persisted is not None:
             return persisted
-        return _env_flag(
-            "ISSUEFLOW_CONFIRM_VERSION_BUMP", default=DEFAULT_CONFIRM_VERSION_BUMP
+        return self.user_global_or(
+            "confirm_version_bump",
+            _env_flag(
+                "ISSUEFLOW_CONFIRM_VERSION_BUMP", default=DEFAULT_CONFIRM_VERSION_BUMP
+            ),
         )
 
     def resolve_ruff_autofix(self, project_root: Path) -> bool:
@@ -455,42 +534,56 @@ class Settings:
         persisted = modes_module.read_ruff_autofix(self.config_path(project_root))
         if persisted is not None:
             return persisted
-        return _env_flag("ISSUEFLOW_RUFF_AUTOFIX", default=DEFAULT_RUFF_AUTOFIX)
+        return self.user_global_or(
+            "ruff_autofix",
+            _env_flag("ISSUEFLOW_RUFF_AUTOFIX", default=DEFAULT_RUFF_AUTOFIX),
+        )
 
     def resolve_auto_close(self, project_root: Path) -> bool:
         """Resolve whether start/fix chain into ``/iflow-close`` when ready to ship."""
         persisted = modes_module.read_auto_close(self.config_path(project_root))
         if persisted is not None:
             return persisted
-        return _env_flag("ISSUEFLOW_AUTO_CLOSE", default=DEFAULT_AUTO_CLOSE)
+        return self.user_global_or(
+            "auto_close", _env_flag("ISSUEFLOW_AUTO_CLOSE", default=DEFAULT_AUTO_CLOSE)
+        )
 
     def resolve_auto_plan(self, project_root: Path) -> bool:
         """Resolve whether ``/iflow-pick`` chains into ``/iflow-plan`` after confirm."""
         persisted = modes_module.read_auto_plan(self.config_path(project_root))
         if persisted is not None:
             return persisted
-        return _env_flag("ISSUEFLOW_AUTO_PLAN", default=DEFAULT_AUTO_PLAN)
+        return self.user_global_or(
+            "auto_plan", _env_flag("ISSUEFLOW_AUTO_PLAN", default=DEFAULT_AUTO_PLAN)
+        )
 
     def resolve_auto_build(self, project_root: Path) -> bool:
         """Resolve whether ``/iflow-plan`` chains into ``/iflow-build`` on Accept."""
         persisted = modes_module.read_auto_build(self.config_path(project_root))
         if persisted is not None:
             return persisted
-        return _env_flag("ISSUEFLOW_AUTO_BUILD", default=DEFAULT_AUTO_BUILD)
+        return self.user_global_or(
+            "auto_build", _env_flag("ISSUEFLOW_AUTO_BUILD", default=DEFAULT_AUTO_BUILD)
+        )
 
     def resolve_early_pr(self, project_root: Path) -> bool:
         """Resolve whether ``/iflow-build`` opens a draft PR after the first push."""
         persisted = modes_module.read_early_pr(self.config_path(project_root))
         if persisted is not None:
             return persisted
-        return _env_flag("ISSUEFLOW_EARLY_PR", default=DEFAULT_EARLY_PR)
+        return self.user_global_or(
+            "early_pr", _env_flag("ISSUEFLOW_EARLY_PR", default=DEFAULT_EARLY_PR)
+        )
 
     def resolve_fix_auto_name(self, project_root: Path) -> bool:
         """Resolve whether ``/iflow-fix`` lets the agent invent the session name."""
         persisted = modes_module.read_fix_auto_name(self.config_path(project_root))
         if persisted is not None:
             return persisted
-        return _env_flag("ISSUEFLOW_FIX_AUTO_NAME", default=DEFAULT_FIX_AUTO_NAME)
+        return self.user_global_or(
+            "fix_auto_name",
+            _env_flag("ISSUEFLOW_FIX_AUTO_NAME", default=DEFAULT_FIX_AUTO_NAME),
+        )
 
     def resolve_confirm_changelog_update(self, project_root: Path) -> bool:
         """Resolve whether ``/iflow-close`` confirms before writing the changelog."""
@@ -499,9 +592,12 @@ class Settings:
         )
         if persisted is not None:
             return persisted
-        return _env_flag(
-            "ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE",
-            default=DEFAULT_CONFIRM_CHANGELOG_UPDATE,
+        return self.user_global_or(
+            "confirm_changelog_update",
+            _env_flag(
+                "ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE",
+                default=DEFAULT_CONFIRM_CHANGELOG_UPDATE,
+            ),
         )
 
     def resolve_essential_tests(self, project_root: Path) -> bool:
@@ -509,13 +605,21 @@ class Settings:
         persisted = modes_module.read_essential_tests(self.config_path(project_root))
         if persisted is not None:
             return persisted
-        return _env_flag("ISSUEFLOW_ESSENTIAL_TESTS", default=DEFAULT_ESSENTIAL_TESTS)
+        return self.user_global_or(
+            "essential_tests",
+            _env_flag("ISSUEFLOW_ESSENTIAL_TESTS", default=DEFAULT_ESSENTIAL_TESTS),
+        )
 
     def resolve_test_runner(self, project_root: Path) -> str:
         """Resolve the test runner id for essential-tests (v1: pytest)."""
         persisted = modes_module.read_test_runner(self.config_path(project_root))
         if persisted is not None:
             return persisted
+        user = self.user_global_or("test_runner", None)
+        if user is not None:
+            normalized_user = normalize_test_runner(str(user))
+            if normalized_user:
+                return normalized_user
         normalized = normalize_test_runner(os.getenv("ISSUEFLOW_TEST_RUNNER"))
         return normalized or DEFAULT_TEST_RUNNER
 
@@ -524,6 +628,9 @@ class Settings:
         persisted = modes_module.read_essential_marker(self.config_path(project_root))
         if persisted is not None:
             return persisted
+        user = self.user_global_or("essential_marker", None)
+        if user:
+            return str(user)
         env = os.getenv("ISSUEFLOW_ESSENTIAL_MARKER")
         if env and env.strip():
             return env.strip()
@@ -534,6 +641,11 @@ class Settings:
         persisted = modes_module.read_essential_review(self.config_path(project_root))
         if persisted is not None:
             return persisted
+        user = self.user_global_or("essential_review", None)
+        if user is not None:
+            normalized_user = normalize_essential_review(str(user))
+            if normalized_user:
+                return normalized_user
         normalized = normalize_essential_review(os.getenv("ISSUEFLOW_ESSENTIAL_REVIEW"))
         return normalized or DEFAULT_ESSENTIAL_REVIEW
 
@@ -715,7 +827,8 @@ class Settings:
         """Resolved ``[issueflow]`` values for ``project_root`` (config > env > default).
 
         Same key set as :meth:`seed_config_values`, but honouring a persisted
-        ``config.toml`` via the ``resolve_*`` helpers.
+        ``config.toml`` via the ``resolve_*`` helpers (project > user-global >
+        env > default).
         """
         return {
             "mode": self.resolve_mode(project_root).id,

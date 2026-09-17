@@ -184,7 +184,13 @@ def _plain_toml_value(value: Any) -> Any:
     return value
 
 
-def upsert_config_value(cfg_path: Path, key: str, value: Any) -> None:
+def upsert_config_value(
+    cfg_path: Path,
+    key: str,
+    value: Any,
+    *,
+    created_comment: str | None = None,
+) -> None:
     """Write ``[issueflow].key = value``, creating the file/section if needed."""
     if key not in CONFIG_KEYS:
         known = ", ".join(known_config_keys())
@@ -197,7 +203,8 @@ def upsert_config_value(cfg_path: Path, key: str, value: Any) -> None:
         doc = tomlkit.document()
         doc.add(
             tomlkit.comment(
-                "issue-flow project config. Created by 'issue-flow config set'."
+                created_comment
+                or "issue-flow project config. Created by 'issue-flow config set'."
             )
         )
 
