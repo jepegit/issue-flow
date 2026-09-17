@@ -8,6 +8,9 @@ title: CLI reference
 issue-flow init [PROJECT_DIR] [--force] [--skip-dep-check]
   [--editor EDITOR] [--mode MODE] [--skill-level LEVEL]
 issue-flow update [PROJECT_DIR] [--skip-dep-check] [--editor EDITOR] [--force]
+  [--all] [--json]
+issue-flow register [PROJECT_DIR] [--json]
+issue-flow unregister [PROJECT_DIR] [--json]
 issue-flow graphify [-C PROJECT_DIR] [...graphify subcommand + args]
 issue-flow status [PROJECT_DIR] [--local] [--json]
 issue-flow doctor [PROJECT_DIR] [--fix] [--except N] [--dry-run] [--json]
@@ -42,6 +45,8 @@ issue-flow workspace init [WORKSPACE_DIR] [--default MEMBER]
 | --- | --- |
 | First-time setup, or add missing files only | `issue-flow init` |
 | Pull newer templates after `uv tool upgrade issue-flow` (or similar) | `issue-flow update` |
+| Refresh every unlocked registered repo | `issue-flow update --all` |
+| Add / remove a root in the user-global registry | `issue-flow register` / `unregister` |
 | Replace generated scaffolds without upgrading logic | `issue-flow init --force` |
 | Rebuild the graphify knowledge graph | `issue-flow graphify` |
 | See where every issue stands (focus / parked / solved / GitHub) | `issue-flow status` |
@@ -81,6 +86,14 @@ a TTY (e.g. CI pipelines).
 | `--skip-dep-check` | Skip the external-CLI dependency check (`git`, `gh`) and the confirmation prompt that follows if anything is missing. |
 | `--editor`, `-e`   | AI coding tool(s) to refresh for: `cursor` (default), `claude`, `opencode`, `codex`, or `all`. Repeatable. See [Editor support](editors.md). |
 | `--force`, `-f`    | Overwrite a packaged skill directory even when it looks foreign (symlink, extra files, or content hash ≠ last render stamp). |
+| `--all`            | Walk the user-global `registry.toml` and run `update` on every unlocked root. Missing and locked roots are listed and skipped. No `issueflow-workspace.toml` required. Forwards `--editor`, `--skip-dep-check`, and `--force`. |
+| `--json`           | With `--all`, emit ok / skip / fail counts and per-root results. |
+
+`issue-flow init` and `issue-flow register` add the current root to
+`$XDG_CONFIG_HOME/issue-flow/registry.toml` (or `%APPDATA%\issue-flow\`
+on native Windows). `unregister` removes it. Relative paths are rejected.
+A single-repo `update` still runs on a locked root — lock is a bulk-update
+skip only. See [Per-repo lock](configuration.md#per-repo-lock).
 
 Use `update` after upgrading the **issue-flow** package to refresh the packaged
 skills, command files where supported, rules file(s), and
