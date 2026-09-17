@@ -23,6 +23,7 @@ from issue_flow.surfaces import (
     ensure_editor_gitignore,
     materialize_canonical_store,
     materialize_editor_profile,
+    materialize_user_global_both_skills,
     maybe_ensure_linguist_gitattributes,
     write_manifest_files,
 )
@@ -515,6 +516,17 @@ def run_init(
             skipped_files.extend(result.skipped)
             pruned_count += result.pruned
 
+    global_result = materialize_user_global_both_skills(
+        project_root,
+        settings,
+        profiles,
+        mode_obj,
+        skill_level_id,
+        overwrite_foreign=force,
+    )
+    written_files.extend(global_result.written)
+    skipped_files.extend(global_result.skipped)
+
     console_io.console.print()
     _ensure_dotenv_file(project_root)
     maybe_ensure_linguist_gitattributes(project_root, settings)
@@ -659,6 +671,16 @@ def run_update(
         )
         written_files.extend(result.written)
         pruned_count += result.pruned
+
+    global_result = materialize_user_global_both_skills(
+        project_root,
+        settings,
+        profiles,
+        mode_obj,
+        skill_level_id,
+        overwrite_foreign=force,
+    )
+    written_files.extend(global_result.written)
 
     console_io.console.print()
     maybe_ensure_linguist_gitattributes(project_root, settings)
