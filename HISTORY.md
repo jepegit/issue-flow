@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- **Doctor reports unmanaged editor skills (#277).** `issue-flow doctor` / `agent audit` list skill directories under in-use editor trees whose names are not packaged `SKILL_DIRS` outputs. Report-only INFO findings; `--fix` does not delete them.
+
 ## [0.4.18] - 2026-09-16
 
 - **Epic/auto docs: stage publish, revise, and auto examples (#271).** Expand `docs/how-to/epics.md` and `auto-mode.md`, and mirror the same guidance in `docs/issue-workflow.md` §§ `/iflow-epic` and `/iflow-auto`.

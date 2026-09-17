@@ -18,6 +18,7 @@ These conditions are **machine-checkable** — the same rules power
 | `incomplete_group` | `issue<N>_plan` or status file without `issue<N>_original` in that folder | warn | no — run `/iflow-init` |
 | `orphan_file` | Unexpected file in a lifecycle folder (allowlist: `cycle_status.md`) | info | no |
 | `missing_tree_folder` | Expected `.issueflows/` subfolder absent | info | yes — `mkdir` |
+| `unmanaged_editor_skill` | Directory under an in-use `<agent_dir>/skills/` whose name is not a packaged `SKILL_DIRS` output (`my-notes`, leftover retired names, …) | info | no — report only; `update` already leaves it alone |
 
 ## CLI
 

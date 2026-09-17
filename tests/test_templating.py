@@ -17,6 +17,7 @@ from issue_flow.templating import (
     build_canonical_manifest,
     build_manifest,
     is_skill_template,
+    packaged_skill_output_names,
     render_template,
     resolve_output_path,
     stamp_skill_version,
@@ -1783,6 +1784,16 @@ def test_pstack_stems_are_optional_not_default() -> None:
         assert stem not in DEFAULT_SKILL_DIRS
         assert stem.startswith("pstack_")
     assert PSTACK_NAME_TO_STEM["blast-radius"] == "pstack_blast_radius"
+
+
+def test_packaged_skill_output_names_cover_aliases_and_pstack() -> None:
+    names = packaged_skill_output_names()
+    assert "iflow-plan" in names
+    assert "iflow" in names
+    assert "iflow-iflow" not in names
+    assert "unslop" in names
+    assert "pstack_unslop" not in names
+    assert len(names) == len(SKILL_DIRS)
 
 
 def test_default_manifest_has_no_pstack_entries() -> None:
