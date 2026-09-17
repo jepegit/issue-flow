@@ -1,17 +1,27 @@
 # Configuration
 
-issue-flow reads settings from two places today:
+issue-flow reads settings from these layers (later beats earlier only
+when a key is **unset** above it):
 
-- **`.env`** (project root, via python-dotenv) — environment overrides.
-- **`.issueflows/config.toml`** — the project's persisted choices. Persisted
-  values deliberately **beat** the environment, so a stray env var can't
-  silently override your project's configuration on `update`.
+- **baked default**
+- **`ISSUEFLOW_*` env / `.env`** (project root, via python-dotenv)
+- **user-global** `config.toml` — Linux/macOS/WSL:
+  `$XDG_CONFIG_HOME/issue-flow/config.toml` or `~/.config/issue-flow/config.toml`;
+  native Windows: `%APPDATA%\issue-flow\config.toml`
+- **project** `.issueflows/config.toml` — wins over every layer below
 
-A **user-global** layer (XDG / `%APPDATA%` `issue-flow/config.toml`, plus a
-registry and `update --all`) is specified in
-[user-global-config.md](../.issueflows/04-designs-and-guides/user-global-config.md)
-(issue #281 / epic #269) and is not implemented yet. Planned precedence:
-project `config.toml` > user-global > `ISSUEFLOW_*` env > default.
+So: **project `config.toml` > user-global > env > default**. A committed
+project file stays portable; user-global fills knobs the project did not
+set. `mode` and `locked` are project-only (`config set --global mode …`
+is refused). Registry / `update --all` are a later Stage 2 issue.
+
+```bash
+issue-flow config show --global
+issue-flow config set --global caveman_default true
+```
+
+Contract: [user-global-config.md](../.issueflows/04-designs-and-guides/user-global-config.md)
+(issues #281 / #285, epic #269).
 
 ## Environment variables (`.env`)
 

@@ -3609,12 +3609,18 @@ def run_config_show(
     *,
     persisted_only: bool,
     as_json: bool,
+    global_layer: bool = False,
 ) -> int:
     """Print effective (or persisted-only) ``[issueflow]`` config values."""
     from issue_flow import config_ops
+    from issue_flow.user_global import user_global_config_path
 
     settings = Settings()
-    cfg_path = settings.config_path(project_root)
+    cfg_path = (
+        user_global_config_path()
+        if global_layer
+        else settings.config_path(project_root)
+    )
     effective = settings.effective_config(project_root)
     persisted = config_ops.read_persisted_section(cfg_path) or {}
 
@@ -3640,12 +3646,19 @@ def run_config_show(
                         "value": None,
                         "set": False,
                         "persisted": True,
+                        "layer": "user-global" if global_layer else "project",
                     },
                 )
             else:
                 console.print(f"[dim]{key}[/dim]  (not set in {escape(str(cfg_path))})")
             return 0
-        value = persisted[key] if persisted_only else effective[key]
+        if persisted_only:
+            value = persisted[key]
+        elif global_layer:
+            seeded = settings.seed_config_values()
+            value = persisted[key] if key in persisted else seeded[key]
+        else:
+            value = effective[key]
         payload = {
             "ok": True,
             "path": str(cfg_path),
@@ -3653,21 +3666,33 @@ def run_config_show(
             "value": value,
             "set": key in persisted,
             "persisted": persisted_only,
+            "layer": "user-global" if global_layer else "project",
         }
         if as_json:
             _emit_json(console, payload)
             return 0
         console.print(f"[bold]{key}[/bold] = {value!r}")
         if not persisted_only and key not in persisted:
-            console.print("  [dim](default / env; not set in config.toml)[/dim]")
+            layer = "user-global" if global_layer else "config.toml"
+            console.print(f"  [dim](default / env; not set in {layer})[/dim]")
         return 0
 
-    values = persisted if persisted_only else effective
+    if persisted_only:
+        values = persisted
+    elif global_layer:
+        seeded = settings.seed_config_values()
+        values = {
+            name: persisted[name] if name in persisted else seeded[name]
+            for name in seeded
+        }
+    else:
+        values = effective
     payload = {
         "ok": True,
         "path": str(cfg_path),
         "exists": cfg_path.is_file(),
         "persisted": persisted_only,
+        "layer": "user-global" if global_layer else "project",
         "values": values,
         "persisted_keys": sorted(persisted),
     }
@@ -3678,7 +3703,11 @@ def run_config_show(
     if not cfg_path.is_file():
         console.print(
             f"[yellow]missing[/yellow]  {escape(str(cfg_path))} "
-            "(showing defaults; run 'issue-flow config add' to create)"
+            + (
+                "(showing defaults; run 'issue-flow config set --global' to create)"
+                if global_layer
+                else "(showing defaults; run 'issue-flow config add' to create)"
+            )
         )
     else:
         console.print(f"[dim]{escape(str(cfg_path))}[/dim]")
@@ -3705,15 +3734,24 @@ def run_config_set(
     raw_value: str,
     *,
     as_json: bool,
+    global_layer: bool = False,
 ) -> int:
-    """Upsert one ``[issueflow]`` key in ``config.toml``."""
+    """Upsert one ``[issueflow]`` key in project or user-global ``config.toml``."""
     from issue_flow import config_ops
+    from issue_flow.user_global import upsert_user_global_value, user_global_config_path
 
     settings = Settings()
-    cfg_path = settings.config_path(project_root)
+    cfg_path = (
+        user_global_config_path()
+        if global_layer
+        else settings.config_path(project_root)
+    )
     try:
         value = config_ops.parse_config_value(key, raw_value)
-        config_ops.upsert_config_value(cfg_path, key, value)
+        if global_layer:
+            upsert_user_global_value(key, value)
+        else:
+            config_ops.upsert_config_value(cfg_path, key, value)
     except ValueError as exc:
         if as_json:
             _emit_json(
@@ -3731,6 +3769,7 @@ def run_config_set(
         "key": key,
         "value": value,
         "needs_update": needs_update,
+        "layer": "user-global" if global_layer else "project",
     }
     if as_json:
         _emit_json(console, payload)

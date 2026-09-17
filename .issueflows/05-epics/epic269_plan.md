@@ -103,8 +103,9 @@ Implement the original issue body on top of the Stage 1 contract.
 - Goal: `config show --global` and project resolve match the design
   doc’s precedence.
 - Model: default
-- Depends on: stage 1 issue 1
+- Depends on: #281
 - yolo: yes — mechanical once the path and precedence are fixed
+- Published: #285
 
 ### Issue: Per-repo lock flag
 
@@ -115,8 +116,9 @@ Implement the original issue body on top of the Stage 1 contract.
   Acceptance: seed + resolve tests; locked project documented.
 - Goal: A repo can be marked locked and `config show` reports it.
 - Model: fast
-- Depends on: stage 2 issue 1
+- Depends on: #285
 - yolo: yes — existing knob pattern
+- Published: #286
 
 ### Issue: Registry of issue-flowed projects + update-all
 
@@ -132,8 +134,9 @@ Implement the original issue body on top of the Stage 1 contract.
 - Goal: `update --all` refreshes unlocked registered repos and skips
   locked ones.
 - Model: default
-- Depends on: stage 2 issue 2
+- Depends on: #286
 - yolo: no — new CLI surface, multi-root I/O, failure aggregation
+- Published: #287
 
 ## Later (unstaged)
 

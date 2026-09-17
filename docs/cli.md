@@ -30,6 +30,8 @@ issue-flow agent archive N [N ...] [-C PROJECT_DIR] [--dry-run] [--json]
 issue-flow agent capture N [-C PROJECT_DIR] [--repo OWNER/REPO]
   [--force] [--json]
 issue-flow config add [-C PROJECT_DIR] [--force] [--json]
+issue-flow config show [KEY] [-C PROJECT_DIR] [--persisted] [--global] [--json]
+issue-flow config set KEY VALUE [-C PROJECT_DIR] [--global] [--json]
 issue-flow workspace init [WORKSPACE_DIR] [--default MEMBER]
   [--force] [--json]
 ```

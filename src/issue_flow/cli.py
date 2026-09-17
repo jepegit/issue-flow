@@ -1211,6 +1211,11 @@ def config_show(
         "--persisted",
         help="Show only keys written in config.toml (no defaults).",
     ),
+    global_layer: bool = typer.Option(
+        False,
+        "--global",
+        help="Read the user-global config.toml (XDG / %APPDATA%).",
+    ),
     json_output: bool = typer.Option(
         False, "--json", help="Emit a machine-readable JSON object."
     ),
@@ -1225,6 +1230,7 @@ def config_show(
             key,
             persisted_only=persisted,
             as_json=json_output,
+            global_layer=global_layer,
         )
     )
 
@@ -1242,6 +1248,11 @@ def config_set(
         file_okay=False,
         resolve_path=True,
     ),
+    global_layer: bool = typer.Option(
+        False,
+        "--global",
+        help="Write the user-global config.toml (XDG / %APPDATA%).",
+    ),
     json_output: bool = typer.Option(
         False, "--json", help="Emit a machine-readable JSON object."
     ),
@@ -1250,7 +1261,14 @@ def config_set(
     from issue_flow.agent import run_config_set
 
     raise typer.Exit(
-        code=run_config_set(project_dir, _console, key, value, as_json=json_output)
+        code=run_config_set(
+            project_dir,
+            _console,
+            key,
+            value,
+            as_json=json_output,
+            global_layer=global_layer,
+        )
     )
 
 

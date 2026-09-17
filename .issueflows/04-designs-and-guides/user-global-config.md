@@ -2,8 +2,9 @@
 
 **Issue:** [#281](https://github.com/jepegit/issue-flow/issues/281) (this
 contract) / epic [#269](https://github.com/jepegit/issue-flow/issues/269)
-**Status:** decided 2026-09-17 (Stage 1). Implementation is Stage 2 —
-do not treat this file as shipped CLI behaviour.
+**Status:** decided 2026-09-17 (Stage 1). User-global file + resolve +
+`config show|set --global` shipped in #285. Lock and `update --all`
+remain Stage 2 (#286 / #287).
 
 ## Context
 

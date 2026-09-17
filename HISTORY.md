@@ -9,6 +9,7 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- User-global config file + resolve precedence. (#285)
 - Skill split — which packaged stems are global vs project-local. (#282)
 - Design doc — user-global config, lock, registry, update-all. (#281)
 

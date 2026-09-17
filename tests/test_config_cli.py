@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -13,10 +14,11 @@ from issue_flow.cli import app
 from issue_flow import config_ops
 from issue_flow.config import Settings
 
+_ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
+
 
 def _plain(text: str) -> str:
-    # Match test_cli helper: strip rich markup if present in captured output.
-    return text
+    return _ANSI_RE.sub("", text)
 
 
 def _json(output: str) -> Any:
@@ -182,6 +184,73 @@ def test_config_edit_opens_editor(
     assert calls == [[str(fake), str(cfg)]]
 
 
+def test_config_global_set_show_and_project_override(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("ISSUEFLOW_FIX_AUTO_NAME", raising=False)
+    runner = CliRunner()
+    settings = Settings()
+
+    assert settings.resolve_fix_auto_name(tmp_path) is False
+
+    set_g = runner.invoke(
+        app,
+        ["config", "set", "fix_auto_name", "true", "--global", "--json"],
+    )
+    assert set_g.exit_code == 0, set_g.output
+    g_payload = _json(set_g.stdout)
+    assert g_payload["ok"] is True
+    assert g_payload["layer"] == "user-global"
+    assert g_payload["value"] is True
+
+    assert settings.resolve_fix_auto_name(tmp_path) is True
+
+    show_g = runner.invoke(
+        app, ["config", "show", "fix_auto_name", "--global", "--json"]
+    )
+    assert show_g.exit_code == 0, show_g.output
+    shown = _json(show_g.stdout)
+    assert shown["layer"] == "user-global"
+    assert shown["value"] is True
+    assert shown["set"] is True
+
+    set_p = runner.invoke(
+        app,
+        [
+            "config",
+            "set",
+            "fix_auto_name",
+            "false",
+            "-C",
+            str(tmp_path),
+            "--json",
+        ],
+    )
+    assert set_p.exit_code == 0, set_p.output
+    assert settings.resolve_fix_auto_name(tmp_path) is False
+
+
+def test_config_set_global_rejects_mode(tmp_path: Path) -> None:
+    runner = CliRunner()
+    result = runner.invoke(
+        app, ["config", "set", "mode", "simple", "--global", "--json"]
+    )
+    assert result.exit_code == 1
+    payload = _json(result.stdout)
+    assert payload["ok"] is False
+    assert "not a user-global key" in payload["error"]
+
+
+def test_user_global_mode_key_is_ignored(tmp_path: Path) -> None:
+    from issue_flow.user_global import user_global_config_path
+
+    path = user_global_config_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text('[issueflow]\nmode = "simple"\n', encoding="utf-8")
+    settings = Settings()
+    assert settings.resolve_active_mode_id(tmp_path) == "standard"
+
+
 def test_config_help_lists_show_set_edit() -> None:
     runner = CliRunner()
     result = runner.invoke(app, ["config", "--help"])
@@ -190,3 +259,6 @@ def test_config_help_lists_show_set_edit() -> None:
     assert "show" in out
     assert "set" in out
     assert "edit" in out
+    show = runner.invoke(app, ["config", "show", "--help"])
+    assert show.exit_code == 0
+    assert "--global" in _plain(show.stdout)
