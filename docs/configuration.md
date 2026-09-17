@@ -13,8 +13,8 @@ when a key is **unset** above it):
 So: **project `config.toml` > user-global > env > default**. A committed
 project file stays portable; user-global fills knobs the project did not
 set. `mode` and `locked` are project-only (`config set --global mode …`
-or `locked` is refused). Registry / `update --all` are a later Stage 2
-issue (#287).
+or `locked` is refused). `issue-flow register` / `init` write
+`registry.toml` beside the user-global file; `update --all` walks it.
 
 ```bash
 issue-flow config show --global

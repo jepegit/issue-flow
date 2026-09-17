@@ -252,9 +252,30 @@ def update(
             "(symlink, extra files, or hash ≠ last render stamp)."
         ),
     ),
+    all_roots: bool = typer.Option(
+        False,
+        "--all",
+        help=(
+            "Refresh every unlocked root in the user-global registry "
+            "(skips missing and locked repos). No workspace file required."
+        ),
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object (with --all)."
+    ),
 ) -> None:
     """Refresh packaged editor commands, rules, and workflow doc from this package."""
-    from issue_flow.init import run_update
+    from issue_flow.init import run_update, run_update_all
+
+    if all_roots:
+        raise typer.Exit(
+            code=run_update_all(
+                skip_dep_check=skip_dep_check,
+                editors=editor,
+                force=force,
+                as_json=json_output,
+            )
+        )
 
     run_update(
         project_root=project_dir,
@@ -1400,6 +1421,68 @@ def workspace_update(
             workspace_dir, _console, skip_dep_check, editor, json_output
         )
     )
+
+
+@app.command()
+def register(
+    project_dir: Path = typer.Argument(
+        default=Path("."),
+        help="Project root to add to the user-global registry.",
+        exists=True,
+        file_okay=False,
+        resolve_path=True,
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Add a project root to the user-global registry for ``update --all``."""
+    from issue_flow.user_global import register_root, user_global_registry_path
+
+    added = register_root(project_dir)
+    payload = {
+        "ok": True,
+        "added": added,
+        "path": str(project_dir),
+        "registry": str(user_global_registry_path()),
+    }
+    if json_output:
+        _console.print_json(data=payload)
+    elif added:
+        _console.print(f"[green]registered[/green]  {project_dir}")
+    else:
+        _console.print(f"[dim]already registered[/dim]  {project_dir}")
+
+
+@app.command()
+def unregister(
+    project_dir: Path = typer.Argument(
+        default=Path("."),
+        help="Project root to remove from the user-global registry.",
+        exists=False,
+        file_okay=False,
+        resolve_path=True,
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Remove a project root from the user-global registry."""
+    from issue_flow.user_global import unregister_root, user_global_registry_path
+
+    removed = unregister_root(project_dir)
+    payload = {
+        "ok": True,
+        "removed": removed,
+        "path": str(project_dir),
+        "registry": str(user_global_registry_path()),
+    }
+    if json_output:
+        _console.print_json(data=payload)
+    elif removed:
+        _console.print(f"[green]unregistered[/green]  {project_dir}")
+    else:
+        _console.print(f"[dim]not in registry[/dim]  {project_dir}")
 
 
 app.add_typer(agent_app)

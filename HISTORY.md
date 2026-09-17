@@ -9,6 +9,7 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- Registry of issue-flowed projects + `update --all`. (#287)
 - Per-repo lock flag (`[issueflow] locked`, `ISSUEFLOW_LOCKED` process override). (#286)
 - User-global config file + resolve precedence. (#285)
 - Skill split — which packaged stems are global vs project-local. (#282)

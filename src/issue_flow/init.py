@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 import shutil
 from pathlib import Path
@@ -26,6 +27,7 @@ from issue_flow.surfaces import (
     write_manifest_files,
 )
 from issue_flow.skill_ownership import foreign_skill_reason, load_stamps, stamp_key
+from issue_flow.user_global import register_root
 from issue_flow.templating import (
     COMMAND_NAMES,
     RETIRED_COMMANDS,
@@ -557,6 +559,7 @@ def run_init(
         f"if needed. Optional Agent Skills live under [bold]{hint_dir}[/bold] "
         "([bold]/iflow-capture[/bold], etc.).[/dim]\n"
     )
+    _register_project_root(project_root)
 
 
 def run_update(
@@ -680,6 +683,134 @@ def run_update(
         "(foreign packaged skill dirs were skipped unless --force). "
         "Issue files under [bold].issueflows/[/bold] were not modified by this command.[/dim]\n"
     )
+
+
+def _register_project_root(project_root: Path) -> None:
+    """Add ``project_root`` to the user-global registry (idempotent)."""
+    try:
+        added = register_root(project_root.resolve())
+    except ValueError as exc:
+        console_io.console.print(f"  [yellow]skip[/yellow]  registry: {exc}")
+        return
+    if added:
+        console_io.console.print(
+            f"  [green]register[/green]  {project_root.resolve()}"
+        )
+
+
+def run_update_all(
+    *,
+    skip_dep_check: bool = False,
+    editors: list[str] | None = None,
+    force: bool = False,
+    as_json: bool = False,
+) -> int:
+    """Refresh every unlocked registered root. Missing and locked roots skip.
+
+    Aggregates like :func:`issue_flow.agent.run_workspace_update`: one member
+    failure does not abort the rest. Forwards ``--force`` / ``--editor``.
+    """
+    from rich.console import Console
+
+    from issue_flow.user_global import read_registry_roots, user_global_registry_path
+
+    settings = Settings()
+    roots = read_registry_roots()
+
+    if not skip_dep_check and not _dependency_gate(skip_dep_check=False):
+        return 1
+
+    if not as_json:
+        console_io.console.print(
+            "\n[bold]Updating issue-flow scaffolds in registered repos[/bold]"
+        )
+        console_io.console.print(f"[dim]{len(roots)} registered root(s)[/dim]\n")
+
+    def _run_member_update(root: Path) -> None:
+        if as_json:
+            quiet = Console(quiet=True)
+            saved = console_io.console
+            console_io.console = quiet
+            try:
+                run_update(
+                    root, skip_dep_check=True, editors=editors, force=force
+                )
+            finally:
+                console_io.console = saved
+        else:
+            run_update(root, skip_dep_check=True, editors=editors, force=force)
+
+    results: list[dict[str, object]] = []
+    ok_count = 0
+    skip_count = 0
+    fail_count = 0
+
+    for root in roots:
+        entry: dict[str, object] = {"path": str(root), "name": root.name}
+        if not root.is_dir() or not (root / settings.issueflows_dir).is_dir():
+            entry["ok"] = True
+            entry["skipped"] = True
+            entry["reason"] = "missing"
+            skip_count += 1
+            results.append(entry)
+            if not as_json:
+                console_io.console.print(
+                    f"  [yellow]skip[/yellow]  {root}  (missing)"
+                )
+            continue
+        if settings.resolve_locked(root):
+            entry["ok"] = True
+            entry["skipped"] = True
+            entry["reason"] = "locked"
+            skip_count += 1
+            results.append(entry)
+            if not as_json:
+                console_io.console.print(
+                    f"  [yellow]skip[/yellow]  {root}  (locked)"
+                )
+            continue
+        try:
+            _run_member_update(root)
+            entry["ok"] = True
+            entry["skipped"] = False
+            ok_count += 1
+        except typer.Exit as exc:
+            entry["ok"] = False
+            entry["skipped"] = False
+            entry["error"] = f"update failed (exit {exc.exit_code})"
+            fail_count += 1
+        results.append(entry)
+
+    payload = {
+        "ok": fail_count == 0,
+        "registry": str(user_global_registry_path()),
+        "members": results,
+        "ok_count": ok_count,
+        "skip_count": skip_count,
+        "fail_count": fail_count,
+    }
+
+    if as_json:
+        console_io.console.print_json(json.dumps(payload))
+        return 0 if fail_count == 0 else 1
+
+    console_io.console.print()
+    if fail_count == 0:
+        console_io.console.print(
+            f"[bold green]Updated {ok_count} unlocked root(s); "
+            f"{skip_count} skipped.[/bold green]"
+        )
+    else:
+        console_io.console.print(
+            f"[bold yellow]Updated {ok_count} unlocked root(s); "
+            f"{skip_count} skipped; {fail_count} failed.[/bold yellow]"
+        )
+        for entry in results:
+            if not entry.get("ok"):
+                console_io.console.print(
+                    f"  [red]fail[/red]  {entry['path']}: {entry.get('error')}"
+                )
+    return 0 if fail_count == 0 else 1
 
 
 def _prune_retired_files(

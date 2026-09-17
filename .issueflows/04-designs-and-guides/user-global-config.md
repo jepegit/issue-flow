@@ -4,7 +4,7 @@
 contract) / epic [#269](https://github.com/jepegit/issue-flow/issues/269)
 **Status:** decided 2026-09-17 (Stage 1). User-global file + resolve +
 `config show|set --global` shipped in #285. Per-repo `locked` shipped
-in #286. `update --all` remains Stage 2 (#287).
+in #286. Registry + `update --all` shipped in #287.
 
 ## Context
 
