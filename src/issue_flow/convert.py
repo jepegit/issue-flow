@@ -98,6 +98,7 @@ def run_convert(
             force=force,
             prune=True,
             ensure_agents_md=_ensure_agents_md,
+            overwrite_foreign=force,
         )
         modes_module.write_persisted_editor(cfg_path, profile.id)
         if prune_other:

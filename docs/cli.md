@@ -7,7 +7,7 @@ title: CLI reference
 ```text
 issue-flow init [PROJECT_DIR] [--force] [--skip-dep-check]
   [--editor EDITOR] [--mode MODE] [--skill-level LEVEL]
-issue-flow update [PROJECT_DIR] [--skip-dep-check] [--editor EDITOR]
+issue-flow update [PROJECT_DIR] [--skip-dep-check] [--editor EDITOR] [--force]
 issue-flow graphify [-C PROJECT_DIR] [...graphify subcommand + args]
 issue-flow status [PROJECT_DIR] [--local] [--json]
 issue-flow doctor [PROJECT_DIR] [--fix] [--except N] [--dry-run] [--json]
@@ -78,12 +78,14 @@ a TTY (e.g. CI pipelines).
 | `PROJECT_DIR`      | Project root directory. Defaults to `.` (current directory). |
 | `--skip-dep-check` | Skip the external-CLI dependency check (`git`, `gh`) and the confirmation prompt that follows if anything is missing. |
 | `--editor`, `-e`   | AI coding tool(s) to refresh for: `cursor` (default), `claude`, `opencode`, `codex`, or `all`. Repeatable. See [Editor support](editors.md). |
+| `--force`, `-f`    | Overwrite a packaged skill directory even when it looks foreign (symlink, extra files, or content hash ≠ last render stamp). |
 
 Use `update` after upgrading the **issue-flow** package to refresh the packaged
 skills, command files where supported, rules file(s), and
 `docs/issue-workflow.md` from the version you have installed. This
 **overwrites** those generated files (unlike a plain second `init`) and prunes
-retired generated command/skill files. It still does not modify arbitrary files
+retired generated command/skill files, but **skips** a packaged skill path that
+is not ours (symlink, extra files, or stamp mismatch) unless `--force`. It still does not modify arbitrary files
 under `.issueflows/` (for example your `issue*_original.md` /
 `issue*_status.md` files), and it creates any **new** `.issueflows/`
 subdirectories required by the current package. If

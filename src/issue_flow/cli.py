@@ -243,11 +243,25 @@ def update(
         "-e",
         help=_EDITOR_HELP,
     ),
+    force: bool = typer.Option(
+        False,
+        "--force",
+        "-f",
+        help=(
+            "Overwrite a packaged skill directory even when it looks foreign "
+            "(symlink, extra files, or hash ≠ last render stamp)."
+        ),
+    ),
 ) -> None:
     """Refresh packaged editor commands, rules, and workflow doc from this package."""
     from issue_flow.init import run_update
 
-    run_update(project_root=project_dir, skip_dep_check=skip_dep_check, editors=editor)
+    run_update(
+        project_root=project_dir,
+        skip_dep_check=skip_dep_check,
+        editors=editor,
+        force=force,
+    )
 
 
 @app.command()

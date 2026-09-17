@@ -25,6 +25,7 @@ from issue_flow.surfaces import (
     maybe_ensure_linguist_gitattributes,
     write_manifest_files,
 )
+from issue_flow.skill_ownership import foreign_skill_reason, load_stamps, stamp_key
 from issue_flow.templating import (
     COMMAND_NAMES,
     RETIRED_COMMANDS,
@@ -138,7 +139,9 @@ def _write_manifest_files(
     force: bool,
 ) -> tuple[list[Path], list[Path]]:
     """Backward-compatible wrapper around :func:`surfaces.write_manifest_files`."""
-    return write_manifest_files(project_root, manifest, context, force=force)
+    return write_manifest_files(
+        project_root, manifest, context, force=force, overwrite_foreign=force
+    )
 
 
 def _ensure_agents_md(project_root: Path, context: dict[str, str]) -> None:
@@ -504,6 +507,7 @@ def run_init(
                 force=force,
                 prune=True,
                 ensure_agents_md=_ensure_agents_md,
+                overwrite_foreign=force,
             )
             written_files.extend(result.written)
             skipped_files.extend(result.skipped)
@@ -559,6 +563,7 @@ def run_update(
     project_root: Path,
     skip_dep_check: bool = False,
     editors: list[str] | None = None,
+    force: bool = False,
 ) -> None:
     """Refresh packaged scaffold files (commands, rule, skills, workflow doc).
 
@@ -578,6 +583,8 @@ def run_update(
         skip_dep_check: If True, bypass the external-CLI dependency check.
         editors: Editor ids to refresh (``"all"`` expands to every supported
             editor). Defaults to the configured/default editor.
+        force: If True, overwrite packaged skill dirs even when they look
+            foreign (symlink, extra files, or stamp mismatch).
 
     The scaffolding mode is read from the persisted ``.issueflows/config.toml``
     (or ``ISSUEFLOW_MODE``); ``update`` never changes the mode — switch modes via
@@ -645,6 +652,7 @@ def run_update(
             force=True,
             prune=True,
             ensure_agents_md=_ensure_agents_md,
+            overwrite_foreign=force,
         )
         written_files.extend(result.written)
         pruned_count += result.pruned
@@ -668,7 +676,8 @@ def run_update(
         console_io.console.print("[bold]Nothing to write.[/bold]")
 
     console_io.console.print(
-        "\n[dim]Manifest outputs were overwritten from the installed package. "
+        "\n[dim]Manifest outputs were overwritten from the installed package "
+        "(foreign packaged skill dirs were skipped unless --force). "
         "Issue files under [bold].issueflows/[/bold] were not modified by this command.[/dim]\n"
     )
 
@@ -703,17 +712,27 @@ def _prune_retired_files(
             remove_empty_dir=True,
         )
 
-    # Prune retired skill folders.
+    # Prune retired skill folders (skip foreign collisions).
+    settings = Settings()
+    stamps = load_stamps(project_root, settings.issueflows_dir)
     skills_dir = project_root / profile.agent_dir / "skills"
     for old_skill in RETIRED_SKILLS:
         old_folder = skills_dir / old_skill
-        if old_folder.exists():
-            import shutil
-
-            shutil.rmtree(old_folder)
-            relative = old_folder.relative_to(project_root)
-            console_io.console.print(f"  [yellow]prune[/yellow]  {relative}")
-            pruned_count += 1
+        if not old_folder.exists():
+            continue
+        reason = foreign_skill_reason(
+            old_folder, stamp=stamps.get(stamp_key(project_root, old_folder))
+        )
+        if reason:
+            console_io.console.print(
+                f"  [yellow]skip[/yellow]  {old_folder.relative_to(project_root)}  "
+                f"(foreign skill: {reason}; not pruning)"
+            )
+            continue
+        shutil.rmtree(old_folder)
+        relative = old_folder.relative_to(project_root)
+        console_io.console.print(f"  [yellow]prune[/yellow]  {relative}")
+        pruned_count += 1
 
     return pruned_count
 
@@ -761,18 +780,30 @@ def _prune_excluded_surfaces(
     """
     pruned_count = 0
 
+    settings = Settings()
+    stamps = load_stamps(project_root, settings.issueflows_dir)
     skills_dir = project_root / profile.agent_dir / "skills"
     for skill_dir in SKILL_DIRS:
         if skill_dir in mode.skills:
             continue
         folder = skills_dir / skill_output_name(skill_dir)
-        if folder.exists():
-            shutil.rmtree(folder)
+        if not folder.exists():
+            continue
+        reason = foreign_skill_reason(
+            folder, stamp=stamps.get(stamp_key(project_root, folder))
+        )
+        if reason:
             console_io.console.print(
-                f"  [yellow]prune[/yellow]  {folder.relative_to(project_root)}  "
-                f"(excluded by mode {mode.id})"
+                f"  [yellow]skip[/yellow]  {folder.relative_to(project_root)}  "
+                f"(foreign skill: {reason}; not pruning)"
             )
-            pruned_count += 1
+            continue
+        shutil.rmtree(folder)
+        console_io.console.print(
+            f"  [yellow]prune[/yellow]  {folder.relative_to(project_root)}  "
+            f"(excluded by mode {mode.id})"
+        )
+        pruned_count += 1
 
     if profile.commands_dir:
         cmd_dir = project_root / profile.agent_dir / profile.commands_dir
