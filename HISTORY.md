@@ -9,6 +9,7 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- Skill split — which packaged stems are global vs project-local. (#282)
 - Design doc — user-global config, lock, registry, update-all. (#281)
 
 ## [0.4.20] - 2026-09-17

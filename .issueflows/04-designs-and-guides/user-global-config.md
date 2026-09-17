@@ -17,8 +17,9 @@ workspace file required, any registered root is eligible.
 
 Not a skillbook clone. [skillbook-lessons.md](./skillbook-lessons.md)
 already pointed #269 at user-global config + update-all + lock and
-rejected a personal skill library. Global vs local **skill install**
-is a sibling Stage 1 issue (#282); this doc does not classify stems.
+rejected a personal skill library. Which packaged stems may also
+install user-global is decided in
+[global-vs-local-skills.md](./global-vs-local-skills.md) (#282).
 
 ## Decisions
 
