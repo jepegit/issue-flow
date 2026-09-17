@@ -32,7 +32,7 @@ a prior `update --all` or home-dir install.
 | Cursor | `~/.cursor/skills/<output>/` | Project `.cursor/skills/`, `.agents/skills/`; compat `.claude/skills/`, `.codex/skills/`, `~/.claude/skills/`, `~/.codex/skills/`; user `~/.agents/skills/` | Official docs: [Cursor Agent Skills](https://cursor.com/docs/skills). **Cloud Agents sync only `~/.cursor/skills/`** — do not install Cursor globals into `~/.claude/skills/` as the primary path. |
 | Claude Code | `~/.claude/skills/<output>/` | Project `.claude/skills/` | Comment hypothesis on #269 (`Cursor reads ~/.claude/skills/`) is **true for Cursor compat**, but Claude's own global dir is still `~/.claude/skills/`. |
 | Codex | `~/.agents/skills/<output>/` | Legacy `~/.codex/skills/` still scanned | Current Codex docs prefer `~/.agents/skills`. Do not write the legacy path as primary. |
-| opencode | **unknown** | — | Later: confirm `~/.config/opencode/skills` vs `~/.agents/skills` before any write. |
+| opencode | `~/.config/opencode/skills/<output>/` | Compat `~/.claude/skills/`, `~/.agents/skills/` | Official docs: [OpenCode Agent Skills](https://opencode.ai/docs/skills/) (verified 2026-09-17). Primary write is XDG `~/.config/opencode/skills/`. Do not write opencode globals into `~/.claude/skills/` or `~/.agents/skills/` as the primary path. |
 
 WSL uses the Linux home inside the distro (`~/.cursor/skills/`), not
 the Windows `%USERPROFILE%` tree — same split as
@@ -116,9 +116,9 @@ Opt-in via `[issueflow].pstack_skills`. Not in mode `"all"`. See
 ## Later
 
 - Materialize `both` (and any future `global`) stems on `init` /
-  `update` / first install into the **per-editor** write targets above.
-  Honour #276 stamps on the user-global tree. Not a skillbook library.
-- Confirm opencode's user-global skill dir before any write.
+  `update` / first install into the **per-editor** write targets above
+  (including opencode `~/.config/opencode/skills/`). Honour #276 stamps
+  on the user-global tree. Not a skillbook library.
 - Do **not** collapse Cursor + Claude into one shared `~/.claude/skills/`
   tree: Cursor Cloud sync is `~/.cursor/skills/` only.
 

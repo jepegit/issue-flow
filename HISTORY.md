@@ -9,6 +9,7 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- Confirm opencode's user-global skill path (`~/.config/opencode/skills/`). (#292)
 - Registry of issue-flowed projects + `update --all`. (#287)
 - Per-repo lock flag (`[issueflow] locked`, `ISSUEFLOW_LOCKED` process override). (#286)
 - User-global config file + resolve precedence. (#285)

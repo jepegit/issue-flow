@@ -138,13 +138,60 @@ Implement the original issue body on top of the Stage 1 contract.
 - yolo: no — new CLI surface, multi-root I/O, failure aggregation
 - Published: #287
 
+## Stage 3 — User-global skill materialize
+
+Close epic Goal item (3): `both` stems land in the editor's user-global
+skill dir as well as the project copy. Local still wins. Honour #276
+on the **user-global** tree. No skillbook library.
+- Goal: `init` / `update` write `caveman`, `grill-me`, `gh-ci` to the
+  verified per-editor global paths; project copies stay; stamps skip
+  foreign global dirs unless `--force`.
+
+### Issue: Confirm or skip opencode's user-global skill path
+
+- Spec: #282 left opencode **unknown**. Verify the write target
+  (`~/.config/opencode/skills` vs `~/.agents/skills` vs other) from
+  current opencode docs / source, or record an explicit **skip** (no
+  global writes for opencode until known). Update the editor table in
+  [global-vs-local-skills.md](../04-designs-and-guides/global-vs-local-skills.md).
+  No `src/` materialize in this issue. Acceptance: table row is
+  `verified` or `skip` with a one-line reason.
+- Goal: Stage 3 materialize never writes an opencode global path that
+  we guessed.
+- Model: deep
+- Depends on: #282
+- yolo: no — product / path judgment
+- Published: #292
+
+### Issue: Materialize `both` stems into per-editor user-global skill dirs
+
+- Spec: On `init` / `update` (and each `update --all` member), write
+  `both` stems (`caveman`, `grill-me`, `gh-ci`) to the **per-editor**
+  user-global path from
+  [global-vs-local-skills.md](../04-designs-and-guides/global-vs-local-skills.md)
+  (#282): Cursor `~/.cursor/skills/`, Claude `~/.claude/skills/`,
+  Codex `~/.agents/skills/`. Opencode: `#292` verified
+  `~/.config/opencode/skills/` — write that path (not the compat
+  `~/.claude` / `~/.agents` dirs). Keep the project-local copy (no
+  `global`-only stems). Honour #276 on the user-global tree: stamps
+  live under the user-global issue-flow dir (not
+  `.issueflows/agent/skill-stamps.json` of a repo). `--force` on
+  `update` / `update --all` is `overwrite_foreign` for those global
+  dirs too. Do not write Cursor globals into `~/.claude/skills/`.
+  Tests: tmp `HOME` / `XDG`; project copy still present; foreign
+  global dir skipped without `--force`. Docs in `docs/configuration.md`
+  + the two design docs. Not a skillbook library
+  ([skillbook-lessons.md](../04-designs-and-guides/skillbook-lessons.md)).
+- Goal: A machine that ran `update` has the three `both` skills in
+  the editor global dir, and a project skill of the same name still
+  wins.
+- Model: default
+- Depends on: #292
+- yolo: no — home-dir writes, new stamp store, multi-editor I/O
+- Published: #293
+
 ## Later (unstaged)
 
-- Materialize **`both` / `global`** packaged skills on `init` /
-  `update` / first install per
-  [global-vs-local-skills.md](../04-designs-and-guides/global-vs-local-skills.md)
-  (#282) and #276 clobber-protect (per-editor user-global path).
-- Confirm opencode's user-global skill dir (marked unknown in #282).
 - Opt-in disk discovery of `.issueflows/` trees (never default).
 - `workspace update` calling through the registry when members are
   also registered (dedupe).
