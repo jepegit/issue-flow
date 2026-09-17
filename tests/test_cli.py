@@ -112,9 +112,10 @@ def test_init_unknown_mode_exits_with_code_2(runner: CliRunner, tmp_path: Path) 
 def test_update_has_no_mode_option(runner: CliRunner) -> None:
     """`issue-flow update` must not expose a --mode flag (init-only)."""
     result = runner.invoke(app, ["update", "--help"])
-    assert "--force" in result.stdout
     assert result.exit_code == 0
-    assert "--mode" not in _plain(result.stdout)
+    plain = _plain(result.stdout)
+    assert "--force" in plain
+    assert "--mode" not in plain
 
 
 def test_graphify_help_describes_passthrough(runner: CliRunner) -> None:
