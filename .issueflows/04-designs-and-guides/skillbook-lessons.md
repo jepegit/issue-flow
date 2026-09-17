@@ -129,7 +129,7 @@ Filled in during Task 2. Until then: plan defaults from #275.
 
 | # | Title | Notes |
 | --- | --- | --- |
-| [#276](https://github.com/jepegit/issue-flow/issues/276) | update: warn or skip when a packaged skill path is not last render | no yolo |
+| [#276](https://github.com/jepegit/issue-flow/issues/276) | update: warn or skip when a packaged skill path is not last render | implemented: warn+skip, `--force` overwrites |
 | [#277](https://github.com/jepegit/issue-flow/issues/277) | doctor: report unmanaged editor skills | `yolo` |
 | [#268](https://github.com/jepegit/issue-flow/issues/268) | Improve skills | lint folded in via [comment](https://github.com/jepegit/issue-flow/issues/268#issuecomment-5718825658) |
 | [#269](https://github.com/jepegit/issue-flow/issues/269) | system wide settings and update | cited only |

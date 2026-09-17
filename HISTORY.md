@@ -9,8 +9,11 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+## [0.4.20] - 2026-09-17
+
 - **Doctor reports unmanaged editor skills (#277).** `issue-flow doctor` / `agent audit` list skill directories under in-use editor trees whose names are not packaged `SKILL_DIRS` outputs. Report-only INFO findings; `--fix` does not delete them.
 - Learn from skillbook. (#275)
+- **Update skips foreign packaged skill dirs (#276).** `issue-flow update` warns and skips a packaged skill path that is a symlink, has extra files, or drifted from the last-write stamp. `--force` overwrites.
 
 ## [0.4.18] - 2026-09-16
 

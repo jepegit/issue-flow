@@ -14,9 +14,19 @@ from issue_flow.config import Settings
 from issue_flow.editors import EDITORS, EditorProfile, get_profile
 from issue_flow.modes import Mode
 from issue_flow.step_profiles import enrich_render_context
+from issue_flow.skill_ownership import (
+    foreign_skill_reason,
+    hash_skill_text,
+    load_stamps,
+    prepare_skill_dir_for_write,
+    replace_skill_file,
+    save_stamp,
+    stamp_key,
+)
 from issue_flow.templating import (
     build_canonical_manifest,
     build_manifest,
+    is_skill_template,
     render_template,
     resolve_output_path,
 )
@@ -67,10 +77,13 @@ def write_manifest_files(
     context: dict[str, object],
     *,
     force: bool,
+    overwrite_foreign: bool = False,
 ) -> tuple[list[Path], list[Path]]:
     """Render templates from ``manifest`` and write under ``project_root``."""
     written_files: list[Path] = []
     skipped_files: list[Path] = []
+    issueflows_dir = str(context.get("issueflows_dir") or ".issueflows")
+    stamps = load_stamps(project_root, issueflows_dir)
 
     for template_name, path_template in manifest:
         relative_path = resolve_output_path(path_template, context)
@@ -84,10 +97,35 @@ def write_manifest_files(
             skipped_files.append(relative_path)
             continue
 
+        if is_skill_template(template_name) and not overwrite_foreign:
+            skill_dir = absolute_path.parent
+            reason = foreign_skill_reason(
+                skill_dir,
+                stamp=stamps.get(stamp_key(project_root, skill_dir)),
+            )
+            if reason:
+                rel_dir = skill_dir.relative_to(project_root).as_posix()
+                console_io.console.print(
+                    f"  [yellow]skip[/yellow]  {rel_dir}/  "
+                    f"(foreign skill: {reason}; use --force to overwrite)"
+                )
+                skipped_files.append(relative_path)
+                continue
+
         render_context = enrich_render_context(context, template_name)
         rendered = render_template(template_name, render_context)
-        absolute_path.parent.mkdir(parents=True, exist_ok=True)
-        absolute_path.write_text(rendered, encoding="utf-8")
+        if is_skill_template(template_name):
+            prepare_skill_dir_for_write(absolute_path.parent)
+            replace_skill_file(absolute_path, rendered)
+            save_stamp(
+                project_root,
+                issueflows_dir,
+                absolute_path.parent,
+                hash_skill_text(rendered),
+            )
+        else:
+            absolute_path.parent.mkdir(parents=True, exist_ok=True)
+            absolute_path.write_text(rendered, encoding="utf-8")
         console_io.console.print(f"  [green]write[/green] {relative_path}")
         written_files.append(relative_path)
 
@@ -141,6 +179,7 @@ def materialize_editor_profile(
     force: bool,
     prune: bool,
     ensure_agents_md: Callable[[Path, dict[str, object]], None],
+    overwrite_foreign: bool = False,
 ) -> MaterializeResult:
     """Render and write one editor profile's scaffold surfaces."""
     from issue_flow.init import (
@@ -156,6 +195,7 @@ def materialize_editor_profile(
         build_manifest(profile, mode, skill_level=skill_level),
         context,
         force=force,
+        overwrite_foreign=overwrite_foreign,
     )
     ensure_agents_md(project_root, context)
     pruned = 0
@@ -186,6 +226,7 @@ def materialize_canonical_store(
         build_canonical_manifest(mode, skill_level=skill_level),
         context,
         force=force,
+        overwrite_foreign=force,
     )
     ensure_agents_md(project_root, context)
     manifest_path = write_canonical_manifest_json(
