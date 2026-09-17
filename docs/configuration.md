@@ -24,6 +24,17 @@ issue-flow config set --global caveman_default true
 Contract: [user-global-config.md](../.issueflows/04-designs-and-guides/user-global-config.md)
 (issues #281 / #285, epic #269).
 
+`init` / `update` also copy the three `both` behaviour skills
+(`caveman`, `grill-me`, `gh-ci`) into the **selected editor's**
+user-global skill dir (Cursor `~/.cursor/skills/`, Claude
+`~/.claude/skills/`, Codex `~/.agents/skills/`, opencode
+`~/.config/opencode/skills/`). The project copy stays; a project skill
+with the same name wins. Stamps for those global dirs live beside the
+user-global config (`skill-stamps.json`), not in the repo. `--force`
+overwrites a foreign global skill dir the same way it does a project
+one. See [global-vs-local-skills.md](../.issueflows/04-designs-and-guides/global-vs-local-skills.md)
+(#282 / #293).
+
 ## Environment variables (`.env`)
 
 `issue-flow init` **creates a starter `.env` when one is missing** (all

@@ -137,11 +137,15 @@ on that root uses **that repo's** stamps: skip foreign packaged skill
 dirs (symlink, extra files, hash ≠ last-write stamp) unless `--force`
 was passed on the `--all` invocation.
 
-This stage does **not** write stamps under the user-global directory.
-User-global **skill** materialize is Later (after #282 classifies
-stems). Honour [skillbook-lessons.md](./skillbook-lessons.md): no
-second library; #277 unmanaged-skill scan stays a project-doctor
-concern until global dirs exist.
+User-global **skill** materialize (#293) writes a second stamp file at
+`$XDG_CONFIG_HOME/issue-flow/skill-stamps.json` (or
+`~/.config/issue-flow/skill-stamps.json` /
+`%APPDATA%\issue-flow\skill-stamps.json`), keys
+`{editor_id}/{output_name}` (e.g. `cursor/caveman`). `--force` on
+`update` / `update --all` is `overwrite_foreign` for those global dirs
+too. Honour [skillbook-lessons.md](./skillbook-lessons.md): no second
+library. #277 unmanaged-skill scan stays a project-doctor concern
+(global dirs are not scanned).
 
 ## Knobs
 
@@ -168,7 +172,7 @@ Cite this doc from the Stage 2 issues:
 - Vendoring skillbook or a personal skill library.
 - Scanning the disk for `.issueflows/` trees (Later, opt-in only).
 - GitLab.
-- Making every packaged skill global (#282 + Later).
+- Making every packaged skill global (#282 / #293: only `both` stems).
 - Deduping `update --all` with `workspace update`.
 - Windows-native paths from inside WSL.
 

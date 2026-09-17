@@ -37,8 +37,8 @@ def stamp_key(project_root: Path, skill_dir: Path) -> str:
     return skill_dir.relative_to(project_root).as_posix()
 
 
-def load_stamps(project_root: Path, issueflows_dir: str) -> dict[str, str]:
-    path = stamp_store_path(project_root, issueflows_dir)
+def load_stamp_hashes(path: Path) -> dict[str, str]:
+    """Read a skill-stamps.json file. Missing or invalid → empty."""
     if not path.is_file():
         return {}
     try:
@@ -51,18 +51,33 @@ def load_stamps(project_root: Path, issueflows_dir: str) -> dict[str, str]:
     return {str(key): str(value) for key, value in hashes.items()}
 
 
+def save_stamp_hash(path: Path, key: str, digest: str) -> None:
+    hashes = load_stamp_hashes(path)
+    hashes[key] = digest
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {"format": _STAMP_FORMAT, "hashes": dict(sorted(hashes.items()))}
+    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
+
+def load_stamps(project_root: Path, issueflows_dir: str) -> dict[str, str]:
+    return load_stamp_hashes(stamp_store_path(project_root, issueflows_dir))
+
+
 def save_stamp(
     project_root: Path,
     issueflows_dir: str,
     skill_dir: Path,
     digest: str,
 ) -> None:
-    path = stamp_store_path(project_root, issueflows_dir)
-    hashes = load_stamps(project_root, issueflows_dir)
-    hashes[stamp_key(project_root, skill_dir)] = digest
-    path.parent.mkdir(parents=True, exist_ok=True)
-    payload = {"format": _STAMP_FORMAT, "hashes": dict(sorted(hashes.items()))}
-    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    save_stamp_hash(
+        stamp_store_path(project_root, issueflows_dir),
+        stamp_key(project_root, skill_dir),
+        digest,
+    )
+
+
+def user_global_stamp_key(editor_id: str, output_name: str) -> str:
+    return f"{editor_id}/{output_name}"
 
 
 def foreign_skill_reason(

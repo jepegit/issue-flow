@@ -189,6 +189,11 @@ DEFAULT_SKILL_DIRS: list[str] = [
     "gh_ci",
 ]
 
+# Behaviour stems that also install into the editor's user-global skill dir
+# (placement ``both``). Project copy stays; local wins. See
+# ``global-vs-local-skills.md``.
+BOTH_SKILL_STEMS: tuple[str, ...] = ("caveman", "grill_me", "gh_ci")
+
 # Curated subset of Lauren Tan's (poteto) pstack skills library
 # (https://github.com/cursor/plugins/tree/main/pstack, MIT), vendored verbatim
 # as ``skills/pstack_<name>/SKILL.md.j2``. Upstream folder names; re-sync with

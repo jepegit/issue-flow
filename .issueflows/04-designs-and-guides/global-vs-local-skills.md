@@ -1,9 +1,10 @@
 # Global vs local packaged skills
 
 **Issue:** [#282](https://github.com/jepegit/issue-flow/issues/282) /
+[#293](https://github.com/jepegit/issue-flow/issues/293) /
 epic [#269](https://github.com/jepegit/issue-flow/issues/269)
-**Status:** decided 2026-09-17 (Stage 1). No `src/` install in this
-issue — Later materialize honours this table and
+**Status:** decided 2026-09-17 (Stage 1); `both` materialize shipped
+[#293](https://github.com/jepegit/issue-flow/issues/293). Honour
 [user-global-config.md](./user-global-config.md).
 
 ## Context
@@ -40,8 +41,12 @@ the Windows `%USERPROFILE%` tree — same split as
 
 **Local wins.** A project skill directory with the same output name
 beats the user-global copy. Honour #276 stamps on **each** tree that
-`update` writes (project stamps today; user-global stamps when Later
-materialize lands).
+`update` writes: project stamps in
+`.issueflows/agent/skill-stamps.json`; user-global stamps in
+`$XDG_CONFIG_HOME/issue-flow/skill-stamps.json` (or
+`~/.config/issue-flow/skill-stamps.json` / `%APPDATA%\issue-flow\skill-stamps.json`),
+keys like `cursor/caveman`. `--force` is `overwrite_foreign` on both
+trees.
 
 ## Stem table
 
@@ -113,14 +118,21 @@ Opt-in via `[issueflow].pstack_skills`. Not in mode `"all"`. See
 | `pstack_principle_fix_root_causes` | `principle-fix-root-causes` | `local` |
 | `pstack_principle_test_behavior_not_implementation` | `principle-test-behavior-not-implementation` | `local` |
 
+## Materialize (`init` / `update` / `update --all`)
+
+`init` and `update` (including each `update --all` member) write the
+three `both` stems into the **selected editor's** user-global path
+above, and keep the project copy. Stems omitted by the active mode
+(e.g. `simple`) are not written. No `global`-only stems. Not a
+skillbook library
+([skillbook-lessons.md](./skillbook-lessons.md)).
+
+Do **not** collapse Cursor + Claude into one shared `~/.claude/skills/`
+tree: Cursor Cloud sync is `~/.cursor/skills/` only.
+
 ## Later
 
-- Materialize `both` (and any future `global`) stems on `init` /
-  `update` / first install into the **per-editor** write targets above
-  (including opencode `~/.config/opencode/skills/`). Honour #276 stamps
-  on the user-global tree. Not a skillbook library.
-- Do **not** collapse Cursor + Claude into one shared `~/.claude/skills/`
-  tree: Cursor Cloud sync is `~/.cursor/skills/` only.
+- Any future `global`-only stems (none in v1).
 
 ## Link
 

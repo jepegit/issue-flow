@@ -17,18 +17,27 @@ from issue_flow.step_profiles import enrich_render_context
 from issue_flow.skill_ownership import (
     foreign_skill_reason,
     hash_skill_text,
+    load_stamp_hashes,
     load_stamps,
     prepare_skill_dir_for_write,
     replace_skill_file,
     save_stamp,
+    save_stamp_hash,
     stamp_key,
+    user_global_stamp_key,
 )
 from issue_flow.templating import (
+    BOTH_SKILL_STEMS,
     build_canonical_manifest,
     build_manifest,
     is_skill_template,
     render_template,
     resolve_output_path,
+    skill_output_name,
+)
+from issue_flow.user_global import (
+    editor_user_global_skills_root,
+    user_global_skill_stamp_path,
 )
 
 SurfaceTarget = Literal["editor", "canonical"]
@@ -203,6 +212,69 @@ def materialize_editor_profile(
         pruned += _prune_retired_files(project_root, profile)
         pruned += _prune_excluded_surfaces(project_root, profile, mode)
     return MaterializeResult(written=written, skipped=skipped, pruned=pruned)
+
+
+def materialize_user_global_both_skills(
+    project_root: Path,
+    settings: Settings,
+    profiles: list[EditorProfile],
+    mode: Mode,
+    skill_level: str,
+    *,
+    overwrite_foreign: bool,
+) -> MaterializeResult:
+    """Write ``both`` stems to each selected editor's user-global skill dir.
+
+    Project-local copies stay (no ``global``-only stems). Stamps live under
+    the user-global issue-flow dir. Foreign global dirs are skipped unless
+    ``overwrite_foreign``. Cursor globals never land in ``~/.claude/skills``.
+    """
+    stems = [stem for stem in BOTH_SKILL_STEMS if stem in mode.skills]
+    if not stems:
+        return MaterializeResult(written=[], skipped=[], pruned=0)
+
+    stamp_path = user_global_skill_stamp_path()
+    stamps = load_stamp_hashes(stamp_path)
+    written: list[Path] = []
+    skipped: list[Path] = []
+
+    console_io.console.print("\n[bold]User-global both skills[/bold]")
+    for profile in profiles:
+        root = editor_user_global_skills_root(profile.id)
+        if root is None:
+            continue
+        context = settings.template_context(
+            project_root, profile, mode=mode, skill_level=skill_level
+        )
+        for stem in stems:
+            output_name = skill_output_name(stem)
+            skill_dir = root / output_name
+            dest = skill_dir / "SKILL.md"
+            key = user_global_stamp_key(profile.id, output_name)
+            label = f"{profile.id}:{dest}"
+
+            if not overwrite_foreign:
+                reason = foreign_skill_reason(skill_dir, stamp=stamps.get(key))
+                if reason:
+                    console_io.console.print(
+                        f"  [yellow]skip[/yellow]  {label}  "
+                        f"(foreign skill: {reason}; use --force to overwrite)"
+                    )
+                    skipped.append(dest)
+                    continue
+
+            template_name = f"skills/{stem}/SKILL.md.j2"
+            render_context = enrich_render_context(context, template_name)
+            rendered = render_template(template_name, render_context)
+            prepare_skill_dir_for_write(skill_dir)
+            replace_skill_file(dest, rendered)
+            digest = hash_skill_text(rendered)
+            save_stamp_hash(stamp_path, key, digest)
+            stamps[key] = digest
+            console_io.console.print(f"  [green]write[/green] {label}")
+            written.append(dest)
+
+    return MaterializeResult(written=written, skipped=skipped, pruned=0)
 
 
 def materialize_canonical_store(

@@ -18,21 +18,50 @@ from issue_flow import config_ops
 USER_GLOBAL_FORBIDDEN_KEYS = frozenset({"mode", "locked"})
 
 
+def os_config_home() -> Path:
+    """OS config home (XDG or ``%APPDATA%``), not including ``issue-flow``."""
+    if sys.platform == "win32":
+        appdata = os.getenv("APPDATA")
+        if appdata and appdata.strip():
+            return Path(appdata)
+        return Path.home() / "AppData" / "Roaming"
+    xdg = os.getenv("XDG_CONFIG_HOME")
+    if xdg and xdg.strip():
+        return Path(xdg)
+    return Path.home() / ".config"
+
+
 def user_config_dir() -> Path:
     """Return the OS user-global issue-flow directory (not a project path).
 
     Linux/macOS/WSL: ``$XDG_CONFIG_HOME/issue-flow`` or ``~/.config/issue-flow``.
     Native Windows: ``%APPDATA%\\issue-flow``.
     """
-    if sys.platform == "win32":
-        appdata = os.getenv("APPDATA")
-        if appdata and appdata.strip():
-            return Path(appdata) / "issue-flow"
-        return Path.home() / "AppData" / "Roaming" / "issue-flow"
-    xdg = os.getenv("XDG_CONFIG_HOME")
-    if xdg and xdg.strip():
-        return Path(xdg) / "issue-flow"
-    return Path.home() / ".config" / "issue-flow"
+    return os_config_home() / "issue-flow"
+
+
+def editor_user_global_skills_root(editor_id: str) -> Path | None:
+    """Per-editor user-global skills directory, or ``None`` if unknown.
+
+    Paths: [global-vs-local-skills.md](.issueflows/04-designs-and-guides/global-vs-local-skills.md).
+    Cursor / Claude / Codex use ``Path.home()``; opencode uses XDG/APPDATA
+    ``opencode/skills`` — never Claude or Codex compat dirs as the write target.
+    """
+    home = Path.home()
+    if editor_id == "cursor":
+        return home / ".cursor" / "skills"
+    if editor_id == "claude":
+        return home / ".claude" / "skills"
+    if editor_id == "codex":
+        return home / ".agents" / "skills"
+    if editor_id == "opencode":
+        return os_config_home() / "opencode" / "skills"
+    return None
+
+
+def user_global_skill_stamp_path() -> Path:
+    """#276 stamps for user-global skill dirs (not a repo's skill-stamps.json)."""
+    return user_config_dir() / "skill-stamps.json"
 
 
 def user_global_config_path() -> Path:

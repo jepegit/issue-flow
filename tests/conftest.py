@@ -9,8 +9,11 @@ import pytest
 def _isolate_user_global_config(
     tmp_path_factory: pytest.TempPathFactory, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Keep user-global config out of the real ``~/.config/issue-flow``."""
+    """Keep user-global config and editor skill dirs out of the real home."""
+    home = tmp_path_factory.mktemp("home")
     xdg = tmp_path_factory.mktemp("xdg-config")
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.setenv("USERPROFILE", str(home))
     monkeypatch.setenv("XDG_CONFIG_HOME", str(xdg))
     monkeypatch.setenv("APPDATA", str(xdg))
 
