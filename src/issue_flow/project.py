@@ -161,6 +161,44 @@ def discover_workspace(
     return load_workspace(workspace_file, issueflows_dir=issueflows_dir)
 
 
+DISCOVER_MAX_DEPTH = 4
+
+
+def discover_issueflow_roots(
+    start: Path,
+    *,
+    issueflows_dir: str = ".issueflows",
+    max_depth: int = DISCOVER_MAX_DEPTH,
+) -> list[Path]:
+    """Find scaffold roots under ``start`` (no symlink follow, depth-capped)."""
+    start = start.resolve()
+    found: list[Path] = []
+
+    def _is_scaffold(root: Path) -> bool:
+        marker = root / issueflows_dir
+        return marker.is_dir() and not marker.is_symlink()
+
+    def walk(current: Path, depth: int) -> None:
+        if depth > max_depth:
+            return
+        if _is_scaffold(current):
+            found.append(current)
+        if depth == max_depth:
+            return
+        try:
+            children = sorted(current.iterdir())
+        except OSError:
+            return
+        for child in children:
+            if child.is_symlink() or not child.is_dir():
+                continue
+            walk(child.resolve(), depth + 1)
+
+    if start.is_dir() and not start.is_symlink():
+        walk(start, 0)
+    return unique_resolved_paths(found)
+
+
 def list_scaffolded_siblings(
     project_root: Path,
     *,

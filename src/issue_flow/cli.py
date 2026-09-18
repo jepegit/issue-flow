@@ -1445,7 +1445,10 @@ def workspace_update(
 def register(
     project_dir: Path = typer.Argument(
         default=Path("."),
-        help="Project root to add to the user-global registry.",
+        help=(
+            "Project root to add, or the walk start when ``--discover`` "
+            "is set (defaults to current directory)."
+        ),
         exists=True,
         file_okay=False,
         resolve_path=True,
@@ -1453,9 +1456,88 @@ def register(
     json_output: bool = typer.Option(
         False, "--json", help="Emit a machine-readable JSON object."
     ),
+    discover: bool = typer.Option(
+        False,
+        "--discover",
+        help=(
+            "Walk PROJECT_DIR for existing issue-flow scaffolds and offer "
+            "to register them. Never runs from update --all / init / "
+            "workspace update."
+        ),
+    ),
+    yes: bool = typer.Option(
+        False,
+        "--yes",
+        help="With --discover, register candidates without a confirm prompt.",
+    ),
+    max_depth: int = typer.Option(
+        4,
+        "--max-depth",
+        help="With --discover, maximum directory depth below PROJECT_DIR.",
+    ),
 ) -> None:
     """Add a project root to the user-global registry for ``update --all``."""
+    from issue_flow.config import Settings
+    from issue_flow.project import discover_issueflow_roots
     from issue_flow.user_global import register_root, user_global_registry_path
+
+    if discover:
+        if max_depth < 0:
+            _console.print("[red]error[/red]  --max-depth must be >= 0")
+            raise typer.Exit(code=2)
+        settings = Settings()
+        candidates = discover_issueflow_roots(
+            project_dir,
+            issueflows_dir=settings.issueflows_dir,
+            max_depth=max_depth,
+        )
+        if not yes:
+            _console.print(
+                f"[bold]{len(candidates)} scaffold(s) under {project_dir}[/bold]"
+            )
+            for root in candidates:
+                _console.print(f"  {root}")
+            if not candidates:
+                payload = {
+                    "ok": True,
+                    "discover": True,
+                    "candidates": [],
+                    "added": [],
+                    "already": [],
+                    "registry": str(user_global_registry_path()),
+                }
+                if json_output:
+                    _console.print_json(data=payload)
+                else:
+                    _console.print("[dim]nothing to register[/dim]")
+                return
+            if not typer.confirm("Register these roots?", default=False):
+                raise typer.Exit(code=1)
+        added_paths: list[str] = []
+        already_paths: list[str] = []
+        for root in candidates:
+            if register_root(root):
+                added_paths.append(str(root))
+            else:
+                already_paths.append(str(root))
+        payload = {
+            "ok": True,
+            "discover": True,
+            "candidates": [str(root) for root in candidates],
+            "added": added_paths,
+            "already": already_paths,
+            "registry": str(user_global_registry_path()),
+        }
+        if json_output:
+            _console.print_json(data=payload)
+            return
+        for path in added_paths:
+            _console.print(f"[green]registered[/green]  {path}")
+        for path in already_paths:
+            _console.print(f"[dim]already registered[/dim]  {path}")
+        if not candidates:
+            _console.print("[dim]nothing to register[/dim]")
+        return
 
     added = register_root(project_dir)
     payload = {

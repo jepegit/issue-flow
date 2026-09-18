@@ -101,8 +101,12 @@ roots = [
   an explicit `issue-flow register [PROJECT_DIR]` write the registry.
   `issue-flow unregister [PROJECT_DIR]` removes a root. Writes are
   idempotent.
-- No whole-disk scan. Missing roots are skipped and reported, not
-  treated as a hard failure.
+- No whole-disk scan on `update --all` / `init` / `workspace update`.
+  Missing roots are skipped and reported, not treated as a hard failure.
+  Opt-in: `issue-flow register --discover [START]` walks a start
+  directory for existing `.issueflows/` trees (bounded depth, no
+  symlink follow) and registers only after confirm (`--yes` for
+  scripts).
 - Roots are stored resolved (absolute). Relative paths are rejected
   on write.
 - `.issueflows/` tracking, epic plans, and project knobs stay
@@ -172,7 +176,7 @@ Cite this doc from the Stage 2 issues:
 ## Non-goals (this contract)
 
 - Vendoring skillbook or a personal skill library.
-- Scanning the disk for `.issueflows/` trees (Later, opt-in only).
+- Default whole-disk scan (opt-in `register --discover` only, #297).
 - GitLab.
 - Making every packaged skill global (#282 / #293: only `both` stems).
 - Deduping `update --all` with `workspace update` except the opt-in

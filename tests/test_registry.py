@@ -119,6 +119,54 @@ def test_update_all_skips_locked_and_missing(
     assert locked_before != "STALE_LOCKED"
 
 
+def test_register_discover_yes_registers_scaffolds_only(tmp_path: Path) -> None:
+    start = tmp_path / "tree"
+    one = start / "one"
+    two = start / "nested" / "two"
+    decoy = start / "decoy"
+    too_deep = start / "a" / "b" / "c" / "d" / "e" / "deep"
+    one.mkdir(parents=True)
+    two.mkdir(parents=True)
+    decoy.mkdir(parents=True)
+    too_deep.mkdir(parents=True)
+    run_init(one, skip_dep_check=True)
+    run_init(two, skip_dep_check=True)
+    run_init(too_deep, skip_dep_check=True)
+    (decoy / "README.md").write_text("not a scaffold\n", encoding="utf-8")
+
+    for root in list(read_registry_roots()):
+        unregister_root(root)
+
+    runner = CliRunner()
+    result = runner.invoke(
+        app,
+        ["register", str(start), "--discover", "--yes", "--max-depth", "4", "--json"],
+    )
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["ok"] is True
+    assert payload["discover"] is True
+    added = {Path(p) for p in payload["added"]}
+    assert one.resolve() in added
+    assert two.resolve() in added
+    assert too_deep.resolve() not in added
+    assert decoy.resolve() not in {Path(p) for p in payload["candidates"]}
+    assert set(read_registry_roots()) == {one.resolve(), two.resolve()}
+
+
+def test_register_discover_empty_is_ok(tmp_path: Path) -> None:
+    empty = tmp_path / "empty"
+    empty.mkdir()
+    runner = CliRunner()
+    result = runner.invoke(
+        app, ["register", str(empty), "--discover", "--yes", "--json"]
+    )
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["candidates"] == []
+    assert payload["added"] == []
+
+
 def test_update_help_lists_all() -> None:
     runner = CliRunner()
     result = runner.invoke(app, ["update", "--help"])
