@@ -92,7 +92,11 @@ a TTY (e.g. CI pipelines).
 
 `issue-flow init` and `issue-flow register` add the current root to
 `$XDG_CONFIG_HOME/issue-flow/registry.toml` (or `%APPDATA%\issue-flow\`
-on native Windows). `unregister` removes it. Relative paths are rejected.
+on native Windows). `issue-flow register --discover [START]` walks START
+(default `.`) for existing `.issueflows/` trees (depth-capped, no
+symlink follow), lists them, and writes only after confirm (`--yes`
+skips the prompt). It is never invoked from `update --all`, `init`, or
+`workspace update`. `unregister` removes a root. Relative paths are rejected.
 A single-repo `update` still runs on a locked root — lock is a bulk-update
 skip only. See [Per-repo lock](configuration.md#per-repo-lock).
 

@@ -9,6 +9,7 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- Opt-in `register --discover` walks a start dir for `.issueflows/` trees (confirm before write). (#297)
 - `update --all --workspace` unions registry roots with the nearest workspace members (one update per resolved path). (#296)
 - Materialize `both` stems (`caveman`, `grill-me`, `gh-ci`) into per-editor user-global skill dirs on `init` / `update`. (#293)
 - Confirm opencode's user-global skill path (`~/.config/opencode/skills/`). (#292)
