@@ -18,6 +18,7 @@ from issue_flow.modes import (
     DEFAULT_AUTO_PLAN,
     DEFAULT_CHECKS_WATCH_MINUTES,
     DEFAULT_CONFIRM_CHANGELOG_UPDATE,
+    DEFAULT_DEFER_CHANGELOG,
     DEFAULT_EARLY_PR,
     DEFAULT_FIX_AUTO_NAME,
     DEFAULT_LOCKED,
@@ -616,6 +617,16 @@ class Settings:
             ),
         )
 
+    def resolve_defer_changelog(self, project_root: Path) -> bool:
+        """Resolve whether changelog writes wait until the default branch after merge."""
+        persisted = modes_module.read_defer_changelog(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        return self.user_global_or(
+            "defer_changelog",
+            _env_flag("ISSUEFLOW_DEFER_CHANGELOG", default=DEFAULT_DEFER_CHANGELOG),
+        )
+
     def resolve_essential_tests(self, project_root: Path) -> bool:
         """Resolve whether essential-tests skill hooks are enabled."""
         persisted = modes_module.read_essential_tests(self.config_path(project_root))
@@ -828,6 +839,9 @@ class Settings:
                 "ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE",
                 default=DEFAULT_CONFIRM_CHANGELOG_UPDATE,
             ),
+            "defer_changelog": _env_flag(
+                "ISSUEFLOW_DEFER_CHANGELOG", default=DEFAULT_DEFER_CHANGELOG
+            ),
             "essential_tests": _env_flag(
                 "ISSUEFLOW_ESSENTIAL_TESTS", default=DEFAULT_ESSENTIAL_TESTS
             ),
@@ -882,6 +896,7 @@ class Settings:
             "confirm_changelog_update": self.resolve_confirm_changelog_update(
                 project_root
             ),
+            "defer_changelog": self.resolve_defer_changelog(project_root),
             "essential_tests": self.resolve_essential_tests(project_root),
             "test_runner": self.resolve_test_runner(project_root),
             "essential_marker": self.resolve_essential_marker(project_root),
@@ -972,6 +987,7 @@ class Settings:
             "confirm_changelog_update": self.resolve_confirm_changelog_update(
                 project_root
             ),
+            "defer_changelog": self.resolve_defer_changelog(project_root),
             "essential_tests": self.resolve_essential_tests(project_root),
             "test_runner": self.resolve_test_runner(project_root),
             "essential_marker": self.resolve_essential_marker(project_root),

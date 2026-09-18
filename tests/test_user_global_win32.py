@@ -35,7 +35,9 @@ def test_win32_os_config_home_uses_appdata(win32_env: Path) -> None:
     assert sys.platform == "win32"
     assert os_config_home() == win32_env
     assert user_config_dir() == win32_env / "issue-flow"
-    assert user_global_skill_stamp_path() == win32_env / "issue-flow" / "skill-stamps.json"
+    assert (
+        user_global_skill_stamp_path() == win32_env / "issue-flow" / "skill-stamps.json"
+    )
     assert "/mnt/c" not in os_config_home().as_posix()
 
 
@@ -58,7 +60,9 @@ def test_win32_editor_globals_use_home_and_appdata(win32_env: Path) -> None:
     assert editor_user_global_skills_root("cursor") == home / ".cursor" / "skills"
     assert editor_user_global_skills_root("claude") == home / ".claude" / "skills"
     assert editor_user_global_skills_root("codex") == home / ".agents" / "skills"
-    assert editor_user_global_skills_root("opencode") == win32_env / "opencode" / "skills"
+    assert (
+        editor_user_global_skills_root("opencode") == win32_env / "opencode" / "skills"
+    )
     assert "/mnt/c" not in str(editor_user_global_skills_root("cursor"))
     assert "/mnt/c" not in str(editor_user_global_skills_root("opencode"))
 

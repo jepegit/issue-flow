@@ -89,6 +89,7 @@ DEFAULT_EARLY_PR = False
 DEFAULT_FIX_AUTO_NAME = False
 DEFAULT_LOCKED = False
 DEFAULT_CONFIRM_CHANGELOG_UPDATE = False
+DEFAULT_DEFER_CHANGELOG = False
 
 # Essential-tests paradigm (pytest); opt-in, baked into close/build/doctor.
 DEFAULT_ESSENTIAL_TESTS = False
@@ -130,6 +131,7 @@ NOVICE_CONFIG: dict[str, object] = {
     # Ask before the two bookkeeping writes that are otherwise silent.
     "confirm_version_bump": True,
     "confirm_changelog_update": True,
+    "defer_changelog": False,
     "remind_cleanup": True,
     # Response-style and planning-interview skills are not even installed in the
     # novice surface; keep the flags off so the rendered rule stays quiet.
@@ -838,6 +840,17 @@ def read_confirm_changelog_update(cfg_path: Path) -> bool | None:
     return None
 
 
+def read_defer_changelog(cfg_path: Path) -> bool | None:
+    """Return the persisted ``[issueflow].defer_changelog`` flag."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "defer_changelog" in section:
+        return bool(section.get("defer_changelog"))
+    return None
+
+
 def read_essential_tests(cfg_path: Path) -> bool | None:
     """Return the persisted ``[issueflow].essential_tests`` flag."""
     if not cfg_path.is_file():
@@ -1065,6 +1078,7 @@ def write_default_config(
     fix_auto_name: bool = DEFAULT_FIX_AUTO_NAME,
     locked: bool = DEFAULT_LOCKED,
     confirm_changelog_update: bool = DEFAULT_CONFIRM_CHANGELOG_UPDATE,
+    defer_changelog: bool = DEFAULT_DEFER_CHANGELOG,
     essential_tests: bool = DEFAULT_ESSENTIAL_TESTS,
     test_runner: str = DEFAULT_TEST_RUNNER,
     essential_marker: str = DEFAULT_ESSENTIAL_MARKER,
@@ -1131,6 +1145,7 @@ def write_default_config(
         section["fix_auto_name"] = fix_auto_name
         section["locked"] = locked
         section["confirm_changelog_update"] = confirm_changelog_update
+        section["defer_changelog"] = defer_changelog
         section["essential_tests"] = essential_tests
         section["test_runner"] = test_runner
         section["essential_marker"] = essential_marker
@@ -1181,6 +1196,7 @@ def write_default_config(
             fix_auto_name,
             locked,
             confirm_changelog_update,
+            defer_changelog,
             essential_tests,
             test_runner,
             essential_marker,
@@ -1239,6 +1255,7 @@ def _commented_issueflow_table(
     fix_auto_name: bool,
     locked: bool,
     confirm_changelog_update: bool,
+    defer_changelog: bool,
     essential_tests: bool,
     test_runner: str,
     essential_marker: str,
@@ -1471,6 +1488,15 @@ def _commented_issueflow_table(
         )
     )
     table["confirm_changelog_update"] = confirm_changelog_update
+    table.add(
+        tomlkit.comment(
+            "When true, issue branches never write HISTORY.md / CHANGELOG.md; "
+            "the bullet is recorded on issue<N>_status.md and applied on the "
+            "default branch after merge (default false). Re-run "
+            "'issue-flow update' after changing."
+        )
+    )
+    table["defer_changelog"] = defer_changelog
     table.add(
         tomlkit.comment(
             "When ruff is present, run ruff check --fix + ruff format from "

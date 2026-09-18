@@ -137,9 +137,7 @@ def register_root(project_root: Path) -> bool:
     Raises :class:`ValueError` when ``project_root`` is relative.
     """
     if not project_root.is_absolute():
-        raise ValueError(
-            f"registry roots must be absolute; got {str(project_root)!r}"
-        )
+        raise ValueError(f"registry roots must be absolute; got {str(project_root)!r}")
     resolved = project_root.resolve()
     roots = read_registry_roots()
     if resolved in roots:
@@ -155,9 +153,7 @@ def unregister_root(project_root: Path) -> bool:
     Raises :class:`ValueError` when ``project_root`` is relative.
     """
     if not project_root.is_absolute():
-        raise ValueError(
-            f"registry roots must be absolute; got {str(project_root)!r}"
-        )
+        raise ValueError(f"registry roots must be absolute; got {str(project_root)!r}")
     resolved = project_root.resolve()
     roots = read_registry_roots()
     if resolved not in roots:

@@ -59,6 +59,7 @@ _MODE_CONTEXT = {
     "early_pr": False,
     "fix_auto_name": False,
     "confirm_changelog_update": True,
+    "defer_changelog": False,
     "essential_tests": False,
     "test_runner": "pytest",
     "essential_marker": "essential",
@@ -833,6 +834,28 @@ def test_changelog_timing_forbids_post_merge_updates() -> None:
     assert "early PR" in history
     assert "Changelog timing" in close
     assert "Do **not** offer to update" in cleanup
+
+
+def test_defer_changelog_close_does_not_write_history_on_issue_branch() -> None:
+    on = {**_default_context(), "defer_changelog": True}
+    close = render_template("skills/iflow_close/SKILL.md.j2", on)
+    history = render_template("skills/iflow_history_update/SKILL.md.j2", on)
+    cleanup = render_template("skills/iflow_cleanup/SKILL.md.j2", on)
+    assert "Do not edit" in close or "do not write" in close.lower()
+    assert "### Deferred changelog" in close
+    assert "apply-changelog" in close
+    assert "Do not append" in history or "do not write" in history.lower()
+    assert "apply-changelog" in cleanup
+    assert "Do **not** offer to update" not in cleanup
+    off = {
+        **_default_context(),
+        "defer_changelog": False,
+        "confirm_changelog_update": False,
+    }
+    off_close = render_template("skills/iflow_close/SKILL.md.j2", off)
+    off_cleanup = render_template("skills/iflow_cleanup/SKILL.md.j2", off)
+    assert "so the bullet is in the PR commit" in off_close
+    assert "Do **not** offer to update" in off_cleanup
 
 
 def test_issue_close_bakes_checks_watch_minutes_override() -> None:

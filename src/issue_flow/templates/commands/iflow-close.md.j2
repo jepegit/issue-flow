@@ -42,7 +42,15 @@ Other optional notes still apply: branch name, PR title, skip issue doc update, 
    - **Git-tag derived:** edit nothing — compute and report the **planned tag** (next version from the latest tag, e.g. `v1.0.4a3`), record it in the status file, and defer creating the tag until after the merge (step 8 with `yolo`, else `/iflow-cleanup`). Never tag the issue branch.
    - If neither strategy applies (no `pyproject.toml` version at all), skip and say so; continue with the remaining steps.
 
-3. **Update `{{ history_file }}`** (opt-out via `nohistory`)
+{% if defer_changelog %}3. **Decide the changelog bullet** (opt-out via `nohistory`; do **not** write `{{ history_file }}`)
+   - Read `{{ agent_dir }}/skills/iflow-history-update/SKILL.md` and follow it to *compose* the bullet only.
+   - Default summary is the GitHub issue title; override with `log "..."` / `note "..."` from the command input.
+   - Record `### Deferred changelog` on `issue<N>_status.md` with the bullet (and `Planned version: <ver>` when step 2 bumped or planned a version; or `nohistory` when skipped). Put the same bullet in the PR body.
+{% if confirm_changelog_update %}   - Show the proposed bullet and confirm once before recording. If declined, **stop** — offer record / revise / `nohistory` / abort; do not continue to commit or PR without an explicit choice.
+{% else %}   - Record without a confirm prompt (`confirm_changelog_update` is false). Still report the text.
+{% endif %}   - **`yolo` input:** do not ask — decide yourself. `nohistory` still skips the bullet entirely.
+   - `issue-flow agent apply-changelog --issue N` writes `{{ history_file }}` on the default branch after merge (`/iflow-cleanup` A1 / yolo post-pull).
+{% else %}3. **Update `{{ history_file }}`** (opt-out via `nohistory`)
    - Read `{{ agent_dir }}/skills/iflow-history-update/SKILL.md` and follow it.
    - Default summary for the new bullet is the GitHub issue title; override with `log "..."` / `note "..."` from the command input.
    - If step 2 did **not** bump (or plan) a version, append a bullet to the existing `## [Unreleased]` section: `- <summary>. (#<N>)`.
@@ -53,6 +61,7 @@ Other optional notes still apply: branch name, PR title, skip issue doc update, 
 {% endif %}   - **`yolo` input:** do not ask — decide yourself and write the bullet (issue title, or the `log "..."` text) directly. `nohistory` still skips the step entirely.
    - Write this step **even when a draft PR already exists** from `/iflow-build` early PR — the bullet must land in the close commit that updates that PR.
    - **Never** propose updating `{{ history_file }}` after close has finished or after merge.
+{% endif %}
 
 4. **Issue tracking in the repo** (see project rules under `{{ issueflows_dir }}/{{ current_issues_folder }}`)
    - Update the status file for this issue: clear checklist, remaining work, and use `- [x] Done` only when fully resolved.
@@ -109,7 +118,9 @@ Other optional notes still apply: branch name, PR title, skip issue doc update, 
 {% endif %}
 ## Constraints
 
-- **Changelog timing:** unless `nohistory`, write `{{ history_file }}` in step 3 and stage it in the close commit that feeds (or updates) the PR — including when a draft was opened earlier via `/iflow-build` early PR. Never offer a HISTORY/CHANGELOG update after close has finished or after merge.
+{% if defer_changelog %}- **Changelog timing (`defer_changelog`):** unless `nohistory`, record the bullet on the status file and in the PR body in step 3. **Never** write `{{ history_file }}` on the issue branch. Apply on the default branch after merge via `issue-flow agent apply-changelog --issue N`.
+{% else %}- **Changelog timing:** unless `nohistory`, write `{{ history_file }}` in step 3 and stage it in the close commit that feeds (or updates) the PR — including when a draft was opened earlier via `/iflow-build` early PR. Never offer a HISTORY/CHANGELOG update after close has finished or after merge.
+{% endif %}
 {% if confirm_changelog_update %}- If the changelog confirm is declined, **stop** until the user chooses write / revise / `nohistory` / abort — do not silent-skip and continue.
 {% endif %}- Never delete branches from `/iflow-close`. Branch deletion belongs to `/iflow-cleanup`.
 - **Conflicts:** only a `{{ history_file }}`-only conflict of two additive `## [Unreleased]` bullet lists resolves automatically (step 5a). Every other conflict aborts the sync and stops the flow. Never `gh pr merge --admin`, never skip CI, never force-push anything but the issue branch (`--force-with-lease`).

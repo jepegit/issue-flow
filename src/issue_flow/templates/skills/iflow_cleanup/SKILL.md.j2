@@ -55,6 +55,7 @@ Optional free-form text after the command:
 5. **Consolidated confirm (Phase A1 — local)** — one yes/no prompt listing every action:
    - `git switch <default>` (home only; skip if already on default)
    - `git pull --ff-only`
+{% if defer_changelog %}   - **Apply deferred changelog.** After the FF pull, on the default branch, for each just-merged issue that has a `### Deferred changelog` section on `issue<N>_status.md` (current, then solved): run `issue-flow agent apply-changelog --issue N --json`. If it `appended` or `promoted`, commit on default (`{{ history_file }}` + the status file only if you edited it): `docs: changelog for #<N>`. Auto-commit when this cleanup run is already confirmed (yolo / cycle / a Phase A1 yes). For an interactive cleanup with `confirm_changelog_update = true`, show the diff and confirm once before committing.{% endif %}
    - `git fetch --prune`
    - `issue-flow agent worktree-list --json` — for each **linked** worktree whose branch is **`reachable`**, `issue-flow agent worktree-remove <path>` (or the issue number) **before** deleting the branch. Git cannot `-d` a branch that is still checked out in a worktree. Never remove a worktree whose branch is `unique_work`.
    - `git branch -d <branch>` for each **`reachable`** branch, listed explicitly by name first. If `-d` still refuses, report that branch and move on.
@@ -91,4 +92,6 @@ Optional free-form text after the command:
 - Remote deletes and findings-issue creation require the **Phase B** confirm; the Phase A1 and A2 yeses must not imply them (nor each other).
 - If anything is ambiguous (detached HEAD, multiple remotes, missing tracking info), report and stop rather than guess.
 - Do not open or update PRs. Do not bump version fields — pyproject bumps belong to `/iflow-close`. The only version action allowed here is creating a release tag that `/iflow-close` **planned** (tag-derived strategy), inside the Phase A consolidated confirm.
-- Do **not** offer to update `{{ history_file }}` / CHANGELOG here — that belongs in `/iflow-close` before the PR.
+{% if defer_changelog %}- Apply a **deferred** changelog bullet after the FF pull (`issue-flow agent apply-changelog`). That is not a new HISTORY *offer* — do not invent a fresh bullet here. Skip when there is no deferred section, `nohistory`, or the bullet is already present.
+{% else %}- Do **not** offer to update `{{ history_file }}` / CHANGELOG here — that belongs in `/iflow-close` before the PR.
+{% endif %}

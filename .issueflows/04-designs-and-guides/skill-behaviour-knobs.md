@@ -22,6 +22,7 @@ epic #269). Until Stage 2 ships, only the project file and env exist.
 | Fix-session | `fix_auto_name` |
 | Auto / advanced | `auto_adversarial_loops` (see [advanced-auto-mode.md](./advanced-auto-mode.md)) |
 | Confirm gates (`confirm_*`) | `confirm_version_bump`, `confirm_changelog_update` |
+| Changelog write timing | `defer_changelog` |
 | Tool / value | `ruff_autofix`, `pr_merge_method`, `cycle_max_issues`, `test_runner`, `essential_marker`, `essential_review` |
 | Feature masters (`*_tests` / paradigm) | `essential_tests` |
 | Per-repo skip (`locked`) | `locked` (project `config.toml` only; `update --all` skips) |
@@ -42,6 +43,7 @@ epic #269). Until Stage 2 ships, only the project file and env exist.
 | `auto_adversarial_loops` | `2` | `/iflow-auto` inter-epoch adversarial loop budget; trailing `loops:<n>` overrides per run ([advanced-auto-mode.md](./advanced-auto-mode.md)) |
 | `confirm_version_bump` | `false` | Non-yolo close confirms once about bump when unset |
 | `confirm_changelog_update` | `false` | Changelog diff confirm before write; `false` = write without ask (bullet lands in the PR). Decline (when true) **stops** close — no silent skip. |
+| `defer_changelog` | `false` | When `true`, issue branches never write `HISTORY.md` / CHANGELOG; the bullet is recorded on `issue<N>_status.md` + PR body and applied on the default branch after merge (`issue-flow agent apply-changelog`). Default off keeps today's #171 / #240 / #260 path. |
 | `pr_merge_method` | `"squash"` | Yolo `gh pr merge --{squash\|merge\|rebase}` |
 | `cycle_max_issues` | `10` | `/iflow-cycle` safety cap before `max:<n>` |
 | `ruff_autofix` | `true` | Gate ruff `--fix` / format in start/close |
@@ -63,6 +65,8 @@ When confirm is on and declined, close **stops** (write / revise /
 `nohistory` / abort) — never silent-skip and continue. Never offer a
 HISTORY/CHANGELOG update after the PR is open or merged (see
 [changelog-timing.md](./changelog-timing.md)).
+`defer_changelog = true` moves only the **file write** to the default branch
+after merge; the close-step *decision* (and the confirm gate) still runs.
 
 **Alternatives considered.**
 

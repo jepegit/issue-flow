@@ -8,13 +8,16 @@ disable-model-invocation: true
 
 # issue-flow — history update
 
-Use this skill to update the project's changelog file (default **`{{ history_file }}`**, overridable via `ISSUEFLOW_HISTORY_FILE` in `.env`) as part of `/iflow-close`. It never runs on its own schedule; it is driven by the "update HISTORY" step{% if commands_supported %} in `{{ agent_dir }}/{{ commands_dir }}/iflow-close.md`{% endif %}, and does not run when the user passed `nohistory` / `skip history`.
+Use this skill to decide the changelog bullet as part of `/iflow-close`. It never runs on its own schedule; it is driven by the "update HISTORY" step{% if commands_supported %} in `{{ agent_dir }}/{{ commands_dir }}/iflow-close.md`{% endif %}, and does not run when the user passed `nohistory` / `skip history`.{% if defer_changelog %} This project has `defer_changelog = true`: **compose** the bullet here, but **do not write** `{{ history_file }}` on the issue branch — record it under `### Deferred changelog` on the status file and put the same text in the PR body. `issue-flow agent apply-changelog --issue N` writes the file on the default branch after merge.{% else %} The write happens now, on the issue branch, so the bullet lands in the PR commit.{% endif %}
 
 {% include "skills/_model_directive.md.j2" %}
 ## Preconditions
 
-1. The changelog file (`{{ history_file }}`) exists at the **project root**. If it does not, **skip** this step, print "no `{{ history_file }}` — skipping changelog update" and continue the rest of `/iflow-close`. Never create the file from this skill.
+{% if defer_changelog %}1. Compose the bullet even if `{{ history_file }}` is missing at the project root — apply-changelog will no-op later. Never create the file from this skill.
+2. Do **not** open or edit `{{ history_file }}` on the issue branch.
+{% else %}1. The changelog file (`{{ history_file }}`) exists at the **project root**. If it does not, **skip** this step, print "no `{{ history_file }}` — skipping changelog update" and continue the rest of `/iflow-close`. Never create the file from this skill.
 2. The file is in **Keep a Changelog** shape: a top-level `## [Unreleased]` heading, with released versions below as `## [x.y.z] - YYYY-MM-DD` headings. If the shape does not match, **stop and report the mismatch** instead of guessing — let the user fix the file or pass `nohistory`.
+{% endif %}
 
 ## Inputs from `/iflow-close`
 
@@ -37,9 +40,14 @@ Use this skill to update the project's changelog file (default **`{{ history_fil
    ```
 
    Summary = `log "..."` override if provided, else the issue title with sentence case, trailing period trimmed before the `.` we add.
-3. Append the bullet to the end of the Unreleased bullet list. Preserve existing formatting (blank lines, list markers). Do not reorder existing entries.
+{% if defer_changelog %}3. **Do not append** to `{{ history_file }}`. Hand the composed bullet (and planned version, if any) back to `/iflow-close` for the status file + PR body.
+{% if confirm_changelog_update %}4. Show the proposed bullet text and confirm once before recording it. If declined, **stop** — do not continue `/iflow-close`. Offer exactly: **record as proposed** / **revise bullet** / **`nohistory` (explicit skip)** / **abort close**. Never silent-skip and continue.
+{% else %}4. Record the bullet without a confirm prompt (`confirm_changelog_update` is false). Still report the text.
+{% endif %}
+{% else %}3. Append the bullet to the end of the Unreleased bullet list. Preserve existing formatting (blank lines, list markers). Do not reorder existing entries.
 {% if confirm_changelog_update %}4. Show the user the proposed diff of `{{ history_file }}` and confirm once before writing. If declined, **stop** — do not continue `/iflow-close`. Offer exactly: **write as proposed** / **revise bullet** / **`nohistory` (explicit skip)** / **abort close**. Never silent-skip and continue.
 {% else %}4. Write the change without a confirm prompt (`confirm_changelog_update` is false; same as the `yolo` token's history behaviour). Still report what was written.
+{% endif %}
 {% endif %}
 
 ### B. Version bump happened — promote `[Unreleased]` to a new release section
@@ -49,7 +57,11 @@ Only runs when step 2 of `/iflow-close` actually changed `pyproject.toml` to a n
 1. Determine `NEW_VERSION` (e.g. read from `pyproject.toml`, or from the `uv version` command output). Determine `TODAY` as `YYYY-MM-DD` in the user's local timezone.
 2. Read `{{ history_file }}`. Find `## [Unreleased]`.
 3. Compose the new bullet (same shape as mode A). If `[Unreleased]` was empty when the bump happened, still create the new release section with this bullet inside it — a version bump implies a release, and the focus issue's bullet is always meaningful.
-4. Rename the existing heading from `## [Unreleased]` to `## [<NEW_VERSION>] - <TODAY>` and add the new bullet at the end of that section's bullet list.
+{% if defer_changelog %}4. **Do not promote** `{{ history_file }}` on the issue branch. Record `Planned version: <NEW_VERSION>` next to the deferred bullet so apply-changelog can promote on the default branch after merge.
+{% if confirm_changelog_update %}5. Show the proposed bullet (and planned version) and confirm once before recording. If declined, **stop** — do not continue `/iflow-close`. Offer exactly: **record as proposed** / **revise bullet** / **`nohistory` (explicit skip)** / **abort close**. Never silent-skip and continue.
+{% else %}5. Record the bullet and planned version without a confirm prompt (`confirm_changelog_update` is false). Still report the text.
+{% endif %}
+{% else %}4. Rename the existing heading from `## [Unreleased]` to `## [<NEW_VERSION>] - <TODAY>` and add the new bullet at the end of that section's bullet list.
 5. Prepend a fresh, empty `## [Unreleased]` section above the just-closed release, with one blank line separating them:
 
    ```markdown
@@ -63,6 +75,7 @@ Only runs when step 2 of `/iflow-close` actually changed `pyproject.toml` to a n
 
 {% if confirm_changelog_update %}6. Show the user the proposed diff and confirm once before writing. If declined, **stop** — do not continue `/iflow-close`. Offer exactly: **write as proposed** / **revise bullet** / **`nohistory` (explicit skip)** / **abort close**. Never silent-skip and continue.
 {% else %}6. Write the change without a confirm prompt (`confirm_changelog_update` is false). Still report what was written.
+{% endif %}
 {% endif %}
 ## Conflict resolution — keep both bullet sets
 
@@ -84,14 +97,19 @@ When an unrelated PR lands on the default branch while this issue is in flight, 
 
 When `/iflow-close` reaches its commit step:
 
-- Stage `{{ history_file }}` alongside the issue's other changes so the bullet is in the **same commit** that feeds the PR.
+{% if defer_changelog %}- Do **not** stage `{{ history_file }}` — it was not written on this branch. Stage the status file that holds `### Deferred changelog`.
+{% else %}- Stage `{{ history_file }}` alongside the issue's other changes so the bullet is in the **same commit** that feeds the PR.
 - If a version bump also ran, `{{ history_file }}` is staged in the same commit as `pyproject.toml` (and `uv.lock` if it changed).
-
+{% endif %}
 ## Constraints
 
-- Read/write only `{{ history_file }}` at the project root. Do not touch any other file from this skill.
+{% if defer_changelog %}- Do **not** read/write `{{ history_file }}` from this skill when `defer_changelog` is on. Compose the bullet only.
+- Never create `{{ history_file }}` from scratch — scaffolding a starter changelog is out of scope for `issue-flow init` / `update`.
+- **Timing:** this skill still runs from `/iflow-close` step 3 for the *decision*. The file write is `issue-flow agent apply-changelog --issue N` on the default branch after merge (`/iflow-cleanup` A1 / yolo post-pull). **Never** write `{{ history_file }}` on the issue branch.
+{% else %}- Read/write only `{{ history_file }}` at the project root. Do not touch any other file from this skill.
 - Never create `{{ history_file }}` from scratch — scaffolding a starter changelog is out of scope for `issue-flow init` / `update`.
 - **Timing:** this skill runs only from `/iflow-close` step 3 (before commit / push / PR update). Write even when a draft PR already exists from `/iflow-build` early PR. **Never** propose updating `{{ history_file }}` after close has finished or after merge.
+{% endif %}
 {% if confirm_changelog_update %}- If the confirm prompt in mode A or mode B is declined, leave `{{ history_file }}` untouched and **stop** `/iflow-close` until the user chooses write / revise / `nohistory` / abort. Do not continue to commit or PR without an explicit choice.
 {% endif %}
 - Preserve existing formatting conventions (bullet style, sentence case, trailing punctuation). Match the style of the nearest existing entries when in doubt.

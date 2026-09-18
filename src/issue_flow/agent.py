@@ -2896,6 +2896,202 @@ def run_workspace_update(
 
 
 # ---------------------------------------------------------------------------
+# agent apply-changelog
+# ---------------------------------------------------------------------------
+
+
+def _status_path_for_issue(
+    project_root: Path, settings: Settings, number: int
+) -> Path | None:
+    """``issue<N>_status.md`` in current-issues, then solved (issue #288)."""
+    name = f"issue{number}_status.md"
+    base = project_root / settings.issueflows_dir
+    for folder in (settings.current_issues_folder, settings.solved_folder):
+        path = base / folder / name
+        if path.is_file():
+            return path
+    return None
+
+
+def run_apply_changelog(
+    project_root: Path,
+    console: Console,
+    issue_number: int,
+    as_json: bool,
+) -> int:
+    """Apply a deferred changelog bullet on the default branch (issue #288).
+
+    Reads ``### Deferred changelog`` from ``issue<N>_status.md`` (current, then
+    solved) and writes ``Settings.history_file``. Refuses on an issue branch.
+    No-op when the file is missing, the close step chose ``nohistory``, or the
+    bullet is already present.
+    """
+    from datetime import date
+
+    settings = Settings()
+    changelog_name = settings.history_file
+    notes: list[str] = []
+    payload: dict[str, Any] = {
+        "ok": False,
+        "action": "none",
+        "reason": None,
+        "issue": issue_number,
+        "history_file": changelog_name,
+        "status_file": None,
+        "bullet": None,
+        "planned_version": None,
+        "branch": None,
+        "default_branch": None,
+        "notes": notes,
+    }
+
+    def emit(exit_code: int) -> int:
+        payload["ok"] = exit_code == 0
+        if as_json:
+            _emit_json(console, payload)
+        else:
+            _render_apply_changelog_text(console, payload, exit_code)
+        return exit_code
+
+    if not gitutils.git_available():
+        notes.append("git is not available.")
+        payload["reason"] = "git_unavailable"
+        payload["action"] = "refused"
+        return emit(1)
+
+    current = gitutils.current_branch(project_root)
+    default = gitutils.default_branch(project_root)
+    payload["branch"] = current
+    payload["default_branch"] = default
+    if current is None or current != default:
+        notes.append(
+            f"apply-changelog runs on the default branch only "
+            f"(now on {current or 'detached'}, default {default})."
+        )
+        payload["reason"] = "not_default_branch"
+        payload["action"] = "refused"
+        return emit(1)
+
+    status_path = _status_path_for_issue(project_root, settings, issue_number)
+    if status_path is None:
+        notes.append(
+            f"no issue{issue_number}_status.md under "
+            f"{settings.current_issues_folder} or {settings.solved_folder}."
+        )
+        payload["reason"] = "no_status_file"
+        payload["action"] = "noop"
+        return emit(0)
+
+    payload["status_file"] = str(
+        status_path.relative_to(project_root)
+        if status_path.is_relative_to(project_root)
+        else status_path
+    )
+    try:
+        status_text = status_path.read_text(encoding="utf-8")
+    except OSError as exc:
+        notes.append(f"could not read status file: {exc}")
+        payload["reason"] = "status_unreadable"
+        payload["action"] = "refused"
+        return emit(1)
+
+    deferred = history.parse_deferred_changelog(status_text)
+    if deferred is None:
+        notes.append("no ### Deferred changelog section.")
+        payload["reason"] = "no_deferred_section"
+        payload["action"] = "noop"
+        return emit(0)
+    if deferred.skipped:
+        notes.append("deferred section is nohistory — skip.")
+        payload["reason"] = "nohistory"
+        payload["action"] = "noop"
+        return emit(0)
+    if not deferred.bullet:
+        notes.append("deferred section has no bullet.")
+        payload["reason"] = "no_bullet"
+        payload["action"] = "noop"
+        return emit(0)
+
+    payload["bullet"] = deferred.bullet
+    payload["planned_version"] = deferred.planned_version
+
+    history_path = project_root / changelog_name
+    if not history_path.is_file():
+        notes.append(f"no {changelog_name} at the project root — skip.")
+        payload["reason"] = "missing_history_file"
+        payload["action"] = "noop"
+        return emit(0)
+
+    try:
+        text = history_path.read_text(encoding="utf-8")
+    except OSError as exc:
+        notes.append(f"could not read {changelog_name}: {exc}")
+        payload["reason"] = "history_unreadable"
+        payload["action"] = "refused"
+        return emit(1)
+
+    if history.changelog_has_bullet(text, deferred.bullet):
+        notes.append("bullet already present.")
+        payload["reason"] = "already_present"
+        payload["action"] = "noop"
+        return emit(0)
+
+    try:
+        updated = history.append_unreleased_bullet(text, deferred.bullet)
+        action = "appended"
+        if deferred.planned_version:
+            updated = history.promote_unreleased(
+                updated, deferred.planned_version, date.today().isoformat()
+            )
+            action = "promoted"
+    except history.MissingUnreleased:
+        notes.append(f"{changelog_name} has no ## [Unreleased] heading.")
+        payload["reason"] = "no_unreleased_section"
+        payload["action"] = "refused"
+        return emit(1)
+
+    if updated == text:
+        notes.append("no change after apply.")
+        payload["reason"] = "unchanged"
+        payload["action"] = "noop"
+        return emit(0)
+
+    try:
+        history_path.write_text(updated, encoding="utf-8")
+    except OSError as exc:
+        notes.append(f"could not write {changelog_name}: {exc}")
+        payload["reason"] = "history_unwritable"
+        payload["action"] = "refused"
+        return emit(1)
+
+    payload["reason"] = action
+    payload["action"] = action
+    notes.append(f"wrote {changelog_name} ({action}).")
+    return emit(0)
+
+
+def _render_apply_changelog_text(
+    console: Console, payload: dict[str, Any], exit_code: int
+) -> None:
+    action = payload.get("action") or "none"
+    reason = payload.get("reason") or ""
+    issue = payload.get("issue")
+    if exit_code == 0:
+        console.print(
+            f"[green]ok[/green]  apply-changelog #{issue} "
+            f"[bold]{escape(str(action))}[/bold]"
+            + (f" ({escape(str(reason))})" if reason and reason != action else "")
+        )
+    else:
+        console.print(
+            f"[red]refused[/red]  apply-changelog #{issue}: "
+            f"{escape(str(reason) or action)}"
+        )
+    for note in payload.get("notes") or []:
+        console.print(f"  [dim]{escape(str(note))}[/dim]")
+
+
+# ---------------------------------------------------------------------------
 # agent sweep
 # ---------------------------------------------------------------------------
 
@@ -3539,7 +3735,8 @@ def _print_config_guide(console: Console, cfg_path: Path) -> None:
         "[bold]auto_close[/bold] / "
         "[bold]auto_plan[/bold] / [bold]auto_build[/bold] / "
         "[bold]early_pr[/bold] / [bold]fix_auto_name[/bold]; "
-        "[bold]confirm_version_bump[/bold] / [bold]confirm_changelog_update[/bold]; "
+        "[bold]confirm_version_bump[/bold] / [bold]confirm_changelog_update[/bold] / "
+        "[bold]defer_changelog[/bold]; "
         "[bold]ruff_autofix[/bold]; [bold]essential_tests[/bold] / "
         "[bold]test_runner[/bold] / [bold]essential_marker[/bold] / "
         "[bold]essential_review[/bold]: skill-behaviour toggles; re-run "

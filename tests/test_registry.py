@@ -101,9 +101,7 @@ def test_update_all_skips_locked_and_missing(
     locked_rule.write_text("STALE_LOCKED", encoding="utf-8")
 
     runner = CliRunner()
-    result = runner.invoke(
-        app, ["update", "--all", "--skip-dep-check", "--json"]
-    )
+    result = runner.invoke(app, ["update", "--all", "--skip-dep-check", "--json"])
     assert result.exit_code == 0, result.output
     payload = _json(result.stdout)
     assert payload["ok"] is True
@@ -211,9 +209,7 @@ def test_update_all_workspace_unions_overlapping_root_once(
     registry_payload = _json(registry_only.stdout)
     assert registry_payload["ok_count"] == 1
     assert registry_payload["workspace_root"] is None
-    assert {m["path"] for m in registry_payload["members"]} == {
-        str(alpha.resolve())
-    }
+    assert {m["path"] for m in registry_payload["members"]} == {str(alpha.resolve())}
 
     union = runner.invoke(
         app,
