@@ -7,7 +7,9 @@ when a key is **unset** above it):
 - **`ISSUEFLOW_*` env / `.env`** (project root, via python-dotenv)
 - **user-global** `config.toml` — Linux/macOS/WSL:
   `$XDG_CONFIG_HOME/issue-flow/config.toml` or `~/.config/issue-flow/config.toml`;
-  native Windows: `%APPDATA%\issue-flow\config.toml`
+  native Windows: `%APPDATA%\issue-flow\config.toml`.
+  WSL is the Linux view (no `/mnt/c/Users/…` or `%APPDATA%` reads).
+  A native Windows install is a separate machine.
 - **project** `.issueflows/config.toml` — wins over every layer below
 
 So: **project `config.toml` > user-global > env > default**. A committed
