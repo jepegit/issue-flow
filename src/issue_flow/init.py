@@ -726,18 +726,33 @@ def run_update_all(
     editors: list[str] | None = None,
     force: bool = False,
     as_json: bool = False,
+    include_workspace: bool = False,
+    workspace_start: Path | None = None,
 ) -> int:
     """Refresh every unlocked registered root. Missing and locked roots skip.
 
     Aggregates like :func:`issue_flow.agent.run_workspace_update`: one member
     failure does not abort the rest. Forwards ``--force`` / ``--editor``.
+
+    When ``include_workspace`` is true, union nearest
+    ``issueflow-workspace.toml`` members (from ``workspace_start`` or cwd)
+    with the registry, unique by resolved path.
     """
     from rich.console import Console
 
+    from issue_flow.project import discover_workspace, unique_resolved_paths
     from issue_flow.user_global import read_registry_roots, user_global_registry_path
 
     settings = Settings()
-    roots = read_registry_roots()
+    roots = list(read_registry_roots())
+    workspace_root: Path | None = None
+    if include_workspace:
+        start = (workspace_start or Path.cwd()).resolve()
+        workspace = discover_workspace(start)
+        if workspace is not None:
+            workspace_root = workspace.root
+            roots.extend(workspace.member_roots())
+    roots = unique_resolved_paths(roots)
 
     if not skip_dep_check and not _dependency_gate(skip_dep_check=False):
         return 1
@@ -806,6 +821,7 @@ def run_update_all(
     payload = {
         "ok": fail_count == 0,
         "registry": str(user_global_registry_path()),
+        "workspace_root": str(workspace_root) if workspace_root else None,
         "members": results,
         "ok_count": ok_count,
         "skip_count": skip_count,

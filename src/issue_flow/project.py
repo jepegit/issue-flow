@@ -3,8 +3,22 @@
 from __future__ import annotations
 
 import tomllib
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
+
+
+def unique_resolved_paths(paths: Iterable[Path]) -> list[Path]:
+    """Absolute resolved paths, first-seen order (symlinks collapse)."""
+    seen: set[Path] = set()
+    unique: list[Path] = []
+    for path in paths:
+        resolved = path.resolve()
+        if resolved in seen:
+            continue
+        seen.add(resolved)
+        unique.append(resolved)
+    return unique
 
 # The multi-repo workspace registry (issue #126). Lives at the workspace
 # root — the directory that *contains* the member repos — and names the

@@ -70,6 +70,10 @@ members = ["cellpy", "cellpy-core"]  # optional; auto-discovered when omitted
 - A single shared top-level `.issueflows/` remains rejected (see below): issue
   numbers are a per-repo namespace, the lifecycle is per-repo regardless, and
   archive recovery depends on tracking files being committed in their repo.
+- `issue-flow update --all --workspace` (from a path under the workspace)
+  unions these members with the user-global registry, unique by resolved
+  path — see [user-global-config.md](./user-global-config.md) (#296).
+  Default `update --all` still ignores this file.
 
 ## Out of scope (follow-ups)
 

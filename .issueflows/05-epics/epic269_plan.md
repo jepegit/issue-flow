@@ -190,9 +190,79 @@ on the **user-global** tree. No skillbook library.
 - yolo: no — home-dir writes, new stamp store, multi-editor I/O
 - Published: #293
 
+## Stage 4 — Registry hygiene + platform leftovers
+
+Confirmed 2026-09-18.
+
+Original Goal items (1)–(3) already shipped. This stage burns the
+three Later leftovers from
+[user-global-config.md](../04-designs-and-guides/user-global-config.md)
+without reopening skill placement or lock/registry v1.
+- Goal: overlapping workspace+registry roots update once when asked to
+  union; discover is opt-in and confirmed; native Windows APPDATA is
+  tested as a separate machine view (no WSL→`%USERPROFILE%` reads).
+
+### Issue: Dedupe workspace update and the registry
+
+- Spec: v1 left `workspace update` and `update --all` as different
+  sets ([user-global-config.md](../04-designs-and-guides/user-global-config.md)
+  / [multi-repo-workspaces.md](../04-designs-and-guides/multi-repo-workspaces.md)).
+  Same absolute root in both can be refreshed twice in one session.
+  Add a shared unique-by-resolved-path walk. Default command sets stay
+  unchanged (`update --all` = registry only; `workspace update` =
+  workspace members only). `issue-flow update --all --workspace`
+  unions nearest `issueflow-workspace.toml` members with registry
+  roots (locked / missing still skip). `workspace update` already
+  listed twice in the workspace file updates once. Honour #276 per
+  root; `--force` still `overwrite_foreign`. Docs: both design docs +
+  `docs/cli.md`. Tests: overlapping tmp root appears once in the
+  union; without `--workspace`, `update --all` does not walk the
+  workspace file.
+- Goal: `--workspace` union updates an overlapping root once; defaults
+  stay two separate sets.
+- Model: default
+- Depends on: #287
+- yolo: no — two CLI surfaces, easy to change default sets by accident
+- Published: #296
+
+### Issue: Opt-in discover of `.issueflows/` trees
+
+- Spec: Epic constraint forbids a default whole-disk git scan. Add
+  `issue-flow register --discover [START]` (START default = cwd): walk
+  for directories that already contain the project's issueflows dir
+  (bounded depth, no symlink escape), print the candidate list, write
+  only after one confirm (or `--yes` in tests). Never run from
+  `update --all` / `init` / `workspace update`. Missing / locked roots
+  stay skip-and-report. Relative START is resolved; discovered roots
+  stored absolute. Docs in `docs/cli.md` + user-global-config.md
+  (strike “scanning is Later”). Tests: tmp tree with two scaffolds +
+  one decoy; only scaffolds register; depth cap respected.
+- Goal: `register --discover` adds only confirmed `.issueflows/`
+  roots; `update --all` still never walks the disk.
+- Model: default
+- Depends on: #287
+- yolo: no — disk walk + confirm UX; default-off is a product line
+- Published: #297
+
+### Issue: Native Windows APPDATA tests (not a WSL bridge)
+
+- Spec: Contract already says WSL uses the Linux home and a native
+  Windows install is a **separate machine view** — do **not** read
+  `%APPDATA%` / `%USERPROFILE%` from WSL Python. Remaining work is
+  proving the `sys.platform == "win32"` branch
+  (`os_config_home` / `user_config_dir` / editor global skills) with
+  monkeypatched `sys.platform` + `APPDATA` / `USERPROFILE`, plus a
+  short note in `docs/configuration.md` and both design docs. No
+  `/mnt/c/Users/…` lookup. No change to Linux/WSL behaviour.
+- Goal: win32 APPDATA paths have tests; WSL still ignores Windows
+  home.
+- Model: fast
+- Depends on: #285
+- yolo: yes — mechanical tests + docs around an already-shipped branch
+- Published: #298
+
 ## Later (unstaged)
 
-- Opt-in disk discovery of `.issueflows/` trees (never default).
-- `workspace update` calling through the registry when members are
-  also registered (dedupe).
-- Windows native paths beyond WSL.
+None. Cross-repo pick / linked issues / workspace status dashboard
+stay on [multi-repo-workspaces.md](../04-designs-and-guides/multi-repo-workspaces.md)
+(out of this epic).

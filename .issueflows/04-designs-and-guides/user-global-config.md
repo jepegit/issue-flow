@@ -124,10 +124,12 @@ the rest).
 Flags `--editor`, `--skip-dep-check`, and `--force` forward to each
 member `update`. `--force` is the #276 `overwrite_foreign` switch.
 
-A repo may appear in both the registry and a workspace file. v1 does
-**not** dedupe across the two commands — they are different sets.
-Calling both in one session may refresh the same root twice. Dedup is
-a Later item on the epic.
+A repo may appear in both the registry and a workspace file. Default
+command sets stay different (`update --all` = registry;
+`workspace update` = workspace members). `update --all --workspace`
+unions the nearest workspace file's members with the registry, unique
+by resolved path, so an overlapping root is refreshed once in that
+invocation. `workspace update` also collapses a member listed twice.
 
 ### #276 stamps on a registered repo
 
@@ -173,7 +175,8 @@ Cite this doc from the Stage 2 issues:
 - Scanning the disk for `.issueflows/` trees (Later, opt-in only).
 - GitLab.
 - Making every packaged skill global (#282 / #293: only `both` stems).
-- Deduping `update --all` with `workspace update`.
+- Deduping `update --all` with `workspace update` except the opt-in
+  `--workspace` union (#296).
 - Windows-native paths from inside WSL.
 
 ## Link

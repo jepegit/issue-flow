@@ -263,9 +263,25 @@ def update(
     json_output: bool = typer.Option(
         False, "--json", help="Emit a machine-readable JSON object (with --all)."
     ),
+    include_workspace: bool = typer.Option(
+        False,
+        "--workspace",
+        help=(
+            "With --all, also union members of the nearest "
+            "issueflow-workspace.toml (unique by resolved path). "
+            "Without --all this flag is an error."
+        ),
+    ),
 ) -> None:
     """Refresh packaged editor commands, rules, and workflow doc from this package."""
     from issue_flow.init import run_update, run_update_all
+
+    if include_workspace and not all_roots:
+        _console.print(
+            "[red]error[/red]  --workspace requires --all "
+            "(union registry + nearest workspace members)."
+        )
+        raise typer.Exit(code=2)
 
     if all_roots:
         raise typer.Exit(
@@ -274,6 +290,8 @@ def update(
                 editors=editor,
                 force=force,
                 as_json=json_output,
+                include_workspace=include_workspace,
+                workspace_start=project_dir,
             )
         )
 

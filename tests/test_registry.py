@@ -125,5 +125,64 @@ def test_update_help_lists_all() -> None:
     assert result.exit_code == 0
     plain = _plain(result.stdout)
     assert "--all" in plain
+    assert "--workspace" in plain
     assert "--force" in plain
     assert "--mode" not in plain
+
+
+def test_update_workspace_without_all_errors(tmp_path: Path) -> None:
+    runner = CliRunner()
+    result = runner.invoke(app, ["update", str(tmp_path), "--workspace"])
+    assert result.exit_code == 2
+    assert "--workspace requires --all" in _plain(result.stdout)
+
+
+def test_update_all_workspace_unions_overlapping_root_once(
+    tmp_path: Path,
+) -> None:
+    workspace = tmp_path / "ws"
+    alpha = workspace / "alpha"
+    beta = workspace / "beta"
+    workspace.mkdir()
+    run_init(alpha, skip_dep_check=True)
+    run_init(beta, skip_dep_check=True)
+    (workspace / "issueflow-workspace.toml").write_text(
+        '[workspace]\nmembers = ["alpha", "beta", "alpha"]\n',
+        encoding="utf-8",
+    )
+
+    for root in list(read_registry_roots()):
+        unregister_root(root)
+    register_root(alpha.resolve())
+
+    runner = CliRunner()
+    registry_only = runner.invoke(
+        app, ["update", str(workspace), "--all", "--skip-dep-check", "--json"]
+    )
+    assert registry_only.exit_code == 0, registry_only.output
+    registry_payload = _json(registry_only.stdout)
+    assert registry_payload["ok_count"] == 1
+    assert registry_payload["workspace_root"] is None
+    assert {m["path"] for m in registry_payload["members"]} == {
+        str(alpha.resolve())
+    }
+
+    union = runner.invoke(
+        app,
+        [
+            "update",
+            str(workspace),
+            "--all",
+            "--workspace",
+            "--skip-dep-check",
+            "--json",
+        ],
+    )
+    assert union.exit_code == 0, union.output
+    union_payload = _json(union.stdout)
+    assert union_payload["ok_count"] == 2
+    assert Path(union_payload["workspace_root"]) == workspace.resolve()
+    assert [m["path"] for m in union_payload["members"]] == [
+        str(alpha.resolve()),
+        str(beta.resolve()),
+    ]
