@@ -30,7 +30,7 @@ install user-global is decided in
 |----|-----------|
 | Linux / macOS | `$XDG_CONFIG_HOME/issue-flow/` when `XDG_CONFIG_HOME` is set, else `~/.config/issue-flow/` |
 | Windows (native) | `%APPDATA%\issue-flow\` (Roaming) |
-| WSL | **Linux path inside the distro** (`~/.config/issue-flow/` or `XDG_CONFIG_HOME`). Do not read the Windows `%APPDATA%` tree from WSL Python. A native Windows install is a separate machine view. |
+| WSL | **Linux path inside the distro** (`~/.config/issue-flow/` or `XDG_CONFIG_HOME`). Do not read the Windows `%APPDATA%` tree from WSL Python (no `/mnt/c/Users/…` lookup). A native Windows install is a separate machine view. The `win32` branch is covered by tests that monkeypatch `sys.platform` (#298). |
 
 Files in that directory:
 
@@ -181,7 +181,8 @@ Cite this doc from the Stage 2 issues:
 - Making every packaged skill global (#282 / #293: only `both` stems).
 - Deduping `update --all` with `workspace update` except the opt-in
   `--workspace` union (#296).
-- Windows-native paths from inside WSL.
+- Windows-native paths from inside WSL (explicit non-goal; #298 tests the
+  `win32` branch only).
 
 ## Link
 

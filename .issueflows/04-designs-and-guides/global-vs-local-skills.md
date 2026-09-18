@@ -37,7 +37,9 @@ a prior `update --all` or home-dir install.
 
 WSL uses the Linux home inside the distro (`~/.cursor/skills/`), not
 the Windows `%USERPROFILE%` tree — same split as
-[user-global-config.md](./user-global-config.md).
+[user-global-config.md](./user-global-config.md). Native Windows
+opencode globals are `%APPDATA%\opencode\skills\`. No `/mnt/c` bridge
+(#298).
 
 **Local wins.** A project skill directory with the same output name
 beats the user-global copy. Honour #276 stamps on **each** tree that

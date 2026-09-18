@@ -9,6 +9,7 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- Tests for native Windows `%APPDATA%` user-global paths; WSL still ignores the Windows home. (#298)
 - Opt-in `register --discover` walks a start dir for `.issueflows/` trees (confirm before write). (#297)
 - `update --all --workspace` unions registry roots with the nearest workspace members (one update per resolved path). (#296)
 - Materialize `both` stems (`caveman`, `grill-me`, `gh-ci`) into per-editor user-global skill dirs on `init` / `update`. (#293)
