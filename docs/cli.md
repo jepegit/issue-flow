@@ -87,6 +87,7 @@ a TTY (e.g. CI pipelines).
 | `--editor`, `-e`   | AI coding tool(s) to refresh for: `cursor` (default), `claude`, `opencode`, `codex`, or `all`. Repeatable. See [Editor support](editors.md). |
 | `--force`, `-f`    | Overwrite a packaged skill directory even when it looks foreign (symlink, extra files, or content hash ≠ last render stamp). |
 | `--all`            | Walk the user-global `registry.toml` and run `update` on every unlocked root. Missing and locked roots are listed and skipped. No `issueflow-workspace.toml` required. Forwards `--editor`, `--skip-dep-check`, and `--force`. |
+| `--workspace`      | With `--all` only: also union members of the nearest `issueflow-workspace.toml` (from `PROJECT_DIR`). Same absolute root in both sets is updated once. Without `--all` this flag errors. |
 | `--json`           | With `--all`, emit ok / skip / fail counts and per-root results. |
 
 `issue-flow init` and `issue-flow register` add the current root to

@@ -2809,7 +2809,15 @@ def run_workspace_update(
             f"`issue-flow workspace init` from the workspace root first."
         )
 
-    member_roots = workspace.member_roots()
+    seen_roots: set[Path] = set()
+    member_pairs: list[tuple[str, Path]] = []
+    for name, root in zip(workspace.members, workspace.member_roots(), strict=True):
+        resolved = root.resolve()
+        if resolved in seen_roots:
+            continue
+        seen_roots.add(resolved)
+        member_pairs.append((name, resolved))
+    member_roots = [root for _, root in member_pairs]
     if not member_roots:
         return _fail(
             f"no scaffolded member repos found under {workspace.root} — run "
@@ -2844,7 +2852,7 @@ def run_workspace_update(
     ok_count = 0
     fail_count = 0
 
-    for name, root in zip(workspace.members, member_roots, strict=True):
+    for name, root in member_pairs:
         entry: dict[str, Any] = {"name": name, "path": str(root)}
         try:
             _run_member_update(root)
