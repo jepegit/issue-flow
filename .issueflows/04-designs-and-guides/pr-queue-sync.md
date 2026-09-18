@@ -1,7 +1,7 @@
 # PR queue sync — refresh dirty open PRs after a merge
 
 **Issue:** [#260](https://github.com/jepegit/issue-flow/issues/260)
-**Status:** Part A implemented with the issue; Part B (`defer_changelog`) optional follow-up.
+**Status:** Part A implemented with the issue; Part B (`defer_changelog`) shipped in #288 (opt-in, default off).
 
 ## Context
 
@@ -22,9 +22,10 @@ version headings (as with dual `0.4.13` promotions on #255 vs #259).
 3. **Default candidates = dirty only.** `--all-open` is opt-in.
 4. **Ephemeral worktrees.** `../<repo>-prsync-<branch>` created as needed and
    removed by default (`--keep-worktrees` to retain).
-5. **Prevention later.** Optional `defer_changelog` (write bullet on default
-   after merge) remains the structural fix for bump collisions; tracked as
-   Part B of #260 / follow-up.
+5. **Prevention shipped (#288).** Optional `defer_changelog` writes the bullet
+   on the default branch after merge (`issue-flow agent apply-changelog`).
+   Default **off** — this skill stays the repair path when issue branches
+   still edit HISTORY.
 
 ## Links
 

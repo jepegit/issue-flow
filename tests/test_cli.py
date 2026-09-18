@@ -2350,6 +2350,7 @@ def _clear_issueflow_env(monkeypatch: pytest.MonkeyPatch) -> None:
         "ISSUEFLOW_RUFF_AUTOFIX",
         "ISSUEFLOW_AUTO_CLOSE",
         "ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE",
+        "ISSUEFLOW_DEFER_CHANGELOG",
     ):
         monkeypatch.delenv(var, raising=False)
 
@@ -2396,6 +2397,7 @@ def test_config_add_creates_defaults(
     assert payload["early_pr"] is False
     assert payload["fix_auto_name"] is False
     assert payload["confirm_changelog_update"] is False
+    assert payload["defer_changelog"] is False
     assert payload["essential_tests"] is False
     assert payload["test_runner"] == "pytest"
     assert payload["essential_marker"] == "essential"

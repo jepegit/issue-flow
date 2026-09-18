@@ -1,24 +1,14 @@
-"""Deterministic keep-both resolution for changelog merge conflicts.
+"""Changelog text helpers: keep-both conflict resolution plus append/promote.
 
-When an unrelated PR lands on the default branch while one issue is in flight,
-the two branches often add a bullet to the *same* ``## [Unreleased]`` section of
-the changelog. Git cannot merge that, so the PR goes ``CONFLICTING`` /
-``DIRTY`` and — before issue #240 — ``/iflow-cycle`` treated the refused merge
-as a stop even though there is no semantic merge to invent: both sides only
-appended list items.
+The resolver is the load-bearing half of issue #240: it decides when a
+conflicted changelog is *mechanical* (both sides only appended bullets under
+``[Unreleased]``) and when it is a real conflict that must stop the flow.
 
-This module owns that one mechanical resolution, as pure text in / text out so
-it can be unit-tested without a git repo. It is deliberately **narrow**:
-anything that is not "both sides only add bullets under the same
-``[Unreleased]`` heading" is refused with a reason, and the caller
-(``issue-flow agent sync-branch``) aborts the rebase and stops. Edited existing
-bullets, renamed headings, and promoted version sections are all real conflicts
-that a human (or the agent) must look at.
-
-Ordering rule: the bullets already on the default branch keep their positions
-and the in-flight issue's bullets are appended **last** — the same append
-semantics as the ``iflow-history-update`` skill's mode A, so a resolved conflict
-is indistinguishable from having written the bullet after the other one landed.
+Issue #288 adds the *write* half used when ``defer_changelog`` is on:
+append a bullet under ``[Unreleased]``, optionally promote that section to a
+dated release, and parse the deferred block recorded in ``issue<N>_status.md``.
+These writers are pure text in / text out so they can be unit-tested without a
+git repo.
 """
 
 from __future__ import annotations
@@ -45,7 +35,167 @@ EMPTY_SIDE = "empty_side"
 
 _HEADING_RE = re.compile(r"^\s{0,3}#{1,6}\s")
 _UNRELEASED_RE = re.compile(r"^\s{0,3}##\s*\[?unreleased\]?", re.IGNORECASE)
+_VERSION_HEADING_RE = re.compile(r"^\s{0,3}##\s+\[")
 _BULLET_RE = re.compile(r"^\s*[-*+]\s")
+_DEFERRED_HEADING_RE = re.compile(r"^###\s+Deferred changelog\s*$", re.IGNORECASE)
+_PLANNED_VERSION_RE = re.compile(r"^Planned version:\s*(\S+)\s*$", re.IGNORECASE)
+
+
+class MissingUnreleased(ValueError):
+    """Raised when a writer cannot find ``## [Unreleased]``."""
+
+
+@dataclass(frozen=True)
+class DeferredChangelog:
+    """Deferred changelog decision recorded on ``issue<N>_status.md``.
+
+    ``skipped`` is true when the close step chose ``nohistory``. ``bullet`` is
+    the list item to append (normalized to start with ``- ``). ``planned_version``
+    is set when close bumped or planned a version, so apply-changelog can
+    promote ``[Unreleased]``.
+    """
+
+    skipped: bool
+    bullet: str | None
+    planned_version: str | None
+
+
+def _join_lines(text: str, lines: list[str]) -> str:
+    newline = detect_newline(text)
+    out = newline.join(lines)
+    if text.endswith(("\n", "\r")):
+        out += newline
+    return out
+
+
+def normalize_bullet(bullet: str) -> str:
+    """Return ``bullet`` as a single ``- …`` list item."""
+    text = bullet.strip()
+    if text.startswith(("- ", "* ", "+ ")):
+        return f"- {text[2:].strip()}"
+    if text.startswith(("-", "*", "+")):
+        return f"- {text[1:].strip()}"
+    return f"- {text}"
+
+
+def changelog_has_bullet(text: str, bullet: str) -> bool:
+    """True when ``bullet`` is already present as a list item (whitespace-folded)."""
+    needle = normalize_bullet(bullet)
+    for line in text.splitlines():
+        if line.strip() == needle:
+            return True
+        if _BULLET_RE.match(line) and normalize_bullet(line) == needle:
+            return True
+    return False
+
+
+def _unreleased_span(lines: list[str]) -> tuple[int, int]:
+    start: int | None = None
+    for i, line in enumerate(lines):
+        if _UNRELEASED_RE.match(line):
+            start = i
+            break
+    if start is None:
+        raise MissingUnreleased("no ## [Unreleased] heading")
+    end = len(lines)
+    for j in range(start + 1, len(lines)):
+        if _VERSION_HEADING_RE.match(lines[j]) and not _UNRELEASED_RE.match(lines[j]):
+            end = j
+            break
+    return start, end
+
+
+def append_unreleased_bullet(text: str, bullet: str) -> str:
+    """Append ``bullet`` at the end of ``## [Unreleased]`` (idempotent)."""
+    item = normalize_bullet(bullet)
+    if changelog_has_bullet(text, item):
+        return text
+    lines = text.splitlines()
+    start, end = _unreleased_span(lines)
+    section = lines[start:end]
+    while section and section[-1].strip() == "":
+        section.pop()
+    if len(section) == 1:
+        section.append("")
+    section.append(item)
+    out = lines[:start] + section
+    if end < len(lines):
+        out.append("")
+        out.extend(lines[end:])
+    return _join_lines(text, out)
+
+
+def promote_unreleased(text: str, version: str, date: str) -> str:
+    """Rename ``[Unreleased]`` to ``[version] - date`` and open an empty one above.
+
+    Existing bullets stay in the new dated section. Does not add a bullet —
+    call :func:`append_unreleased_bullet` first when applying a deferred one.
+    """
+    version = version.strip()
+    if version.startswith("v") and version[1:2].isdigit():
+        version = version[1:]
+    lines = text.splitlines()
+    start, end = _unreleased_span(lines)
+    body = lines[start + 1 : end]
+    while body and body[0].strip() == "":
+        body.pop(0)
+    while body and body[-1].strip() == "":
+        body.pop()
+    rebuilt = [
+        "## [Unreleased]",
+        "",
+        f"## [{version}] - {date}",
+    ]
+    if body:
+        rebuilt.append("")
+        rebuilt.extend(body)
+    out = lines[:start] + rebuilt
+    if end < len(lines):
+        out.append("")
+        out.extend(lines[end:])
+    return _join_lines(text, out)
+
+
+def parse_deferred_changelog(status_text: str) -> DeferredChangelog | None:
+    """Read the ``### Deferred changelog`` block from a status file.
+
+    Returns ``None`` when the heading is absent. A ``nohistory`` token means
+    the close step explicitly skipped the bullet.
+    """
+    lines = status_text.splitlines()
+    start: int | None = None
+    for i, line in enumerate(lines):
+        if _DEFERRED_HEADING_RE.match(line):
+            start = i
+            break
+    if start is None:
+        return None
+    end = len(lines)
+    for j in range(start + 1, len(lines)):
+        if lines[j].startswith("##"):
+            end = j
+            break
+    bullet: str | None = None
+    planned: str | None = None
+    skipped = False
+    for line in lines[start + 1 : end]:
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if stripped.lower() == "nohistory":
+            skipped = True
+            continue
+        planned_match = _PLANNED_VERSION_RE.match(stripped)
+        if planned_match:
+            planned = planned_match.group(1)
+            continue
+        if _BULLET_RE.match(line) and bullet is None:
+            bullet = normalize_bullet(line)
+    if skipped:
+        return DeferredChangelog(skipped=True, bullet=None, planned_version=None)
+    if bullet is None:
+        return DeferredChangelog(skipped=False, bullet=None, planned_version=planned)
+    return DeferredChangelog(skipped=False, bullet=bullet, planned_version=planned)
 
 
 @dataclass(frozen=True)

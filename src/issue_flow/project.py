@@ -20,6 +20,7 @@ def unique_resolved_paths(paths: Iterable[Path]) -> list[Path]:
         unique.append(resolved)
     return unique
 
+
 # The multi-repo workspace registry (issue #126). Lives at the workspace
 # root — the directory that *contains* the member repos — and names the
 # member the lifecycle commands default to when invoked from outside any

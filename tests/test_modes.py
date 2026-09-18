@@ -367,6 +367,7 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
         read_auto_switchback,
         read_auto_remove_worktree,
         read_confirm_changelog_update,
+        read_defer_changelog,
         read_cycle_max_issues,
         read_auto_adversarial_loops,
         read_pr_merge_method,
@@ -375,6 +376,7 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
         read_ruff_autofix,
         read_auto_graphify_on_plan,
         read_suggest_graphify,
+        DEFAULT_DEFER_CHANGELOG,
         DEFAULT_ESSENTIAL_TESTS,
         DEFAULT_TEST_RUNNER,
         DEFAULT_ESSENTIAL_MARKER,
@@ -403,6 +405,7 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
     assert read_fix_auto_name(cfg) is DEFAULT_FIX_AUTO_NAME
     assert read_locked(cfg) is DEFAULT_LOCKED
     assert read_confirm_changelog_update(cfg) is DEFAULT_CONFIRM_CHANGELOG_UPDATE
+    assert read_defer_changelog(cfg) is DEFAULT_DEFER_CHANGELOG
     assert read_essential_tests(cfg) is DEFAULT_ESSENTIAL_TESTS
     assert read_test_runner(cfg) == DEFAULT_TEST_RUNNER
     assert read_essential_marker(cfg) == DEFAULT_ESSENTIAL_MARKER

@@ -77,6 +77,7 @@ CONFIG_KEYS: dict[str, ConfigKeySpec] = {
     "fix_auto_name": ConfigKeySpec("bool"),
     "locked": ConfigKeySpec("bool", needs_update=False),
     "confirm_changelog_update": ConfigKeySpec("bool"),
+    "defer_changelog": ConfigKeySpec("bool"),
     "essential_tests": ConfigKeySpec("bool"),
     "test_runner": ConfigKeySpec("enum", ALLOWED_TEST_RUNNERS),
     "essential_marker": ConfigKeySpec("str"),

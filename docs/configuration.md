@@ -83,7 +83,7 @@ It writes the keys issue-flow actually reads from `config.toml` — `mode`,
 `remind_cleanup`, `cleanup_include_github`, `suggest_graphify`,
 `auto_switchback`, `pr_merge_method`, `cycle_max_issues`,
 `confirm_version_bump`, `ruff_autofix`, `auto_close`, `auto_plan`,
-`auto_build`, `confirm_changelog_update`, `locked`, `essential_tests`,
+`auto_build`, `confirm_changelog_update`, `defer_changelog`, `locked`, `essential_tests`,
 `test_runner`, `essential_marker`, `essential_review`, `pstack_skills` — taking each value from
 its `ISSUEFLOW_*` env var / `.env`
 when set, otherwise the issue-flow default.
@@ -391,6 +391,7 @@ Lifecycle skills can be tuned with additional `[issueflow]` keys (baked at
 | `early_pr` | `false` | When `true`, `/iflow-build` opens a draft PR after the first push; trailing `early` / `pr` / `noearly` override per run |
 | `locked` | `false` | `update --all` skips this root. Project `config.toml` only; see [Per-repo lock](#per-repo-lock) |
 | `confirm_changelog_update` | `false` | When `true`, `/iflow-close` shows the changelog diff and confirms once before writing (decline **stops** close); `false` writes without asking so the bullet lands in the PR (`nohistory` still skips) |
+| `defer_changelog` | `false` | When `true`, issue branches never write HISTORY/CHANGELOG; the bullet is recorded on the status file + PR body and applied on the default branch after merge (`issue-flow agent apply-changelog`) |
 | `essential_tests` | `false` | Opt-in essential-suite paradigm for pytest; see `.issueflows/04-designs-and-guides/essential-tests.md` |
 | `test_runner` | `"pytest"` | Test runner for essential-tests (v1: only `"pytest"` supported) |
 | `essential_marker` | `"essential"` | pytest mark name for the essential suite |
@@ -413,6 +414,7 @@ auto_plan = true
 auto_build = true
 early_pr = false
 confirm_changelog_update = false
+defer_changelog = false
 essential_tests = false
 test_runner = "pytest"
 essential_marker = "essential"
@@ -425,7 +427,8 @@ Env fallbacks: `ISSUEFLOW_REMIND_CLEANUP`, `ISSUEFLOW_SUGGEST_GRAPHIFY`,
 `ISSUEFLOW_AUTO_ADVERSARIAL_LOOPS`, `ISSUEFLOW_CONFIRM_VERSION_BUMP`,
 `ISSUEFLOW_RUFF_AUTOFIX`, `ISSUEFLOW_AUTO_CLOSE`, `ISSUEFLOW_AUTO_PLAN`,
 `ISSUEFLOW_AUTO_BUILD`, `ISSUEFLOW_EARLY_PR`, `ISSUEFLOW_LOCKED`,
-`ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE`, `ISSUEFLOW_ESSENTIAL_TESTS`,
+`ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE`, `ISSUEFLOW_DEFER_CHANGELOG`,
+`ISSUEFLOW_ESSENTIAL_TESTS`,
 `ISSUEFLOW_TEST_RUNNER`, `ISSUEFLOW_ESSENTIAL_MARKER`,
 `ISSUEFLOW_ESSENTIAL_REVIEW`. Re-run `issue-flow update` after changing any of
 these so skills and rules re-render.

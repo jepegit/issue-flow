@@ -22,7 +22,7 @@ agent_app = typer.Typer(
         "Agent-facing helpers that read the .issueflows/ tree and git/gh so "
         "AI agents get deterministic answers instead of re-deriving lifecycle "
         "state by hand. All are read-only except `sweep`, `archive`, `capture`, "
-        "`switchback`, `sync-branch`, `pr-sync`, `repair`, `label-apply`, "
+        "`switchback`, `sync-branch`, `pr-sync`, `apply-changelog`, `repair`, `label-apply`, "
         "`open-workspace --open`, `worktree-add`, and `worktree-remove`. "
         "`branches` (remote) and `local-branches` (local) only classify: "
         "every delete stays in `/iflow-cleanup`."
@@ -568,6 +568,35 @@ def agent_sync_branch(
     from issue_flow.agent import run_sync_branch
 
     raise typer.Exit(code=run_sync_branch(project_dir, _console, strategy, json_output))
+
+
+@agent_app.command("apply-changelog")
+def agent_apply_changelog(
+    issue: int = typer.Option(
+        ...,
+        "--issue",
+        "-n",
+        help="GitHub issue number whose deferred changelog bullet to apply.",
+    ),
+    project_dir: Path = _PROJECT_DIR_OPTION,
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Apply a deferred changelog bullet on the default branch.
+
+    Reads ``### Deferred changelog`` from ``issue<N>_status.md`` (current, then
+    solved) and writes the project's HISTORY/CHANGELOG file. Refuses unless
+    the checkout is on the default branch. No-op when the file is missing,
+    the close step chose ``nohistory``, or the bullet is already present.
+    Used by ``/iflow-cleanup`` and yolo post-pull when ``defer_changelog`` is
+    on (issue #288).
+    """
+    from issue_flow.agent import run_apply_changelog
+
+    raise typer.Exit(
+        code=run_apply_changelog(project_dir, _console, issue, json_output)
+    )
 
 
 @agent_app.command("pr-sync")
@@ -1219,6 +1248,7 @@ def config_add(
     ``confirm_version_bump``,
     ``ruff_autofix``, ``auto_close``, ``auto_plan``, ``auto_build``,
     ``early_pr``, ``fix_auto_name``, ``confirm_changelog_update``,
+    ``defer_changelog``,
     ``essential_tests``, ``test_runner``, ``essential_marker``,
     ``essential_review``, ``pstack_skills``
     — taking each from its ``ISSUEFLOW_*`` env var when set, else the default.

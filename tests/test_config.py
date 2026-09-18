@@ -81,6 +81,7 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "early_pr",
         "fix_auto_name",
         "confirm_changelog_update",
+        "defer_changelog",
         "essential_tests",
         "test_runner",
         "essential_marker",
@@ -411,6 +412,7 @@ def test_skill_behaviour_knob_defaults(
         "ISSUEFLOW_FIX_AUTO_NAME",
         "ISSUEFLOW_LOCKED",
         "ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE",
+        "ISSUEFLOW_DEFER_CHANGELOG",
         "ISSUEFLOW_AUTO_GRAPHIFY_ON_PLAN",
         "ISSUEFLOW_CLEANUP_INCLUDE_GITHUB",
         "ISSUEFLOW_ESSENTIAL_TESTS",
@@ -438,6 +440,7 @@ def test_skill_behaviour_knob_defaults(
     assert settings.resolve_fix_auto_name(tmp_path) is False
     assert settings.resolve_locked(tmp_path) is False
     assert settings.resolve_confirm_changelog_update(tmp_path) is False
+    assert settings.resolve_defer_changelog(tmp_path) is False
     assert settings.resolve_essential_tests(tmp_path) is False
     assert settings.resolve_test_runner(tmp_path) == "pytest"
     assert settings.resolve_essential_marker(tmp_path) == "essential"
@@ -466,6 +469,7 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
         "fix_auto_name = true\n"
         "locked = true\n"
         "confirm_changelog_update = false\n"
+        "defer_changelog = true\n"
         "essential_tests = true\n"
         'test_runner = "pytest"\n'
         'essential_marker = "smoke"\n'
@@ -490,10 +494,24 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
     assert settings.resolve_fix_auto_name(tmp_path) is True
     assert settings.resolve_locked(tmp_path) is True
     assert settings.resolve_confirm_changelog_update(tmp_path) is False
+    assert settings.resolve_defer_changelog(tmp_path) is True
     assert settings.resolve_essential_tests(tmp_path) is True
     assert settings.resolve_test_runner(tmp_path) == "pytest"
     assert settings.resolve_essential_marker(tmp_path) == "smoke"
     assert settings.resolve_essential_review(tmp_path) == "both"
+
+
+def test_defer_changelog_from_env(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    monkeypatch.delenv("ISSUEFLOW_DEFER_CHANGELOG", raising=False)
+    settings = Settings()
+    assert settings.resolve_defer_changelog(tmp_path) is False
+    monkeypatch.setenv("ISSUEFLOW_DEFER_CHANGELOG", "true")
+    settings = Settings()
+    assert settings.resolve_defer_changelog(tmp_path) is True
+    assert settings.effective_config(tmp_path)["defer_changelog"] is True
 
 
 def test_pr_merge_method_invalid_falls_back(

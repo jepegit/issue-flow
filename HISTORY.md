@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+## [0.5.3] - 2026-09-18
+
 - Tests for native Windows `%APPDATA%` user-global paths; WSL still ignores the Windows home. (#298)
 - Opt-in `register --discover` walks a start dir for `.issueflows/` trees (confirm before write). (#297)
 - `update --all --workspace` unions registry roots with the nearest workspace members (one update per resolved path). (#296)
@@ -19,6 +21,7 @@ than the GitHub release notes they link to.
 - User-global config file + resolve precedence. (#285)
 - Skill split — which packaged stems are global vs project-local. (#282)
 - Design doc — user-global config, lock, registry, update-all. (#281)
+- Prevent HISTORY conflicts: defer_changelog (write on default after merge). (#288)
 
 ## [0.4.20] - 2026-09-17
 

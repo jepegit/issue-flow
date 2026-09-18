@@ -42,9 +42,10 @@ cycle, but says nothing about the default branch moving externally.
    the bullet after the other one landed. Note this is the **opposite** of the
    manual resolve in the issue report (which put ours first); the issue asked
    for one documented order, and consistency with mode A won.
-5. **No config knob.** The behaviour is always on. Its "off" state is a known
-   dead end (a halted batch over bookkeeping), so a knob would only add
-   plumbing.
+5. **No config knob for the resolver.** Keep-both is always on. Prevention
+   of the collision is a *different* knob: `defer_changelog` (#288, default
+   **off**) so issue branches never write HISTORY. This repair path stays
+   the default.
 6. **One command, not two.** `issue-flow agent sync-branch` owns the git side;
    the pure text resolver lives in `issue_flow.history` for tests and reuse. A
    separate `agent history-resolve` was floated in the issue but has no second
@@ -75,4 +76,5 @@ cycle, but says nothing about the default branch moving externally.
 
 Issue #240; timing rules in [changelog-timing.md](./changelog-timing.md);
 parallel coordinator in [parallel-cycle.md](./parallel-cycle.md);
-multi-PR refresh in [pr-queue-sync.md](./pr-queue-sync.md) (issue #260).
+multi-PR refresh in [pr-queue-sync.md](./pr-queue-sync.md) (issue #260);
+prevention via `defer_changelog` in #288 (default off).

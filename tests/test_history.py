@@ -190,3 +190,93 @@ def test_refusal_never_returns_text(side: str) -> None:
         _conflicted(theirs="## [0.5.0] - 2026-08-25"), in_flight_side=side
     )
     assert result.text is None
+
+
+# ---------------------------------------------------------------------------
+# writers (issue #288)
+# ---------------------------------------------------------------------------
+
+
+_CLEAN = "# History\n\n## [Unreleased]\n\n## [0.1.0] - 2026-01-01\n\n- First release.\n"
+
+_ONE_UNRELEASED = (
+    "# History\n"
+    "\n"
+    "## [Unreleased]\n"
+    "\n"
+    "- Already landed. (#1)\n"
+    "\n"
+    "## [0.1.0] - 2026-01-01\n"
+    "\n"
+    "- First release.\n"
+)
+
+
+def test_append_unreleased_bullet_adds_last() -> None:
+    bullet = "- Newer work. (#2)"
+    out = history.append_unreleased_bullet(_ONE_UNRELEASED, bullet)
+    lines = out.splitlines()
+    assert lines.index("- Already landed. (#1)") < lines.index(bullet)
+    assert out.endswith("\n")
+
+
+def test_append_unreleased_bullet_is_idempotent() -> None:
+    first = history.append_unreleased_bullet(_CLEAN, "- One. (#2)")
+    again = history.append_unreleased_bullet(first, "- One. (#2)")
+    assert first == again
+    assert first.count("- One. (#2)") == 1
+
+
+def test_changelog_has_bullet_normalizes_dash() -> None:
+    text = history.append_unreleased_bullet(_CLEAN, "One. (#2)")
+    assert history.changelog_has_bullet(text, "- One. (#2)")
+    assert history.changelog_has_bullet(text, "One. (#2)")
+    assert not history.changelog_has_bullet(text, "- Other. (#3)")
+
+
+def test_promote_unreleased_opens_empty_section() -> None:
+    filled = history.append_unreleased_bullet(_CLEAN, "- Ship it. (#9)")
+    out = history.promote_unreleased(filled, "0.2.0", "2026-09-18")
+    lines = out.splitlines()
+    assert lines.count("## [Unreleased]") == 1
+    unreleased = lines.index("## [Unreleased]")
+    released = lines.index("## [0.2.0] - 2026-09-18")
+    assert unreleased < released
+    assert "- Ship it. (#9)" in lines[released:]
+    assert "- Ship it. (#9)" not in lines[unreleased + 1 : released]
+
+
+def test_append_missing_unreleased_raises() -> None:
+    with pytest.raises(history.MissingUnreleased):
+        history.append_unreleased_bullet(
+            "# History\n\n## [0.1.0] - 2026-01-01\n", "- x"
+        )
+
+
+def test_parse_deferred_changelog_reads_bullet_and_version() -> None:
+    text = (
+        "# Status\n"
+        "\n"
+        "### Deferred changelog\n"
+        "\n"
+        "- Prevent HISTORY conflicts. (#288)\n"
+        "\n"
+        "Planned version: 0.5.0\n"
+    )
+    deferred = history.parse_deferred_changelog(text)
+    assert deferred is not None
+    assert not deferred.skipped
+    assert deferred.bullet == "- Prevent HISTORY conflicts. (#288)"
+    assert deferred.planned_version == "0.5.0"
+
+
+def test_parse_deferred_changelog_nohistory() -> None:
+    text = "### Deferred changelog\n\nnohistory\n"
+    deferred = history.parse_deferred_changelog(text)
+    assert deferred is not None
+    assert deferred.skipped
+    assert deferred.bullet is None
+
+
+def test_parse_deferred_changelog_absent() -> None:
+    assert history.parse_deferred_changelog("# Status\n\n- [ ] Done\n") is None

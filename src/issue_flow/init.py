@@ -62,6 +62,7 @@ _DOTENV_KEYS: tuple[tuple[str, str], ...] = (
     ("ISSUEFLOW_RUFF_AUTOFIX", "true"),
     ("ISSUEFLOW_AUTO_CLOSE", "false"),
     ("ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE", "true"),
+    ("ISSUEFLOW_DEFER_CHANGELOG", "false"),
     ("ISSUEFLOW_ESSENTIAL_TESTS", "false"),
     ("ISSUEFLOW_TEST_RUNNER", "pytest"),
     ("ISSUEFLOW_ESSENTIAL_MARKER", "essential"),
@@ -715,9 +716,7 @@ def _register_project_root(project_root: Path) -> None:
         console_io.console.print(f"  [yellow]skip[/yellow]  registry: {exc}")
         return
     if added:
-        console_io.console.print(
-            f"  [green]register[/green]  {project_root.resolve()}"
-        )
+        console_io.console.print(f"  [green]register[/green]  {project_root.resolve()}")
 
 
 def run_update_all(
@@ -769,9 +768,7 @@ def run_update_all(
             saved = console_io.console
             console_io.console = quiet
             try:
-                run_update(
-                    root, skip_dep_check=True, editors=editors, force=force
-                )
+                run_update(root, skip_dep_check=True, editors=editors, force=force)
             finally:
                 console_io.console = saved
         else:
@@ -791,9 +788,7 @@ def run_update_all(
             skip_count += 1
             results.append(entry)
             if not as_json:
-                console_io.console.print(
-                    f"  [yellow]skip[/yellow]  {root}  (missing)"
-                )
+                console_io.console.print(f"  [yellow]skip[/yellow]  {root}  (missing)")
             continue
         if settings.resolve_locked(root):
             entry["ok"] = True
@@ -802,9 +797,7 @@ def run_update_all(
             skip_count += 1
             results.append(entry)
             if not as_json:
-                console_io.console.print(
-                    f"  [yellow]skip[/yellow]  {root}  (locked)"
-                )
+                console_io.console.print(f"  [yellow]skip[/yellow]  {root}  (locked)")
             continue
         try:
             _run_member_update(root)
