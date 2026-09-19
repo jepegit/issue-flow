@@ -424,6 +424,24 @@ def test_issue_cleanup_describes_post_merge_branch_cleanup() -> None:
         "Second consolidated confirm" in skill or "second consolidated confirm" in skill
     )
     assert "issue-flow agent branches" in skill
+    assert "default-sync" in skill
+    assert "default-sync" in rendered
+
+
+def test_worktree_start_does_not_require_home_ff() -> None:
+    """Issue #303: worktree start may skip home ff-only when default-sync says so."""
+    pick = render_template("skills/iflow_pick/SKILL.md.j2", _default_context())
+    shared = render_template("skills/_worktree_start.md.j2", _default_context())
+    for rendered in (pick, shared):
+        assert "default-sync" in rendered
+        assert "must not wait for home to be ff-able" in rendered
+        assert "origin/<default>" in rendered
+    cleanup = render_template("skills/iflow_cleanup/SKILL.md.j2", _default_context())
+    assert (
+        "Never rebase default" in cleanup or "never rebase default" in cleanup.lower()
+    )
+    close = render_template("skills/iflow_close/SKILL.md.j2", _default_context())
+    assert "default_sync" in close or "default-sync" in close
 
 
 def test_issue_start_requires_or_offers_plan() -> None:

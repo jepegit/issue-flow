@@ -24,8 +24,8 @@ agent_app = typer.Typer(
         "state by hand. All are read-only except `sweep`, `archive`, `capture`, "
         "`switchback`, `sync-branch`, `pr-sync`, `apply-changelog`, `repair`, `label-apply`, "
         "`open-workspace --open`, `worktree-add`, and `worktree-remove`. "
-        "`branches` (remote) and `local-branches` (local) only classify: "
-        "every delete stays in `/iflow-cleanup`."
+        "`branches` (remote), `local-branches` (local), and `default-sync` only classify: "
+        "every delete stays in `/iflow-cleanup`; `default-sync` never mutates."
     ),
 )
 
@@ -538,6 +538,25 @@ def agent_switchback(
     from issue_flow.agent import run_switchback
 
     raise typer.Exit(code=run_switchback(project_dir, _console, json_output))
+
+
+@agent_app.command("default-sync")
+def agent_default_sync(
+    project_dir: Path = _PROJECT_DIR_OPTION,
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Classify unique commits on home default vs origin (no mutate).
+
+    The mechanical half of pick / cleanup / switchback recovery when
+    ``git pull --ff-only`` cannot reconcile unpushed home commits with a
+    squash on origin. Prints ahead/behind, commit onelines + paths, and a
+    recommended ``action``. Never rebases, force-pushes, or pushes default.
+    """
+    from issue_flow.agent import run_default_sync
+
+    raise typer.Exit(code=run_default_sync(project_dir, _console, json_output))
 
 
 @agent_app.command("sync-branch")

@@ -9,6 +9,10 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+## [0.5.4] - 2026-09-19
+
+- Default-branch diverge: ff-only fails after unpushed home commits + a squash merge. (#303)
+
 ## [0.5.3] - 2026-09-18
 
 - Tests for native Windows `%APPDATA%` user-global paths; WSL still ignores the Windows home. (#298)

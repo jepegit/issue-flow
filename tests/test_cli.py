@@ -904,6 +904,19 @@ def test_agent_switchback_reports_ff_refusal(
         "pull_ff_only",
         lambda _cwd: (False, "fatal: Not possible to fast-forward"),
     )
+    monkeypatch.setattr(
+        gitutils_module,
+        "classify_default_sync",
+        lambda *_a, **_k: {
+            "action": "tracking_pr",
+            "class": "tracking",
+            "ahead": 1,
+            "behind": 1,
+            "commits": [],
+            "tree_paths": [".issueflows/note.md"],
+            "never": list(gitutils_module.DEFAULT_SYNC_NEVER),
+        },
+    )
 
     result = runner.invoke(app, ["agent", "switchback", "-C", str(tmp_path), "--json"])
 
@@ -911,7 +924,9 @@ def test_agent_switchback_reports_ff_refusal(
     payload = _json(result.stdout)
     assert payload["switched"] is True
     assert payload["pulled"] is False
+    assert payload["default_sync"]["action"] == "tracking_pr"
     assert any("fast-forward" in note for note in payload["notes"])
+    assert any("tracking_pr" in note for note in payload["notes"])
 
 
 def test_agent_switchback_missing_git_exits_nonzero(
@@ -1419,6 +1434,103 @@ def test_agent_worktree_remove_by_number(runner: CliRunner, tmp_path: Path) -> N
     payload = _json(result.stdout)
     assert payload["removed"] is True
     assert not (tmp_path / "demo-3").exists()
+
+
+def _git_cli(cwd: Path, *args: str) -> None:
+    subprocess.run(
+        ["git", *args],
+        cwd=cwd,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+
+def _repo_with_origin_cli(tmp_path: Path) -> Path:
+    home = tmp_path / "demo"
+    remote = tmp_path / "remote.git"
+    home.mkdir()
+    _git_cli(home, "init", "-b", "main")
+    _git_cli(home, "config", "user.email", "t@example.com")
+    _git_cli(home, "config", "user.name", "tester")
+    _git_cli(home, "commit", "--allow-empty", "-m", "init")
+    subprocess.run(
+        ["git", "init", "--bare", str(remote)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    _git_cli(home, "remote", "add", "origin", str(remote))
+    _git_cli(home, "push", "-u", "origin", "main")
+    _git_cli(home, "remote", "set-head", "origin", "main")
+    return home
+
+
+def test_agent_worktree_add_starts_from_origin_when_home_ahead(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    home = _repo_with_origin_cli(tmp_path)
+    origin_sha = subprocess.run(
+        ["git", "rev-parse", "origin/main"],
+        cwd=home,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    (home / ".issueflows").mkdir()
+    (home / ".issueflows" / "note.md").write_text("local", encoding="utf-8")
+    _git_cli(home, "add", ".issueflows/note.md")
+    _git_cli(home, "commit", "-m", "local-ahead")
+    home_sha = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=home,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    assert home_sha != origin_sha
+
+    result = runner.invoke(
+        app,
+        [
+            "agent",
+            "worktree-add",
+            "303",
+            "--slug",
+            "default-sync",
+            "-C",
+            str(home),
+            "--json",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    wt = tmp_path / "demo-303"
+    wt_sha = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=wt,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    assert wt_sha == origin_sha
+    home_branch = subprocess.run(
+        ["git", "branch", "--show-current"],
+        cwd=home,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    assert home_branch == "main"
+
+
+def test_agent_default_sync_json(runner: CliRunner, tmp_path: Path) -> None:
+    home = _repo_with_origin_cli(tmp_path)
+    result = runner.invoke(app, ["agent", "default-sync", "-C", str(home), "--json"])
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["action"] == "even"
+    assert payload["ahead"] == 0
+    assert "rebase default" in payload["never"]
 
 
 # ---------------------------------------------------------------------------

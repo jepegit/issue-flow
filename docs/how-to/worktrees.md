@@ -15,9 +15,11 @@ default. Session opt-out is a trailing token.
 
 ## Default (worktree-first)
 
-1. Home checkout stays on the **default** branch (`git pull --ff-only`).
+1. Home checkout stays on the **default** branch (`git fetch --prune`;
+   `git pull --ff-only` only when home is not ahead of origin).
 2. Agent creates a sibling worktree at `../<repo>-<N>` on branch
-   `<N>-<slug>` via `issue-flow agent worktree-add`.
+   `<N>-<slug>` via `issue-flow agent worktree-add` (from fetched
+   `origin/<default>` — home does not need to be fast-forwardable).
 3. It prints an `open-workspace` path (print-only). Skills do not open a
    new editor window.
 4. Capture / plan / build / close run with `-C <worktree-path>`.

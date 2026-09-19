@@ -47,8 +47,8 @@ Optional free-form text after the command. Examples:
 
 5. **Consolidated confirm for post-merge cleanup (Phase A1).** Gather the full action list into a single yes/no prompt:
    - `git switch <default>` (home only)
-   - `git pull --ff-only`
-{% if defer_changelog %}   - **Apply deferred changelog.** After the FF pull, for each just-merged issue with `### Deferred changelog` on `issue<N>_status.md`: `issue-flow agent apply-changelog --issue N --json`. If it wrote, commit on default: `docs: changelog for #<N>` (`{{ history_file }}` only). Auto-commit when this cleanup run is already confirmed; honour `confirm_changelog_update` only for an interactive cleanup.
+   - `git pull --ff-only` — if it fails, stop A1 steps that assume default is current (apply-changelog, release tag). Run `issue-flow agent default-sync --json`, print ahead/behind + unique commit onelines/paths + `action`, and follow that recovery (tracking → tiny PR; obsolete merge → replay; product → stop). Never rebase default, force-push default, or push default to skip CI.
+{% if defer_changelog %}   - **Apply deferred changelog.** After a **successful** FF pull, for each just-merged issue with `### Deferred changelog` on `issue<N>_status.md`: `issue-flow agent apply-changelog --issue N --json`. If it wrote, commit on default: `docs: changelog for #<N>` (`{{ history_file }}` only). Auto-commit when this cleanup run is already confirmed; honour `confirm_changelog_update` only for an interactive cleanup.
 {% endif %}   - `git fetch --prune`
    - `issue-flow agent worktree-remove` for each linked worktree whose branch is `reachable` (**before** deleting the branch)
    - `git branch -d <branch>` for each **`reachable`** branch, listed explicitly by name before asking.
