@@ -78,7 +78,7 @@ Optional free-form text after the command. `/iflow` forwards the raw trailing te
 ## Constraints
 
 - `/iflow` never skips a downstream command's own prompts. If the downstream step asks a question, surface it normally.
-- `/iflow` never auto-dispatches to `/iflow-setup`, `/iflow-pick`, `/iflow-init`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-ops`, `/iflow-fix`, `/iflow-issue`, `/iflow-split`, `/iflow-status`, `/iflow-doctor`, `/iflow-review`, `/iflow-archive`, `/iflow-epic`, `/iflow-cycle`, `/iflow-auto`, or `/iflow-graphify`. Those are explicit choices only. The epic gap only **recommends** `/iflow-pick`.
+- `/iflow` never auto-dispatches to `/iflow-setup`, `/iflow-pick`, `/iflow-init`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-ops`, `/iflow-fix`, `/iflow-issue`, `/iflow-split`, `/iflow-status`, `/iflow-doctor`, `/iflow-review`, `/iflow-archive`, `/iflow-epic`, `/iflow-cycle`, `/iflow-auto`, `/iflow-drive`, or `/iflow-graphify`. Those are explicit choices only. The epic gap only **recommends** `/iflow-pick`.
 - If the focus issue cannot be resolved (multiple active issues, branch ambiguous), stop and ask. Do not pick one silently.
 - Do not modify files beyond what the downstream command would normally modify. `/iflow` itself writes nothing.
 

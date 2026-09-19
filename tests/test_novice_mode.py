@@ -38,7 +38,13 @@ def test_novice_is_a_strict_subset_that_keeps_the_linear_lifecycle() -> None:
     ):
         assert stem in mode.skills
     # The hands-off, batch, and decomposition machinery is what novice drops.
-    for stem in ("iflow_yolo", "iflow_cycle", "iflow_auto", "iflow_epic"):
+    for stem in (
+        "iflow_yolo",
+        "iflow_cycle",
+        "iflow_auto",
+        "iflow_drive",
+        "iflow_epic",
+    ):
         assert stem not in mode.skills
 
 
@@ -131,7 +137,13 @@ def test_novice_rule_does_not_advertise_absent_commands(tmp_path: Path) -> None:
         encoding="utf-8"
     )
     assert "/iflow-setup" in rule
-    for absent in ("/iflow-yolo", "/iflow-cycle", "/iflow-auto", "/iflow-epic"):
+    for absent in (
+        "/iflow-yolo",
+        "/iflow-cycle",
+        "/iflow-auto",
+        "/iflow-drive",
+        "/iflow-epic",
+    ):
         assert absent not in rule
 
 
@@ -141,7 +153,13 @@ def test_standard_rule_still_documents_the_full_surface(tmp_path: Path) -> None:
     rule = (tmp_path / ".cursor" / "rules" / "issueflow-rules.mdc").read_text(
         encoding="utf-8"
     )
-    for present in ("/iflow-setup", "/iflow-yolo", "/iflow-cycle", "/iflow-archive"):
+    for present in (
+        "/iflow-setup",
+        "/iflow-yolo",
+        "/iflow-cycle",
+        "/iflow-drive",
+        "/iflow-archive",
+    ):
         assert present in rule
 
 

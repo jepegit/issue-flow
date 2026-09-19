@@ -139,6 +139,7 @@ COMMAND_NAMES: list[str] = [
     "iflow-epic",
     "iflow-cycle",
     "iflow-auto",
+    "iflow-drive",
     "iflow-graphify",
 ]
 
@@ -174,6 +175,7 @@ DEFAULT_SKILL_DIRS: list[str] = [
     "iflow_epic",
     "iflow_cycle",
     "iflow_auto",
+    "iflow_drive",
     "iflow_version_bump",
     "iflow_history_update",
     "iflow_graphify",

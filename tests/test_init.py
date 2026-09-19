@@ -559,6 +559,24 @@ def test_init_scaffolds_iflow_auto_skeleton(tmp_path: Path) -> None:
     assert not (tmp_path / ".cursor" / "skills" / "iflow-auto").exists()
 
 
+def test_init_scaffolds_iflow_drive_skeleton(tmp_path: Path) -> None:
+    """Standard init installs /iflow-drive compose path; simple mode excludes it."""
+    run_init(tmp_path)
+    skill = tmp_path / ".cursor" / "skills" / "iflow-drive" / "SKILL.md"
+    assert skill.is_file()
+    content = skill.read_text(encoding="utf-8")
+    assert "drive_status.md" in content
+    assert "/iflow-epic" in content
+    assert "/iflow-auto" in content
+    assert "local only" in content
+    assert "git branch -d" in content
+    assert "Never `git branch -D`" in content
+    assert "abort" in content and "halt" in content
+    assert "/iflow-status" in content
+    run_init(tmp_path, mode="simple", force=True)
+    assert not (tmp_path / ".cursor" / "skills" / "iflow-drive").exists()
+
+
 def test_init_cycle_surface_is_standard_mode_only(tmp_path: Path) -> None:
     """Simple mode must not install the cycle surface."""
     run_init(tmp_path, mode="simple")
