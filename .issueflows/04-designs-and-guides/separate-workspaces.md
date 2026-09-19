@@ -46,8 +46,9 @@ issue-flow agent open-workspace <worktree-path> --open
 ```
 
 - **`worktree-add`:** path is `<home.parent>/<home.name>-<N>`. Idempotent if
-  that branch already has a worktree. Capture/plan/build/close use
-  `-C <worktree>`.
+  that branch already has a worktree. Starts from fetched `origin/<default>`
+  (home need not be ff-able; see [default-branch-diverge.md](default-branch-diverge.md)).
+  Capture/plan/build/close use `-C <worktree>`.
 - **`open-workspace`:** print-only by default. Skills never pass `--open`.
   The flag remains a manual CLI escape hatch.
 - **Close:** `agent switchback` in a linked worktree skips switching to

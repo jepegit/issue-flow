@@ -2,9 +2,9 @@
 
 These functions back ``issue-flow status`` (human-facing, top-level) and the
 ``issue-flow agent ...`` sub-commands (``state`` / ``preflight`` / ``switchback`` /
-``sync-branch`` / ``branches`` / ``version-plan`` / ``resolve`` / ``open-workspace`` /
-``worktree-add`` / ``worktree-list`` / ``worktree-remove`` / ``sweep`` /
-``archive`` / ``capture`` / ``sub-issue-add``) that exist so AI agents
+``default-sync`` / ``sync-branch`` / ``branches`` / ``version-plan`` / ``resolve`` /
+``open-workspace`` / ``worktree-add`` / ``worktree-list`` / ``worktree-remove`` /
+``sweep`` / ``archive`` / ``capture`` / ``sub-issue-add``) that exist so AI agents
 can ask the tool for a deterministic answer instead of re-deriving lifecycle
 state by hand on every run.
 
@@ -795,6 +795,7 @@ def run_switchback(project_root: Path, console: Console, as_json: bool) -> int:
         "pulled": False,
         "in_worktree": False,
         "dirty_paths": [],
+        "default_sync": None,
         "notes": notes,
     }
 
@@ -849,12 +850,23 @@ def run_switchback(project_root: Path, console: Console, as_json: bool) -> int:
 
     ok, error = gitutils.pull_ff_only(project_root)
     payload["pulled"] = ok
+    sync = gitutils.classify_default_sync(
+        project_root,
+        issueflows_dir=Settings().issueflows_dir,
+        default=default,
+        fetch=False,
+    )
+    payload["default_sync"] = sync
     if not ok:
         notes.append(
-            f"git pull --ff-only refused: {error} — reconcile manually before "
-            "continuing."
+            f"git pull --ff-only refused: {error} — do not rebase, force-push, "
+            "or push default to skip CI."
         )
+        notes.extend(_default_sync_note_lines(sync))
         return emit(1)
+
+    if sync.get("ahead"):
+        notes.extend(_default_sync_note_lines(sync))
 
     return emit(0)
 
@@ -876,6 +888,100 @@ def _render_switchback_text(
     for note in payload["notes"]:
         style = "red" if exit_code != 0 else "dim"
         console.print(f"  [{style}]{escape(note)}[/{style}]")
+
+
+# ---------------------------------------------------------------------------
+# agent default-sync (issue #303)
+# ---------------------------------------------------------------------------
+
+
+def run_default_sync(project_root: Path, console: Console, as_json: bool) -> int:
+    """Classify unique commits on home default vs origin — no mutate."""
+    notes: list[str] = []
+    if not gitutils.git_available():
+        payload = {
+            "default_branch": None,
+            "ahead": None,
+            "behind": None,
+            "ff_possible": False,
+            "class": "unknown",
+            "action": "unknown",
+            "commits": [],
+            "tree_paths": [],
+            "never": list(gitutils.DEFAULT_SYNC_NEVER),
+            "notes": ["git is not on PATH"],
+        }
+        if as_json:
+            _emit_json(console, payload)
+        else:
+            console.print("[red]error[/red]  git is not on PATH")
+        return 1
+
+    payload = gitutils.classify_default_sync(
+        project_root,
+        issueflows_dir=Settings().issueflows_dir,
+    )
+    notes.extend(payload.get("notes") or [])
+    payload["notes"] = notes
+    if as_json:
+        _emit_json(console, payload)
+        return 0
+    _render_default_sync_text(console, payload)
+    return 0
+
+
+def _default_sync_note_lines(sync: dict[str, Any]) -> list[str]:
+    """Short notes skills can print after an ff-only refusal or ahead-only home."""
+    lines = [
+        f"default-sync: action={sync.get('action')} class={sync.get('class')} "
+        f"ahead={sync.get('ahead')} behind={sync.get('behind')}"
+    ]
+    for commit in sync.get("commits") or []:
+        mark = " (merge)" if commit.get("is_merge") else ""
+        paths = ", ".join(commit.get("paths") or []) or "(no paths)"
+        lines.append(f"  {commit.get('sha')} {commit.get('subject')}{mark} — {paths}")
+    tree = sync.get("tree_paths") or []
+    if tree:
+        lines.append("  tree: " + ", ".join(tree))
+    action = sync.get("action")
+    if action == "tracking_pr":
+        lines.append(
+            "offer: merge origin/<default> or cherry-pick onto a chore branch, "
+            "then open a tiny PR — never push default directly."
+        )
+    elif action == "replay_tracking":
+        lines.append(
+            "offer: replay the tracking commit onto origin/<default> "
+            "(chore branch + PR). Do not stack another merge."
+        )
+    elif action == "stop_product":
+        lines.append(
+            "stop: unique commits touch product / lock / HISTORY. "
+            "User decides. Do not merge onto default."
+        )
+    elif action == "report_ahead":
+        lines.append(
+            "home default is ahead of origin; report unique commits. "
+            "Do not silent-push default."
+        )
+    elif action == "ff_only":
+        lines.append("ff-only is safe (behind only).")
+    never = sync.get("never") or list(gitutils.DEFAULT_SYNC_NEVER)
+    lines.append("never: " + "; ".join(never))
+    return lines
+
+
+def _render_default_sync_text(console: Console, payload: dict[str, Any]) -> None:
+    console.print(
+        f"[bold]action[/bold] {escape(str(payload.get('action')))}  "
+        f"class={escape(str(payload.get('class')))}  "
+        f"ahead={payload.get('ahead')} behind={payload.get('behind')}  "
+        f"ff_possible={payload.get('ff_possible')}"
+    )
+    for line in _default_sync_note_lines(payload)[1:]:
+        console.print(f"  {escape(line)}")
+    for note in payload.get("notes") or []:
+        console.print(f"  [dim]{escape(note)}[/dim]")
 
 
 # ---------------------------------------------------------------------------

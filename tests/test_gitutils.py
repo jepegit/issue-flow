@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -551,3 +552,167 @@ def test_gh_add_sub_issue_sends_integer_json(
     assert "--input" in argv
     assert "-f" not in argv
     assert seen["input"] == '{"sub_issue_id": 3000028010}'
+
+
+# ---------------------------------------------------------------------------
+# default-sync classify (issue #303)
+# ---------------------------------------------------------------------------
+
+
+def _git(cwd: Path, *args: str) -> None:
+    subprocess.run(
+        ["git", *args],
+        cwd=cwd,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+
+def _repo_with_origin(tmp_path: Path) -> Path:
+    """Home repo on ``main`` tracking a bare origin at the same tip."""
+    home = tmp_path / "home"
+    remote = tmp_path / "remote.git"
+    home.mkdir()
+    _git(home, "init", "-b", "main")
+    _git(home, "config", "user.email", "t@example.com")
+    _git(home, "config", "user.name", "tester")
+    _git(home, "commit", "--allow-empty", "-m", "init")
+    subprocess.run(
+        ["git", "init", "--bare", str(remote)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    _git(home, "remote", "add", "origin", str(remote))
+    _git(home, "push", "-u", "origin", "main")
+    subprocess.run(
+        ["git", "--git-dir", str(remote), "symbolic-ref", "HEAD", "refs/heads/main"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    _git(home, "remote", "set-head", "origin", "main")
+    return home
+
+
+def _advance_origin(home: Path, message: str) -> None:
+    """Add an empty commit on origin/main without moving home HEAD."""
+    remote = subprocess.run(
+        ["git", "remote", "get-url", "origin"],
+        cwd=home,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    env = {
+        **os.environ,
+        "GIT_AUTHOR_NAME": "tester",
+        "GIT_AUTHOR_EMAIL": "t@example.com",
+        "GIT_COMMITTER_NAME": "tester",
+        "GIT_COMMITTER_EMAIL": "t@example.com",
+    }
+    tree = subprocess.run(
+        ["git", "--git-dir", remote, "rev-parse", "main^{tree}"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    parent = subprocess.run(
+        ["git", "--git-dir", remote, "rev-parse", "main"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    new = subprocess.run(
+        ["git", "--git-dir", remote, "commit-tree", tree, "-p", parent, "-m", message],
+        check=True,
+        capture_output=True,
+        text=True,
+        env=env,
+    ).stdout.strip()
+    subprocess.run(
+        ["git", "--git-dir", remote, "update-ref", "refs/heads/main", new],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+
+def test_classify_default_sync_even(tmp_path: Path) -> None:
+    home = _repo_with_origin(tmp_path)
+    payload = gitutils.classify_default_sync(home, default="main", fetch=True)
+    assert payload["action"] == "even"
+    assert payload["ahead"] == 0
+    assert payload["behind"] == 0
+    assert payload["ff_possible"] is True
+    assert "rebase default" in payload["never"]
+
+
+def test_classify_default_sync_ff_only(tmp_path: Path) -> None:
+    home = _repo_with_origin(tmp_path)
+    _advance_origin(home, "origin-only")
+    payload = gitutils.classify_default_sync(home, default="main", fetch=True)
+    assert payload["action"] == "ff_only"
+    assert payload["ahead"] == 0
+    assert payload["behind"] == 1
+
+
+def test_classify_default_sync_report_ahead_tracking(tmp_path: Path) -> None:
+    home = _repo_with_origin(tmp_path)
+    issueflows = home / ".issueflows"
+    issueflows.mkdir()
+    (issueflows / "note.md").write_text("x", encoding="utf-8")
+    _git(home, "add", ".issueflows/note.md")
+    _git(home, "commit", "-m", "tracking")
+    payload = gitutils.classify_default_sync(home, default="main", fetch=True)
+    assert payload["action"] == "report_ahead"
+    assert payload["class"] == "tracking"
+    assert payload["ahead"] == 1
+    assert payload["behind"] == 0
+
+
+def test_classify_default_sync_tracking_pr(tmp_path: Path) -> None:
+    home = _repo_with_origin(tmp_path)
+    issueflows = home / ".issueflows"
+    issueflows.mkdir()
+    (issueflows / "note.md").write_text("x", encoding="utf-8")
+    _git(home, "add", ".issueflows/note.md")
+    _git(home, "commit", "-m", "tracking")
+    _advance_origin(home, "origin-moved")
+    payload = gitutils.classify_default_sync(home, default="main", fetch=True)
+    assert payload["action"] == "tracking_pr"
+    assert payload["class"] == "tracking"
+    assert payload["ahead"] == 1
+    assert payload["behind"] == 1
+
+
+def test_classify_default_sync_stop_product(tmp_path: Path) -> None:
+    home = _repo_with_origin(tmp_path)
+    (home / "HISTORY.md").write_text("bullet\n", encoding="utf-8")
+    _git(home, "add", "HISTORY.md")
+    _git(home, "commit", "-m", "history")
+    _advance_origin(home, "origin-moved")
+    payload = gitutils.classify_default_sync(home, default="main", fetch=True)
+    assert payload["action"] == "stop_product"
+    assert payload["class"] == "product"
+    assert "HISTORY.md" in payload["tree_paths"]
+
+
+def test_classify_default_sync_replay_obsolete_merge(tmp_path: Path) -> None:
+    home = _repo_with_origin(tmp_path)
+    issueflows = home / ".issueflows"
+    issueflows.mkdir()
+    (issueflows / "note.md").write_text("x", encoding="utf-8")
+    _git(home, "add", ".issueflows/note.md")
+    _git(home, "commit", "-m", "tracking")
+    _advance_origin(home, "origin-first")
+    _git(home, "fetch", "origin")
+    _git(home, "merge", "--no-edit", "origin/main")
+    _advance_origin(home, "origin-again")
+    payload = gitutils.classify_default_sync(home, default="main", fetch=True)
+    assert payload["class"] == "obsolete_merge"
+    assert payload["action"] == "replay_tracking"
+    assert payload["ahead"] == 2
+    assert payload["behind"] == 1
+    assert any(c["is_merge"] for c in payload["commits"])

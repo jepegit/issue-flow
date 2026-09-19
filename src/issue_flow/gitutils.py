@@ -421,6 +421,127 @@ def ahead_behind(cwd: Path, default: str) -> tuple[int, int] | None:
     return ahead, behind
 
 
+DEFAULT_SYNC_NEVER = (
+    "rebase default",
+    "push --force default",
+    "push default to skip CI",
+)
+
+
+def diff_name_only(cwd: Path, a: str, b: str) -> list[str] | None:
+    """Paths that differ between ``a`` and ``b``, or ``None`` on failure."""
+    out = _stdout([GIT, "diff", "--name-only", a, b], cwd)
+    if out is None:
+        return None
+    return [line.strip() for line in out.splitlines() if line.strip()]
+
+
+def unique_commit_details(
+    cwd: Path,
+    base_ref: str,
+    target_ref: str = "HEAD",
+) -> list[dict[str, Any]] | None:
+    """Commits on ``target_ref`` not in ``base_ref`` with merge flag + paths.
+
+    Returns ``None`` when the range cannot be listed.
+    """
+    out = _stdout(
+        [GIT, "log", "--format=%h%x00%P%x00%s", f"{base_ref}..{target_ref}"],
+        cwd,
+    )
+    if out is None:
+        return None
+    commits: list[dict[str, Any]] = []
+    if not out:
+        return commits
+    for line in out.splitlines():
+        parts = line.split("\0")
+        if len(parts) < 3:
+            continue
+        sha, parents, subject = parts[0], parts[1], parts[2]
+        is_merge = len([p for p in parents.split() if p]) > 1
+        names = _stdout(
+            [GIT, "diff-tree", "--no-commit-id", "--name-only", "-r", sha],
+            cwd,
+        )
+        paths = [p.strip() for p in names.splitlines() if p.strip()] if names else []
+        commits.append(
+            {
+                "sha": sha,
+                "subject": subject,
+                "is_merge": is_merge,
+                "paths": paths,
+            }
+        )
+    return commits
+
+
+def classify_default_sync(
+    cwd: Path,
+    *,
+    issueflows_dir: str = ".issueflows",
+    default: str | None = None,
+    fetch: bool = True,
+) -> dict[str, Any]:
+    """Classify unique commits on the default branch vs ``origin/<default>``.
+
+    Read-only. Never mutates. Used by ``issue-flow agent default-sync`` and by
+    switchback notes when ``git pull --ff-only`` fails or home is ahead.
+    """
+    notes: list[str] = []
+    if fetch:
+        fetch_prune(cwd)
+    branch = default or default_branch(cwd)
+    origin_ref = f"origin/{branch}"
+    counts = ahead_behind(cwd, branch)
+    ahead = counts[0] if counts else None
+    behind = counts[1] if counts else None
+    commits = unique_commit_details(cwd, origin_ref) or []
+    tree_paths = diff_name_only(cwd, origin_ref, "HEAD")
+    if tree_paths is None:
+        tree_paths = []
+        if counts is None:
+            notes.append(f"could not compare HEAD to {origin_ref}")
+
+    tracking = bool(issueflows_only_dirty(tree_paths, issueflows_dir))
+    has_merge = any(bool(item.get("is_merge")) for item in commits)
+    if not tracking:
+        tree_class = "product"
+    elif has_merge:
+        tree_class = "obsolete_merge"
+    else:
+        tree_class = "tracking"
+
+    ff_possible = ahead == 0
+    if counts is None:
+        action = "unknown"
+    elif ahead == 0 and behind == 0:
+        action = "even"
+    elif ahead == 0 and behind is not None and behind > 0:
+        action = "ff_only"
+    elif behind == 0 and ahead is not None and ahead > 0:
+        action = "report_ahead"
+    elif tree_class == "product":
+        action = "stop_product"
+    elif tree_class == "obsolete_merge":
+        action = "replay_tracking"
+    else:
+        action = "tracking_pr"
+
+    return {
+        "default_branch": branch,
+        "ahead": ahead,
+        "behind": behind,
+        "ff_possible": ff_possible,
+        "class": tree_class,
+        "action": action,
+        "commits": commits,
+        "tree_paths": tree_paths,
+        "never": list(DEFAULT_SYNC_NEVER),
+        "notes": notes,
+    }
+
+
 def remote_owner_repo(cwd: Path) -> tuple[str, str] | None:
     """Parse ``owner``/``repo`` from the ``origin`` remote URL."""
     url = _stdout([GIT, "remote", "get-url", "origin"], cwd)
@@ -1224,6 +1345,7 @@ def add_worktree(
     if target.exists():
         return None, False, f"target path already exists: {target}"
 
+    fetch_prune(home)
     start = start_point or _worktree_start_point(home)
     if branch_exists(home, branch):
         result = _run([GIT, "worktree", "add", str(target), branch], home)
