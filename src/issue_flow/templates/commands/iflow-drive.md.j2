@@ -1,0 +1,35 @@
+# Drive — compose epic → publish → auto-all → review → local cleanup
+
+`/iflow-drive <N>` takes an existing GitHub issue and runs: draft epic
+(auto-accept unless grill-me) → publish every stage → `/iflow-auto` each
+epoch → final review (create leftover findings) → local cleanup **`-d`
+only** → `/iflow-status`.
+
+See `{{ issueflows_dir }}/{{ designs_folder }}/drive-mode.md`.
+
+{% include "skills/_model_directive.md.j2" %}
+
+{% include "skills/_resolve_project_root.md.j2" %}
+
+## Input
+
+- **`<N>`** — existing issue that becomes the epic anchor (required).
+- **`grill` / `grill-me`** — interview the epic goal before draft-accept.
+- **`loops:<n>`** — forwarded to `/iflow-auto`.
+- **`dry-run`** — report only; no confirm / no writes.
+- Mid-run **`abort` / `stop` / `cancel` / `halt`** — stop at the next
+  stage or issue boundary (`drive_status.md` → `aborted`).
+
+## Steps
+
+Follow `{{ agent_dir }}/skills/iflow-drive/SKILL.md` verbatim.
+
+## Constraints
+
+- Off-path; never auto-dispatched by `/iflow`.
+- One confirm covers draft-accept, publish-all, auto-all, final-review
+  creates, and reachable-only cleanup. Do not re-ask those.
+- Auto's budget ask (accept / grant N more loops / abort) stays a
+  planned pause.
+- Cleanup is `local only` and **skips Phase A2** (`git branch -d` on reachable only; no Phase B).
+- Commit `Published:` lines off default (#303).

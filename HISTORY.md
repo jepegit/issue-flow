@@ -9,6 +9,10 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+## [0.5.5] - 2026-09-19
+
+- `/iflow-drive <N>` compose-only path: draft epic, publish all stages, `/iflow-auto` each epoch, final review, local `-d` cleanup, then `/iflow-status`. (#306)
+
 ## [0.5.4] - 2026-09-19
 
 - Default-branch diverge: ff-only fails after unpushed home commits + a squash merge. (#303)
