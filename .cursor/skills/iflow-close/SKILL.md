@@ -108,6 +108,7 @@ Use this path **only** when the command input included `ops`, `nopr`, or `no-pr`
 
 3. **Update `HISTORY.md`** — Unless the user passed `nohistory`, follow `.cursor/skills/iflow-history-update/SKILL.md`. If step 2 did not bump (or plan) a version, append a bullet to the `## [Unreleased]` section. If step 2 bumped or planned a version, promote `## [Unreleased]` to `## [<new_version>] - <YYYY-MM-DD>` (for tag-derived projects use the planned tag's version) and open a fresh empty `## [Unreleased]` above it. Write without a confirm prompt (`confirm_changelog_update` is false) so the bullet is in the PR commit. Skip with a note if `HISTORY.md` does not exist at the project root. With the `yolo` token, do not ask — decide yourself and write the bullet (issue title, or `log "..."` text) directly. Write this step **even when a draft PR already exists** from `/iflow-build` early PR — the bullet must land in the close commit that updates that PR. **Never** propose a changelog update *after close finishes* (PR already updated/merged) or after merge.
 
+
 4. **Issue tracking** — Under `.issueflows/01-current-issues/`, update the status file: remaining work, checklists, and **`- [x] Done`** only when the issue is fully resolved. If fully resolved, move that issue's markdown files (`issue<n>_*`) to `.issueflows/03-solved-issues/`. If partially resolved, move to `.issueflows/02-partly-solved-issues/`. Follow any stricter rules in `.cursor/rules/issueflow-rules.mdc` if present.
 
 5. **Commit** — First check `git status`; if any changes are **not relevant** to this issue, tell the user which ones and ask whether to include them — do not auto-include or drop silently. Then stage intentionally (include `pyproject.toml` and `uv.lock` if changed after a bump, and `HISTORY.md` if step 3 updated it); write a commit message in full sentences describing what changed and why.
@@ -134,14 +135,33 @@ Use this path **only** when the command input included `ops`, `nopr`, or `no-pr`
    7. **Refused as conflicted** (`mergeable: CONFLICTING` / `mergeStateStatus: DIRTY` — something merged into `<default>` after step 6): re-run step 6's sync (`issue-flow agent sync-branch --json`). If it resolved a changelog-only conflict, `git push --force-with-lease`, then re-watch checks under the same budget and retry the merge **once**. If the sync exits 1, or the retry is refused again, stop hands-off and leave the PR open with the reason. Never reach for `--admin` and never skip checks to get past a conflict — a rebased branch needs a fresh check run.
 
 9. **Switch back when safe** — If the input included `stay`, `stay on branch`, `don't switch`, or `dont switch to main`, stay on the issue branch and report that opt-out. Otherwise, after the PR is open or updated:
-   - **CLI fast path (preferred).** If the `issue-flow` CLI is on `PATH`, run `issue-flow agent switchback --json`. It performs this whole step deterministically: refuses while the working tree is dirty (listing the paths), else switches to the detected default branch and runs `git pull --ff-only`. On a **linked worktree** (`in_worktree: true`) it **skips** the switch (home already holds default) — then pull default from **home** (`issue-flow agent switchback -C <home>`). On exit 1, report its `notes` to the user and stop — do not force anything.
+   - **CLI fast path (preferred).** If the `issue-flow` CLI is on `PATH`, run `issue-flow agent switchback --json`. It performs this whole step deterministically: refuses while the working tree is dirty (listing the paths), else switches to the detected default branch and runs `git pull --ff-only`. On a **linked worktree** (`in_worktree: true`) it **skips** the switch (home already holds default) — then pull default from **home** (`issue-flow agent switchback -C <home>`). On exit 1, report its `notes` / `default_sync` and stop — do not force anything. If the payload shows home default **ahead** of origin, print the unique commits (oneline + paths). Never rebase, force-push, or push default to skip CI.
+
+If `git pull --ff-only` fails on default (or home default is **ahead** of origin), run `issue-flow agent default-sync --json` (classify-only; never mutates). Print ahead/behind, unique commit onelines + paths, and the recommended `action`. Do **not** only dump `fatal: Not possible to fast-forward`.
+
+| `action` | What to offer |
+| --- | --- |
+| `even` / `ff_only` | Pull is safe; retry `git pull --ff-only`. |
+| `report_ahead` | Print unique commits. Do not silent-push default. |
+| `tracking_pr` | Merge `origin/<default>` **or** cherry-pick onto a chore branch, then open a tiny PR. Never push default. |
+| `replay_tracking` | Replay the tracking commit onto `origin/<default>` (chore branch + PR). Do not stack another merge. |
+| `stop_product` | Stop. User decides. Do not merge onto default. |
+
+Never: rebase default, `push --force` default, or push default to skip CI.
+
    - **Manual fallback.** Detect the default branch (prefer `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`, else `git symbolic-ref --quiet --short refs/remotes/origin/HEAD`, else `main`). If this checkout is a linked worktree, **do not** `git switch <default>` here (two checkouts of default are forbidden). Run `git status --porcelain`; if clean and this is the **home** tree, run `git switch <default>` and then `git pull --ff-only`. If dirty, stay put and list the uncommitted paths.
    - Never delete the issue branch here. With the `yolo` token this step runs **after** the merge from step 8a so the pull brings the merged commit into the local default branch (a queued auto-merge arrives later; note that). Pull-on-default after yolo must run from **home**, not the issue worktree.
    - **Planned release tag (`yolo` + tag-derived strategy only):** if step 2 planned a tag, create it now — after the pull, standing on the merge commit — with `git tag <planned>` then `git push origin <planned>` (covered by the yolo consolidated confirm). If the merge was only queued via `--auto`, leave the tag to `/iflow-cleanup` and say so.
 
+9a. **Remove the issue worktree** — Skip when: no linked worktree for `<N>` (`inplace`); input included `stay`; the PR is still `draft`; a `yolo` merge failed or was only queued via `--auto`; the worktree is dirty (report paths and leave the folder — never `--force`).
+   - Run from **home**: `issue-flow agent worktree-remove <N> -C <home> --json`.
+   - This project has `auto_remove_worktree = true`: remove without asking.
+   - Never delete the issue branch here. Continue from **home**.
+
+
 10. **After review** — With the `yolo` token the PR was already merged in step 8a; skip to the `/iflow-cleanup` reminder. Otherwise address feedback, push updates, and merge when approved and `gh pr checks <number> --repo <owner/repo>` is green (exit 0). If step 9 switched back to the default branch, switch to the PR branch again before making review fixes. Remind the user to run **`/iflow-cleanup`** once the PR is merged (`git fetch --prune`, `git branch -d` on reachable local branches under a single consolidated confirm, plus a separate confirm for squash-landed branches that only `-D` can remove — and, for tag-derived projects, the offer to create the release tag planned in step 2). Do **not** auto-run cleanup from this skill.
 
-11. **Output** — Summarize commit, push result, PR URL, whether the working copy switched back to the default branch or stayed on the issue branch, the merge result when `yolo` applied (merged, or queued via `--auto`), and next step (`/iflow-cleanup` after merge, or "blocked on …" if stuck).
+11. **Output** — Summarize commit, push result, PR URL, whether the working copy switched back to the default branch or stayed on the issue branch, whether the issue worktree was removed, the merge result when `yolo` applied (merged, or queued via `--auto`), and next step (`/iflow-cleanup` after merge, or "blocked on …" if stuck).
 
 ## Constraints
 
@@ -151,3 +171,4 @@ Use this path **only** when the command input included `ops`, `nopr`, or `no-pr`
 - **Conflicts:** only a `HISTORY.md`-only conflict of two additive `## [Unreleased]` bullet lists is resolved automatically (step 6). Every other conflict aborts the sync and stops the flow. Never `gh pr merge --admin`, never skip CI, never force-push anything but the issue branch (`--force-with-lease`).
 - The `ops` / `nopr` / `no-pr` token takes the **Ops close path** above and must not open a PR.
 - **Changelog timing:** unless `nohistory`, the `HISTORY.md` bullet must be written in step 3 and staged in the close commit that feeds (or updates) the PR — including when a draft was opened earlier via `/iflow-build` early PR. Never offer a HISTORY/CHANGELOG update after close has finished or after merge.
+

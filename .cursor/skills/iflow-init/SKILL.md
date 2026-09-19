@@ -85,3 +85,4 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 - Never capture a GitHub issue, write `issue<N>_*.md`, or create an issue branch from this skill — that is `/iflow-capture` / `/iflow-pick`.
 - Never invent a second scaffolder; only guide or confirm-run `issue-flow init` / `update`.
 - Never `init --force` or delete scaffold files without an explicit user request.
+- If a scaffold / update commit is needed, do not leave it unpushed on home default — use a chore branch or a tiny PR (issue #303).
