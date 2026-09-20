@@ -39,6 +39,12 @@ issue-flow --version
 issue-flow --install-completion   # optional: Tab-complete subcommands
 ```
 
+Later, **upgrade the package** with `uv tool upgrade issue-flow`, then
+refresh project skills with `issue-flow update` (or `workspace update`).
+Those are two different commands. Agents: see
+[Upgrade, init, and workspace](how-to/for-agents.md)
+([llms.txt](llms.txt)).
+
 You also need [Git](https://git-scm.com/downloads) and the
 [GitHub CLI](https://cli.github.com/) (`gh`), because issue-flow's whole
 workflow is built around GitHub issues and pull requests. If you are not sure
