@@ -2870,6 +2870,241 @@ def run_workspace_init(
     return 0
 
 
+def run_workspace_bootstrap(
+    workspace_dir: Path,
+    console: Console,
+    default: str | None,
+    apply: bool,
+    force: bool,
+    skip_dep_check: bool,
+    editors: list[str] | None,
+    as_json: bool,
+) -> int:
+    """Classify (and optionally init) git siblings, then write the workspace file.
+
+    Classify-only when ``apply`` is false. ``--yes`` inits unscaffolded own-git
+    children via :func:`issue_flow.init.run_init` and then
+    :func:`run_workspace_init`. Never writes ``.issueflows/`` on the parent
+    and never ``git init`` s children.
+    """
+    import typer
+
+    import issue_flow.console_io as console_module
+    from issue_flow.init import run_init
+
+    settings = Settings()
+    root = workspace_dir.resolve()
+    children = project.classify_immediate_children(
+        root, issueflows_dir=settings.issueflows_dir
+    )
+    members = [
+        child
+        for child in children
+        if child.status in (project.CHILD_SCAFFOLDED, project.CHILD_UNSCAFFOLDED)
+    ]
+    member_names = [child.name for child in members]
+    toml_path = root / project.WORKSPACE_FILENAME
+    workspace_exists = toml_path.is_file()
+
+    def _child_payload(child: project.WorkspaceChild) -> dict[str, Any]:
+        payload: dict[str, Any] = {
+            "name": child.name,
+            "path": str(child.path),
+            "status": child.status,
+        }
+        if child.reason:
+            payload["reason"] = child.reason
+        return payload
+
+    def _fail(msg: str) -> int:
+        payload: dict[str, Any] = {
+            "applied": apply,
+            "ok": False,
+            "error": msg,
+            "workspace_root": str(root),
+            "workspace_exists": workspace_exists,
+            "workspace_written": False,
+            "default": default,
+            "children": [_child_payload(c) for c in children],
+            "members": [],
+            "ok_count": 0,
+            "fail_count": 0,
+        }
+        if as_json:
+            _emit_json(console, payload)
+        else:
+            console.print(f"[red]error[/red]  {msg}")
+        return 1
+
+    if not members:
+        return _fail(
+            f"no git member repos found under {root} — init each repo "
+            "with `issue-flow init` or `/iflow-setup`, then "
+            "`issue-flow workspace init`. Bootstrap skips non-git folders."
+        )
+
+    if default is not None and default not in member_names:
+        return _fail(
+            f"--default '{default}' is not a git member; "
+            f"available members: {', '.join(member_names)}."
+        )
+
+    if apply and default is None and len(members) > 1:
+        return _fail(
+            "pass --default <member> when more than one git member is present; "
+            f"available members: {', '.join(member_names)}."
+        )
+
+    member_results: list[dict[str, Any]] = []
+    ok_count = 0
+    fail_count = 0
+    workspace_written = False
+
+    if apply:
+        if not skip_dep_check:
+            from issue_flow.init import _dependency_gate
+
+            if not _dependency_gate(skip_dep_check=False):
+                return 1
+
+        def _run_member_init(member_root: Path) -> None:
+            if as_json:
+                quiet = Console(quiet=True)
+                saved = console_module.console
+                console_module.console = quiet
+                try:
+                    run_init(
+                        member_root,
+                        skip_dep_check=True,
+                        editors=editors,
+                    )
+                finally:
+                    console_module.console = saved
+            else:
+                run_init(
+                    member_root,
+                    skip_dep_check=True,
+                    editors=editors,
+                )
+
+        for child in members:
+            entry: dict[str, Any] = {
+                "name": child.name,
+                "path": str(child.path),
+                "status": child.status,
+            }
+            if child.status == project.CHILD_SCAFFOLDED:
+                entry["ok"] = True
+                entry["action"] = "already_scaffolded"
+                ok_count += 1
+                member_results.append(entry)
+                continue
+            try:
+                _run_member_init(child.path)
+                entry["ok"] = True
+                entry["action"] = "inited"
+                entry["status"] = project.CHILD_SCAFFOLDED
+                ok_count += 1
+            except typer.Exit as exc:
+                entry["ok"] = False
+                entry["action"] = "init"
+                entry["error"] = f"init failed (exit {exc.exit_code})"
+                fail_count += 1
+            except Exception as exc:
+                entry["ok"] = False
+                entry["action"] = "init"
+                entry["error"] = str(exc)
+                fail_count += 1
+            member_results.append(entry)
+
+        write_registry = force or not workspace_exists
+        if write_registry and fail_count < len(members):
+            init_console = Console(quiet=True) if as_json else console
+            code = run_workspace_init(
+                root,
+                init_console,
+                default,
+                force=force or workspace_exists,
+                as_json=False,
+            )
+            workspace_written = code == 0
+            if code != 0 and not as_json:
+                # run_workspace_init already printed the error.
+                pass
+            if code != 0 and as_json:
+                return _fail(
+                    f"member init finished but {project.WORKSPACE_FILENAME} "
+                    "was not written"
+                )
+        elif workspace_exists and not force and not as_json:
+            console.print(f"[dim]kept[/dim]  {toml_path} (pass --force to rewrite)")
+    else:
+        for child in members:
+            member_results.append(
+                {
+                    "name": child.name,
+                    "path": str(child.path),
+                    "status": child.status,
+                    "ok": True,
+                    "action": "planned",
+                }
+            )
+            ok_count += 1
+
+    resolved_default = default
+    if resolved_default is None and len(members) == 1:
+        resolved_default = members[0].name
+
+    payload = {
+        "applied": apply,
+        "ok": fail_count == 0,
+        "workspace_root": str(root),
+        "workspace_exists": toml_path.is_file(),
+        "workspace_written": workspace_written,
+        "default": resolved_default,
+        "children": [_child_payload(c) for c in children],
+        "members": member_results,
+        "ok_count": ok_count,
+        "fail_count": fail_count,
+    }
+
+    if as_json:
+        _emit_json(console, payload)
+        return 0 if fail_count == 0 else 1
+
+    console.print(f"workspace  {root}")
+    for child in children:
+        extra = f" ({child.reason})" if child.reason else ""
+        console.print(f"  {child.status:14} {child.name}{extra}")
+    if not apply:
+        console.print(
+            "[dim]classify only — pass --yes to init unscaffolded members "
+            "and write issueflow-workspace.toml[/dim]"
+        )
+        if len(members) > 1 and default is None:
+            console.print(
+                f"[dim]will need --default; members: {', '.join(member_names)}[/dim]"
+            )
+        return 0
+
+    if fail_count == 0:
+        console.print(
+            f"[bold green]Bootstrapped {ok_count}/{len(members)} member(s).[/bold green]"
+        )
+    else:
+        console.print(
+            f"[bold yellow]Bootstrapped {ok_count}/{len(members)} member(s); "
+            f"{fail_count} failed.[/bold yellow]"
+        )
+        for entry in member_results:
+            if not entry.get("ok"):
+                console.print(
+                    f"  [red]fail[/red]  {escape(entry['name'])}: "
+                    f"{escape(str(entry.get('error', 'unknown error')))}"
+                )
+    return 0 if fail_count == 0 else 1
+
+
 def run_workspace_update(
     workspace_dir: Path,
     console: Console,

@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- Need a global iflow initialisation command. (#310)
+
 ## [0.5.5] - 2026-09-19
 
 - `/iflow-drive <N>` compose-only path: draft epic, publish all stages, `/iflow-auto` each epoch, final review, local `-d` cleanup, then `/iflow-status`. (#306)

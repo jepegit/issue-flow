@@ -365,6 +365,7 @@ def test_iflow_init_is_harness_cold_start_not_capture() -> None:
     """/iflow-init guides issue-flow init; it must not own agent capture (#241)."""
     rendered = render_template("commands/iflow-init.md.j2", _default_context())
     assert "issue-flow init" in rendered
+    assert "workspace bootstrap" in rendered
     assert "issue-flow agent capture" not in rendered
     assert "/iflow-capture" in rendered
     assert "off-path" in rendered.lower()

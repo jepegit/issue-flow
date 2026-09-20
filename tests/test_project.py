@@ -2,10 +2,15 @@
 
 from __future__ import annotations
 
+import subprocess
 from pathlib import Path
 
 from issue_flow.project import (
+    CHILD_SCAFFOLDED,
+    CHILD_SKIPPED,
+    CHILD_UNSCAFFOLDED,
     WORKSPACE_FILENAME,
+    classify_immediate_children,
     discover_workspace,
     find_project_root,
     find_workspace_file,
@@ -134,3 +139,37 @@ def test_discover_workspace_from_nested_start(tmp_path: Path) -> None:
     assert workspace is not None
     assert workspace.root == tmp_path.resolve()
     assert workspace.default == "alpha"
+
+
+def _git_init(path: Path) -> None:
+    path.mkdir(parents=True, exist_ok=True)
+    subprocess.run(
+        ["git", "init"],
+        cwd=path,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+
+def test_classify_immediate_children_git_vs_skip(tmp_path: Path) -> None:
+    _git_init(tmp_path / "alpha")
+    (tmp_path / "alpha" / ".issueflows").mkdir()
+    _git_init(tmp_path / "beta")
+    (tmp_path / "plain").mkdir()
+
+    found = {child.name: child for child in classify_immediate_children(tmp_path)}
+    assert found["alpha"].status == CHILD_SCAFFOLDED
+    assert found["beta"].status == CHILD_UNSCAFFOLDED
+    assert found["plain"].status == CHILD_SKIPPED
+    assert found["plain"].reason == "not a git repository"
+
+
+def test_classify_immediate_children_skips_enclosing_repo(tmp_path: Path) -> None:
+    _git_init(tmp_path)
+    nested = tmp_path / "inside"
+    nested.mkdir()
+
+    found = {child.name: child for child in classify_immediate_children(tmp_path)}
+    assert found["inside"].status == CHILD_SKIPPED
+    assert found["inside"].reason == "enclosing repository"

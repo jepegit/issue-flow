@@ -854,6 +854,7 @@ def test_init_issue_init_is_harness_cold_start(tmp_path: Path) -> None:
     )
     assert "cold-start" in content.lower() or "harness" in content.lower()
     assert "issue-flow init" in content
+    assert "workspace bootstrap" in content
     assert "agent capture" not in content
     assert (tmp_path / ".cursor" / "skills" / "iflow-capture" / "SKILL.md").is_file()
 
