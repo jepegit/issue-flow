@@ -115,13 +115,18 @@ a TTY (e.g. CI pipelines).
 
 ### Multi-root workspaces
 
-When one Cursor workspace contains **several sibling repositories** (each with its
-own `issue-flow init`), lifecycle commands must target the correct repo explicitly.
-Use slash hints (`root:<path>`, `repo:<folder-name>`, `repo:owner/name`), or run
-`issue-flow agent resolve [--from-file <active-file>] [--json]` before `git`/`gh`
-calls. See `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` in
-scaffolded projects (or run `issue-flow update` to refresh scoped
-`issueflow-rules.mdc` files).
+Parent folder of several git repos? Do not `init` the parent. From that folder:
+
+```bash
+issue-flow workspace bootstrap --yes --default <main-repo>   # first time
+issue-flow workspace update                                  # later refreshes
+```
+
+Repos already scaffolded, toml missing: `issue-flow workspace init --default <main-repo>` then `workspace update`.
+
+Recipe: [Use issue-flow in a folder of repos](docs/how-to/workspaces.md).
+
+Lifecycle commands must still target the correct repo (`root:` / `repo:` hints, or `issue-flow agent resolve`). See `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` in scaffolded projects.
 
 ### Optional: graphify integration
 
@@ -248,11 +253,14 @@ issue-flow graphify [-C PROJECT_DIR] [...graphify subcommand + args]
 issue-flow status [PROJECT_DIR] [--local] [--json]
 issue-flow agent state|preflight|switchback|resolve|sweep|archive|capture [...]
 issue-flow config add [-C PROJECT_DIR] [--force] [--json]
+issue-flow workspace bootstrap|init|update [WORKSPACE_DIR] [...]
 ```
 
 - `init` scaffolds; running it again without `--force` only adds missing files.
 - `update` refreshes generated files after upgrading the package (overwrites scaffolds, never your issue markdown).
+- `workspace bootstrap` / `init` / `update` cover a **parent folder of sibling repos** (see [how-to](docs/how-to/workspaces.md)).
 - `status` / `agent ...` give agents (and you) **deterministic** answers about lifecycle state — focus issue, stage, branch hygiene — instead of having the agent re-derive it by hand.
+- `issue-flow --install-completion` enables Tab completion for subcommands (bash / zsh / fish).
 
 Full option tables and the `agent` subcommand reference live in the [CLI reference](https://github.com/jepegit/issue-flow/blob/main/docs/cli.md).
 
@@ -260,6 +268,7 @@ Full option tables and the `agent` subcommand reference live in the [CLI referen
 
 - **[Configuration](https://github.com/jepegit/issue-flow/blob/main/docs/configuration.md)** — `.env` variables and `.issueflows/config.toml`; **modes** (`standard` vs the markdown-only `simple`), **skill levels** (`basic` / `standard` / `advanced` quality-tooling guidance), the optional **caveman** and **grill-me** skills, the opt-in vendored **pstack** skills (`pstack_skills`), and **label-driven flows** (a `yolo` label routes an issue through the hands-off chain).
 - **[Editor support](https://github.com/jepegit/issue-flow/blob/main/docs/editors.md)** — what gets scaffolded per editor (Cursor, Claude Code, opencode, Codex), and how multi-root workspaces resolve the right repo.
+- **[Folder of repos](https://github.com/jepegit/issue-flow/blob/main/docs/how-to/workspaces.md)** — `workspace bootstrap` / `init` / `update` from a parent folder.
 - **[Graphify integration](https://github.com/jepegit/issue-flow/blob/main/docs/graphify.md)** — optional knowledge graph of your codebase that agents can read instead of grepping; enabled simply by installing `graphifyy`.
 - **[Issue workflow](https://github.com/jepegit/issue-flow/blob/main/docs/issue-workflow.md)** — the human-readable walkthrough of the full lifecycle (also scaffolded into your project).
 

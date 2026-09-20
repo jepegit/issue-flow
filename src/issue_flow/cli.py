@@ -12,7 +12,7 @@ from issue_flow.editors import EDITORS
 
 app = typer.Typer(
     name="issue-flow",
-    add_completion=False,
+    add_completion=True,
 )
 
 agent_app = typer.Typer(

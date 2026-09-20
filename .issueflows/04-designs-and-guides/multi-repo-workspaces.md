@@ -1,5 +1,8 @@
 # Multi-root Cursor workspaces
 
+User-facing recipe: [docs/how-to/workspaces.md](../../../docs/how-to/workspaces.md)
+(issue #313).
+
 Context: issue #67 — sibling repositories in one editor workspace each carry their
 own `.issueflows/` scaffold; lifecycle commands must not silently target the
 wrong repo.

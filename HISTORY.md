@@ -9,6 +9,10 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+## [0.5.6.post1] - 2026-09-20
+
+- Iterative fixes: workspace docs. (#313)
+
 ## [0.5.6] - 2026-09-20
 
 - Need a global iflow initialisation command. (#310)

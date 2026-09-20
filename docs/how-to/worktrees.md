@@ -62,5 +62,6 @@ still removes any leftover worktree (reachable / squash-landed) **before**
 - [Work one issue end-to-end](work-one-issue.md) — pick → close loop
 - [After a squash merge](after-squash-merge.md) — prune branches / worktrees
 - [The workflow](../issue-workflow.md) — multi-root / worktree note
+- [Use issue-flow in a folder of repos](workspaces.md) — parent folder + sibling repos (not the same as `../repo-N` worktrees)
 - Design depth (agents): `.issueflows/04-designs-and-guides/separate-workspaces.md`
   after `issue-flow init`

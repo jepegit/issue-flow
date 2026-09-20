@@ -35,10 +35,23 @@ automatic `graphify cursor install`.
 
 ## Multi-root workspaces
 
-When one editor workspace contains **several sibling repositories** (each with
-its own `issue-flow init`), lifecycle commands must target the correct repo
-explicitly. Use slash hints (`root:<path>`, `repo:<folder-name>`,
-`repo:owner/name`), or run
+**Start here** if you have a parent folder of git repos:
+[Use issue-flow in a folder of repos](how-to/workspaces.md).
+
+From that parent folder:
+
+```bash
+issue-flow workspace bootstrap --yes --default <main-repo>   # first time
+issue-flow workspace init --default <main-repo>              # toml only
+issue-flow workspace update                                  # refresh skills
+```
+
+Each repo keeps its own `.issueflows/`. The parent does not get a shared
+tracker.
+
+When the editor workspace already contains those siblings, lifecycle
+commands must still target the correct repo. Use slash hints (`root:<path>`,
+`repo:<folder-name>`, `repo:owner/name`), or run
 `issue-flow agent resolve [--from-file <active-file>] [--json]` before
 `git`/`gh` calls. See `.issueflows/04-designs-and-guides/multi-repo-workspaces.md`
 in scaffolded projects (or run `issue-flow update` to refresh scoped
@@ -46,8 +59,7 @@ in scaffolded projects (or run `issue-flow update` to refresh scoped
 
 ### Workspace registry and default repo
 
-Run **`issue-flow workspace init [--default <member>]`** at the workspace root
-to create `issueflow-workspace.toml`:
+`workspace init` writes `issueflow-workspace.toml` at the workspace root:
 
 ```toml
 [workspace]

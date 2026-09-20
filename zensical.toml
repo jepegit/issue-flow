@@ -29,6 +29,7 @@ nav = [
     "how-to/index.md",
     { "Work one issue end-to-end" = "how-to/work-one-issue.md" },
     { "Work in a sibling worktree (or stay inplace)" = "how-to/worktrees.md" },
+    { "Use issue-flow in a folder of repos" = "how-to/workspaces.md" },
     { "Fast-track a small issue" = "how-to/yolo.md" },
     { "Run a cycle of issues" = "how-to/cycle.md" },
     { "Park and resume" = "how-to/park-and-resume.md" },
