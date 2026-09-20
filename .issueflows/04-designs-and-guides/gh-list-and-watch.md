@@ -30,10 +30,13 @@ outside close wording and asked for `gh run watch` by name.
 
 - Always `--auto` (status quo) — rejected: agents never see CI fail in-session.
 - Open-ended watch — rejected: can hang unattended yolo/cycle runs.
-- Promote a new `issue-flow agent` watch subcommand — deferred; shell `gh` is enough.
+- Promote a new `issue-flow agent` watch subcommand — **landed in #317** as
+  `issue-flow agent pr-ready [N] [--watch]` (classify + poll; never merges).
+  Yolo still uses `gh pr checks --watch` on the merge path.
 - Elevate `gh run watch` to equal primacy with `gh pr checks` — rejected (#220);
   keep #172 ordering.
 - Rules-only / close-only expansion without a skill — rejected (#220); weaker
   discoverability when not already in close.
 
-**Link.** Issues #172 / #220; `issue172_plan.md`, `issue220_plan.md`.
+**Link.** Issues #172 / #220 / #317; `issue172_plan.md`, `issue220_plan.md`,
+`issue317_plan.md`.

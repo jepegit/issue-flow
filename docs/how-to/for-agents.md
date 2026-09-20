@@ -100,6 +100,8 @@ Full recipe: [Use issue-flow in a folder of repos](workspaces.md).
 - One repo: `iflow pick` (or `iflow capture <N>`).
 - Workspace: repeat lifecycle **per repo**. The toml `default` is only a
   fallback when a command runs from the parent.
+- After a non-yolo close: `issue-flow agent pr-ready [N] [--watch]` answers
+  “can this PR merge yet?” — classify only, never merges.
 
 ## Related
 

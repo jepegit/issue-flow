@@ -1521,17 +1521,17 @@ def gh_open_prs(
 
 def gh_pr_view(
     cwd: Path,
-    number: int,
+    number: int | None = None,
     repo: str | None = None,
 ) -> dict[str, Any] | None:
-    """One PR by number with mergeability fields."""
-    argv = [
-        GH,
-        "pr",
-        "view",
-        str(number),
+    """One PR by number (or the current branch) with merge-ready fields."""
+    argv = [GH, "pr", "view"]
+    if number is not None:
+        argv.append(str(number))
+    argv += [
         "--json",
-        "number,title,url,headRefName,mergeable,mergeStateStatus,baseRefName,state",
+        "number,title,url,headRefName,mergeable,mergeStateStatus,"
+        "baseRefName,state,isDraft,reviewDecision,statusCheckRollup",
     ]
     if repo:
         argv += ["--repo", repo]

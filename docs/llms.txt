@@ -13,6 +13,7 @@
 - [How-to index](https://issue-flow.readthedocs.io/how-to/): pick, worktrees, yolo, cycle, epics, cleanup.
 - [Workflow](https://issue-flow.readthedocs.io/issue-workflow/): every slash/skill in detail.
 - [CLI reference](https://issue-flow.readthedocs.io/cli/): `init`, `update`, `workspace`, `agent`, completion.
+- After `/iflow-close` (non-yolo): `issue-flow agent pr-ready [N] [--watch]` classifies merge-ready; never merges.
 
 ## Do not
 

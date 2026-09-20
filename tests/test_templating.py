@@ -576,6 +576,7 @@ def test_issue_close_yolo_token_merges_and_pulls() -> None:
         assert "gh pr list" in rendered, template_name
         assert "gh pr checks" in rendered, template_name
         assert "--watch" in rendered, template_name
+        assert "issue-flow agent pr-ready" in rendered, template_name
         assert "15" in rendered, template_name
         assert "--squash --auto" in rendered, template_name
         assert "last resort" in rendered.lower(), template_name
@@ -1687,6 +1688,7 @@ def test_gh_ci_skill_renders_ci_cheatsheet() -> None:
     assert "disable-model-invocation: true" not in rendered
     assert "gh pr checks" in rendered
     assert "gh pr checks" in rendered and "--watch" in rendered
+    assert "issue-flow agent pr-ready" in rendered
     assert "gh run list" in rendered
     assert "gh run watch" in rendered
     assert "15" in rendered
