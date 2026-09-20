@@ -1502,8 +1502,9 @@ def workspace_bootstrap(
         None,
         "--default",
         help=(
-            "Member folder name that lifecycle commands default to. Required "
-            "with --yes when more than one git member is present."
+            "Member folder name (not a bare flag) that lifecycle commands "
+            "default to. Required with --yes when more than one git member "
+            "is present."
         ),
     ),
     apply: bool = typer.Option(

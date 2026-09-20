@@ -2395,6 +2395,10 @@ def test_workspace_bootstrap_classify_only_does_not_write(
     assert statuses["beta"] == "unscaffolded"
     assert statuses["plain"] == "skipped"
     assert payload["default"] is None
+    assert payload["proposed_default"] == "alpha"
+    assert payload["next_command"] == (
+        f"issue-flow workspace bootstrap {workspace.resolve()} --yes --default alpha"
+    )
 
 
 def test_workspace_bootstrap_yes_inits_and_writes_toml(
@@ -2458,6 +2462,11 @@ def test_workspace_bootstrap_yes_requires_default_when_many_members(
     assert payload["applied"] is True
     assert payload["workspace_written"] is False
     assert "--default" in payload["error"]
+    assert payload["proposed_default"] == "alpha"
+    assert "--default alpha" in payload["error"]
+    assert payload["next_command"] == (
+        f"issue-flow workspace bootstrap {workspace.resolve()} --yes --default alpha"
+    )
     assert not (workspace / "alpha" / ".issueflows").exists()
     assert not (workspace / "issueflow-workspace.toml").exists()
 
@@ -2480,6 +2489,14 @@ def test_workspace_help_lists_bootstrap(runner: CliRunner) -> None:
     result = runner.invoke(app, ["workspace", "--help"])
     assert result.exit_code == 0
     assert "bootstrap" in _plain(result.stdout)
+
+
+def test_workspace_bootstrap_default_help_says_folder_name(
+    runner: CliRunner,
+) -> None:
+    result = runner.invoke(app, ["workspace", "bootstrap", "--help"])
+    assert result.exit_code == 0
+    assert "folder name" in _plain(result.stdout)
 
 
 def _seed_scaffolded_workspace(tmp_path: Path) -> Path:
