@@ -137,11 +137,16 @@ iflow cycle epic 42 stage 1   # optional: batch the published stage
 **Front door when you have not chosen yet** — `/iflow-pick` (parked work first,
 else ranked open GitHub issues).
 
+**Several repos in one folder** — see
+[Use issue-flow in a folder of repos](how-to/workspaces.md)
+(`workspace bootstrap` / `init` / `update` from the parent).
+
 ## Where to go next
 
 - **[Getting started](getting-started.md)** — the from-scratch path for new
   users: install uv, scaffold, and let the agent finish the setup.
-- **[How-to guides](how-to/index.md)** — task-oriented paths for common jobs.
+- **[How-to guides](how-to/index.md)** — task-oriented paths for common jobs
+  (including [a folder of repos](how-to/workspaces.md)).
 - **[The workflow](issue-workflow.md)** — the human-readable walkthrough of the
   full issue lifecycle (also scaffolded into your project).
 - **[CLI reference](cli.md)** — every `issue-flow` command, including the

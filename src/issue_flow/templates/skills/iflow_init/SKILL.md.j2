@@ -26,11 +26,25 @@ For this skill, the start dir is `root:` / `-C` if given, else **cwd**. Do **not
 
 {% include "skills/_resolve_project_root.md.j2" %}
 
+## Parent-folder recipe
+
+When the start dir is a **folder of git sibling repos**, follow this public how-to — do **not** invent a different command order:
+
+https://issue-flow.readthedocs.io/how-to/workspaces/
+
+| Situation | Command |
+| --- | --- |
+| First time (scaffold members + write toml) | `issue-flow workspace bootstrap --yes --default <name>` |
+| Members already have `{{ issueflows_dir }}/`; toml only | `issue-flow workspace init --default <name>` |
+| Toml exists; refresh skills | `issue-flow workspace update` |
+
+Show the user those commands (or the how-to URL) when explaining the path. The classify / confirm steps below still gate any `--yes`.
+
 ## Instructions
 
 1. **Workspace file already present** at the start dir (or `issue-flow agent resolve --json` reports `workspace_root` equal to the start dir):
    - Say the workspace already exists.
-   - Offer `issue-flow workspace update` / per-member `issue-flow update`.
+   - Offer `issue-flow workspace update` / per-member `issue-flow update` (same as the how-to).
    - Do **not** re-bootstrap unless the user explicitly asks `--force` / re-init.
 
 2. **Parent-folder / workspace path** — run classify-only:

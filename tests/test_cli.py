@@ -48,6 +48,22 @@ def test_cli_lists_graphify_command(runner: CliRunner) -> None:
     assert "graphify" in result.stdout
 
 
+def test_cli_help_offers_shell_completion(runner: CliRunner) -> None:
+    """Root --help advertises Typer's one-time completion install (#313)."""
+    result = runner.invoke(app, ["--help"])
+    assert result.exit_code == 0
+    help_text = _plain(result.stdout)
+    assert "--install-completion" in help_text
+    assert "--show-completion" in help_text
+
+
+def test_subcommand_help_omits_install_completion(runner: CliRunner) -> None:
+    """Nested Typer apps keep add_completion=False so help stays uncluttered."""
+    result = runner.invoke(app, ["agent", "--help"])
+    assert result.exit_code == 0
+    assert "--install-completion" not in _plain(result.stdout)
+
+
 def test_init_help_documents_editor_option(runner: CliRunner) -> None:
     """`issue-flow init --help` must advertise the --editor option."""
     result = runner.invoke(app, ["init", "--help"])

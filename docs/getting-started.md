@@ -36,6 +36,7 @@ Check it worked:
 
 ```bash
 issue-flow --version
+issue-flow --install-completion   # optional: Tab-complete subcommands
 ```
 
 You also need [Git](https://git-scm.com/downloads) and the
@@ -71,6 +72,13 @@ issue-flow init --mode novice
 `init` is non-destructive: it adds a `.issueflows/` tracking tree and your
 editor's skill files, appends a managed block to `AGENTS.md`, and never
 overwrites your own content.
+
+!!! tip "Several git repos in one parent folder?"
+
+    Do not `init` the parent. From that folder run
+    `issue-flow workspace bootstrap --yes --default <main-repo>`
+    (first time) or `issue-flow workspace update` (refresh skills).
+    Step-by-step: [Use issue-flow in a folder of repos](how-to/workspaces.md).
 
 !!! tip "Why `--mode novice`?"
 

@@ -4,41 +4,108 @@ title: CLI reference
 
 # CLI reference
 
-```text
-issue-flow init [PROJECT_DIR] [--force] [--skip-dep-check]
-  [--editor EDITOR] [--mode MODE] [--skill-level LEVEL]
-issue-flow update [PROJECT_DIR] [--skip-dep-check] [--editor EDITOR] [--force]
-  [--all] [--json]
-issue-flow register [PROJECT_DIR] [--json]
-issue-flow unregister [PROJECT_DIR] [--json]
-issue-flow graphify [-C PROJECT_DIR] [...graphify subcommand + args]
-issue-flow status [PROJECT_DIR] [--local] [--json]
-issue-flow doctor [PROJECT_DIR] [--fix] [--except N] [--dry-run] [--json]
-issue-flow agent setup-status [-C PROJECT_DIR] [--json]
-issue-flow agent state [-C PROJECT_DIR] [--json]
-issue-flow agent preflight [-C PROJECT_DIR] [--json]
-issue-flow agent switchback [-C PROJECT_DIR] [--json]
-issue-flow agent sync-branch [-C PROJECT_DIR] [--strategy rebase|merge] [--json]
-issue-flow agent apply-changelog --issue N [-C PROJECT_DIR] [--json]
-issue-flow agent branches [-C PROJECT_DIR] [--json] [--no-fetch]
-issue-flow agent local-branches [-C PROJECT_DIR] [--json] [--no-fetch]
-  [--commit-limit N]
-issue-flow agent version-plan [-C PROJECT_DIR] [--bump LEVEL ...] [--json]
-issue-flow agent epic-status N [-C PROJECT_DIR] [--local] [--json]
-issue-flow agent queue [N ...] [--label L] [--epic N] [-C PROJECT_DIR] [--json]
-issue-flow agent resolve [-C PROJECT_DIR] [--from-file FILE] [--json]
-issue-flow agent sweep [-C PROJECT_DIR] [--except N] [--dry-run] [--json]
-issue-flow agent audit [-C PROJECT_DIR] [--json]
-issue-flow agent repair [-C PROJECT_DIR] [--except N] [--dry-run] [--json]
-issue-flow agent archive N [N ...] [-C PROJECT_DIR] [--dry-run] [--json]
-issue-flow agent capture N [-C PROJECT_DIR] [--repo OWNER/REPO]
-  [--force] [--json]
-issue-flow config add [-C PROJECT_DIR] [--force] [--json]
-issue-flow config show [KEY] [-C PROJECT_DIR] [--persisted] [--global] [--json]
-issue-flow config set KEY VALUE [-C PROJECT_DIR] [--global] [--json]
-issue-flow workspace init [WORKSPACE_DIR] [--default MEMBER]
-  [--force] [--json]
+Grouped overview first. Flags live in each command section. The raw
+`--help`-style dump is folded at the bottom of this page intro.
+
+## Commands at a glance
+
+### Setup
+
+| Command | What it does |
+| --- | --- |
+| [`init`](#issue-flow-init) | First-time scaffold, or add missing files only |
+| [`update`](#issue-flow-update) | Refresh generated files after upgrading the package |
+| `register` / `unregister` | Add or remove a root in the user-global registry ([`update`](#issue-flow-update) documents this) |
+
+### Workspace
+
+| Command | What it does |
+| --- | --- |
+| [`workspace bootstrap`](#issue-flow-workspace-bootstrap) | First-time parent folder of git siblings |
+| [`workspace init`](#issue-flow-workspace-init) | Write `issueflow-workspace.toml` only |
+| [`workspace update`](#issue-flow-workspace-update) | Refresh every member that has a scaffold |
+
+### Inspect and repair
+
+| Command | What it does |
+| --- | --- |
+| [`status`](#issue-flow-status) | Focus / parked / solved, plus open GitHub issues |
+| [`doctor`](#issue-flow-doctor) | Audit dirty `.issueflows/` folders; optional safe repair |
+| [`graphify`](#issue-flow-graphify) | Rebuild the optional knowledge graph |
+
+### Config
+
+| Command | What it does |
+| --- | --- |
+| [`config add`](#issue-flow-config-add) | Create `.issueflows/config.toml` |
+| `config show` / `config set` | Read or write a setting (see [Configuration](configuration.md)) |
+
+### Agent helpers
+
+| Command | What it does |
+| --- | --- |
+| [`agent …`](#issue-flow-agent) | Deterministic state / sweep / capture helpers the skills call |
+
+??? tip "Full synopsis (copy-paste)"
+
+    ```text
+    issue-flow init [PROJECT_DIR] [--force] [--skip-dep-check]
+      [--editor EDITOR] [--mode MODE] [--skill-level LEVEL]
+    issue-flow update [PROJECT_DIR] [--skip-dep-check] [--editor EDITOR] [--force]
+      [--all] [--json]
+    issue-flow register [PROJECT_DIR] [--json]
+    issue-flow unregister [PROJECT_DIR] [--json]
+    issue-flow graphify [-C PROJECT_DIR] [...graphify subcommand + args]
+    issue-flow status [PROJECT_DIR] [--local] [--json]
+    issue-flow doctor [PROJECT_DIR] [--fix] [--except N] [--dry-run] [--json]
+    issue-flow agent setup-status [-C PROJECT_DIR] [--json]
+    issue-flow agent state [-C PROJECT_DIR] [--json]
+    issue-flow agent preflight [-C PROJECT_DIR] [--json]
+    issue-flow agent switchback [-C PROJECT_DIR] [--json]
+    issue-flow agent sync-branch [-C PROJECT_DIR] [--strategy rebase|merge] [--json]
+    issue-flow agent apply-changelog --issue N [-C PROJECT_DIR] [--json]
+    issue-flow agent branches [-C PROJECT_DIR] [--json] [--no-fetch]
+    issue-flow agent local-branches [-C PROJECT_DIR] [--json] [--no-fetch]
+      [--commit-limit N]
+    issue-flow agent version-plan [-C PROJECT_DIR] [--bump LEVEL ...] [--json]
+    issue-flow agent epic-status N [-C PROJECT_DIR] [--local] [--json]
+    issue-flow agent queue [N ...] [--label L] [--epic N] [-C PROJECT_DIR] [--json]
+    issue-flow agent resolve [-C PROJECT_DIR] [--from-file FILE] [--json]
+    issue-flow agent sweep [-C PROJECT_DIR] [--except N] [--dry-run] [--json]
+    issue-flow agent audit [-C PROJECT_DIR] [--json]
+    issue-flow agent repair [-C PROJECT_DIR] [--except N] [--dry-run] [--json]
+    issue-flow agent archive N [N ...] [-C PROJECT_DIR] [--dry-run] [--json]
+    issue-flow agent capture N [-C PROJECT_DIR] [--repo OWNER/REPO]
+      [--force] [--json]
+    issue-flow config add [-C PROJECT_DIR] [--force] [--json]
+    issue-flow config show [KEY] [-C PROJECT_DIR] [--persisted] [--global] [--json]
+    issue-flow config set KEY VALUE [-C PROJECT_DIR] [--global] [--json]
+    issue-flow workspace init [WORKSPACE_DIR] [--default MEMBER]
+      [--force] [--json]
+    issue-flow workspace bootstrap [WORKSPACE_DIR] [--default MEMBER]
+      [--yes] [--force] [--skip-dep-check] [--editor EDITOR] [--json]
+    issue-flow workspace update [WORKSPACE_DIR] [--skip-dep-check]
+      [--editor EDITOR] [--json]
+    ```
+
+## Shell completion
+
+Tab-complete subcommands and flags in bash, zsh, or fish. One-time install
+(writes a snippet into your shell rc):
+
+```bash
+issue-flow --install-completion
 ```
+
+Open a new shell afterwards. To print the script instead of writing it:
+
+```bash
+issue-flow --show-completion
+```
+
+This is Typer's built-in completer: command names and known options, not
+dynamic values (issue numbers, workspace members). Subcommand `--help`
+pages do not repeat these flags.
 
 ## When to use which
 
@@ -46,16 +113,20 @@ issue-flow workspace init [WORKSPACE_DIR] [--default MEMBER]
 | --- | --- |
 | First-time setup, or add missing files only | `issue-flow init` |
 | Pull newer templates after `uv tool upgrade issue-flow` (or similar) | `issue-flow update` |
+| Parent folder of several git repos (first time) | `issue-flow workspace bootstrap --yes --default NAME` |
+| Parent folder already has `issueflow-workspace.toml`; refresh members | `issue-flow workspace update` |
+| Write `issueflow-workspace.toml` only (members already scaffolded) | `issue-flow workspace init --default NAME` |
 | Refresh every unlocked registered repo | `issue-flow update --all` |
 | Add / remove a root in the user-global registry | `issue-flow register` / `unregister` |
 | Replace generated scaffolds without upgrading logic | `issue-flow init --force` |
 | Rebuild the graphify knowledge graph | `issue-flow graphify` |
 | See where every issue stands (focus / parked / solved / GitHub) | `issue-flow status` |
 | Audit or repair dirty `.issueflows/` folders | `issue-flow doctor` (or `/iflow-doctor`) |
+| Tab-complete subcommands in your shell | `issue-flow --install-completion` |
 | Let an agent resolve lifecycle state / sweep / capture deterministically | `issue-flow agent ...` |
 | Condense old solved issues into a dated summary (recoverable via git) | `/iflow-archive` (summary is agent-written; `issue-flow agent archive …` for the delete step) |
 
-## `issue-flow init`
+## `issue-flow init` { #issue-flow-init }
 
 | Argument / Option  | Description |
 | ------------------ | ----------- |
@@ -79,7 +150,7 @@ with `issue-flow init --skip-dep-check` (the same flag is available on
 `issue-flow update`), and the prompt is also auto-skipped when stdin is not
 a TTY (e.g. CI pipelines).
 
-## `issue-flow update`
+## `issue-flow update` { #issue-flow-update }
 
 | Argument / Option  | Description |
 | ------------------ | ----------- |
@@ -116,13 +187,13 @@ also respects the project's persisted [mode](configuration.md#modes): it
 refreshes only that mode's surfaces (and prunes any that the mode excludes). To
 change mode, re-run `issue-flow init --mode <id>`.
 
-## `issue-flow graphify`
+## `issue-flow graphify` { #issue-flow-graphify }
 
 Rebuilds the optional knowledge graph. See
 [the graphify integration guide](graphify.md) for the full story (enabling,
 API keys, subcommand pass-through).
 
-## `issue-flow status`
+## `issue-flow status` { #issue-flow-status }
 
 A **read-only** overview of where every issue stands — the same picture the
 `/iflow-status` skill produces, but computed deterministically in Python. It
@@ -139,7 +210,7 @@ local `.issueflows/` folders.
 A missing or unauthenticated `gh` never fails the command — the GitHub section
 is simply skipped and noted.
 
-## `issue-flow doctor`
+## `issue-flow doctor` { #issue-flow-doctor }
 
 Audit the local `.issueflows/` tree for **dirty** conditions (multiple focus
 groups, leftovers in `01-current-issues/`, duplicates across folders, and
@@ -160,7 +231,7 @@ skill dirs are never deleted or imported.
 Exit code is `1` when the audit finds any **error**-severity finding (for
 example ambiguous multi-focus or duplicate groups across folders).
 
-## `issue-flow agent ...`
+## `issue-flow agent ...` { #issue-flow-agent }
 
 The `agent` sub-app exposes the deterministic, mechanical building blocks the
 scaffolded skills repeat over and over, so an AI agent can ask the tool for an
@@ -202,12 +273,12 @@ aborts the rebase on any conflict it is not allowed to resolve, and never
 pushes — so exit 0 means "the branch now contains the default branch" and
 exit 1 means "nothing changed, a human decides".
 
-## `issue-flow config add`
+## `issue-flow config add` { #issue-flow-config-add }
 
 Creates `.issueflows/config.toml`, seeded from `.env` (or issue-flow defaults).
 See [Creating config.toml](configuration.md#creating-configtoml).
 
-## `issue-flow workspace init`
+## `issue-flow workspace init` { #issue-flow-workspace-init }
 
 Creates `issueflow-workspace.toml` at the **workspace root** — the folder that
 contains several scaffolded member repos — so lifecycle commands invoked from
@@ -226,10 +297,11 @@ Members are auto-discovered (immediate child directories carrying an
 `--default` names something that is not a scaffolded member — a typo must
 never redirect git operations. The registry only ever fills the bottom of the
 resolution order: explicit `root:`/`repo:` hints, the nearest scaffold, and
-the issue-branch heuristic all still win. See
+the issue-branch heuristic all still win. Step-by-step:
+[Use issue-flow in a folder of repos](how-to/workspaces.md). See also
 [multi-root workspaces](editors.md#multi-root-workspaces).
 
-## `issue-flow workspace bootstrap`
+## `issue-flow workspace bootstrap` { #issue-flow-workspace-bootstrap }
 
 First-time path for a **parent folder of git sibling repos**. Classifies
 immediate child directories that are their own git top-level (skips non-git
@@ -249,4 +321,25 @@ With `--yes` it runs `issue-flow init` on unscaffolded members, then
 | `--json`          | Emit a machine-readable JSON object. |
 
 `/iflow-init` (also installed user-global) is the agent-facing counterpart:
-classify, confirm, then `workspace bootstrap --yes`.
+classify, confirm, then `workspace bootstrap --yes`. Step-by-step:
+[Use issue-flow in a folder of repos](how-to/workspaces.md).
+
+## `issue-flow workspace update` { #issue-flow-workspace-update }
+
+Refresh packaged scaffolds in every scaffolded member of an
+`issueflow-workspace.toml`. Walks **up** from `WORKSPACE_DIR` to find the
+toml, so you can run this from a member repo. Then runs `issue-flow update`
+in each member that has a `.issueflows/` tree. Each repo keeps its own
+`mode` and `skill_level` from its `config.toml`.
+
+| Argument / Option  | Description |
+| ------------------ | ----------- |
+| `WORKSPACE_DIR`    | Start directory. Defaults to `.`. Walks up for `issueflow-workspace.toml`. |
+| `--skip-dep-check` | Skip the git/gh dependency prompt (forwarded to each member `update`). |
+| `--editor`, `-e`   | Forwarded to each member `update`. |
+| `--json`           | Emit a machine-readable JSON object. |
+
+Does not discover or register roots (`register --discover` is a different
+command). After `uv tool upgrade issue-flow`, this is the usual refresh
+for a parent folder of repos. Recipe:
+[Use issue-flow in a folder of repos](how-to/workspaces.md).
