@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- Help agents watch until a PR is merge-ready. (#317)
+
 ## [0.5.6.post2] - 2026-09-20
 
 - Iterative fixes: agent-facing help. (#315)

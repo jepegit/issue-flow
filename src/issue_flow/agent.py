@@ -21,7 +21,9 @@ import json
 import re
 import shutil
 import subprocess
+import time
 from pathlib import Path
+from collections.abc import Callable
 from typing import Any
 
 from rich.console import Console
@@ -1274,6 +1276,290 @@ def _pr_needs_sync(pr: dict[str, Any]) -> bool:
     if state in _NEEDS_SYNC_STATES:
         return True
     return False
+
+
+_FAILURE_CONCLUSIONS = frozenset(
+    {
+        "FAILURE",
+        "CANCELLED",
+        "TIMED_OUT",
+        "ACTION_REQUIRED",
+        "STARTUP_FAILURE",
+        "ERROR",
+    }
+)
+_PENDING_STATUSES = frozenset(
+    {"QUEUED", "IN_PROGRESS", "PENDING", "WAITING", "REQUESTED"}
+)
+_OK_CONCLUSIONS = frozenset({"SUCCESS", "NEUTRAL", "SKIPPED"})
+_PR_READY_POLL_SECONDS = 15.0
+
+
+def _rollup_checks(
+    pr: dict[str, Any],
+) -> tuple[list[str], list[str], list[str], list[str]]:
+    """Return pending, failing, required_pending, required_failing check names."""
+    pending: list[str] = []
+    failing: list[str] = []
+    required_pending: list[str] = []
+    required_failing: list[str] = []
+    rollup = pr.get("statusCheckRollup")
+    if not isinstance(rollup, list):
+        return pending, failing, required_pending, required_failing
+    for item in rollup:
+        if not isinstance(item, dict):
+            continue
+        name = str(item.get("name") or item.get("context") or "?")
+        required = item.get("isRequired")
+        conclusion = str(item.get("conclusion") or item.get("state") or "").upper()
+        status = str(item.get("status") or "").upper()
+        failed = conclusion in _FAILURE_CONCLUSIONS
+        in_flight = status in _PENDING_STATUSES or conclusion in {"PENDING", ""}
+        if failed:
+            failing.append(name)
+            if required is True:
+                required_failing.append(name)
+        elif in_flight and conclusion not in _OK_CONCLUSIONS:
+            pending.append(name)
+            if required is True:
+                required_pending.append(name)
+    return pending, failing, required_pending, required_failing
+
+
+def classify_pr_ready(
+    pr: dict[str, Any] | None, *, gh_available: bool
+) -> dict[str, Any]:
+    """Classify whether an open PR is allowed to merge. Never merges."""
+    notes: list[str] = []
+    pending_checks: list[str] = []
+    failing_checks: list[str] = []
+    payload: dict[str, Any] = {
+        "state": "unknown",
+        "pr": None,
+        "url": None,
+        "title": None,
+        "isDraft": None,
+        "mergeable": None,
+        "mergeStateStatus": None,
+        "reviewDecision": None,
+        "pending_checks": pending_checks,
+        "failing_checks": failing_checks,
+        "notes": notes,
+    }
+    if not gh_available:
+        notes.append("gh is not on PATH")
+        return payload
+    if pr is None:
+        notes.append("could not load PR")
+        return payload
+
+    payload["pr"] = pr.get("number")
+    payload["url"] = pr.get("url")
+    payload["title"] = pr.get("title")
+    is_draft = bool(pr.get("isDraft"))
+    payload["isDraft"] = is_draft
+    mergeable = str(pr.get("mergeable") or "").upper()
+    merge_state = str(pr.get("mergeStateStatus") or "").upper()
+    review = str(pr.get("reviewDecision") or "").upper()
+    pr_state = str(pr.get("state") or "").upper()
+    payload["mergeable"] = mergeable or None
+    payload["mergeStateStatus"] = merge_state or None
+    payload["reviewDecision"] = review or None
+
+    pending_all, failing_all, required_pending, required_failing = _rollup_checks(pr)
+    pending_checks.extend(pending_all)
+    failing_checks.extend(failing_all)
+    rollup_items = [
+        item for item in (pr.get("statusCheckRollup") or []) if isinstance(item, dict)
+    ]
+    saw_required = any(item.get("isRequired") is True for item in rollup_items)
+    all_explicitly_optional = bool(rollup_items) and all(
+        item.get("isRequired") is False for item in rollup_items
+    )
+    if saw_required:
+        block_failing = required_failing
+        block_pending = required_pending
+    elif all_explicitly_optional:
+        block_failing = []
+        block_pending = []
+    else:
+        block_failing = failing_all
+        block_pending = pending_all if merge_state in {"BLOCKED", "UNKNOWN", ""} else []
+
+    if pr_state in {"CLOSED", "MERGED"}:
+        payload["state"] = "blocked"
+        notes.append(f"PR is {pr_state.lower()}")
+        return payload
+    if is_draft or merge_state == "DRAFT":
+        payload["state"] = "blocked"
+        notes.append("PR is a draft")
+        return payload
+    if mergeable == "CONFLICTING" or merge_state in {"DIRTY"}:
+        payload["state"] = "blocked"
+        notes.append("PR has merge conflicts")
+        return payload
+    if review == "CHANGES_REQUESTED":
+        payload["state"] = "blocked"
+        notes.append("review requested changes")
+        return payload
+    if block_failing:
+        payload["state"] = "blocked"
+        notes.append("required checks failed: " + ", ".join(block_failing))
+        return payload
+    if mergeable in {"", "UNKNOWN"} or merge_state in {
+        "UNKNOWN",
+        "BLOCKED",
+        "BEHIND",
+    }:
+        payload["state"] = "pending"
+        notes.append("mergeability or required gate still in flight")
+        return payload
+    if block_pending:
+        payload["state"] = "pending"
+        notes.append("required checks pending: " + ", ".join(block_pending))
+        return payload
+    if review == "REVIEW_REQUIRED":
+        payload["state"] = "pending"
+        notes.append("required review still missing")
+        return payload
+    if (
+        mergeable == "MERGEABLE"
+        and merge_state in {"CLEAN", "UNSTABLE"}
+        and not is_draft
+        and pr_state in {"", "OPEN"}
+    ):
+        payload["state"] = "ready"
+        if merge_state == "UNSTABLE":
+            notes.append("UNSTABLE with optional-only noise; treating as ready")
+        return payload
+
+    payload["state"] = "unknown"
+    notes.append("could not classify merge-ready state")
+    return payload
+
+
+def run_pr_ready(
+    project_root: Path,
+    console: Console,
+    number: int | None,
+    *,
+    watch: bool,
+    as_json: bool,
+    repo: str | None = None,
+    sleep_fn: Callable[[float], None] = time.sleep,
+    monotonic_fn: Callable[[], float] = time.monotonic,
+    poll_seconds: float = _PR_READY_POLL_SECONDS,
+) -> int:
+    """Classify whether PR ``number`` (or the current branch PR) can merge.
+
+    Read-only: never merges. Exit 0 only when ``state`` is ``ready``.
+    """
+    settings = Settings()
+    budget_min = settings.resolve_checks_watch_minutes(project_root)
+    notes: list[str] = []
+    payload: dict[str, Any] = {
+        "gh_available": gitutils.gh_available(),
+        "repo": repo,
+        "watch": watch,
+        "budget_minutes": budget_min,
+        "state": "unknown",
+        "pr": number,
+        "url": None,
+        "title": None,
+        "isDraft": None,
+        "mergeable": None,
+        "mergeStateStatus": None,
+        "reviewDecision": None,
+        "pending_checks": [],
+        "failing_checks": [],
+        "notes": notes,
+    }
+
+    def emit(exit_code: int) -> int:
+        if as_json:
+            _emit_json(console, payload)
+        else:
+            _render_pr_ready_text(console, payload, exit_code)
+        return exit_code
+
+    if not payload["gh_available"]:
+        notes.append("gh is not on PATH")
+        return emit(1)
+
+    home = gitutils.worktree_home_path(project_root) or project_root.resolve()
+    if repo is None:
+        remote = gitutils.remote_owner_repo(home)
+        repo = f"{remote[0]}/{remote[1]}" if remote else None
+    payload["repo"] = repo
+    if repo is None:
+        notes.append("could not resolve owner/repo from origin")
+        return emit(1)
+
+    deadline = monotonic_fn() + (budget_min * 60 if watch else 0)
+    classified: dict[str, Any] | None = None
+    while True:
+        pr = gitutils.gh_pr_view(home, number, repo=repo)
+        if pr is None and number is None:
+            notes.clear()
+            notes.append("no PR for this branch")
+            payload["state"] = "unknown"
+            return emit(1)
+        classified = classify_pr_ready(pr, gh_available=True)
+        for key in (
+            "state",
+            "pr",
+            "url",
+            "title",
+            "isDraft",
+            "mergeable",
+            "mergeStateStatus",
+            "reviewDecision",
+            "pending_checks",
+            "failing_checks",
+        ):
+            payload[key] = classified[key]
+        payload["notes"] = classified["notes"]
+        notes = classified["notes"]
+        state = classified["state"]
+        if state in {"ready", "blocked"} or not watch:
+            return emit(0 if state == "ready" else 1)
+        if monotonic_fn() >= deadline:
+            notes.append(f"watch budget ({budget_min} min) elapsed still {state}")
+            payload["notes"] = notes
+            return emit(1)
+        if not as_json:
+            _render_pr_ready_text(console, payload, 1)
+        sleep_fn(poll_seconds)
+
+
+def _render_pr_ready_text(
+    console: Console, payload: dict[str, Any], exit_code: int
+) -> None:
+    state = str(payload.get("state") or "unknown")
+    style = "green" if exit_code == 0 else "yellow" if state == "pending" else "red"
+    pr = payload.get("pr")
+    label = f"#{pr}" if pr is not None else "current branch"
+    console.print(f"[{style}]{state}[/{style}]  PR {label}")
+    if payload.get("url"):
+        console.print(f"  {escape(str(payload['url']))}")
+    for field in (
+        "title",
+        "isDraft",
+        "mergeable",
+        "mergeStateStatus",
+        "reviewDecision",
+    ):
+        value = payload.get(field)
+        if value is not None and value != "":
+            console.print(f"  {field}: {escape(str(value))}")
+    pending = payload.get("pending_checks") or []
+    failing = payload.get("failing_checks") or []
+    if pending:
+        console.print(f"  pending: {escape(', '.join(str(n) for n in pending))}")
+    if failing:
+        console.print(f"  failing: {escape(', '.join(str(n) for n in failing))}")
+    for note in payload.get("notes") or []:
+        console.print(f"  [dim]{escape(str(note))}[/dim]")
 
 
 def run_pr_sync(

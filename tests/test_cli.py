@@ -321,6 +321,7 @@ def test_agent_help_lists_subcommands(runner: CliRunner) -> None:
         "label-candidates",
         "label-apply",
         "sub-issue-add",
+        "pr-ready",
     ):
         assert sub in plain
 

@@ -689,6 +689,48 @@ def agent_pr_sync(
     )
 
 
+@agent_app.command("pr-ready")
+def agent_pr_ready(
+    number: int | None = typer.Argument(
+        None,
+        help="PR number (same namespace as issues). Omit for the current branch.",
+    ),
+    project_dir: Path = _PROJECT_DIR_OPTION,
+    watch: bool = typer.Option(
+        False,
+        "--watch",
+        help="Poll until ready, blocked, or the checks_watch_minutes budget elapses.",
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+    repo: str | None = typer.Option(
+        None,
+        "--repo",
+        help="owner/repo (default: origin remote).",
+    ),
+) -> None:
+    """Classify whether a PR is allowed to merge. Never merges.
+
+    Exit 0 only when ``state`` is ``ready``. ``--watch`` polls (``~15s``)
+    until ready, blocked, or ``checks_watch_minutes`` elapses. Used after
+    ``/iflow-close`` when the question is merge-ready; yolo still owns
+    ``gh pr merge`` / ``gh pr checks --watch``.
+    """
+    from issue_flow.agent import run_pr_ready
+
+    raise typer.Exit(
+        code=run_pr_ready(
+            project_dir,
+            _console,
+            number,
+            watch=watch,
+            as_json=json_output,
+            repo=repo,
+        )
+    )
+
+
 @agent_app.command("branches")
 def agent_branches(
     project_dir: Path = _PROJECT_DIR_OPTION,
