@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+## [0.5.6] - 2026-09-20
+
 - Need a global iflow initialisation command. (#310)
 
 ## [0.5.5] - 2026-09-19
