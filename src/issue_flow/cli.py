@@ -1511,7 +1511,8 @@ def workspace_bootstrap(
         False,
         "--yes",
         help=(
-            "Init unscaffolded git members and write issueflow-workspace.toml. "
+            "Init unscaffolded git members and write (or refresh) "
+            "issueflow-workspace.toml members from the current classify. "
             "Without this flag the command only classifies children."
         ),
     ),

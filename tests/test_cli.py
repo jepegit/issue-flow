@@ -2499,6 +2499,46 @@ def test_workspace_bootstrap_default_help_says_folder_name(
     assert "folder name" in _plain(result.stdout)
 
 
+def test_workspace_bootstrap_yes_refreshes_stale_members(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    workspace = tmp_path / "workspace"
+    _git_init(workspace / "alpha")
+    (workspace / "alpha" / ".issueflows").mkdir()
+    _git_init(workspace / "gamma")
+    (workspace / "gamma" / ".issueflows").mkdir()
+    (workspace / "issueflow-workspace.toml").write_text(
+        '[workspace]\ndefault = "alpha"\nmembers = ["alpha"]\n',
+        encoding="utf-8",
+    )
+
+    dry = runner.invoke(app, ["workspace", "bootstrap", str(workspace), "--json"])
+    assert dry.exit_code == 0, dry.output
+    dry_payload = _json(dry.stdout)
+    assert dry_payload["missing_from_toml"] == ["gamma"]
+
+    result = runner.invoke(
+        app,
+        [
+            "workspace",
+            "bootstrap",
+            str(workspace),
+            "--yes",
+            "--default",
+            "alpha",
+            "--skip-dep-check",
+            "--json",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["workspace_written"] is True
+    assert "gamma" in payload["missing_from_toml"]
+    text = (workspace / "issueflow-workspace.toml").read_text(encoding="utf-8")
+    assert 'default = "alpha"' in text
+    assert "gamma" in text
+
+
 def _seed_scaffolded_workspace(tmp_path: Path) -> Path:
     """Workspace with two fully scaffolded members and a registry file."""
     from issue_flow.init import run_init
