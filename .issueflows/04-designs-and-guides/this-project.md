@@ -11,7 +11,8 @@ project scaffolded by it (though it dogfoods its own workflow).
 
 ## Stack / runtime
 
-- **Language/runtime:** Python **3.13+** (pinned in `.python-version`).
+- **Language/runtime:** Python **3.12+** (CI: 3.12 / 3.13 / 3.14; development
+  pin **3.13** in `.python-version`).
 - **Package manager:** **`uv`** exclusively (uv-managed `.venv`). Never `pip`,
   `pip-tools`, or `poetry`.
 - **Build backend:** `uv_build`. Entry point: `issue-flow = "issue_flow.cli:main"`.
@@ -115,4 +116,4 @@ Key behaviour:
   other editors are partially supported via editor profiles.
 - The `graphify` knowledge-graph integration is **optional** and off-path
   (never auto-run); ignore graph guidance when `graphify-out/` is absent.
-- Requires Python **3.13+**; no support for older interpreters.
+- Requires Python **3.12+**; no support for older interpreters.

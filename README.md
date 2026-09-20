@@ -190,7 +190,7 @@ gets registered.
 
 ## Installation
 
-Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/) (recommended).
+Requires Python 3.12+ and [uv](https://docs.astral.sh/uv/) (recommended).
 
 ```bash
 uv tool install issue-flow

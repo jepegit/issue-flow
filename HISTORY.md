@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- Tighten pr-ready when required flags are omitted; CI on 3.12–3.14. (#321)
+
 ## [0.5.7] - 2026-09-20
 
 - Help agents watch until a PR is merge-ready. (#317)
