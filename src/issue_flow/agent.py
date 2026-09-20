@@ -1326,6 +1326,28 @@ def _rollup_checks(
     return pending, failing, required_pending, required_failing
 
 
+def _blocking_checks(pr: dict[str, Any]) -> tuple[list[str], list[str]]:
+    """Failing and pending names that are not explicitly optional."""
+    failing: list[str] = []
+    pending: list[str] = []
+    rollup = pr.get("statusCheckRollup")
+    if not isinstance(rollup, list):
+        return failing, pending
+    for item in rollup:
+        if not isinstance(item, dict) or item.get("isRequired") is False:
+            continue
+        name = str(item.get("name") or item.get("context") or "?")
+        conclusion = str(item.get("conclusion") or item.get("state") or "").upper()
+        status = str(item.get("status") or "").upper()
+        failed = conclusion in _FAILURE_CONCLUSIONS
+        in_flight = status in _PENDING_STATUSES or conclusion in {"PENDING", ""}
+        if failed:
+            failing.append(name)
+        elif in_flight and conclusion not in _OK_CONCLUSIONS:
+            pending.append(name)
+    return failing, pending
+
+
 def classify_pr_ready(
     pr: dict[str, Any] | None, *, gh_available: bool
 ) -> dict[str, Any]:
@@ -1366,25 +1388,10 @@ def classify_pr_ready(
     payload["mergeStateStatus"] = merge_state or None
     payload["reviewDecision"] = review or None
 
-    pending_all, failing_all, required_pending, required_failing = _rollup_checks(pr)
+    pending_all, failing_all, _required_pending, _required_failing = _rollup_checks(pr)
     pending_checks.extend(pending_all)
     failing_checks.extend(failing_all)
-    rollup_items = [
-        item for item in (pr.get("statusCheckRollup") or []) if isinstance(item, dict)
-    ]
-    saw_required = any(item.get("isRequired") is True for item in rollup_items)
-    all_explicitly_optional = bool(rollup_items) and all(
-        item.get("isRequired") is False for item in rollup_items
-    )
-    if saw_required:
-        block_failing = required_failing
-        block_pending = required_pending
-    elif all_explicitly_optional:
-        block_failing = []
-        block_pending = []
-    else:
-        block_failing = failing_all
-        block_pending = pending_all if merge_state in {"BLOCKED", "UNKNOWN", ""} else []
+    block_failing, block_pending = _blocking_checks(pr)
 
     if pr_state in {"CLOSED", "MERGED"}:
         payload["state"] = "blocked"
@@ -1429,7 +1436,7 @@ def classify_pr_ready(
         and pr_state in {"", "OPEN"}
     ):
         payload["state"] = "ready"
-        if merge_state == "UNSTABLE":
+        if merge_state == "UNSTABLE" and (pending_all or failing_all):
             notes.append("UNSTABLE with optional-only noise; treating as ready")
         return payload
 

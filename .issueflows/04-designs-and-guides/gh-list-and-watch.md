@@ -33,6 +33,10 @@ outside close wording and asked for `gh run watch` by name.
 - Promote a new `issue-flow agent` watch subcommand — **landed in #317** as
   `issue-flow agent pr-ready [N] [--watch]` (classify + poll; never merges).
   Yolo still uses `gh pr checks --watch` on the merge path.
+- **#321:** a check blocks `ready` unless `isRequired` is explicitly `false`.
+  Omitted required + pending is `pending` even when `mergeStateStatus=UNSTABLE`
+  (the #320 false-ready). Explicit optional noise (e.g. Cursor Approval) still
+  does not block.
 - Elevate `gh run watch` to equal primacy with `gh pr checks` — rejected (#220);
   keep #172 ordering.
 - Rules-only / close-only expansion without a skill — rejected (#220); weaker

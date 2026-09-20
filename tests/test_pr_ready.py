@@ -166,6 +166,25 @@ def test_classify_pending_review_required() -> None:
     assert result["state"] == "pending"
 
 
+def test_classify_omitted_required_pending_is_not_ready() -> None:
+    """UNSTABLE + MERGEABLE + omitted isRequired pending must stay pending."""
+    result = classify_pr_ready(
+        _pr(
+            mergeStateStatus="UNSTABLE",
+            statusCheckRollup=[
+                {
+                    "name": "test (3.13)",
+                    "status": "IN_PROGRESS",
+                    "conclusion": "",
+                }
+            ],
+        ),
+        gh_available=True,
+    )
+    assert result["state"] == "pending"
+    assert "test (3.13)" in result["pending_checks"]
+
+
 def test_classify_omitted_required_failure_blocks() -> None:
     result = classify_pr_ready(
         _pr(
