@@ -11,6 +11,7 @@ than the GitHub release notes they link to.
 
 - Tighten pr-ready when required flags are omitted; CI on 3.12–3.14. (#321)
 - Workspace bootstrap: print the exact next command when --default is required. (#322)
+- Workspace bootstrap --yes refreshes members in an existing toml. (#323)
 
 ## [0.5.7] - 2026-09-20
 

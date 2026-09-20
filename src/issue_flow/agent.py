@@ -3207,6 +3207,14 @@ def run_workspace_bootstrap(
     )
     toml_path = root / project.WORKSPACE_FILENAME
     workspace_exists = toml_path.is_file()
+    existing_workspace = (
+        project.load_workspace(toml_path, issueflows_dir=settings.issueflows_dir)
+        if workspace_exists
+        else None
+    )
+    existing_names = existing_workspace.members if existing_workspace else []
+    existing_default = existing_workspace.default if existing_workspace else None
+    missing_from_toml = [name for name in member_names if name not in existing_names]
 
     def _child_payload(child: project.WorkspaceChild) -> dict[str, Any]:
         payload: dict[str, Any] = {
@@ -3233,6 +3241,7 @@ def run_workspace_bootstrap(
             "members": [],
             "ok_count": 0,
             "fail_count": 0,
+            "missing_from_toml": missing_from_toml,
         }
         if as_json:
             _emit_json(console, payload)
@@ -3323,14 +3332,14 @@ def run_workspace_bootstrap(
                 fail_count += 1
             member_results.append(entry)
 
-        write_registry = force or not workspace_exists
-        if write_registry and fail_count < len(members):
+        if fail_count < len(members):
             init_console = Console(quiet=True) if as_json else console
+            init_default = default if default is not None else existing_default
             code = run_workspace_init(
                 root,
                 init_console,
-                default,
-                force=force or workspace_exists,
+                init_default,
+                force=True,
                 as_json=False,
             )
             workspace_written = code == 0
@@ -3342,8 +3351,6 @@ def run_workspace_bootstrap(
                     f"member init finished but {project.WORKSPACE_FILENAME} "
                     "was not written"
                 )
-        elif workspace_exists and not force and not as_json:
-            console.print(f"[dim]kept[/dim]  {toml_path} (pass --force to rewrite)")
     else:
         for child in members:
             member_results.append(
@@ -3374,6 +3381,7 @@ def run_workspace_bootstrap(
         "members": member_results,
         "ok_count": ok_count,
         "fail_count": fail_count,
+        "missing_from_toml": missing_from_toml,
     }
 
     if as_json:
@@ -3396,6 +3404,11 @@ def run_workspace_bootstrap(
             )
             if next_command:
                 console.print(f"[dim]next: {escape(next_command)}[/dim]")
+        if missing_from_toml:
+            console.print(
+                "[yellow]missing from toml[/yellow]  "
+                + escape(", ".join(missing_from_toml))
+            )
         return 0
 
     if fail_count == 0:

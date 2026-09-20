@@ -73,6 +73,12 @@ issue-flow workspace update
 Works from a member repo too — the command walks up to find
 `issueflow-workspace.toml`.
 
+A **new clone** is not picked up by `update` alone. Re-run
+`issue-flow workspace bootstrap --yes --default <name>` (or
+`workspace init --default <name> --force`) so `members` matches the
+current siblings. Classify-only lists names on disk that are missing
+from the toml.
+
 ## One repo only
 
 Stay inside that repo:
