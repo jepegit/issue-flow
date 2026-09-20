@@ -1,26 +1,28 @@
 # Cold-start the issue-flow harness
 
-Run this when a project needs the issue-flow scaffold (or a check that it is already there). This is the slash/skill counterpart of the CLI's `issue-flow init` — **not** the step that pulls a GitHub issue into `{{ issueflows_dir }}/`. Use **`/iflow-capture`** for that.
+Run this when a project needs the issue-flow scaffold, or when a **parent folder of related git repos** needs `issue-flow workspace bootstrap`. This is the slash/skill counterpart of the CLI's `issue-flow init` — **not** the step that pulls a GitHub issue into `{{ issueflows_dir }}/`. Use **`/iflow-capture`** for that.
 
-`/iflow-init` is **off-path**: `/iflow` never auto-dispatches here.
+`/iflow-init` is **off-path**: `/iflow` never auto-dispatches here. A user-global copy of this skill is installed on `init` / `update` so the command works before a project scaffold exists.
 
 {% include "skills/_model_directive.md.j2" %}
 
-{% include "skills/_resolve_project_root.md.j2" %}
-
 ## Input
 
-Optional free-form text (editor id, `--force` intent, etc.). Prefer explicit confirm before any `issue-flow init --force`.
+Optional free-form text (editor id, `--force` intent, parent-folder hint). Prefer explicit confirm before any `issue-flow init --force` or `workspace bootstrap --yes`.
 
 ## Steps
 
-1. **Detect** under `<project_root>`: `.issueflows/` present? `{{ agent_dir }}/skills/iflow-init/SKILL.md` (or other `iflow-*` skills) present? Optional CLI: `issue-flow agent resolve -C <project_root> --json`, `issue-flow doctor -C <project_root> --json`.
+1. **Start dir** = `root:` / `-C` / cwd. If this looks like a **parent folder of repos**, do **not** `agent resolve` first (it may pick a default member).
 
-2. **Missing scaffold** — show `issue-flow init .` (or `uvx issue-flow init .`, plus `--editor <id>` when needed). Offer to run it only after yes when the CLI is on `PATH`. Do not re-implement scaffolding. After success, point at `/iflow-pick` or `/iflow-capture <N>`.
+2. **Workspace file already there** — offer `workspace update` / per-member `update`. No re-bootstrap unless the user asks `--force`.
 
-3. **Already present** — say so; point at `issue-flow update .`, `issue-flow update --editor <id>` / `/iflow-doctor` for missing editors, **`/iflow-capture`** for issue capture, `/iflow-pick` as the front door. No `init --force` unless explicitly requested.
+3. **Classify** — `issue-flow workspace bootstrap <start> --json`. Two or more own-git children (`scaffolded` / `unscaffolded`): show the list, propose `--default`, run `--yes` only after confirm. Then `/iflow-pick` per repo. Non-git folders → `/iflow-setup`. Never `git init` children; never write `{{ issueflows_dir }}/` on the parent.
 
-4. **Report** — missing vs present, what ran, next step.
+4. **Single project, missing scaffold** — show `issue-flow init .` (or `uvx issue-flow init .`). Offer to run it only after yes. After success, `/iflow-pick` or `/iflow-capture <N>`.
+
+5. **Single project, already present** — `issue-flow update .`, `/iflow-doctor` for missing editors, **`/iflow-capture`**, `/iflow-pick`. No `init --force` unless explicitly requested.
+
+6. **Report** — workspace vs single-project, what ran, next step.
 
 ## Constraints
 
@@ -31,4 +33,5 @@ Optional free-form text (editor id, `--force` intent, etc.). Prefer explicit con
 ## Example invocations
 
 - `/iflow-init` — check / cold-start the harness
+- `/iflow-init` (parent folder of git siblings) — classify, then `workspace bootstrap --yes`
 - `/iflow-init` (after clone, no `.issueflows/`) — guide `issue-flow init .`

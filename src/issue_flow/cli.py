@@ -1444,6 +1444,82 @@ def workspace_init(
     )
 
 
+@workspace_app.command("bootstrap")
+def workspace_bootstrap(
+    workspace_dir: Path = typer.Argument(
+        default=Path("."),
+        help=(
+            "Workspace root directory — the folder that contains the member "
+            "repos (defaults to current directory)."
+        ),
+        exists=True,
+        file_okay=False,
+        resolve_path=True,
+    ),
+    default: str | None = typer.Option(
+        None,
+        "--default",
+        help=(
+            "Member folder name that lifecycle commands default to. Required "
+            "with --yes when more than one git member is present."
+        ),
+    ),
+    apply: bool = typer.Option(
+        False,
+        "--yes",
+        help=(
+            "Init unscaffolded git members and write issueflow-workspace.toml. "
+            "Without this flag the command only classifies children."
+        ),
+    ),
+    force: bool = typer.Option(
+        False,
+        "--force",
+        "-f",
+        help="Overwrite an existing issueflow-workspace.toml.",
+    ),
+    skip_dep_check: bool = typer.Option(
+        False,
+        "--skip-dep-check",
+        help=(
+            "Skip the external-CLI dependency check (git, gh) and the "
+            "confirmation prompt that follows if anything is missing."
+        ),
+    ),
+    editor: list[str] = typer.Option(
+        ["cursor"],
+        "--editor",
+        "-e",
+        help=_EDITOR_HELP,
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Init git sibling repos and create the workspace registry.
+
+    Classifies immediate child directories that are their own git top-level
+    (skips non-git folders and nested work trees). Without ``--yes`` this is
+    classify-only. With ``--yes`` it runs ``issue-flow init`` on unscaffolded
+    members, then ``workspace init``. Does not write ``.issueflows/`` on the
+    parent and does not ``git init`` children.
+    """
+    from issue_flow.agent import run_workspace_bootstrap
+
+    raise typer.Exit(
+        code=run_workspace_bootstrap(
+            workspace_dir,
+            _console,
+            default,
+            apply,
+            force,
+            skip_dep_check,
+            editor,
+            json_output,
+        )
+    )
+
+
 @workspace_app.command("update")
 def workspace_update(
     workspace_dir: Path = typer.Argument(

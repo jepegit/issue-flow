@@ -15,9 +15,12 @@ init`).
 1. **Issue capture** is **`/iflow-capture`** (`iflow capture`, skill
    `iflow-capture`). Matches `issue-flow agent capture`.
 2. **`/iflow-init`** is **harness cold-start / check** (off-path): guide
-   `issue-flow init` when the scaffold is missing; otherwise point at
-   `update` / doctor / `/iflow-capture`. Never captures issues; never
-   auto-dispatched by `/iflow`.
+   `issue-flow init` when the scaffold is missing; on a **parent folder
+   of git siblings** guide `issue-flow workspace bootstrap` (classify,
+   then `--yes` after confirm); otherwise point at `update` / doctor /
+   `/iflow-capture`. Never captures issues; never auto-dispatched by
+   `/iflow`. The skill is also user-global (`both`, issue #310) so it
+   exists before a project scaffold.
 3. **No dual-meaning alias** for one release (same as #183). Loud docs +
    HISTORY note instead.
 4. Lifecycle stage id is **`capture`** (`STAGE_CAPTURE`); `STAGE_INIT` remains

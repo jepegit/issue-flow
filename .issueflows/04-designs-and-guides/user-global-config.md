@@ -99,6 +99,9 @@ roots = [
 
 - **Both** `issue-flow init` (adds the current root when missing) and
   an explicit `issue-flow register [PROJECT_DIR]` write the registry.
+  `issue-flow workspace bootstrap --yes` inits each git sibling via
+  `init`, so those roots are registered the same way. No extra registry
+  knob.
   `issue-flow unregister [PROJECT_DIR]` removes a root. Writes are
   idempotent.
 - No whole-disk scan on `update --all` / `init` / `workspace update`.

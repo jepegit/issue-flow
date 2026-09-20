@@ -2344,6 +2344,127 @@ def test_workspace_init_refuses_overwrite_without_force(
     assert "hand-written" not in registry.read_text(encoding="utf-8")
 
 
+def _git_init(path: Path) -> None:
+    path.mkdir(parents=True, exist_ok=True)
+    subprocess.run(
+        ["git", "init"],
+        cwd=path,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+
+def test_workspace_bootstrap_classify_only_does_not_write(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    workspace = tmp_path / "workspace"
+    _git_init(workspace / "alpha")
+    _git_init(workspace / "beta")
+    (workspace / "alpha" / ".issueflows").mkdir()
+    (workspace / "plain").mkdir()
+
+    result = runner.invoke(app, ["workspace", "bootstrap", str(workspace), "--json"])
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["applied"] is False
+    assert payload["workspace_written"] is False
+    assert not (workspace / "issueflow-workspace.toml").exists()
+    assert not (workspace / ".issueflows").exists()
+    assert not (workspace / "beta" / ".issueflows").exists()
+    statuses = {c["name"]: c["status"] for c in payload["children"]}
+    assert statuses["alpha"] == "scaffolded"
+    assert statuses["beta"] == "unscaffolded"
+    assert statuses["plain"] == "skipped"
+    assert payload["default"] is None
+
+
+def test_workspace_bootstrap_yes_inits_and_writes_toml(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    workspace = tmp_path / "workspace"
+    _git_init(workspace / "alpha")
+    _git_init(workspace / "beta")
+
+    result = runner.invoke(
+        app,
+        [
+            "workspace",
+            "bootstrap",
+            str(workspace),
+            "--yes",
+            "--default",
+            "alpha",
+            "--skip-dep-check",
+            "--json",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["applied"] is True
+    assert payload["workspace_written"] is True
+    assert payload["default"] == "alpha"
+    assert payload["fail_count"] == 0
+    assert (workspace / "alpha" / ".issueflows").is_dir()
+    assert (workspace / "beta" / ".issueflows").is_dir()
+    assert not (workspace / ".issueflows").exists()
+    text = (workspace / "issueflow-workspace.toml").read_text(encoding="utf-8")
+    assert 'default = "alpha"' in text
+    assert (
+        workspace / "alpha" / ".cursor" / "skills" / "iflow-init" / "SKILL.md"
+    ).is_file()
+
+
+def test_workspace_bootstrap_yes_requires_default_when_many_members(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    workspace = tmp_path / "workspace"
+    _git_init(workspace / "alpha")
+    _git_init(workspace / "beta")
+
+    result = runner.invoke(
+        app,
+        [
+            "workspace",
+            "bootstrap",
+            str(workspace),
+            "--yes",
+            "--skip-dep-check",
+            "--json",
+        ],
+    )
+
+    assert result.exit_code == 1
+    payload = _json(result.stdout)
+    assert payload["applied"] is True
+    assert payload["workspace_written"] is False
+    assert "--default" in payload["error"]
+    assert not (workspace / "alpha" / ".issueflows").exists()
+    assert not (workspace / "issueflow-workspace.toml").exists()
+
+
+def test_workspace_bootstrap_refuses_without_git_members(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    workspace = tmp_path / "workspace"
+    (workspace / "plain").mkdir(parents=True)
+
+    result = runner.invoke(app, ["workspace", "bootstrap", str(workspace), "--json"])
+
+    assert result.exit_code == 1
+    payload = _json(result.stdout)
+    assert payload["workspace_written"] is False
+    assert "no git member" in payload["error"]
+
+
+def test_workspace_help_lists_bootstrap(runner: CliRunner) -> None:
+    result = runner.invoke(app, ["workspace", "--help"])
+    assert result.exit_code == 0
+    assert "bootstrap" in _plain(result.stdout)
+
+
 def _seed_scaffolded_workspace(tmp_path: Path) -> Path:
     """Workspace with two fully scaffolded members and a registry file."""
     from issue_flow.init import run_init

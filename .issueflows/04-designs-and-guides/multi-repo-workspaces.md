@@ -10,6 +10,13 @@ wrong repo.
   `cellpy-core/` and `cellpy/` as siblings).
 - Run **`issue-flow init`** in each repo — each gets its own `.issueflows/`,
   `AGENTS.md` block, and `.cursor/rules/issueflow-rules.mdc`.
+- **First-time folder of git siblings:** from the parent folder run
+  **`issue-flow workspace bootstrap --yes --default <member>`** (or type
+  `iflow init` / `/iflow-init` and confirm). That inits unscaffolded own-git
+  children, then writes `issueflow-workspace.toml`. Classify-only (no
+  `--yes`) prints the plan. Non-git folders are skipped — use
+  `/iflow-setup` per folder if they still need `git init`. The parent never
+  gets a shared `.issueflows/`.
 - To refresh packaged skills/rules/commands after upgrading issue-flow, run
   **`issue-flow workspace update`** from the workspace root (or any member —
   it walks up for `issueflow-workspace.toml`). Per-repo **`issue-flow update`**
@@ -49,8 +56,9 @@ so each repo's rules apply only when editing files under that root. Re-run
 ## Phase 2 (issue #126) — workspace registry
 
 Implemented as `issueflow-workspace.toml` at the **workspace root** (the folder
-containing the member repos), created with **`issue-flow workspace init
-[--default <member>]`** or by hand:
+containing the member repos), created with **`issue-flow workspace bootstrap`**
+(first-time git siblings) or **`issue-flow workspace init [--default <member>]`**
+(members already scaffolded), or by hand:
 
 ```toml
 [workspace]

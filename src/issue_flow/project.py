@@ -7,6 +7,8 @@ from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from issue_flow import gitutils
+
 
 def unique_resolved_paths(paths: Iterable[Path]) -> list[Path]:
     """Absolute resolved paths, first-seen order (symlinks collapse)."""
@@ -221,3 +223,91 @@ def list_scaffolded_siblings(
         if (child / issueflows_dir).is_dir():
             siblings.append(str(child.resolve()))
     return siblings
+
+
+CHILD_SCAFFOLDED = "scaffolded"
+CHILD_UNSCAFFOLDED = "unscaffolded"
+CHILD_SKIPPED = "skipped"
+
+
+@dataclass(frozen=True)
+class WorkspaceChild:
+    """One immediate child of a workspace root during bootstrap classify."""
+
+    name: str
+    path: Path
+    status: str
+    reason: str | None = None
+
+
+def classify_immediate_children(
+    workspace_dir: Path,
+    *,
+    issueflows_dir: str = ".issueflows",
+) -> list[WorkspaceChild]:
+    """Classify immediate children as own-git members or skips.
+
+    A member is an immediate child directory whose ``git`` top-level is that
+    child (not an enclosing parent repo). Scaffolded vs unscaffolded is
+    ``<issueflows_dir>/``. Non-dirs, symlinks, and non-git folders are
+    skipped — bootstrap never ``git init`` s them.
+    """
+    root = workspace_dir.resolve()
+    found: list[WorkspaceChild] = []
+    try:
+        children = sorted(root.iterdir())
+    except OSError:
+        return found
+
+    for child in children:
+        if not child.is_dir():
+            continue
+        if child.is_symlink():
+            found.append(
+                WorkspaceChild(
+                    name=child.name,
+                    path=child.resolve(),
+                    status=CHILD_SKIPPED,
+                    reason="symlink",
+                )
+            )
+            continue
+        resolved = child.resolve()
+        toplevel = gitutils.repo_root(resolved)
+        if toplevel is None:
+            found.append(
+                WorkspaceChild(
+                    name=child.name,
+                    path=resolved,
+                    status=CHILD_SKIPPED,
+                    reason="not a git repository",
+                )
+            )
+            continue
+        if toplevel.resolve() != resolved:
+            found.append(
+                WorkspaceChild(
+                    name=child.name,
+                    path=resolved,
+                    status=CHILD_SKIPPED,
+                    reason="enclosing repository",
+                )
+            )
+            continue
+        if (resolved / issueflows_dir).is_dir():
+            found.append(
+                WorkspaceChild(
+                    name=child.name,
+                    path=resolved,
+                    status=CHILD_SCAFFOLDED,
+                )
+            )
+        else:
+            found.append(
+                WorkspaceChild(
+                    name=child.name,
+                    path=resolved,
+                    status=CHILD_UNSCAFFOLDED,
+                )
+            )
+    return found

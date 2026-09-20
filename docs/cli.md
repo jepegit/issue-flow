@@ -228,3 +228,25 @@ never redirect git operations. The registry only ever fills the bottom of the
 resolution order: explicit `root:`/`repo:` hints, the nearest scaffold, and
 the issue-branch heuristic all still win. See
 [multi-root workspaces](editors.md#multi-root-workspaces).
+
+## `issue-flow workspace bootstrap`
+
+First-time path for a **parent folder of git sibling repos**. Classifies
+immediate child directories that are their own git top-level (skips non-git
+folders and nested work trees). Without `--yes` this is classify-only.
+With `--yes` it runs `issue-flow init` on unscaffolded members, then
+`workspace init`. Does not write `.issueflows/` on the parent and does not
+`git init` children.
+
+| Argument / Option | Description |
+| ----------------- | ----------- |
+| `WORKSPACE_DIR`   | Workspace root directory. Defaults to `.`. |
+| `--default`       | Required with `--yes` when more than one git member is present. |
+| `--yes`           | Init unscaffolded members and write `issueflow-workspace.toml`. |
+| `--force`, `-f`   | Overwrite an existing registry file. |
+| `--skip-dep-check`| Skip the git/gh dependency prompt. |
+| `--editor`, `-e`  | Forwarded to each member `init`. |
+| `--json`          | Emit a machine-readable JSON object. |
+
+`/iflow-init` (also installed user-global) is the agent-facing counterpart:
+classify, confirm, then `workspace bootstrap --yes`.

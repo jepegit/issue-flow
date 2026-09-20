@@ -56,18 +56,26 @@ Stems from `DEFAULT_SKILL_DIRS` + `PSTACK_SKILL_DIRS` in
 `src/issue_flow/templating.py`. Output name is `skill_output_name`
 (`iflow_iflow` → `iflow`; pstack keeps upstream names).
 
-### Lifecycle (`iflow_*`) — all `local`
+### Lifecycle (`iflow_*`) — `local`, except `iflow_init`
 
 Bound to this repo's mode, `.issueflows/` tree, and the issue-flow
 version that last ran `update`. A machine-wide lifecycle copy would
 skew across repos on different versions.
+
+**Exception (#310):** `iflow_init` is `both`. The skill is the
+chicken-egg entry point (you need it to run init; you need init to
+get project skills). The user-global copy lets `iflow init` run in a
+folder with no scaffold yet; the project copy still wins inside a
+repo (version / mode accurate). First machine still needs one CLI
+`init` / `update` or `uvx issue-flow workspace bootstrap` to plant
+the global copy. Other `iflow_*` stems stay `local`.
 
 | Stem | Output | Placement |
 |------|--------|-----------|
 | `iflow_iflow` | `iflow` | `local` |
 | `iflow_setup` | `iflow-setup` | `local` |
 | `iflow_pick` | `iflow-pick` | `local` |
-| `iflow_init` | `iflow-init` | `local` |
+| `iflow_init` | `iflow-init` | `both` |
 | `iflow_capture` | `iflow-capture` | `local` |
 | `iflow_comments` | `iflow-comments` | `local` |
 | `iflow_plan` | `iflow-plan` | `local` |
@@ -135,7 +143,8 @@ tree: Cursor Cloud sync is `~/.cursor/skills/` only.
 
 ## Later
 
-- Any future `global`-only stems (none in v1).
+- Any future `global`-only stems (none in v1). `iflow_init` is `both`,
+  not `global`-only: a fresh clone still gets the project copy.
 
 ## Link
 
