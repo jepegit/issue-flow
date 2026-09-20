@@ -9,6 +9,10 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+## [0.5.6.post2] - 2026-09-20
+
+- Iterative fixes: agent-facing help. (#315)
+
 ## [0.5.6.post1] - 2026-09-20
 
 - Iterative fixes: workspace docs. (#313)

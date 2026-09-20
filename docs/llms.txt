@@ -1,0 +1,21 @@
+# issue-flow
+
+> Scaffold a GitHub-issue workflow so AI coding agents pick, plan, build, and land PRs the same way. This file is the short map. Prefer the linked how-tos over inventing commands.
+
+## Agent setup (read first)
+
+- [Upgrade, init, and workspace](https://issue-flow.readthedocs.io/how-to/for-agents/): package upgrade (`uv tool upgrade`) vs scaffold refresh (`issue-flow update` / `workspace update`); user-global `iflow init`; parent-folder workspace.
+- [Folder of repos](https://issue-flow.readthedocs.io/how-to/workspaces/): `workspace bootstrap` / `init` / `update` from the parent. Never `init` the parent.
+
+## Humans
+
+- [Getting started](https://issue-flow.readthedocs.io/getting-started/): install uv + issue-flow, first `init`, `iflow setup`.
+- [How-to index](https://issue-flow.readthedocs.io/how-to/): pick, worktrees, yolo, cycle, epics, cleanup.
+- [Workflow](https://issue-flow.readthedocs.io/issue-workflow/): every slash/skill in detail.
+- [CLI reference](https://issue-flow.readthedocs.io/cli/): `init`, `update`, `workspace`, `agent`, completion.
+
+## Do not
+
+- Do not treat `issue-flow update` as a package upgrade.
+- Do not `issue-flow init` a folder that only contains sibling git repos.
+- Do not let `git` / `gh` infer the repo from cwd in a multi-root workspace — resolve first (`root:` / `repo:` / `issue-flow agent resolve`).

@@ -22,3 +22,4 @@ build:
     post_build:
       - mkdir -p $READTHEDOCS_OUTPUT/html/
       - cp --recursive site/* $READTHEDOCS_OUTPUT/html/
+      - cp docs/llms.txt $READTHEDOCS_OUTPUT/html/llms.txt

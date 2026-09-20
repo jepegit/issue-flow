@@ -94,6 +94,7 @@ touch `batbase-loader`. Repeat in the other repo when needed.
 
 ## Related
 
+- [Upgrade, init, and workspace (for agents)](for-agents.md) — package vs scaffold; global init
 - [CLI: `workspace init` / `bootstrap` / `update`](../cli.md#issue-flow-workspace-init)
 - [Editor support — multi-root](../editors.md#multi-root-workspaces)
 - [Work in a sibling worktree](worktrees.md) — issue worktrees (`../repo-N`),
