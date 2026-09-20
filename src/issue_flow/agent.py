@@ -3196,6 +3196,15 @@ def run_workspace_bootstrap(
         if child.status in (project.CHILD_SCAFFOLDED, project.CHILD_UNSCAFFOLDED)
     ]
     member_names = [child.name for child in members]
+    proposed_default = next(
+        (child.name for child in members if child.status == project.CHILD_SCAFFOLDED),
+        members[0].name if members else None,
+    )
+    next_command = (
+        f"issue-flow workspace bootstrap {root} --yes --default {proposed_default}"
+        if proposed_default
+        else None
+    )
     toml_path = root / project.WORKSPACE_FILENAME
     workspace_exists = toml_path.is_file()
 
@@ -3218,6 +3227,8 @@ def run_workspace_bootstrap(
             "workspace_exists": workspace_exists,
             "workspace_written": False,
             "default": default,
+            "proposed_default": proposed_default,
+            "next_command": next_command,
             "children": [_child_payload(c) for c in children],
             "members": [],
             "ok_count": 0,
@@ -3243,9 +3254,11 @@ def run_workspace_bootstrap(
         )
 
     if apply and default is None and len(members) > 1:
+        hint = f" {next_command}" if next_command else ""
         return _fail(
-            "pass --default <member> when more than one git member is present; "
-            f"available members: {', '.join(member_names)}."
+            "pass --default <member-folder> when more than one git member "
+            f"is present; available members: {', '.join(member_names)}."
+            f"{hint}"
         )
 
     member_results: list[dict[str, Any]] = []
@@ -3355,6 +3368,8 @@ def run_workspace_bootstrap(
         "workspace_exists": toml_path.is_file(),
         "workspace_written": workspace_written,
         "default": resolved_default,
+        "proposed_default": proposed_default,
+        "next_command": next_command,
         "children": [_child_payload(c) for c in children],
         "members": member_results,
         "ok_count": ok_count,
@@ -3376,8 +3391,11 @@ def run_workspace_bootstrap(
         )
         if len(members) > 1 and default is None:
             console.print(
-                f"[dim]will need --default; members: {', '.join(member_names)}[/dim]"
+                f"[dim]will need --default <member-folder>; "
+                f"members: {', '.join(member_names)}[/dim]"
             )
+            if next_command:
+                console.print(f"[dim]next: {escape(next_command)}[/dim]")
         return 0
 
     if fail_count == 0:
