@@ -2,20 +2,28 @@
 
 from __future__ import annotations
 
+import json
 import subprocess
 from pathlib import Path
+
+import pytest
 
 from issue_flow.project import (
     CHILD_SCAFFOLDED,
     CHILD_SKIPPED,
     CHILD_UNSCAFFOLDED,
     WORKSPACE_FILENAME,
+    AmbiguousCodeWorkspaceError,
+    CodeWorkspaceError,
     classify_immediate_children,
     discover_workspace,
     find_project_root,
     find_workspace_file,
     list_scaffolded_siblings,
+    load_code_workspace,
     load_workspace,
+    resolve_code_workspace_path,
+    sync_code_workspace,
 )
 
 
@@ -173,3 +181,46 @@ def test_classify_immediate_children_skips_enclosing_repo(tmp_path: Path) -> Non
     found = {child.name: child for child in classify_immediate_children(tmp_path)}
     assert found["inside"].status == CHILD_SKIPPED
     assert found["inside"].reason == "enclosing repository"
+
+
+def test_resolve_code_workspace_path_defaults_and_ambiguity(tmp_path: Path) -> None:
+    assert resolve_code_workspace_path(tmp_path) == tmp_path / f"{tmp_path.name}.code-workspace"
+    only = tmp_path / "cellpy.code-workspace"
+    only.write_text("{}\n", encoding="utf-8")
+    assert resolve_code_workspace_path(tmp_path) == only
+    (tmp_path / "other.code-workspace").write_text("{}\n", encoding="utf-8")
+    with pytest.raises(AmbiguousCodeWorkspaceError, match="multiple"):
+        resolve_code_workspace_path(tmp_path)
+    assert (
+        resolve_code_workspace_path(tmp_path, "other.code-workspace")
+        == tmp_path / "other.code-workspace"
+    )
+
+
+def test_load_code_workspace_refuses_invalid_json(tmp_path: Path) -> None:
+    path = tmp_path / "broken.code-workspace"
+    path.write_text("{ not json\n", encoding="utf-8")
+    with pytest.raises(CodeWorkspaceError, match="invalid JSON"):
+        load_code_workspace(path)
+
+
+def test_sync_code_workspace_adds_members_keeps_extras(tmp_path: Path) -> None:
+    path = tmp_path / "ws.code-workspace"
+    path.write_text(
+        json.dumps(
+            {
+                "folders": [{"path": "alpha"}, {"path": "extra"}],
+                "settings": {"x": 1},
+            }
+        ),
+        encoding="utf-8",
+    )
+    result = sync_code_workspace(path, ["alpha", "beta"])
+    data = json.loads(path.read_text(encoding="utf-8"))
+    assert [item["path"] for item in data["folders"]] == ["alpha", "extra", "beta"]
+    assert data["settings"] == {"x": 1}
+    assert result["written"] is True
+
+    sync_code_workspace(path, ["alpha", "beta"], drop_unknown=True)
+    data = json.loads(path.read_text(encoding="utf-8"))
+    assert [item["path"] for item in data["folders"]] == ["alpha", "beta"]

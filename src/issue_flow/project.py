@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import json
 import tomllib
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 from issue_flow import gitutils
 
@@ -311,3 +313,98 @@ def classify_immediate_children(
                 )
             )
     return found
+
+
+class CodeWorkspaceError(ValueError):
+    """Invalid or unusable ``*.code-workspace`` file."""
+
+
+class AmbiguousCodeWorkspaceError(CodeWorkspaceError):
+    """More than one ``*.code-workspace`` and no explicit path."""
+
+
+def resolve_code_workspace_path(
+    workspace_root: Path, explicit: str | Path | None = None
+) -> Path:
+    """Pick the multi-root file to sync.
+
+    Explicit path wins (relative to ``workspace_root``). Else the sole
+    ``*.code-workspace`` in the root, else ``<root.name>.code-workspace``.
+    Two or more matches with no explicit path raise
+    :class:`AmbiguousCodeWorkspaceError`.
+    """
+    root = workspace_root.resolve()
+    if explicit is not None and str(explicit) != "":
+        path = Path(explicit)
+        return path if path.is_absolute() else root / path
+    matches = sorted(path for path in root.glob("*.code-workspace") if path.is_file())
+    if len(matches) == 1:
+        return matches[0]
+    if len(matches) > 1:
+        names = ", ".join(path.name for path in matches)
+        raise AmbiguousCodeWorkspaceError(
+            f"multiple *.code-workspace files ({names}); "
+            "pass --code-workspace-path <file>"
+        )
+    return root / f"{root.name}.code-workspace"
+
+
+def load_code_workspace(path: Path) -> dict[str, Any]:
+    """Read an existing multi-root file, or return ``{}`` if missing.
+
+    Raises :class:`CodeWorkspaceError` on invalid JSON so callers never
+    clobber settings / extensions / launch by treating the file as empty.
+    """
+    if not path.is_file():
+        return {}
+    try:
+        loaded = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise CodeWorkspaceError(f"invalid JSON in {path.name}: {exc.msg}") from exc
+    if not isinstance(loaded, dict):
+        raise CodeWorkspaceError(f"{path.name} must be a JSON object")
+    return loaded
+
+
+def sync_code_workspace(
+    path: Path,
+    members: list[str],
+    *,
+    drop_unknown: bool = False,
+) -> dict[str, Any]:
+    """Add missing member folders; keep settings and extra folders.
+
+    ``drop_unknown`` (``--force``) removes relative folder entries that are
+    not in ``members``. Absolute extra folders are left alone.
+    """
+    data = load_code_workspace(path)
+    folders = data.get("folders")
+    if not isinstance(folders, list):
+        folders = []
+    kept: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for item in folders:
+        if not isinstance(item, dict):
+            continue
+        folder_path = str(item.get("path") or "")
+        if not folder_path:
+            continue
+        if (
+            drop_unknown
+            and folder_path not in members
+            and not Path(folder_path).is_absolute()
+        ):
+            continue
+        kept.append(item)
+        seen.add(folder_path)
+    for name in members:
+        if name not in seen:
+            kept.append({"path": name})
+            seen.add(name)
+    data["folders"] = kept
+    path.write_text(json.dumps(data, indent="\t") + "\n", encoding="utf-8")
+    return {
+        "path": str(path),
+        "written": True,
+        "folders": [str(item.get("path")) for item in kept],
+    }
