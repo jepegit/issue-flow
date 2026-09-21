@@ -79,6 +79,13 @@ A **new clone** is not picked up by `update` alone. Re-run
 current siblings. Classify-only lists names on disk that are missing
 from the toml.
 
+Optional: `workspace init --code-workspace` or
+`workspace bootstrap --yes --code-workspace` also adds member folders to
+a VS Code/Cursor `*.code-workspace` file (the sole file in the parent, or
+`<folder>.code-workspace` if none). Extra folders are kept unless
+`--force`. Off by default — `--yes` does not turn this on. Two such
+files: pass `--code-workspace-path`.
+
 ## One repo only
 
 Stay inside that repo:

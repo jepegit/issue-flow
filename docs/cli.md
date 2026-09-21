@@ -83,9 +83,10 @@ Grouped overview first. Flags live in each command section. The raw
     issue-flow config show [KEY] [-C PROJECT_DIR] [--persisted] [--global] [--json]
     issue-flow config set KEY VALUE [-C PROJECT_DIR] [--global] [--json]
     issue-flow workspace init [WORKSPACE_DIR] [--default MEMBER]
-      [--force] [--json]
+      [--force] [--code-workspace] [--code-workspace-path FILE] [--json]
     issue-flow workspace bootstrap [WORKSPACE_DIR] [--default MEMBER]
-      [--yes] [--force] [--skip-dep-check] [--editor EDITOR] [--json]
+      [--yes] [--force] [--code-workspace] [--code-workspace-path FILE]
+      [--skip-dep-check] [--editor EDITOR] [--json]
     issue-flow workspace update [WORKSPACE_DIR] [--skip-dep-check]
       [--editor EDITOR] [--json]
     ```
@@ -292,7 +293,9 @@ declared **default ("parent") member** instead of stopping to ask.
 | ----------------- | ----------- |
 | `WORKSPACE_DIR`   | Workspace root directory. Defaults to `.` (current directory). |
 | `--default`       | Member folder name lifecycle commands default to. Must be a scaffolded member; with exactly one member it is chosen automatically. |
-| `--force`, `-f`   | Overwrite an existing registry file. |
+| `--force`, `-f`   | Overwrite an existing registry file. With `--code-workspace`, also drop extra relative folders that are not members. |
+| `--code-workspace` | Opt-in: add toml members as `folders[].path` in a VS Code/Cursor `*.code-workspace` file. Off by default. |
+| `--code-workspace-path` | Explicit multi-root file (required when more than one `*.code-workspace` exists). Implies `--code-workspace`. |
 | `--json`          | Emit a machine-readable JSON object. |
 
 Members are auto-discovered (immediate child directories carrying an
@@ -318,7 +321,9 @@ With `--yes` it runs `issue-flow init` on unscaffolded members, then
 | `WORKSPACE_DIR`   | Workspace root directory. Defaults to `.`. |
 | `--default`       | Required with `--yes` when more than one git member is present. |
 | `--yes`           | Init unscaffolded members and write `issueflow-workspace.toml`. |
-| `--force`, `-f`   | Overwrite an existing registry file. |
+| `--force`, `-f`   | With `--code-workspace`, drop extra relative folders that are not members. Toml members are always refreshed on `--yes`. |
+| `--code-workspace` | With `--yes`, also sync a VS Code/Cursor `*.code-workspace` folder list. Off by default; `--yes` is not implied. |
+| `--code-workspace-path` | Explicit multi-root file (required when more than one exists). Implies `--code-workspace`. |
 | `--skip-dep-check`| Skip the git/gh dependency prompt. |
 | `--editor`, `-e`  | Forwarded to each member `init`. |
 | `--json`          | Emit a machine-readable JSON object. |

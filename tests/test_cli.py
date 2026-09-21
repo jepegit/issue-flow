@@ -2297,6 +2297,187 @@ def test_workspace_init_creates_registry(runner: CliRunner, tmp_path: Path) -> N
     assert 'default = "beta"' in text
     assert '"alpha"' in text
     assert '"plain"' not in text
+    assert payload.get("code_workspace") is None
+    assert not list(workspace.glob("*.code-workspace"))
+
+
+def test_workspace_init_code_workspace_creates_file(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    workspace = tmp_path / "workspace"
+    for name in ("alpha", "beta"):
+        (workspace / name / ".issueflows").mkdir(parents=True)
+
+    result = runner.invoke(
+        app,
+        [
+            "workspace",
+            "init",
+            str(workspace),
+            "--default",
+            "alpha",
+            "--code-workspace",
+            "--json",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    cw = workspace / "workspace.code-workspace"
+    assert cw.is_file()
+    assert payload["code_workspace"]["path"] == str(cw)
+    data = json.loads(cw.read_text(encoding="utf-8"))
+    assert {f["path"] for f in data["folders"]} == {"alpha", "beta"}
+
+
+def test_workspace_init_code_workspace_keeps_settings(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    workspace = tmp_path / "workspace"
+    for name in ("alpha", "beta"):
+        (workspace / name / ".issueflows").mkdir(parents=True)
+    existing = workspace / "cellpy.code-workspace"
+    existing.write_text(
+        json.dumps(
+            {
+                "folders": [{"path": "alpha"}, {"path": "extra"}],
+                "settings": {"editor.tabSize": 2},
+            },
+            indent="\t",
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "workspace",
+            "init",
+            str(workspace),
+            "--default",
+            "alpha",
+            "--code-workspace",
+            "--json",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    data = json.loads(existing.read_text(encoding="utf-8"))
+    paths = [f["path"] for f in data["folders"]]
+    assert "alpha" in paths
+    assert "beta" in paths
+    assert "extra" in paths
+    assert data["settings"]["editor.tabSize"] == 2
+
+
+def test_workspace_init_code_workspace_ambiguous(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    workspace = tmp_path / "workspace"
+    (workspace / "alpha" / ".issueflows").mkdir(parents=True)
+    (workspace / "a.code-workspace").write_text("{}\n", encoding="utf-8")
+    (workspace / "b.code-workspace").write_text("{}\n", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        ["workspace", "init", str(workspace), "--code-workspace", "--json"],
+    )
+    assert result.exit_code == 1
+    payload = _json(result.stdout)
+    assert "multiple" in payload["error"]
+    assert payload["written"] is False
+    assert not (workspace / "issueflow-workspace.toml").exists()
+    assert json.loads((workspace / "a.code-workspace").read_text()) == {}
+    assert json.loads((workspace / "b.code-workspace").read_text()) == {}
+
+
+def test_workspace_init_code_workspace_path_disambiguates(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    workspace = tmp_path / "workspace"
+    (workspace / "alpha" / ".issueflows").mkdir(parents=True)
+    (workspace / "a.code-workspace").write_text("{}\n", encoding="utf-8")
+    (workspace / "b.code-workspace").write_text("{}\n", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        [
+            "workspace",
+            "init",
+            str(workspace),
+            "--code-workspace-path",
+            "b.code-workspace",
+            "--json",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    data = json.loads((workspace / "b.code-workspace").read_text(encoding="utf-8"))
+    assert data["folders"] == [{"path": "alpha"}]
+    assert json.loads((workspace / "a.code-workspace").read_text()) == {}
+
+
+def test_workspace_init_code_workspace_force_drops_extra_folders(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    workspace = tmp_path / "workspace"
+    (workspace / "alpha" / ".issueflows").mkdir(parents=True)
+    existing = workspace / "cellpy.code-workspace"
+    existing.write_text(
+        json.dumps(
+            {
+                "folders": [
+                    {"path": "alpha"},
+                    {"path": "extra"},
+                    {"path": "/abs/keep"},
+                ],
+                "settings": {"editor.tabSize": 2},
+            },
+            indent="\t",
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (workspace / "issueflow-workspace.toml").write_text(
+        '[workspace]\ndefault = "alpha"\nmembers = ["alpha"]\n',
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "workspace",
+            "init",
+            str(workspace),
+            "--default",
+            "alpha",
+            "--force",
+            "--code-workspace",
+            "--json",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    data = json.loads(existing.read_text(encoding="utf-8"))
+    assert [f["path"] for f in data["folders"]] == ["alpha", "/abs/keep"]
+    assert data["settings"]["editor.tabSize"] == 2
+
+
+def test_workspace_init_code_workspace_invalid_json_refuses(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    workspace = tmp_path / "workspace"
+    (workspace / "alpha" / ".issueflows").mkdir(parents=True)
+    existing = workspace / "cellpy.code-workspace"
+    existing.write_text("{ not json\n", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        ["workspace", "init", str(workspace), "--code-workspace", "--json"],
+    )
+    assert result.exit_code == 1
+    payload = _json(result.stdout)
+    assert "invalid JSON" in payload["error"]
+    assert payload["written"] is False
+    assert not (workspace / "issueflow-workspace.toml").exists()
+    assert existing.read_text(encoding="utf-8") == "{ not json\n"
 
 
 def test_workspace_init_single_member_becomes_default(
@@ -2399,6 +2580,26 @@ def test_workspace_bootstrap_classify_only_does_not_write(
     assert payload["next_command"] == (
         f"issue-flow workspace bootstrap {workspace.resolve()} --yes --default alpha"
     )
+    assert not list(workspace.glob("*.code-workspace"))
+
+
+def test_workspace_bootstrap_classify_only_ignores_code_workspace_flag(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    workspace = tmp_path / "workspace"
+    _git_init(workspace / "alpha")
+    (workspace / "alpha" / ".issueflows").mkdir()
+
+    result = runner.invoke(
+        app,
+        ["workspace", "bootstrap", str(workspace), "--code-workspace", "--json"],
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["applied"] is False
+    assert payload["workspace_written"] is False
+    assert not list(workspace.glob("*.code-workspace"))
 
 
 def test_workspace_bootstrap_yes_inits_and_writes_toml(
@@ -2537,6 +2738,50 @@ def test_workspace_bootstrap_yes_refreshes_stale_members(
     text = (workspace / "issueflow-workspace.toml").read_text(encoding="utf-8")
     assert 'default = "alpha"' in text
     assert "gamma" in text
+
+
+def test_workspace_bootstrap_yes_code_workspace_keeps_extra_folders(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    workspace = tmp_path / "workspace"
+    _git_init(workspace / "alpha")
+    (workspace / "alpha" / ".issueflows").mkdir()
+    _git_init(workspace / "gamma")
+    (workspace / "gamma" / ".issueflows").mkdir()
+    existing = workspace / "cellpy.code-workspace"
+    existing.write_text(
+        json.dumps(
+            {
+                "folders": [{"path": "alpha"}, {"path": "extra"}],
+                "extensions": {"recommendations": ["ms-python.python"]},
+            },
+            indent="\t",
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "workspace",
+            "bootstrap",
+            str(workspace),
+            "--yes",
+            "--default",
+            "alpha",
+            "--code-workspace",
+            "--skip-dep-check",
+            "--json",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    data = json.loads(existing.read_text(encoding="utf-8"))
+    paths = [f["path"] for f in data["folders"]]
+    assert "alpha" in paths
+    assert "gamma" in paths
+    assert "extra" in paths
+    assert data["extensions"]["recommendations"] == ["ms-python.python"]
 
 
 def _seed_scaffolded_workspace(tmp_path: Path) -> Path:

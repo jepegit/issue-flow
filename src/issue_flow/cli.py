@@ -1466,7 +1466,26 @@ def workspace_init(
         ),
     ),
     force: bool = typer.Option(
-        False, "--force", "-f", help="Overwrite an existing registry file."
+        False,
+        "--force",
+        "-f",
+        help=(
+            "Overwrite an existing registry file. With --code-workspace, "
+            "also drop extra relative folders that are not members."
+        ),
+    ),
+    sync_code_workspace: bool = typer.Option(
+        False,
+        "--code-workspace",
+        help=(
+            "Also sync a VS Code/Cursor *.code-workspace folder list to "
+            "the toml members. Off by default."
+        ),
+    ),
+    code_workspace_path: str | None = typer.Option(
+        None,
+        "--code-workspace-path",
+        help="Explicit *.code-workspace path (required if more than one exists).",
     ),
     json_output: bool = typer.Option(
         False, "--json", help="Emit a machine-readable JSON object."
@@ -1482,7 +1501,16 @@ def workspace_init(
     from issue_flow.agent import run_workspace_init
 
     raise typer.Exit(
-        code=run_workspace_init(workspace_dir, _console, default, force, json_output)
+        code=run_workspace_init(
+            workspace_dir,
+            _console,
+            default,
+            force,
+            json_output,
+            sync_code_workspace=sync_code_workspace or code_workspace_path is not None,
+            code_workspace_path=code_workspace_path,
+            drop_unknown_folders=force,
+        )
     )
 
 
@@ -1520,7 +1548,10 @@ def workspace_bootstrap(
         False,
         "--force",
         "-f",
-        help="Overwrite an existing issueflow-workspace.toml.",
+        help=(
+            "With --code-workspace, drop extra relative folders that are "
+            "not members. (Toml members are always refreshed on --yes.)"
+        ),
     ),
     skip_dep_check: bool = typer.Option(
         False,
@@ -1538,6 +1569,19 @@ def workspace_bootstrap(
     ),
     json_output: bool = typer.Option(
         False, "--json", help="Emit a machine-readable JSON object."
+    ),
+    sync_code_workspace: bool = typer.Option(
+        False,
+        "--code-workspace",
+        help=(
+            "With --yes, also sync a VS Code/Cursor *.code-workspace folder "
+            "list. Off by default."
+        ),
+    ),
+    code_workspace_path: str | None = typer.Option(
+        None,
+        "--code-workspace-path",
+        help="Explicit *.code-workspace path (required if more than one exists).",
     ),
 ) -> None:
     """Init git sibling repos and create the workspace registry.
@@ -1560,6 +1604,8 @@ def workspace_bootstrap(
             skip_dep_check,
             editor,
             json_output,
+            sync_code_workspace=sync_code_workspace or code_workspace_path is not None,
+            code_workspace_path=code_workspace_path,
         )
     )
 

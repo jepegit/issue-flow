@@ -3064,6 +3064,10 @@ def run_workspace_init(
     default: str | None,
     force: bool,
     as_json: bool,
+    *,
+    sync_code_workspace: bool = False,
+    code_workspace_path: str | None = None,
+    drop_unknown_folders: bool = False,
 ) -> int:
     """Create the multi-repo workspace registry (``issueflow-workspace.toml``).
 
@@ -3118,6 +3122,15 @@ def run_workspace_init(
     if default is None and len(members) == 1:
         default = members[0]
 
+    cw_path: Path | None = None
+    if sync_code_workspace:
+        try:
+            cw_path = project.resolve_code_workspace_path(root, code_workspace_path)
+            if cw_path.is_file():
+                project.load_code_workspace(cw_path)
+        except project.CodeWorkspaceError as exc:
+            return _fail(str(exc))
+
     doc = tomlkit.document()
     doc.add(tomlkit.comment("issue-flow multi-repo workspace registry."))
     doc.add(
@@ -3150,7 +3163,12 @@ def run_workspace_init(
         "workspace_root": str(root),
         "default": default,
         "members": members,
+        "code_workspace": None,
     }
+    if cw_path is not None:
+        payload["code_workspace"] = project.sync_code_workspace(
+            cw_path, members, drop_unknown=drop_unknown_folders
+        )
     if as_json:
         _emit_json(console, payload)
         return 0
@@ -3160,6 +3178,9 @@ def run_workspace_init(
         f"  members: {', '.join(members)} — default: "
         f"{escape(default) if default else '(none; edit the file to set one)'}"
     )
+    cw = payload.get("code_workspace")
+    if isinstance(cw, dict) and cw.get("path"):
+        console.print(f"[green]wrote[/green]  {escape(str(cw['path']))}")
     return 0
 
 
@@ -3172,6 +3193,9 @@ def run_workspace_bootstrap(
     skip_dep_check: bool,
     editors: list[str] | None,
     as_json: bool,
+    *,
+    sync_code_workspace: bool = False,
+    code_workspace_path: str | None = None,
 ) -> int:
     """Classify (and optionally init) git siblings, then write the workspace file.
 
@@ -3341,15 +3365,19 @@ def run_workspace_bootstrap(
                 init_default,
                 force=True,
                 as_json=False,
+                sync_code_workspace=sync_code_workspace,
+                code_workspace_path=code_workspace_path,
+                drop_unknown_folders=force,
             )
             workspace_written = code == 0
             if code != 0 and not as_json:
                 # run_workspace_init already printed the error.
                 pass
             if code != 0 and as_json:
+                extra = " (code-workspace sync refused)" if sync_code_workspace else ""
                 return _fail(
                     f"member init finished but {project.WORKSPACE_FILENAME} "
-                    "was not written"
+                    f"was not written{extra}"
                 )
     else:
         for child in members:
