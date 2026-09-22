@@ -11,7 +11,8 @@ Take one GitHub issue from selection through a merged PR and local cleanup.
 ## Steps
 
 1. **Pick** — in chat, type `iflow pick` (or `/iflow-pick`). Confirm the issue
-   and branch / worktree. Prefer no sibling worktree? Pass `inplace` (see
+   and branch / worktree. Prefer no sibling worktree? Pass `inplace`, or set
+   `worktree_first = false` (see
    [Work in a sibling worktree](worktrees.md)).
 2. **Plan** — `iflow plan`. Read the draft; reply **Accept** only when the
    approach is right. (With `auto_plan = true`, pick may chain here for you.)
@@ -28,7 +29,7 @@ plan, build, or close from the focus-issue files under `.issueflows/`.
 ## Related
 
 - [The workflow](../issue-workflow.md) — full command reference
-- [Work in a sibling worktree](worktrees.md) — default start + `inplace` opt-out
+- [Work in a sibling worktree](worktrees.md) — default start, `worktree_first` knob, `inplace` / `worktree` tokens
 - [Getting started](../getting-started.md) — first-hour setup
 - [Fast-track a small issue](yolo.md) — when the change is tiny
 - [After a squash merge](after-squash-merge.md) — cleanup detail

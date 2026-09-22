@@ -18,7 +18,7 @@ source of truth for *which* repo a command targets.
 | Parallel cycle workers (`parallel:<n>`) | Isolated worktree **per issue** (print path; no skill-launched window) |
 | Concurrent agents on sibling member repos | Isolated worktree / member folder (print path) |
 | Headless / CI / no GUI editor | Print path only |
-| Opt out of worktree on start | Token `inplace` / `no worktree` (legacy `git switch -c` on home) |
+| Opt out of worktree on start | Knob `worktree_first = false` (project default) or token `inplace` / `no worktree`. Token `worktree` forces a sibling worktree when the knob is off. |
 
 ## Coordinator / worker split
 

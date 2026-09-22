@@ -1306,6 +1306,7 @@ def config_add(
     ``noob``,
     ``cleanup_include_github``, ``suggest_graphify``,
     ``auto_graphify_on_plan``, ``auto_switchback``, ``auto_remove_worktree``,
+    ``worktree_first``,
     ``pr_merge_method``, ``cycle_max_issues``, ``auto_adversarial_loops``,
     ``confirm_version_bump``,
     ``ruff_autofix``, ``auto_close``, ``auto_plan``, ``auto_build``,

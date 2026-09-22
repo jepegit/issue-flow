@@ -28,6 +28,7 @@ from issue_flow.modes import (
     DEFAULT_AUTO_GRAPHIFY_ON_PLAN,
     DEFAULT_AUTO_SWITCHBACK,
     DEFAULT_AUTO_REMOVE_WORKTREE,
+    DEFAULT_WORKTREE_FIRST,
     DEFAULT_AUTO_ADVERSARIAL_LOOPS,
     DEFAULT_CYCLE_MAX_ISSUES,
     DEFAULT_DEEP_MODEL_LABEL,
@@ -465,6 +466,16 @@ class Settings:
             ),
         )
 
+    def resolve_worktree_first(self, project_root: Path) -> bool:
+        """Resolve whether start skills create a sibling worktree."""
+        persisted = modes_module.read_worktree_first(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        return self.user_global_or(
+            "worktree_first",
+            _env_flag("ISSUEFLOW_WORKTREE_FIRST", default=DEFAULT_WORKTREE_FIRST),
+        )
+
     def resolve_pr_merge_method(self, project_root: Path) -> str:
         """Resolve the ``gh pr merge`` method for yolo close (squash/merge/rebase)."""
         persisted = modes_module.read_pr_merge_method(self.config_path(project_root))
@@ -830,6 +841,9 @@ class Settings:
                 "ISSUEFLOW_AUTO_REMOVE_WORKTREE",
                 default=DEFAULT_AUTO_REMOVE_WORKTREE,
             ),
+            "worktree_first": _env_flag(
+                "ISSUEFLOW_WORKTREE_FIRST", default=DEFAULT_WORKTREE_FIRST
+            ),
             "pr_merge_method": pr_merge or DEFAULT_PR_MERGE_METHOD,
             "cycle_max_issues": cycle_max_issues,
             "auto_adversarial_loops": auto_adversarial_loops,
@@ -895,6 +909,7 @@ class Settings:
             "auto_graphify_on_plan": self.resolve_auto_graphify_on_plan(project_root),
             "auto_switchback": self.resolve_auto_switchback(project_root),
             "auto_remove_worktree": self.resolve_auto_remove_worktree(project_root),
+            "worktree_first": self.resolve_worktree_first(project_root),
             "pr_merge_method": self.resolve_pr_merge_method(project_root),
             "cycle_max_issues": self.resolve_cycle_max_issues(project_root),
             "auto_adversarial_loops": self.resolve_auto_adversarial_loops(project_root),
@@ -988,6 +1003,7 @@ class Settings:
             "auto_graphify_on_plan": self.resolve_auto_graphify_on_plan(project_root),
             "auto_switchback": self.resolve_auto_switchback(project_root),
             "auto_remove_worktree": self.resolve_auto_remove_worktree(project_root),
+            "worktree_first": self.resolve_worktree_first(project_root),
             "pr_merge_method": self.resolve_pr_merge_method(project_root),
             "cycle_max_issues": self.resolve_cycle_max_issues(project_root),
             "auto_adversarial_loops": self.resolve_auto_adversarial_loops(project_root),

@@ -348,6 +348,7 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
         DEFAULT_LOCKED,
         DEFAULT_AUTO_SWITCHBACK,
         DEFAULT_AUTO_REMOVE_WORKTREE,
+        DEFAULT_WORKTREE_FIRST,
         DEFAULT_CONFIRM_CHANGELOG_UPDATE,
         DEFAULT_CYCLE_MAX_ISSUES,
         DEFAULT_AUTO_ADVERSARIAL_LOOPS,
@@ -367,6 +368,7 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
         read_locked,
         read_auto_switchback,
         read_auto_remove_worktree,
+        read_worktree_first,
         read_confirm_changelog_update,
         read_defer_changelog,
         read_cycle_max_issues,
@@ -396,6 +398,7 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
     assert read_auto_graphify_on_plan(cfg) is DEFAULT_AUTO_GRAPHIFY_ON_PLAN
     assert read_auto_switchback(cfg) is DEFAULT_AUTO_SWITCHBACK
     assert read_auto_remove_worktree(cfg) is DEFAULT_AUTO_REMOVE_WORKTREE
+    assert read_worktree_first(cfg) is DEFAULT_WORKTREE_FIRST
     assert read_pr_merge_method(cfg) == DEFAULT_PR_MERGE_METHOD
     assert read_cycle_max_issues(cfg) == DEFAULT_CYCLE_MAX_ISSUES
     assert read_auto_adversarial_loops(cfg) == DEFAULT_AUTO_ADVERSARIAL_LOOPS
