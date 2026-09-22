@@ -1,0 +1,64 @@
+{% if noob %}
+### NEXT (noob)
+
+`noob` is on. After this step, tell the user what to run next. **Do not**
+auto-dispatch the suggestion unless this skill already chains that command
+(`auto_plan` / `auto_build` / `auto_close` / yolo).
+
+1. Run `issue-flow agent state --json` and print `next_command` as
+   **Recommended** (chat form `iflow <step>` also works).
+2. Also list these **relevant** commands (not the full catalog):
+{% set stem = noob_stem | default("iflow") %}
+{% if stem in ["capture", "pick", "issue"] %}
+   - `/iflow-plan` — design the approach (usual next)
+   - `/iflow-status` — bird's-eye view
+   - `/iflow-pause` — park mid-stream
+{% elif stem == "plan" %}
+   - `/iflow-build` — implement after Accept
+   - `/iflow-status` — bird's-eye view
+   - `/iflow-pause` — park mid-stream
+{% elif stem == "build" %}
+   - `/iflow-close` — tests, commit, PR
+   - `/iflow-pause` — park mid-stream
+   - `/iflow-status` — bird's-eye view
+{% elif stem == "close" %}
+   - `/iflow-cleanup` — prune merged local branches (after merge)
+   - `/iflow-status` — bird's-eye view
+   - `/iflow-pick` — choose the next issue
+{% elif stem == "cleanup" %}
+   - `/iflow-pick` — choose the next issue
+   - `/iflow-status` — bird's-eye view
+{% elif stem == "iflow" %}
+   - `/iflow-status` — bird's-eye view
+   - `/iflow-pause` — park mid-stream
+   - `/iflow-cleanup` — after a merged PR
+{% elif stem == "pause" %}
+   - `/iflow-pick` — resume parked work
+   - `/iflow-capture` — re-open an archived group
+   - `/iflow-status` — bird's-eye view
+{% elif stem == "setup" %}
+   - `/iflow-pick` — choose the first issue
+   - `/iflow-init` — scaffold / refresh harness
+   - `/iflow-status` — bird's-eye view
+{% elif stem == "init" %}
+   - `/iflow-pick` — choose an issue
+   - `/iflow-setup` — if the project is not ready
+   - `/iflow-status` — bird's-eye view
+{% elif stem == "status" %}
+   - `/iflow` — run the linear next step
+   - `/iflow-pick` — choose an issue
+{% elif stem in ["yolo", "cycle", "auto", "drive"] %}
+   - `/iflow-cleanup` — prune merged local branches
+   - `/iflow-status` — bird's-eye view
+   - `/iflow-pick` — choose the next issue
+{% elif stem == "epic" %}
+   - `/iflow-pick` — start a published child
+   - `/iflow-status` — bird's-eye view
+   - `/iflow-epic` — publish the next stage
+{% else %}
+   - `/iflow-status` — bird's-eye view
+   - `/iflow` — dispatcher for the linear next step
+   - `/iflow-pick` — choose an issue
+{% endif %}
+3. One-line why. Never invent extra steps outside this list plus `next_command`.
+{% endif %}

@@ -60,6 +60,7 @@ CONFIG_KEYS: dict[str, ConfigKeySpec] = {
     "fast_model_label": ConfigKeySpec("str"),
     "linguist_attributes": ConfigKeySpec("bool", needs_update=True),
     "remind_cleanup": ConfigKeySpec("bool"),
+    "noob": ConfigKeySpec("bool"),
     "cleanup_include_github": ConfigKeySpec("bool"),
     "suggest_graphify": ConfigKeySpec("bool"),
     "auto_graphify_on_plan": ConfigKeySpec("bool"),

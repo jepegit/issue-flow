@@ -39,6 +39,7 @@ from issue_flow.modes import (
     DEFAULT_MODEL_LABEL_FLOWS,
     DEFAULT_PR_MERGE_METHOD,
     DEFAULT_CLEANUP_INCLUDE_GITHUB,
+    DEFAULT_NOOB,
     DEFAULT_REMIND_CLEANUP,
     DEFAULT_RUFF_AUTOFIX,
     DEFAULT_SKILL_LEVEL,
@@ -380,6 +381,16 @@ class Settings:
         if env and env.strip():
             return env.strip()
         return DEFAULT_SKILL_LEVEL
+
+    def resolve_noob(self, project_root: Path) -> bool:
+        """Resolve whether skills print a next-step help footer."""
+        persisted = modes_module.read_noob(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        return self.user_global_or(
+            "noob",
+            _env_flag("ISSUEFLOW_NOOB", default=DEFAULT_NOOB),
+        )
 
     def resolve_remind_cleanup(self, project_root: Path) -> bool:
         """Resolve whether skills remind the user to run ``/iflow-cleanup``."""
@@ -800,6 +811,7 @@ class Settings:
             "remind_cleanup": _env_flag(
                 "ISSUEFLOW_REMIND_CLEANUP", default=DEFAULT_REMIND_CLEANUP
             ),
+            "noob": _env_flag("ISSUEFLOW_NOOB", default=DEFAULT_NOOB),
             "cleanup_include_github": _env_flag(
                 "ISSUEFLOW_CLEANUP_INCLUDE_GITHUB",
                 default=DEFAULT_CLEANUP_INCLUDE_GITHUB,
@@ -877,6 +889,7 @@ class Settings:
             "linguist_attributes": self.resolve_linguist_attributes(project_root),
             "pstack_skills": self.resolve_pstack_skills(project_root),
             "remind_cleanup": self.resolve_remind_cleanup(project_root),
+            "noob": self.resolve_noob(project_root),
             "cleanup_include_github": self.resolve_cleanup_include_github(project_root),
             "suggest_graphify": self.resolve_suggest_graphify(project_root),
             "auto_graphify_on_plan": self.resolve_auto_graphify_on_plan(project_root),
@@ -969,6 +982,7 @@ class Settings:
             ),
             "skill_level": skill_level,
             "remind_cleanup": self.resolve_remind_cleanup(project_root),
+            "noob": self.resolve_noob(project_root),
             "cleanup_include_github": self.resolve_cleanup_include_github(project_root),
             "suggest_graphify": self.resolve_suggest_graphify(project_root),
             "auto_graphify_on_plan": self.resolve_auto_graphify_on_plan(project_root),

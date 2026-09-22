@@ -71,6 +71,7 @@ PSTACK_ALL = "all"
 
 # Skill-behaviour knobs (baked into templates on ``issue-flow update``).
 DEFAULT_REMIND_CLEANUP = True
+DEFAULT_NOOB = False
 DEFAULT_CLEANUP_INCLUDE_GITHUB = False
 DEFAULT_SUGGEST_GRAPHIFY = True
 DEFAULT_AUTO_GRAPHIFY_ON_PLAN = False
@@ -133,6 +134,7 @@ NOVICE_CONFIG: dict[str, object] = {
     "confirm_changelog_update": True,
     "defer_changelog": False,
     "remind_cleanup": True,
+    "noob": True,
     # Response-style and planning-interview skills are not even installed in the
     # novice surface; keep the flags off so the rendered rule stays quiet.
     "caveman_default": False,
@@ -623,6 +625,17 @@ def normalize_test_runner(value: str | None) -> str | None:
     return cleaned or None
 
 
+def read_noob(cfg_path: Path) -> bool | None:
+    """Return the persisted ``[issueflow].noob`` flag."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "noob" in section:
+        return bool(section.get("noob"))
+    return None
+
+
 def read_remind_cleanup(cfg_path: Path) -> bool | None:
     """Return the persisted ``[issueflow].remind_cleanup`` flag."""
     if not cfg_path.is_file():
@@ -1061,6 +1074,7 @@ def write_default_config(
     fast_model_label: str = DEFAULT_FAST_MODEL_LABEL,
     linguist_attributes: bool = DEFAULT_LINGUIST_ATTRIBUTES,
     remind_cleanup: bool = DEFAULT_REMIND_CLEANUP,
+    noob: bool = DEFAULT_NOOB,
     cleanup_include_github: bool = DEFAULT_CLEANUP_INCLUDE_GITHUB,
     suggest_graphify: bool = DEFAULT_SUGGEST_GRAPHIFY,
     auto_graphify_on_plan: bool = DEFAULT_AUTO_GRAPHIFY_ON_PLAN,
@@ -1128,6 +1142,7 @@ def write_default_config(
         section["fast_model_label"] = fast_model_label
         section["linguist_attributes"] = linguist_attributes
         section["remind_cleanup"] = remind_cleanup
+        section["noob"] = noob
         section["cleanup_include_github"] = cleanup_include_github
         section["suggest_graphify"] = suggest_graphify
         section["auto_graphify_on_plan"] = auto_graphify_on_plan
@@ -1179,6 +1194,7 @@ def write_default_config(
             fast_model_label,
             linguist_attributes,
             remind_cleanup,
+            noob,
             cleanup_include_github,
             suggest_graphify,
             auto_graphify_on_plan,
@@ -1238,6 +1254,7 @@ def _commented_issueflow_table(
     fast_model_label: str,
     linguist_attributes: bool,
     remind_cleanup: bool,
+    noob: bool,
     cleanup_include_github: bool,
     suggest_graphify: bool,
     auto_graphify_on_plan: bool,
@@ -1365,6 +1382,14 @@ def _commented_issueflow_table(
         )
     )
     table["remind_cleanup"] = remind_cleanup
+    table.add(
+        tomlkit.comment(
+            "When true, each lifecycle step ends with a recommended next "
+            "command plus a short relevant /iflow-* list. Default off. "
+            "Distinct from --mode novice. Re-run 'issue-flow update'."
+        )
+    )
+    table["noob"] = noob
     table.add(
         tomlkit.comment(
             "When true, /iflow-cleanup runs the GitHub remote-branch audit "

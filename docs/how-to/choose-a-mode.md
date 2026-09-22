@@ -31,8 +31,13 @@ lifecycle is.
 4. Tune knobs (`auto_plan`, `label_flows`, …) in that same file, then
    `issue-flow update` so skills re-render.
 
-`novice` also seeds stop-and-ask settings on a **new** `config.toml`; an
-existing config keeps your knobs when you only change the mode surface.
+`novice` also seeds stop-and-ask settings on a **new** `config.toml`
+(including `noob = true`); an existing config keeps your knobs when you
+only change the mode surface.
+
+`noob` is a separate knob (default off in `standard`). It does not change
+which commands are installed — it only prints a next-step help footer
+after each lifecycle skill. You can turn it on in any mode.
 
 ## Related
 
