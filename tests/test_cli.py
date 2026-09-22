@@ -2935,6 +2935,7 @@ def test_config_add_creates_defaults(
     assert payload["checks_watch_minutes"] == 15
     assert payload["linguist_attributes"] is False
     assert payload["remind_cleanup"] is True
+    assert payload["noob"] is False
     assert payload["cleanup_include_github"] is False
     assert payload["suggest_graphify"] is True
     assert payload["auto_graphify_on_plan"] is False
@@ -2967,6 +2968,7 @@ def test_config_add_creates_defaults(
     assert data["issueflow"]["checks_watch_minutes"] == 15
     assert data["issueflow"]["linguist_attributes"] is False
     assert data["issueflow"]["remind_cleanup"] is True
+    assert data["issueflow"]["noob"] is False
     assert data["issueflow"]["cleanup_include_github"] is False
     assert data["issueflow"]["auto_remove_worktree"] is True
     assert data["issueflow"]["pr_merge_method"] == "squash"

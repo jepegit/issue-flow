@@ -65,6 +65,7 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "step_profiles",
         "skill_level",
         "remind_cleanup",
+        "noob",
         "cleanup_include_github",
         "suggest_graphify",
         "auto_graphify_on_plan",
@@ -397,6 +398,7 @@ def test_skill_behaviour_knob_defaults(
 ) -> None:
     for key in (
         "ISSUEFLOW_REMIND_CLEANUP",
+        "ISSUEFLOW_NOOB",
         "ISSUEFLOW_SUGGEST_GRAPHIFY",
         "ISSUEFLOW_AUTO_SWITCHBACK",
         "ISSUEFLOW_AUTO_REMOVE_WORKTREE",
@@ -423,6 +425,7 @@ def test_skill_behaviour_knob_defaults(
         monkeypatch.delenv(key, raising=False)
     settings = Settings()
     assert settings.resolve_remind_cleanup(tmp_path) is True
+    assert settings.resolve_noob(tmp_path) is False
     assert settings.resolve_cleanup_include_github(tmp_path) is False
     assert settings.resolve_suggest_graphify(tmp_path) is True
     assert settings.resolve_auto_graphify_on_plan(tmp_path) is False
@@ -452,6 +455,7 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
         tmp_path,
         "[issueflow]\n"
         "remind_cleanup = false\n"
+        "noob = true\n"
         "cleanup_include_github = true\n"
         "suggest_graphify = false\n"
         "auto_graphify_on_plan = true\n"
@@ -477,6 +481,7 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
     )
     settings = Settings()
     assert settings.resolve_remind_cleanup(tmp_path) is False
+    assert settings.resolve_noob(tmp_path) is True
     assert settings.resolve_cleanup_include_github(tmp_path) is True
     assert settings.resolve_suggest_graphify(tmp_path) is False
     assert settings.resolve_auto_graphify_on_plan(tmp_path) is True

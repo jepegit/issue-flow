@@ -16,6 +16,7 @@ epic #269). Until Stage 2 ships, only the project file and env exist.
 | Pattern | Keys |
 |---------|------|
 | Soft nudges (`verb_object`) | `remind_cleanup`, `suggest_graphify` |
+| Named help mode | `noob` (issue #307; distinct from scaffolding `--mode novice`) |
 | Cleanup defaults (`cleanup_*`) | `cleanup_include_github` |
 | Auto behaviours (`auto_*`) | `auto_switchback`, `auto_remove_worktree`, `auto_close`, `auto_plan`, `auto_build`, `auto_graphify_on_plan` |
 | Timing / PR | `early_pr` |
@@ -30,6 +31,7 @@ epic #269). Until Stage 2 ships, only the project file and env exist.
 | Key | Default | Effect |
 |-----|---------|--------|
 | `remind_cleanup` | `true` | Soft reminders to run `/iflow-cleanup` after close / cycle / iflow-D (never auto-run). `false` = no in-flow nudges; cleanup only via explicit `/iflow-cleanup` (issue #233) |
+| `noob` | `false` | After each lifecycle step, print recommended next (`issue-flow agent state`) plus a short relevant `/iflow-*` list. Never auto-dispatch. Seeded `true` on first-time `--mode novice` only (issue #307) |
 | `cleanup_include_github` | `false` | When `true`, `/iflow-cleanup` runs Phase B (GitHub remote audit) by default; trailing `no github` / `local only` opts out (issue #233) |
 | `suggest_graphify` | `true` | Soft GRAPH_REPORT / rebuild suggestions (never auto-run) |
 | `auto_graphify_on_plan` | `false` | `/iflow-plan` runs `issue-flow graphify` (AST `update`) before prior-art; missing/fail → note + continue (issue #214) |

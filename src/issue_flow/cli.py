@@ -1303,6 +1303,7 @@ def config_add(
     ``label_flows``, ``yolo_label``, ``ops_label``, ``checks_watch_minutes``,
     ``step_directives``, ``model_label_flows``, ``deep_model_label``,
     ``fast_model_label``, ``linguist_attributes``, ``remind_cleanup``,
+    ``noob``,
     ``cleanup_include_github``, ``suggest_graphify``,
     ``auto_graphify_on_plan``, ``auto_switchback``, ``auto_remove_worktree``,
     ``pr_merge_method``, ``cycle_max_issues``, ``auto_adversarial_loops``,
