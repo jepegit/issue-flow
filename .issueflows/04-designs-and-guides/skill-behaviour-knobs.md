@@ -19,6 +19,7 @@ epic #269). Until Stage 2 ships, only the project file and env exist.
 | Named help mode | `noob` (issue #307; distinct from scaffolding `--mode novice`) |
 | Cleanup defaults (`cleanup_*`) | `cleanup_include_github` |
 | Auto behaviours (`auto_*`) | `auto_switchback`, `auto_remove_worktree`, `auto_close`, `auto_plan`, `auto_build`, `auto_graphify_on_plan` |
+| Start layout | `worktree_first` (issue #329; distinct from `auto_remove_worktree` and from worktree location #328) |
 | Timing / PR | `early_pr` |
 | Fix-session | `fix_auto_name` |
 | Auto / advanced | `auto_adversarial_loops` (see [advanced-auto-mode.md](./advanced-auto-mode.md)) |
@@ -37,6 +38,7 @@ epic #269). Until Stage 2 ships, only the project file and env exist.
 | `auto_graphify_on_plan` | `false` | `/iflow-plan` runs `issue-flow graphify` (AST `update`) before prior-art; missing/fail → note + continue (issue #214) |
 | `auto_switchback` | `true` | After PR, switch to default when clean (`false` ≈ always `stay`) |
 | `auto_remove_worktree` | `true` | After `/iflow-close` opens or merges a PR, remove the sibling issue worktree when clean (`false` = YES/NO). Skip `stay` / draft / failed merge. Never deletes the branch (issue #273) |
+| `worktree_first` | `true` | `/iflow-pick` / `/iflow-issue` / `/iflow-fix` start in a sibling worktree. `false` → `git switch -c` on home. Tokens `inplace` / `no worktree` / `worktree` override (issue #329) |
 | `auto_close` | `false` | `/iflow-build` / `/iflow-fix` end chain into `/iflow-close` when ready |
 | `auto_plan` | `true` | `/iflow-pick` chains into `/iflow-plan` after pick confirm + branch/init; trailing `noplan` skips once (issue #219) |
 | `auto_build` | `true` | `/iflow-plan` chains into `/iflow-build` on plan Accept; trailing `nobuild` skips once (issue #219) |

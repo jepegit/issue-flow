@@ -50,6 +50,7 @@ _MODE_CONTEXT = {
     "auto_graphify_on_plan": False,
     "auto_switchback": True,
     "auto_remove_worktree": True,
+    "worktree_first": True,
     "pr_merge_method": "squash",
     "cycle_max_issues": 10,
     "auto_adversarial_loops": 2,
@@ -2054,3 +2055,37 @@ def test_noob_footer_appended_when_on() -> None:
         enrich_render_context(ctx, "skills/iflow_comments/SKILL.md.j2"),
     )
     assert "NEXT (noob)" not in comments
+
+
+def test_worktree_first_default_renders_worktree_add() -> None:
+    ctx = {**_BASE_CONTEXT, **_MODE_CONTEXT}
+    pick = render_template(
+        "skills/iflow_pick/SKILL.md.j2",
+        enrich_render_context(ctx, "skills/iflow_pick/SKILL.md.j2"),
+    )
+    assert "worktree-add" in pick
+    assert "Worktree-first start" in pick
+    assert "worktree_first = false" not in pick
+    cmd = render_template(
+        "commands/iflow-pick.md.j2",
+        enrich_render_context(ctx, "commands/iflow-pick.md.j2"),
+    )
+    assert "worktree-add" in cmd
+
+
+def test_worktree_first_false_renders_inplace_start() -> None:
+    ctx = {**_BASE_CONTEXT, **_MODE_CONTEXT, "worktree_first": False}
+    pick = render_template(
+        "skills/iflow_pick/SKILL.md.j2",
+        enrich_render_context(ctx, "skills/iflow_pick/SKILL.md.j2"),
+    )
+    assert "Inplace start" in pick
+    assert "git switch -c" in pick
+    assert "Token `worktree`" in pick
+    assert "Worktree-first start" not in pick
+    cmd = render_template(
+        "commands/iflow-pick.md.j2",
+        enrich_render_context(ctx, "commands/iflow-pick.md.j2"),
+    )
+    assert "git switch -c" in cmd
+    assert "Token `worktree`" in cmd

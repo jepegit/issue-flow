@@ -81,7 +81,7 @@ It writes the keys issue-flow actually reads from `config.toml` — `mode`,
 `yolo_label`, `checks_watch_minutes`, `step_directives`, `model_label_flows`,
 `deep_model_label`, `fast_model_label`, `linguist_attributes`,
 `remind_cleanup`, `noob`, `cleanup_include_github`, `suggest_graphify`,
-`auto_switchback`, `pr_merge_method`, `cycle_max_issues`,
+`auto_switchback`, `worktree_first`, `pr_merge_method`, `cycle_max_issues`,
 `confirm_version_bump`, `ruff_autofix`, `auto_close`, `auto_plan`,
 `auto_build`, `confirm_changelog_update`, `defer_changelog`, `locked`, `essential_tests`,
 `test_runner`, `essential_marker`, `essential_review`, `pstack_skills` — taking each value from
@@ -382,6 +382,7 @@ Lifecycle skills can be tuned with additional `[issueflow]` keys (baked at
 | `suggest_graphify` | `true` | Soft-suggest skimming `GRAPH_REPORT.md` / rebuilding graphify (never auto-runs) |
 | `auto_graphify_on_plan` | `false` | When `true`, `/iflow-plan` runs `issue-flow graphify` (AST `update`) before prior-art discovery; missing/failing graphify → note and continue |
 | `auto_switchback` | `true` | After `/iflow-close` opens a PR, switch to the default branch when clean (`false` ≈ always `stay`) |
+| `worktree_first` | `true` | When `true`, `/iflow-pick` / `/iflow-issue` / `/iflow-fix` start in a sibling worktree. `false` → `git switch -c` on home. Tokens `inplace` / `no worktree` / `worktree` still override. Distinct from `auto_remove_worktree` and from worktree location (#328). |
 | `pr_merge_method` | `"squash"` | Yolo close merge flag: `squash`, `merge`, or `rebase` |
 | `cycle_max_issues` | `10` | Default `/iflow-cycle` queue safety cap (raise per run with `max:<n>`) |
 | `auto_adversarial_loops` | `2` | Default `/iflow-auto` inter-epoch adversarial loop budget (override per run with `loops:<n>`) |
@@ -407,6 +408,7 @@ cleanup_include_github = false
 suggest_graphify = true
 auto_graphify_on_plan = false
 auto_switchback = true
+worktree_first = true
 pr_merge_method = "squash"
 cycle_max_issues = 10
 auto_adversarial_loops = 2

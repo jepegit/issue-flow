@@ -45,7 +45,7 @@ Optional free-form text after the command — a seed for the title and/or short 
 
 5. **Offer branch + init (default path).** Ask whether to start work now. On yes (require a clean tree; if dirty, stop and ask to commit/stash):
    - Build a kebab-case slug from the title; branch name `<N>-<slug>`. Confirm a non-obvious slug.
-   - **Worktree-first:** home stays on default; `issue-flow agent worktree-add <N> --slug <slug> -C <home>` then `open-workspace` (print-only). Capture with `-C <worktree>`. `inplace` / `no worktree` keeps `git switch -c` on home.
+   - {% if worktree_first %}**Worktree-first:** home stays on default; `issue-flow agent worktree-add <N> --slug <slug> -C <home>` then `open-workspace` (print-only). Capture with `-C <worktree>`. `inplace` / `no worktree` keeps `git switch -c` on home. Token `worktree` is a no-op when this knob is already on.{% else %}**Inplace (`worktree_first = false`):** `git switch -c <N>-<slug>` on home. Token `worktree` uses `worktree-add` + `open-workspace`; capture with `-C <worktree>`. On worktree-add failure, stop and ask.{% endif %}
    - **On a non-default home branch** → **ask** whether to FF/switch home to default first or use `inplace`.
    - Delegate local capture to `/iflow-capture` for `<N>` (follow `{{ agent_dir }}/commands/iflow-capture.md`). Do not re-implement that logic.
    - **Ask** whether to continue with `/iflow-plan`. Do **not** auto-run it.

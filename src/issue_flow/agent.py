@@ -4425,6 +4425,7 @@ def _print_config_guide(console: Console, cfg_path: Path) -> None:
         "[bold]cleanup_include_github[/bold] / [bold]suggest_graphify[/bold] / "
         "[bold]auto_graphify_on_plan[/bold]; "
         "[bold]auto_switchback[/bold] / [bold]auto_remove_worktree[/bold] / "
+        "[bold]worktree_first[/bold] / "
         "[bold]auto_close[/bold] / "
         "[bold]auto_plan[/bold] / [bold]auto_build[/bold] / "
         "[bold]early_pr[/bold] / [bold]fix_auto_name[/bold]; "

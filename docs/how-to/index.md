@@ -11,7 +11,7 @@ full command reference. For every slash command in detail, see
 | Guide | When to use it |
 | --- | --- |
 | [Work one issue end-to-end](work-one-issue.md) | Normal pick → plan → build → close → cleanup loop |
-| [Work in a sibling worktree (or stay inplace)](worktrees.md) | Default `../repo-N` start; `inplace` / `no worktree` opt-out |
+| [Work in a sibling worktree (or stay inplace)](worktrees.md) | Default `../repo-N` start; `worktree_first` knob; `inplace` / `worktree` tokens |
 | [Use issue-flow in a folder of repos](workspaces.md) | Parent folder + sibling repos: bootstrap / init / update |
 | [Upgrade, init, and workspace (for agents)](for-agents.md) | Package upgrade vs scaffold refresh; global init; workspace |
 | [Fast-track a small issue](yolo.md) | Low-risk change; one confirm then hands-off |
