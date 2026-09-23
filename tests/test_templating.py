@@ -2078,6 +2078,22 @@ def test_noob_footer_appended_when_on() -> None:
     assert "NEXT (noob)" not in comments
 
 
+def test_noob_footer_epic_gap_uses_session_not_next_command() -> None:
+    """Issue #337: Recommended follows epic_session / epic_hint, not raw next_command."""
+    ctx = {**_BASE_CONTEXT, **_MODE_CONTEXT, "noob": True}
+    epic = render_template(
+        "skills/iflow_epic/SKILL.md.j2",
+        enrich_render_context(ctx, "skills/iflow_epic/SKILL.md.j2"),
+    )
+    assert "### NEXT (noob)" in epic
+    assert "Do **not** blindly print" in epic
+    assert "`next_command`" in epic
+    assert "`epic_session`" in epic
+    assert "/iflow-epic <N> publish" in epic
+    assert "Never `/iflow-capture`" in epic
+    assert "print `next_command` as\n   **Recommended**" not in epic
+
+
 def test_worktree_first_default_renders_worktree_add() -> None:
     ctx = {**_BASE_CONTEXT, **_MODE_CONTEXT}
     pick = render_template(
