@@ -93,6 +93,7 @@ def test_init_novice_seeds_the_settings_preset(tmp_path: Path) -> None:
     assert table["auto_plan"] is False
     assert table["auto_build"] is False
     assert table["confirm_version_bump"] is True
+    assert table["noob"] is True
 
 
 def test_init_novice_implies_the_basic_skill_level(tmp_path: Path) -> None:

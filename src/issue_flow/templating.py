@@ -16,6 +16,23 @@ if TYPE_CHECKING:
 
 _ISSUE_FLOW_VERSION_KEY = "issue-flow-version"
 _SKILL_TEMPLATE_RE = re.compile(r"^skills/[^/]+/SKILL\.md\.j2$")
+_NOOB_SKILL_RE = re.compile(r"^skills/iflow_([^/]+)/SKILL\.md\.j2$")
+_NOOB_CMD_RE = re.compile(r"^commands/iflow(?:-([^/]+))?\.md\.j2$")
+_NOOB_SKIP_STEMS = frozenset({"comments", "history_update", "version_bump"})
+
+
+def noob_stem_for_template(template_name: str) -> str | None:
+    """Return the lifecycle stem that should get a noob footer, or ``None``."""
+    name = template_name.replace("\\", "/")
+    match = _NOOB_SKILL_RE.match(name)
+    if match:
+        stem = match.group(1)
+        return None if stem in _NOOB_SKIP_STEMS else stem
+    match = _NOOB_CMD_RE.match(name)
+    if match:
+        stem = (match.group(1) or "iflow").replace("-", "_")
+        return None if stem in _NOOB_SKIP_STEMS else stem
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -69,6 +86,15 @@ def render_template(template_name: str, context: dict[str, object]) -> str:
     env = get_environment()
     template = env.get_template(template_name)
     rendered = template.render(context)
+    if context.get("noob"):
+        stem = noob_stem_for_template(template_name)
+        if stem is not None:
+            footer = env.get_template("skills/_noob_next.md.j2").render(
+                {**context, "noob_stem": stem}
+            )
+            footer = footer.strip()
+            if footer:
+                rendered = rendered.rstrip() + "\n\n" + footer + "\n"
     if is_skill_template(template_name):
         version = context.get("issue_flow_version")
         if isinstance(version, str) and version:

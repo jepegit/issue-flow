@@ -65,11 +65,13 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "step_profiles",
         "skill_level",
         "remind_cleanup",
+        "noob",
         "cleanup_include_github",
         "suggest_graphify",
         "auto_graphify_on_plan",
         "auto_switchback",
         "auto_remove_worktree",
+        "worktree_first",
         "pr_merge_method",
         "cycle_max_issues",
         "auto_adversarial_loops",
@@ -397,9 +399,11 @@ def test_skill_behaviour_knob_defaults(
 ) -> None:
     for key in (
         "ISSUEFLOW_REMIND_CLEANUP",
+        "ISSUEFLOW_NOOB",
         "ISSUEFLOW_SUGGEST_GRAPHIFY",
         "ISSUEFLOW_AUTO_SWITCHBACK",
         "ISSUEFLOW_AUTO_REMOVE_WORKTREE",
+        "ISSUEFLOW_WORKTREE_FIRST",
         "ISSUEFLOW_PR_MERGE_METHOD",
         "ISSUEFLOW_CYCLE_MAX_ISSUES",
         "ISSUEFLOW_AUTO_ADVERSARIAL_LOOPS",
@@ -423,11 +427,13 @@ def test_skill_behaviour_knob_defaults(
         monkeypatch.delenv(key, raising=False)
     settings = Settings()
     assert settings.resolve_remind_cleanup(tmp_path) is True
+    assert settings.resolve_noob(tmp_path) is False
     assert settings.resolve_cleanup_include_github(tmp_path) is False
     assert settings.resolve_suggest_graphify(tmp_path) is True
     assert settings.resolve_auto_graphify_on_plan(tmp_path) is False
     assert settings.resolve_auto_switchback(tmp_path) is True
     assert settings.resolve_auto_remove_worktree(tmp_path) is True
+    assert settings.resolve_worktree_first(tmp_path) is True
     assert settings.resolve_pr_merge_method(tmp_path) == "squash"
     assert settings.resolve_cycle_max_issues(tmp_path) == 10
     assert settings.resolve_auto_adversarial_loops(tmp_path) == 2
@@ -452,11 +458,13 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
         tmp_path,
         "[issueflow]\n"
         "remind_cleanup = false\n"
+        "noob = true\n"
         "cleanup_include_github = true\n"
         "suggest_graphify = false\n"
         "auto_graphify_on_plan = true\n"
         "auto_switchback = false\n"
         "auto_remove_worktree = false\n"
+        "worktree_first = false\n"
         'pr_merge_method = "rebase"\n'
         "cycle_max_issues = 25\n"
         "auto_adversarial_loops = 4\n"
@@ -477,11 +485,13 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
     )
     settings = Settings()
     assert settings.resolve_remind_cleanup(tmp_path) is False
+    assert settings.resolve_noob(tmp_path) is True
     assert settings.resolve_cleanup_include_github(tmp_path) is True
     assert settings.resolve_suggest_graphify(tmp_path) is False
     assert settings.resolve_auto_graphify_on_plan(tmp_path) is True
     assert settings.resolve_auto_switchback(tmp_path) is False
     assert settings.resolve_auto_remove_worktree(tmp_path) is False
+    assert settings.resolve_worktree_first(tmp_path) is False
     assert settings.resolve_pr_merge_method(tmp_path) == "rebase"
     assert settings.resolve_cycle_max_issues(tmp_path) == 25
     assert settings.resolve_auto_adversarial_loops(tmp_path) == 4

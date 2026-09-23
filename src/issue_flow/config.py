@@ -28,6 +28,7 @@ from issue_flow.modes import (
     DEFAULT_AUTO_GRAPHIFY_ON_PLAN,
     DEFAULT_AUTO_SWITCHBACK,
     DEFAULT_AUTO_REMOVE_WORKTREE,
+    DEFAULT_WORKTREE_FIRST,
     DEFAULT_AUTO_ADVERSARIAL_LOOPS,
     DEFAULT_CYCLE_MAX_ISSUES,
     DEFAULT_DEEP_MODEL_LABEL,
@@ -39,6 +40,7 @@ from issue_flow.modes import (
     DEFAULT_MODEL_LABEL_FLOWS,
     DEFAULT_PR_MERGE_METHOD,
     DEFAULT_CLEANUP_INCLUDE_GITHUB,
+    DEFAULT_NOOB,
     DEFAULT_REMIND_CLEANUP,
     DEFAULT_RUFF_AUTOFIX,
     DEFAULT_SKILL_LEVEL,
@@ -381,6 +383,16 @@ class Settings:
             return env.strip()
         return DEFAULT_SKILL_LEVEL
 
+    def resolve_noob(self, project_root: Path) -> bool:
+        """Resolve whether skills print a next-step help footer."""
+        persisted = modes_module.read_noob(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        return self.user_global_or(
+            "noob",
+            _env_flag("ISSUEFLOW_NOOB", default=DEFAULT_NOOB),
+        )
+
     def resolve_remind_cleanup(self, project_root: Path) -> bool:
         """Resolve whether skills remind the user to run ``/iflow-cleanup``."""
         persisted = modes_module.read_remind_cleanup(self.config_path(project_root))
@@ -452,6 +464,16 @@ class Settings:
             _env_flag(
                 "ISSUEFLOW_AUTO_REMOVE_WORKTREE", default=DEFAULT_AUTO_REMOVE_WORKTREE
             ),
+        )
+
+    def resolve_worktree_first(self, project_root: Path) -> bool:
+        """Resolve whether start skills create a sibling worktree."""
+        persisted = modes_module.read_worktree_first(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        return self.user_global_or(
+            "worktree_first",
+            _env_flag("ISSUEFLOW_WORKTREE_FIRST", default=DEFAULT_WORKTREE_FIRST),
         )
 
     def resolve_pr_merge_method(self, project_root: Path) -> str:
@@ -800,6 +822,7 @@ class Settings:
             "remind_cleanup": _env_flag(
                 "ISSUEFLOW_REMIND_CLEANUP", default=DEFAULT_REMIND_CLEANUP
             ),
+            "noob": _env_flag("ISSUEFLOW_NOOB", default=DEFAULT_NOOB),
             "cleanup_include_github": _env_flag(
                 "ISSUEFLOW_CLEANUP_INCLUDE_GITHUB",
                 default=DEFAULT_CLEANUP_INCLUDE_GITHUB,
@@ -817,6 +840,9 @@ class Settings:
             "auto_remove_worktree": _env_flag(
                 "ISSUEFLOW_AUTO_REMOVE_WORKTREE",
                 default=DEFAULT_AUTO_REMOVE_WORKTREE,
+            ),
+            "worktree_first": _env_flag(
+                "ISSUEFLOW_WORKTREE_FIRST", default=DEFAULT_WORKTREE_FIRST
             ),
             "pr_merge_method": pr_merge or DEFAULT_PR_MERGE_METHOD,
             "cycle_max_issues": cycle_max_issues,
@@ -877,11 +903,13 @@ class Settings:
             "linguist_attributes": self.resolve_linguist_attributes(project_root),
             "pstack_skills": self.resolve_pstack_skills(project_root),
             "remind_cleanup": self.resolve_remind_cleanup(project_root),
+            "noob": self.resolve_noob(project_root),
             "cleanup_include_github": self.resolve_cleanup_include_github(project_root),
             "suggest_graphify": self.resolve_suggest_graphify(project_root),
             "auto_graphify_on_plan": self.resolve_auto_graphify_on_plan(project_root),
             "auto_switchback": self.resolve_auto_switchback(project_root),
             "auto_remove_worktree": self.resolve_auto_remove_worktree(project_root),
+            "worktree_first": self.resolve_worktree_first(project_root),
             "pr_merge_method": self.resolve_pr_merge_method(project_root),
             "cycle_max_issues": self.resolve_cycle_max_issues(project_root),
             "auto_adversarial_loops": self.resolve_auto_adversarial_loops(project_root),
@@ -969,11 +997,13 @@ class Settings:
             ),
             "skill_level": skill_level,
             "remind_cleanup": self.resolve_remind_cleanup(project_root),
+            "noob": self.resolve_noob(project_root),
             "cleanup_include_github": self.resolve_cleanup_include_github(project_root),
             "suggest_graphify": self.resolve_suggest_graphify(project_root),
             "auto_graphify_on_plan": self.resolve_auto_graphify_on_plan(project_root),
             "auto_switchback": self.resolve_auto_switchback(project_root),
             "auto_remove_worktree": self.resolve_auto_remove_worktree(project_root),
+            "worktree_first": self.resolve_worktree_first(project_root),
             "pr_merge_method": self.resolve_pr_merge_method(project_root),
             "cycle_max_issues": self.resolve_cycle_max_issues(project_root),
             "auto_adversarial_loops": self.resolve_auto_adversarial_loops(project_root),

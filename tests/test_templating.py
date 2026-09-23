@@ -17,6 +17,7 @@ from issue_flow.templating import (
     build_canonical_manifest,
     build_manifest,
     is_skill_template,
+    noob_stem_for_template,
     packaged_skill_output_names,
     render_template,
     resolve_output_path,
@@ -43,11 +44,13 @@ _MODE_CONTEXT = {
     "fast_model_label": "fast",
     "step_profiles": dict(PACKAGED_DEFAULTS),
     "remind_cleanup": True,
+    "noob": False,
     "cleanup_include_github": False,
     "suggest_graphify": True,
     "auto_graphify_on_plan": False,
     "auto_switchback": True,
     "auto_remove_worktree": True,
+    "worktree_first": True,
     "pr_merge_method": "squash",
     "cycle_max_issues": 10,
     "auto_adversarial_loops": 2,
@@ -2014,3 +2017,75 @@ def test_close_and_build_nudges_are_membership_gated() -> None:
         rendered = render_template(template, enrich_render_context(on, template))
         assert "TDD (pstack, optional)" in rendered
         assert "skills/tdd/SKILL.md" in rendered
+
+
+def test_noob_stem_for_template() -> None:
+    assert noob_stem_for_template("skills/iflow_plan/SKILL.md.j2") == "plan"
+    assert noob_stem_for_template("commands/iflow-plan.md.j2") == "plan"
+    assert noob_stem_for_template("commands/iflow.md.j2") == "iflow"
+    assert noob_stem_for_template("skills/iflow_comments/SKILL.md.j2") is None
+    assert noob_stem_for_template("skills/caveman/SKILL.md.j2") is None
+
+
+def test_noob_footer_omitted_by_default() -> None:
+    ctx = {**_BASE_CONTEXT, **_MODE_CONTEXT}
+    rendered = render_template(
+        "skills/iflow_plan/SKILL.md.j2",
+        enrich_render_context(ctx, "skills/iflow_plan/SKILL.md.j2"),
+    )
+    assert "NEXT (noob)" not in rendered
+
+
+def test_noob_footer_appended_when_on() -> None:
+    ctx = {**_BASE_CONTEXT, **_MODE_CONTEXT, "noob": True}
+    plan = render_template(
+        "skills/iflow_plan/SKILL.md.j2",
+        enrich_render_context(ctx, "skills/iflow_plan/SKILL.md.j2"),
+    )
+    assert "### NEXT (noob)" in plan
+    assert "/iflow-build" in plan
+    close = render_template(
+        "commands/iflow-close.md.j2",
+        enrich_render_context(ctx, "commands/iflow-close.md.j2"),
+    )
+    assert "### NEXT (noob)" in close
+    assert "/iflow-cleanup" in close
+    comments = render_template(
+        "skills/iflow_comments/SKILL.md.j2",
+        enrich_render_context(ctx, "skills/iflow_comments/SKILL.md.j2"),
+    )
+    assert "NEXT (noob)" not in comments
+
+
+def test_worktree_first_default_renders_worktree_add() -> None:
+    ctx = {**_BASE_CONTEXT, **_MODE_CONTEXT}
+    pick = render_template(
+        "skills/iflow_pick/SKILL.md.j2",
+        enrich_render_context(ctx, "skills/iflow_pick/SKILL.md.j2"),
+    )
+    assert "worktree-add" in pick
+    assert "Worktree-first start" in pick
+    assert "worktree_first = false" not in pick
+    cmd = render_template(
+        "commands/iflow-pick.md.j2",
+        enrich_render_context(ctx, "commands/iflow-pick.md.j2"),
+    )
+    assert "worktree-add" in cmd
+
+
+def test_worktree_first_false_renders_inplace_start() -> None:
+    ctx = {**_BASE_CONTEXT, **_MODE_CONTEXT, "worktree_first": False}
+    pick = render_template(
+        "skills/iflow_pick/SKILL.md.j2",
+        enrich_render_context(ctx, "skills/iflow_pick/SKILL.md.j2"),
+    )
+    assert "Inplace start" in pick
+    assert "git switch -c" in pick
+    assert "Token `worktree`" in pick
+    assert "Worktree-first start" not in pick
+    cmd = render_template(
+        "commands/iflow-pick.md.j2",
+        enrich_render_context(ctx, "commands/iflow-pick.md.j2"),
+    )
+    assert "git switch -c" in cmd
+    assert "Token `worktree`" in cmd

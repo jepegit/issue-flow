@@ -13,6 +13,8 @@ than the GitHub release notes they link to.
 - Workspace bootstrap: print the exact next command when --default is required. (#322)
 - Workspace bootstrap --yes refreshes members in an existing toml. (#323)
 - Opt-in: sync *.code-workspace folders with workspace members. (#324)
+- Noob mode. (#307)
+- Add a config knob to default to inplace (no sibling worktree). (#329)
 
 ## [0.5.7] - 2026-09-20
 
