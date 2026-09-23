@@ -53,8 +53,11 @@ so each repo's rules apply only when editing files under that root. Re-run
 
 ### Per-repo cleanup
 
-`/iflow-cleanup` runs against **one** project root. When `agent resolve` reports
-`sibling_roots`, repeat cleanup in each repo after its PR merges.
+`/iflow-cleanup` runs against **one** project root by default. Trailing
+`workspace` / `all` / `include workspace` walks every scaffolded member
+(one up-front confirm, then the usual A1/A2 per repo). When
+`agent resolve` reports `sibling_roots` and no workspace token was
+passed, remind the user to repeat cleanup (or run `/iflow-cleanup workspace`).
 
 ## Phase 2 (issue #126) — workspace registry
 
@@ -86,13 +89,22 @@ members = ["cellpy", "cellpy-core"]  # optional; auto-discovered when omitted
   path — see [user-global-config.md](./user-global-config.md) (#296).
   Default `update --all` still ignores this file.
 
+## Phase 4 (issue #318) — workspace inspect
+
+Shipped as `issue-flow workspace status|doctor|dirty` (subcommands, not a
+flag on the single-repo commands). Same continue-on-fail loop as
+`workspace update`. Locked members are skipped. `doctor` is audit-only;
+`--fix` stays per-repo. After `workspace update`, `workspace dirty`
+classifies each tree so agents can land scaffold dirt without guessing
+cwd. Auto-commit / auto-push after update is a follow-up.
+
 ## Out of scope (follow-ups)
 
 - **Cross-repo `/iflow-pick` ranking** across registry members (Phase 3a).
 - **Cross-repo linked issues** — paired issues, shared labels (Phase 3; extends
   #12).
-- **Multi-repo status dashboard** — `issue-flow status --workspace` aggregating
-  the per-repo payloads across registry members (Phase 4; extends #20).
+- **`workspace land`** — confirm + commit (chore branch on default) of
+  `issueflows_only` dirt after `workspace update`.
 
 ## Separate editor windows (execution layout)
 

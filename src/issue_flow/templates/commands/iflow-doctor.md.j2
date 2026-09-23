@@ -15,6 +15,8 @@ This is an **off-path** command — `/iflow` never auto-runs it.
 - **(nothing)** — audit only; report findings.
 - **`fix`** — after presenting findings, run repair (preview with `--dry-run`
   via CLI when available).
+- **`workspace` / `all`** — `issue-flow workspace doctor` (audit every member;
+  no `--fix`). Repair stays `doctor --fix -C <member>`.
 
 ## Steps
 

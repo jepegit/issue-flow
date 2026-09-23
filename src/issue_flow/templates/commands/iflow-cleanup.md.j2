@@ -18,6 +18,7 @@ Optional free-form text after the command. Examples:
 - A branch name — clean up that specific branch instead of the current one (e.g. `/iflow-cleanup 42-fix-login`).
 - **GitHub audit opt-in tokens** (case-insensitive): `include github`, `include gh`, `with github`, or standalone `github` — also run Phase B after Phase A.
 - **GitHub audit opt-out tokens** (case-insensitive): `no github`, `local only`, `local-only` — skip Phase B even when `cleanup_include_github` is baked true.
+- **Workspace walk** (case-insensitive): `workspace`, `all`, `include workspace` — one up-front confirm, then this cleanup **per member**. Not a mute CLI. Ignore these tokens when parsing a named branch.
 
 **Phase B enable rule:** (`cleanup_include_github` baked true **or** opt-in token) **and** no opt-out token.
 

@@ -1658,6 +1658,73 @@ def workspace_update(
     )
 
 
+_WORKSPACE_DIR_ARGUMENT = typer.Argument(
+    default=Path("."),
+    help=(
+        "Workspace root directory — the folder that contains the member "
+        "repos (defaults to current directory). Walks up for "
+        "issueflow-workspace.toml."
+    ),
+    exists=True,
+    file_okay=False,
+    resolve_path=True,
+)
+
+
+@workspace_app.command("status")
+def workspace_status(
+    workspace_dir: Path = _WORKSPACE_DIR_ARGUMENT,
+    local: bool = typer.Option(
+        False,
+        "--local",
+        help="Skip the GitHub query in each member; report only local state.",
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Read-only status overview for every scaffolded workspace member."""
+    from issue_flow.agent import run_workspace_status
+
+    raise typer.Exit(
+        code=run_workspace_status(workspace_dir, _console, local, json_output)
+    )
+
+
+@workspace_app.command("doctor")
+def workspace_doctor(
+    workspace_dir: Path = _WORKSPACE_DIR_ARGUMENT,
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Audit ``.issueflows/`` in every scaffolded workspace member.
+
+    Audit only — there is no ``--fix``. Repair one member at a time with
+    ``issue-flow doctor --fix -C <member>``.
+    """
+    from issue_flow.agent import run_workspace_doctor
+
+    raise typer.Exit(code=run_workspace_doctor(workspace_dir, _console, json_output))
+
+
+@workspace_app.command("dirty")
+def workspace_dirty(
+    workspace_dir: Path = _WORKSPACE_DIR_ARGUMENT,
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Classify each member's working tree after a workspace update.
+
+    Reports ``clean``, ``issueflows_only``, ``mixed``, or ``unknown``.
+    Does not commit or push.
+    """
+    from issue_flow.agent import run_workspace_dirty
+
+    raise typer.Exit(code=run_workspace_dirty(workspace_dir, _console, json_output))
+
+
 @app.command()
 def register(
     project_dir: Path = typer.Argument(

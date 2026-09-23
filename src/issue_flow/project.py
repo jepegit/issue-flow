@@ -166,6 +166,31 @@ def discover_workspace(
     return load_workspace(workspace_file, issueflows_dir=issueflows_dir)
 
 
+def iter_workspace_members(
+    start: Path,
+    *,
+    issueflows_dir: str = ".issueflows",
+) -> tuple[Workspace, list[tuple[str, Path]]] | None:
+    """Scaffolded workspace members, unique by resolved path.
+
+    Returns ``None`` when no registry exists above ``start`` (or the file
+    cannot be parsed). An empty pair list means the toml was found but no
+    scaffolded members remain after dedupe.
+    """
+    workspace = discover_workspace(start, issueflows_dir=issueflows_dir)
+    if workspace is None:
+        return None
+    pairs: list[tuple[str, Path]] = []
+    seen: set[Path] = set()
+    for name, root in zip(workspace.members, workspace.member_roots(), strict=True):
+        resolved = root.resolve()
+        if resolved in seen:
+            continue
+        seen.add(resolved)
+        pairs.append((name, resolved))
+    return workspace, pairs
+
+
 DISCOVER_MAX_DEPTH = 4
 
 

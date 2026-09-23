@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- Workspace-wide status, doctor, and dirty commands; opt-in `/iflow-cleanup workspace`. (#318)
+
 ## [0.5.8] - 2026-09-23
 
 - Tighten pr-ready when required flags are omitted; CI on 3.12–3.14. (#321)
