@@ -9,7 +9,10 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+## [0.5.10] - 2026-09-23
+
 - Workspace-wide status, doctor, and dirty commands; opt-in `/iflow-cleanup workspace`. (#318)
+- No iflow init in agents. (#339)
 
 ## [0.5.9] - 2026-09-23
 

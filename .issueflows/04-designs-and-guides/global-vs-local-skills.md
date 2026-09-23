@@ -132,11 +132,14 @@ Opt-in via `[issueflow].pstack_skills`. Not in mode `"all"`. See
 ## Materialize (`init` / `update` / `update --all`)
 
 `init` and `update` (including each `update --all` member) write the
-three `both` stems into the **selected editor's** user-global path
-above, and keep the project copy. Stems omitted by the active mode
-(e.g. `simple`) are not written. No `global`-only stems. Not a
-skillbook library
-([skillbook-lessons.md](./skillbook-lessons.md)).
+`both` stems into **every** editor user-global path above, and keep
+the project copy. `--editor` still selects only the **project** tree.
+Stems omitted by the active mode (e.g. `simple`) are not written. No
+`global`-only stems. Not a skillbook library
+([skillbook-lessons.md](./skillbook-lessons.md)). A Cursor-only
+`update` still plants `iflow-init` in `~/.agents/skills/` and
+`~/.claude/skills/` so switching harness does not need a second
+`--editor` pass (issue #339).
 
 Do **not** collapse Cursor + Claude into one shared `~/.claude/skills/`
 tree: Cursor Cloud sync is `~/.cursor/skills/` only.

@@ -14,6 +14,7 @@ current issue**. `/iflow-doctor` may audit the whole suite against this table.
 | `tests/test_project.py::test_iter_workspace_members_dedupes_and_walks_up` | yes | yes | `project.iter_workspace_members` | #318 | |
 | `tests/test_project.py::test_iter_workspace_members_none_without_toml` | yes | yes | `project.iter_workspace_members` | #318 | |
 | `tests/test_templating.py::test_noob_footer_epic_gap_uses_session_not_next_command` | no | no | `_noob_next.md.j2` | #337 | Footer decision table; not marked essential on this branch |
+| `tests/test_global_both_skills.py::test_init_writes_both_stems_to_cursor_global_and_keeps_project` | no | no | `materialize_user_global_both_skills` | #339 | Cursor init fans out to `~/.agents/skills` |
 
 **Columns**
 

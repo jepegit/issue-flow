@@ -217,17 +217,17 @@ def materialize_editor_profile(
 def materialize_user_global_both_skills(
     project_root: Path,
     settings: Settings,
-    profiles: list[EditorProfile],
     mode: Mode,
     skill_level: str,
     *,
     overwrite_foreign: bool,
 ) -> MaterializeResult:
-    """Write ``both`` stems to each selected editor's user-global skill dir.
+    """Write ``both`` stems to every editor's user-global skill dir.
 
-    Project-local copies stay (no ``global``-only stems). Stamps live under
+    ``--editor`` does not filter this loop (project materialize stays
+    selected-editor only). Project-local copies stay. Stamps live under
     the user-global issue-flow dir. Foreign global dirs are skipped unless
-    ``overwrite_foreign``. Cursor globals never land in ``~/.claude/skills``.
+    ``overwrite_foreign``. Each editor keeps its own path (issue #339).
     """
     stems = [stem for stem in BOTH_SKILL_STEMS if stem in mode.skills]
     if not stems:
@@ -239,7 +239,7 @@ def materialize_user_global_both_skills(
     skipped: list[Path] = []
 
     console_io.console.print("\n[bold]User-global both skills[/bold]")
-    for profile in profiles:
+    for profile in EDITORS.values():
         root = editor_user_global_skills_root(profile.id)
         if root is None:
             continue

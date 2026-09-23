@@ -57,9 +57,13 @@ def test_init_writes_both_stems_to_cursor_global_and_keeps_project(
     assert global_root is not None
     _assert_both_skills(global_root)
 
+    # --editor cursor still fans out user-global both stems (issue #339).
     claude_global = editor_user_global_skills_root("claude")
     assert claude_global is not None
-    assert not (claude_global / "caveman" / "SKILL.md").exists()
+    _assert_both_skills(claude_global)
+    agents_global = editor_user_global_skills_root("codex")
+    assert agents_global is not None
+    _assert_both_skills(agents_global)
 
     stamps = user_global_skill_stamp_path()
     assert stamps.is_file()
@@ -72,7 +76,7 @@ def test_init_writes_both_stems_to_cursor_global_and_keeps_project(
     assert ".cursor/skills/caveman" in project_stamps
 
 
-def test_init_claude_writes_claude_global_not_cursor(tmp_path: Path) -> None:
+def test_init_claude_writes_claude_global_and_fans_out(tmp_path: Path) -> None:
     run_init(tmp_path, editors=["claude"])
 
     claude_global = editor_user_global_skills_root("claude")
@@ -82,7 +86,8 @@ def test_init_claude_writes_claude_global_not_cursor(tmp_path: Path) -> None:
 
     cursor_global = editor_user_global_skills_root("cursor")
     assert cursor_global is not None
-    assert not (cursor_global / "caveman" / "SKILL.md").exists()
+    _assert_both_skills(cursor_global)
+    assert not (tmp_path / ".cursor" / "skills").exists()
 
 
 def test_init_opencode_writes_xdg_opencode_skills(tmp_path: Path) -> None:
@@ -90,8 +95,10 @@ def test_init_opencode_writes_xdg_opencode_skills(tmp_path: Path) -> None:
     root = editor_user_global_skills_root("opencode")
     assert root is not None
     _assert_both_skills(root)
-    assert not (Path.home() / ".claude" / "skills" / "caveman" / "SKILL.md").exists()
-    assert not (Path.home() / ".agents" / "skills" / "caveman" / "SKILL.md").exists()
+    _assert_both_skills(Path.home() / ".claude" / "skills")
+    _assert_both_skills(Path.home() / ".agents" / "skills")
+    assert not (tmp_path / ".claude").exists()
+    assert not (tmp_path / ".codex").exists()
 
 
 def test_simple_mode_skips_global_both_stems(tmp_path: Path) -> None:
