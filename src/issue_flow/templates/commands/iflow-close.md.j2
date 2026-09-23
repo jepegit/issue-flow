@@ -127,4 +127,4 @@ Other optional notes still apply: branch name, PR title, skip issue doc update, 
 
 ## Output
 
-Summarize what was committed, pushed, the PR URL (or next step if blocked), and whether the working copy switched back to the default branch or stayed on the issue branch. With the `yolo` input, also report the merge result (merged, or queued via `--auto`).{% if remind_cleanup %} Remind the user to run `/iflow-cleanup` after the PR merges (or right away when yolo already merged it).{% endif %}
+Summarize what was committed, pushed, the PR URL (or next step if blocked), and whether the working copy switched back to the default branch or stayed on the issue branch. With the `yolo` input, also report the merge result (merged, or queued via `--auto`).{% if remind_cleanup %} Remind the user to run `/iflow-cleanup` after the PR merges (or right away when yolo already merged it).{% endif %} If `epic_session.md` exists (or `agent state` → `epic_session`), hint **run `/iflow`** for the next epic child — not only `/iflow-pick`.

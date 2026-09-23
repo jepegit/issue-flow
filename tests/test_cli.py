@@ -351,6 +351,7 @@ def test_agent_state_json_reports_stage(
     assert payload["stage"] == "build"
     assert payload["next_command"] == "/iflow-build"
     assert payload["epic_hint"] is None
+    assert payload["epic_session"] is None
 
 
 def test_agent_state_epic_hint_when_no_focus(
@@ -382,6 +383,60 @@ def test_agent_state_epic_hint_when_no_focus(
     assert epics[0]["epic"] == 9
     assert epics[0]["stage"] == 1
     assert epics[0]["next_candidates"] == [12]
+    assert payload["epic_session"] is None
+
+
+def test_agent_state_epic_session_when_no_focus(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Issue #333: no focus + session file → epic_session set; epic_hint stays."""
+    from issue_flow import gitutils as gitutils_module
+
+    monkeypatch.setattr(gitutils_module, "current_branch", lambda _cwd: None)
+    monkeypatch.setattr(gitutils_module, "remote_owner_repo", lambda _cwd: None)
+    states = {11: "closed", 12: "open"}
+    monkeypatch.setattr(
+        gitutils_module,
+        "gh_issue_state",
+        lambda number, _cwd, _repo=None: states.get(number),
+    )
+    _seed_epic_plan(tmp_path)
+    current = tmp_path / ".issueflows" / "01-current-issues"
+    current.mkdir(parents=True, exist_ok=True)
+    (current / "epic_session.md").write_text(
+        "epic: 9\nmode: one-and-ask\n", encoding="utf-8"
+    )
+
+    result = runner.invoke(app, ["agent", "state", "-C", str(tmp_path), "--json"])
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["focus"] is None
+    assert payload["next_command"] is None
+    assert payload["epic_session"] == {"epic": 9, "mode": "one-and-ask"}
+    epics = payload["epic_hint"]["epics"]
+    assert len(epics) == 1
+    assert epics[0]["next_candidates"] == [12]
+
+
+def test_agent_state_invalid_epic_session_is_null(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Unknown session mode is treated as missing (do not guess)."""
+    from issue_flow import gitutils as gitutils_module
+
+    monkeypatch.setattr(gitutils_module, "current_branch", lambda _cwd: None)
+    current = tmp_path / ".issueflows" / "01-current-issues"
+    current.mkdir(parents=True)
+    (current / "epic_session.md").write_text(
+        "epic: 9\nmode: manual\n", encoding="utf-8"
+    )
+
+    result = runner.invoke(app, ["agent", "state", "-C", str(tmp_path), "--json"])
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["epic_session"] is None
 
 
 def test_agent_state_no_epic_hint_falls_back_to_init(
@@ -398,6 +453,7 @@ def test_agent_state_no_epic_hint_falls_back_to_init(
     payload = _json(result.stdout)
     assert payload["focus"] is None
     assert payload["epic_hint"] == {"epics": []}
+    assert payload["epic_session"] is None
     assert payload["next_command"] == "/iflow-capture"
 
 

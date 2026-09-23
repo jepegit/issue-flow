@@ -9,12 +9,15 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+## [0.5.8] - 2026-09-23
+
 - Tighten pr-ready when required flags are omitted; CI on 3.12–3.14. (#321)
 - Workspace bootstrap: print the exact next command when --default is required. (#322)
 - Workspace bootstrap --yes refreshes members in an existing toml. (#323)
 - Opt-in: sync *.code-workspace folders with workspace members. (#324)
 - Noob mode. (#307)
 - Add a config knob to default to inplace (no sibling worktree). (#329)
+- /iflow-epic start: one-and-ask session so /iflow can continue an epic without typing pick. (#333)
 
 ## [0.5.7] - 2026-09-20
 

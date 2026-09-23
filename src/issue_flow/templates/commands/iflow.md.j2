@@ -24,13 +24,13 @@ Optional free-form text after the command. `/iflow` forwards the raw trailing te
 > **CLI fast path (optional).** If the `issue-flow` CLI is on `PATH`, run
 > `issue-flow agent state --json` to resolve the focus issue, its lifecycle
 > stage, the suggested `next_command`, and (when there is no focus)
-> `epic_hint` in one deterministic step (covers steps 0–1), then dispatch —
+> `epic_hint` / `epic_session` in one deterministic step (covers steps 0–1), then dispatch —
 > or stop for the epic gap. The CLI is optional: if it is not installed or it
 > errors, fall back to the manual steps below. (`issue-flow` is only present
 > when the user installed it, e.g. `uv tool install issue-flow`.)
 
 0. **Resolve the focus issue number `N`.**
-   - Prefer `issue-flow agent state --json` (`focus`, `next_command`, `epic_hint`).
+   - Prefer `issue-flow agent state --json` (`focus`, `next_command`, `epic_hint`, `epic_session`).
    - Manual fallback: run `git branch --show-current`. If it matches `^(\d+)-.+`, the leading digits are the **authoritative** `N`.
    - List `issue<n>_*` groups in `{{ issueflows_dir }}/{{ current_issues_folder }}/`, and also check `{{ issueflows_dir }}/{{ partly_solved_folder }}/` and `{{ issueflows_dir }}/{{ solved_folder }}/` for archived groups matching `N`.
    - Pick `N` using this precedence:
@@ -40,8 +40,10 @@ Optional free-form text after the command. `/iflow` forwards the raw trailing te
      4. Else (no branch-derived `N`, multiple groups in `{{ current_issues_folder }}/`), **stop** and ask the user which issue to act on. Do not guess.
 
 0a. **Epic gap (no focus).** When step 0 finds no focus:
-   - Prefer `epic_hint.epics` from `issue-flow agent state --json` (each entry has `epic`, `stage`, `next_candidates`). Fallback: scan `{{ issueflows_dir }}/{{ epics_folder }}/epic*_plan.md` and run `issue-flow agent epic-status <N> --json`.
-   - If any `next_candidates`: **stop**. List epic + stage + candidates. Recommend `/iflow-pick` (never auto-dispatch pick; never silent-pick even for one candidate). If trailing text is already an explicit issue number, dispatch `/iflow-capture <N>` instead.
+   - Prefer `epic_hint.epics` and `epic_session` from `issue-flow agent state --json` (each hint entry has `epic`, `stage`, `next_candidates`). Fallback: scan `{{ issueflows_dir }}/{{ epics_folder }}/epic*_plan.md` and run `issue-flow agent epic-status <N> --json`. Read `{{ issueflows_dir }}/{{ current_issues_folder }}/epic_session.md` if state omitted it (`epic:` / `mode: one-and-ask`; unknown mode → treat as missing).
+   - If trailing text is already an explicit issue number, dispatch `/iflow-capture <N>` instead of stopping (unchanged).
+   - **Session present** + that epic has `next_candidates`: **stop**. Ask: next `#<M>` (`<M>` = first `next_candidates` entry for the session epic) — **continue** / switch to cycle|auto|drive / **stop**. This turn writes nothing and creates no branch. Continue on a **later turn** follows `/iflow-pick` for `#<M>` (user said continue / `yes` / the number). Never silent-pick. `stop`/`abort` → `/iflow-epic stop`. cycle|auto|drive → name the handoff; do not run it until that confirm.
+   - Else if any `next_candidates` (no session): **stop**. List epic + stage + candidates. Recommend `/iflow-pick` (never auto-dispatch pick; never silent-pick even for one candidate).
    - If none: continue to state A.
 
 1. **Detect state and choose the dispatch target.** In priority order:
@@ -71,14 +73,14 @@ Optional free-form text after the command. `/iflow` forwards the raw trailing te
 {% if remind_cleanup %}     - state **D** + PR likely merged → "after the PR merges, run `/iflow-cleanup`"
 {% endif %}     - mid-stream context switch needed → "to park this work, run `/iflow-pause`"
      - tiny fix you want in one shot → "consider `/iflow-yolo` next time"
-     - between issues / state **D**, and an active epic still has `next_candidates` → "epic #<E> stage still has #<…> — run `/iflow-pick` when ready"
+     - between issues / state **D**, and an active epic still has `next_candidates` → session present: "epic #<E> stage still has #<…> — run `/iflow`"; else "run `/iflow-pick` when ready"
 {% if suggest_graphify %}     - `graphify-out/GRAPH_REPORT.md` looks stale (large refactor, new modules) → "consider `/iflow-graphify` to refresh the graph"
 {% endif %}
 
 ## Constraints
 
 - `/iflow` never skips a downstream command's own prompts. If the downstream step asks a question, surface it normally.
-- `/iflow` never auto-dispatches to `/iflow-setup`, `/iflow-pick`, `/iflow-init`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-ops`, `/iflow-fix`, `/iflow-issue`, `/iflow-split`, `/iflow-status`, `/iflow-doctor`, `/iflow-review`, `/iflow-archive`, `/iflow-epic`, `/iflow-cycle`, `/iflow-auto`, `/iflow-drive`, or `/iflow-graphify`. Those are explicit choices only. The epic gap only **recommends** `/iflow-pick`.
+- `/iflow` never auto-dispatches to `/iflow-setup`, `/iflow-pick`, `/iflow-init`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-ops`, `/iflow-fix`, `/iflow-issue`, `/iflow-split`, `/iflow-status`, `/iflow-doctor`, `/iflow-review`, `/iflow-archive`, `/iflow-epic`, `/iflow-cycle`, `/iflow-auto`, `/iflow-drive`, or `/iflow-graphify`. Those are explicit choices only. The epic gap without a session only **recommends** `/iflow-pick`. With a session it **asks** (one-and-ask) before the pick chain; it never silent-picks.
 - If the focus issue cannot be resolved (multiple active issues, branch ambiguous), stop and ask. Do not pick one silently.
 - Do not modify files beyond what the downstream command would normally modify. `/iflow` itself writes nothing.
 
