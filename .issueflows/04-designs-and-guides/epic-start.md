@@ -56,6 +56,11 @@ When **session present** + **no focus** + `next_candidates`:
 `/iflow` **without** a session is unchanged (#210): list candidates,
 recommend pick. Never auto-dispatch pick.
 
+When `noob` is on, the footer uses this same split (`epic_session` +
+`epic_hint`, not raw `next_command`) so **Recommended** is `/iflow` or
+`/iflow-pick` — not `none` or `/iflow-capture`. Unpublished current
+stage → `/iflow-epic <N> publish`. See `#337`.
+
 ### Run-style menu (state-dependent)
 
 Hand off to existing primitives. No new batcher.

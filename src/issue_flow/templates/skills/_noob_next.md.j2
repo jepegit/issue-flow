@@ -5,8 +5,22 @@
 auto-dispatch the suggestion unless this skill already chains that command
 (`auto_plan` / `auto_build` / `auto_close` / yolo).
 
-1. Run `issue-flow agent state --json` and print `next_command` as
-   **Recommended** (chat form `iflow <step>` also works).
+1. Run `issue-flow agent state --json`. Choose **Recommended** from this
+   table (chat form `iflow <step>` also works). Do **not** blindly print
+   `next_command` when there is no focus.
+
+   - **Focus exists** → print `next_command` (plan / build / close).
+   - **No focus** + `epic_hint.epics` non-empty + `epic_session` set →
+     `/iflow` (one-and-ask). Put the first `next_candidates` number in
+     the why line.
+   - **No focus** + `epic_hint.epics` non-empty + no session →
+     `/iflow-pick`.
+   - **No focus** + `epic_session` set + empty `epic_hint.epics` → run
+     `issue-flow agent epic-status <epic_session.epic> --json`. If the
+     current stage has unpublished specs → `/iflow-epic <N> publish`.
+     Else `/iflow-status`. Never `/iflow-capture`.
+   - **Else** → `next_command` (usually `/iflow-capture`).
+
 2. Also list these **relevant** commands (not the full catalog):
 {% set stem = noob_stem | default("iflow") %}
 {% if stem in ["capture", "pick", "issue"] %}
@@ -54,11 +68,13 @@ auto-dispatch the suggestion unless this skill already chains that command
 {% elif stem == "epic" %}
    - `/iflow` — next child when a session is on
    - `/iflow-pick` — start a published child
+   - `/iflow-epic <N> publish` — current stage still unpublished
    - `/iflow-status` — bird's-eye view
 {% else %}
    - `/iflow-status` — bird's-eye view
    - `/iflow` — dispatcher for the linear next step
    - `/iflow-pick` — choose an issue
 {% endif %}
-3. One-line why. Never invent extra steps outside this list plus `next_command`.
+3. One-line why. Never invent extra steps outside this list plus the
+   table in step 1.
 {% endif %}

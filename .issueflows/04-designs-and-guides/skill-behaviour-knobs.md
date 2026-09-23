@@ -32,7 +32,7 @@ epic #269). Until Stage 2 ships, only the project file and env exist.
 | Key | Default | Effect |
 |-----|---------|--------|
 | `remind_cleanup` | `true` | Soft reminders to run `/iflow-cleanup` after close / cycle / iflow-D (never auto-run). `false` = no in-flow nudges; cleanup only via explicit `/iflow-cleanup` (issue #233) |
-| `noob` | `false` | After each lifecycle step, print recommended next (`issue-flow agent state`) plus a short relevant `/iflow-*` list. Never auto-dispatch. Seeded `true` on first-time `--mode novice` only (issue #307) |
+| `noob` | `false` | After each lifecycle step, print recommended next from `issue-flow agent state` (focus → `next_command`; no-focus epic gap → `epic_session` + `epic_hint`, not raw `next_command`) plus a short relevant `/iflow-*` list. Never auto-dispatch. Seeded `true` on first-time `--mode novice` only (issues #307, #337) |
 | `cleanup_include_github` | `false` | When `true`, `/iflow-cleanup` runs Phase B (GitHub remote audit) by default; trailing `no github` / `local only` opts out (issue #233) |
 | `suggest_graphify` | `true` | Soft GRAPH_REPORT / rebuild suggestions (never auto-run) |
 | `auto_graphify_on_plan` | `false` | `/iflow-plan` runs `issue-flow graphify` (AST `update`) before prior-art; missing/fail → note + continue (issue #214) |

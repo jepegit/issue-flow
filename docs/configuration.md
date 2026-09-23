@@ -377,7 +377,7 @@ Lifecycle skills can be tuned with additional `[issueflow]` keys (baked at
 | Key | Default | Effect |
 | --- | --- | --- |
 | `remind_cleanup` | `true` | Soft-remind the user to run `/iflow-cleanup` after close / cycle / dispatcher state D (never auto-runs cleanup). Set `false` for no in-flow nudges — cleanup only when you run `/iflow-cleanup` yourself |
-| `noob` | `false` | When `true`, each lifecycle step ends with a recommended next command (`issue-flow agent state`) plus a short relevant `/iflow-*` list. Distinct from `--mode novice`. Never auto-dispatches. |
+| `noob` | `false` | When `true`, each lifecycle step ends with a recommended next command from `issue-flow agent state` (focus → `next_command`; no-focus epic gap → session + `epic_hint`, not raw `next_command`) plus a short relevant `/iflow-*` list. Distinct from `--mode novice`. Never auto-dispatches. |
 | `cleanup_include_github` | `false` | When `true`, `/iflow-cleanup` runs the GitHub remote-branch audit (Phase B) by default; override per run with `no github` / `local only` |
 | `suggest_graphify` | `true` | Soft-suggest skimming `GRAPH_REPORT.md` / rebuilding graphify (never auto-runs) |
 | `auto_graphify_on_plan` | `false` | When `true`, `/iflow-plan` runs `issue-flow graphify` (AST `update`) before prior-art discovery; missing/failing graphify → note and continue |
