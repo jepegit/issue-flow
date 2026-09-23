@@ -183,7 +183,7 @@ Never: rebase default, `push --force` default, or push default to skip CI.
 
 10. **After review** — With the `yolo` token the PR was already merged in step 8a; skip to the `/iflow-cleanup` reminder. Otherwise address feedback, push updates, and merge when approved and `gh pr checks <number> --repo <owner/repo>` is green (exit 0). If step 9 switched back to the default branch, switch to the PR branch again before making review fixes. Remind the user to run **`/iflow-cleanup`** once the PR is merged (`git fetch --prune`, `git branch -d` on reachable local branches under a single consolidated confirm, plus a separate confirm for squash-landed branches that only `-D` can remove — and, for tag-derived projects, the offer to create the release tag planned in step 2). Do **not** auto-run cleanup from this skill.
 
-11. **Output** — Summarize commit, push result, PR URL, whether the working copy switched back to the default branch or stayed on the issue branch, whether the issue worktree was removed, the merge result when `yolo` applied (merged, or queued via `--auto`), and next step (`/iflow-cleanup` after merge, or "blocked on …" if stuck).
+11. **Output** — Summarize commit, push result, PR URL, whether the working copy switched back to the default branch or stayed on the issue branch, whether the issue worktree was removed, the merge result when `yolo` applied (merged, or queued via `--auto`), and next step (`/iflow-cleanup` after merge, or "blocked on …" if stuck). If `.issueflows/01-current-issues/epic_session.md` exists (or `agent state` → `epic_session`), hint **run `/iflow`** for the next epic child — not only `/iflow-pick`.
 
 ## Constraints
 
