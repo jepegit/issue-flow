@@ -39,6 +39,11 @@ issue-flow = "issue_flow.cli:main"
 requires = ["uv_build>=0.10.2,<0.11.0"]
 build-backend = "uv_build"
 
+[tool.pytest.ini_options]
+markers = [
+    "essential: small PR/push subset (see .issueflows/04-designs-and-guides/essential-tests.md)",
+]
+
 [dependency-groups]
 dev = [
     "pytest>=9.0.2",

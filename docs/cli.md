@@ -24,6 +24,9 @@ Grouped overview first. Flags live in each command section. The raw
 | [`workspace bootstrap`](#issue-flow-workspace-bootstrap) | First-time parent folder of git siblings |
 | [`workspace init`](#issue-flow-workspace-init) | Write `issueflow-workspace.toml` only |
 | [`workspace update`](#issue-flow-workspace-update) | Refresh every member that has a scaffold |
+| [`workspace status`](#issue-flow-workspace-status) | Status overview for every member |
+| [`workspace doctor`](#issue-flow-workspace-doctor) | Audit every member (no `--fix`) |
+| [`workspace dirty`](#issue-flow-workspace-dirty) | Classify each member's working tree |
 
 ### Inspect and repair
 
@@ -89,6 +92,9 @@ Grouped overview first. Flags live in each command section. The raw
       [--skip-dep-check] [--editor EDITOR] [--json]
     issue-flow workspace update [WORKSPACE_DIR] [--skip-dep-check]
       [--editor EDITOR] [--json]
+    issue-flow workspace status [WORKSPACE_DIR] [--local] [--json]
+    issue-flow workspace doctor [WORKSPACE_DIR] [--json]
+    issue-flow workspace dirty [WORKSPACE_DIR] [--json]
     ```
 
 ## Shell completion
@@ -118,6 +124,7 @@ pages do not repeat these flags.
 | Pull newer templates after `uv tool upgrade issue-flow` (or similar) | `issue-flow update` |
 | Parent folder of several git repos (first time) | `issue-flow workspace bootstrap --yes --default NAME` |
 | Parent folder already has `issueflow-workspace.toml`; refresh members | `issue-flow workspace update` |
+| Status / doctor / dirty-tree for every workspace member | `issue-flow workspace status` / `doctor` / `dirty` |
 | Write `issueflow-workspace.toml` only (members already scaffolded) | `issue-flow workspace init --default NAME` |
 | Refresh every unlocked registered repo | `issue-flow update --all` |
 | Add / remove a root in the user-global registry | `issue-flow register` / `unregister` |
@@ -349,5 +356,43 @@ in each member that has a `.issueflows/` tree. Each repo keeps its own
 
 Does not discover or register roots (`register --discover` is a different
 command). After `uv tool upgrade issue-flow`, this is the usual refresh
-for a parent folder of repos. Recipe:
+for a parent folder of repos. Then `workspace dirty` shows which members
+have uncommitted scaffold changes. Recipe:
 [Use issue-flow in a folder of repos](how-to/workspaces.md).
+
+## `issue-flow workspace status` { #issue-flow-workspace-status }
+
+Read-only status overview for every scaffolded workspace member (same
+payload as `issue-flow status`, nested per member). Locked members are
+listed and skipped. One member failure does not abort the rest.
+
+| Argument / Option | Description |
+| ----------------- | ----------- |
+| `WORKSPACE_DIR`   | Start directory. Defaults to `.`. Walks up for `issueflow-workspace.toml`. |
+| `--local`         | Skip the GitHub query in each member. |
+| `--json`          | Emit `{workspace_root, members:[{name,path,status}]}`. |
+
+`/iflow-status workspace` (or cwd = workspace root) is the agent path.
+
+## `issue-flow workspace doctor` { #issue-flow-workspace-doctor }
+
+Audit `.issueflows/` in every scaffolded member. **No `--fix`.** Repair
+one repo at a time with `issue-flow doctor --fix -C <member>`.
+
+| Argument / Option | Description |
+| ----------------- | ----------- |
+| `WORKSPACE_DIR`   | Start directory. Defaults to `.`. Walks up for `issueflow-workspace.toml`. |
+| `--json`          | Emit `{workspace_root, members:[{name,path,audit}]}`. |
+
+`/iflow-doctor workspace` is the agent path.
+
+## `issue-flow workspace dirty` { #issue-flow-workspace-dirty }
+
+Classify each member's working tree: `clean`, `issueflows_only`, `mixed`,
+or `unknown`. Does not commit or push. Use after `workspace update` so
+agents can land scaffold dirt per repo (chore branch if on default).
+
+| Argument / Option | Description |
+| ----------------- | ----------- |
+| `WORKSPACE_DIR`   | Start directory. Defaults to `.`. Walks up for `issueflow-workspace.toml`. |
+| `--json`          | Emit `{workspace_root, members:[{name,path,class,dirty_paths}]}`. |

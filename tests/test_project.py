@@ -18,6 +18,7 @@ from issue_flow.project import (
     classify_immediate_children,
     discover_workspace,
     find_project_root,
+    iter_workspace_members,
     find_workspace_file,
     list_scaffolded_siblings,
     load_code_workspace,
@@ -139,6 +140,22 @@ def test_load_workspace_broken_toml_degrades_to_none(tmp_path: Path) -> None:
     assert load_workspace(workspace_file) is None
 
 
+@pytest.mark.essential
+def test_iter_workspace_members_dedupes_and_walks_up(tmp_path: Path) -> None:
+    _make_workspace(tmp_path, body='[workspace]\ndefault = "alpha"\n')
+    found = iter_workspace_members(tmp_path / "beta" / "docs")
+    assert found is not None
+    workspace, pairs = found
+    assert workspace.root == tmp_path.resolve()
+    assert [name for name, _ in pairs] == ["alpha", "beta"]
+    assert pairs[0][1] == (tmp_path / "alpha").resolve()
+
+
+@pytest.mark.essential
+def test_iter_workspace_members_none_without_toml(tmp_path: Path) -> None:
+    assert iter_workspace_members(tmp_path) is None
+
+
 def test_discover_workspace_from_nested_start(tmp_path: Path) -> None:
     _make_workspace(tmp_path, body='[workspace]\ndefault = "alpha"\n')
     nested = tmp_path / "beta" / "docs"
@@ -184,7 +201,10 @@ def test_classify_immediate_children_skips_enclosing_repo(tmp_path: Path) -> Non
 
 
 def test_resolve_code_workspace_path_defaults_and_ambiguity(tmp_path: Path) -> None:
-    assert resolve_code_workspace_path(tmp_path) == tmp_path / f"{tmp_path.name}.code-workspace"
+    assert (
+        resolve_code_workspace_path(tmp_path)
+        == tmp_path / f"{tmp_path.name}.code-workspace"
+    )
     only = tmp_path / "cellpy.code-workspace"
     only.write_text("{}\n", encoding="utf-8")
     assert resolve_code_workspace_path(tmp_path) == only

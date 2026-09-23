@@ -3476,6 +3476,48 @@ def run_workspace_bootstrap(
     return 0 if fail_count == 0 else 1
 
 
+def _prepare_workspace_members(
+    start: Path,
+    console: Console,
+    as_json: bool,
+) -> tuple[project.Workspace, list[tuple[str, Path]]] | None:
+    """Resolve unique scaffolded members, or emit the shared workspace error."""
+    found = project.iter_workspace_members(start)
+    if found is None:
+        msg = (
+            f"no {project.WORKSPACE_FILENAME} found above {start} — run "
+            f"`issue-flow workspace init` from the workspace root first."
+        )
+        _emit_workspace_error(console, as_json, msg)
+        return None
+    workspace, pairs = found
+    if not pairs:
+        msg = (
+            f"no scaffolded member repos found under {workspace.root} — run "
+            "`issue-flow init` inside the member repos first."
+        )
+        _emit_workspace_error(console, as_json, msg)
+        return None
+    return workspace, pairs
+
+
+def _emit_workspace_error(console: Console, as_json: bool, msg: str) -> None:
+    if as_json:
+        _emit_json(
+            console,
+            {
+                "ok": False,
+                "error": msg,
+                "workspace_root": None,
+                "members": [],
+                "ok_count": 0,
+                "fail_count": 0,
+            },
+        )
+    else:
+        console.print(f"[red]error[/red]  {msg}")
+
+
 def run_workspace_update(
     workspace_dir: Path,
     console: Console,
@@ -3496,45 +3538,11 @@ def run_workspace_update(
     from issue_flow.init import _dependency_gate, run_update
 
     start = workspace_dir.resolve()
-    workspace = project.discover_workspace(start)
-
-    def _fail(msg: str) -> int:
-        if as_json:
-            _emit_json(
-                console,
-                {
-                    "ok": False,
-                    "error": msg,
-                    "workspace_root": None,
-                    "members": [],
-                    "ok_count": 0,
-                    "fail_count": 0,
-                },
-            )
-        else:
-            console.print(f"[red]error[/red]  {msg}")
+    prepared = _prepare_workspace_members(start, console, as_json)
+    if prepared is None:
         return 1
-
-    if workspace is None:
-        return _fail(
-            f"no {project.WORKSPACE_FILENAME} found above {start} — run "
-            f"`issue-flow workspace init` from the workspace root first."
-        )
-
-    seen_roots: set[Path] = set()
-    member_pairs: list[tuple[str, Path]] = []
-    for name, root in zip(workspace.members, workspace.member_roots(), strict=True):
-        resolved = root.resolve()
-        if resolved in seen_roots:
-            continue
-        seen_roots.add(resolved)
-        member_pairs.append((name, resolved))
+    workspace, member_pairs = prepared
     member_roots = [root for _, root in member_pairs]
-    if not member_roots:
-        return _fail(
-            f"no scaffolded member repos found under {workspace.root} — run "
-            "`issue-flow init` inside the member repos first."
-        )
 
     if not skip_dep_check and not _dependency_gate(skip_dep_check=False):
         return 1
@@ -3604,6 +3612,209 @@ def run_workspace_update(
                     f"  [red]fail[/red]  {escape(entry['name'])}: "
                     f"{escape(str(entry.get('error', 'unknown error')))}"
                 )
+    return 0 if fail_count == 0 else 1
+
+
+def _dirty_class(paths: list[str] | None, issueflows_dir: str) -> str:
+    """``clean`` / ``issueflows_only`` / ``mixed`` / ``unknown``."""
+    if paths is None:
+        return "unknown"
+    if not paths:
+        return "clean"
+    if gitutils.issueflows_only_dirty(paths, issueflows_dir):
+        return "issueflows_only"
+    return "mixed"
+
+
+def run_workspace_status(
+    workspace_dir: Path,
+    console: Console,
+    local: bool,
+    as_json: bool,
+) -> int:
+    """Aggregate ``run_status`` across workspace members."""
+    start = workspace_dir.resolve()
+    prepared = _prepare_workspace_members(start, console, as_json)
+    if prepared is None:
+        return 1
+    workspace, member_pairs = prepared
+    settings = Settings()
+    results: list[dict[str, Any]] = []
+    ok_count = 0
+    skip_count = 0
+    fail_count = 0
+
+    if not as_json:
+        console.print(f"\n[bold]Workspace status[/bold]  [cyan]{workspace.root}[/cyan]")
+        console.print(f"[dim]{len(member_pairs)} member(s)[/dim]\n")
+
+    for name, root in member_pairs:
+        entry: dict[str, Any] = {"name": name, "path": str(root)}
+        if settings.resolve_locked(root):
+            entry["ok"] = True
+            entry["skipped"] = True
+            entry["reason"] = "locked"
+            skip_count += 1
+            results.append(entry)
+            if not as_json:
+                console.print(f"[yellow]skip[/yellow]  {escape(name)}  (locked)")
+            continue
+        try:
+            payload = _status_payload(root, local)
+            entry["ok"] = True
+            entry["status"] = payload
+            ok_count += 1
+            if not as_json:
+                console.print(f"[bold]{escape(name)}[/bold]  {root}")
+                _render_status_text(console, settings, payload)
+                console.print()
+        except Exception as exc:  # noqa: BLE001 — continue-on-fail fan-out
+            entry["ok"] = False
+            entry["error"] = str(exc)
+            fail_count += 1
+            if not as_json:
+                console.print(f"[red]fail[/red]  {escape(name)}: {escape(str(exc))}")
+        results.append(entry)
+
+    payload = {
+        "ok": fail_count == 0,
+        "workspace_root": str(workspace.root),
+        "members": results,
+        "ok_count": ok_count,
+        "fail_count": fail_count,
+        "skip_count": skip_count,
+    }
+    if as_json:
+        _emit_json(console, payload)
+    elif fail_count:
+        console.print(
+            f"[bold yellow]Status {ok_count}/{len(member_pairs)} member(s); "
+            f"{fail_count} failed.[/bold yellow]"
+        )
+    return 0 if fail_count == 0 else 1
+
+
+def run_workspace_doctor(
+    workspace_dir: Path,
+    console: Console,
+    as_json: bool,
+) -> int:
+    """Aggregate ``run_audit`` across workspace members. No ``--fix``."""
+    start = workspace_dir.resolve()
+    prepared = _prepare_workspace_members(start, console, as_json)
+    if prepared is None:
+        return 1
+    workspace, member_pairs = prepared
+    settings = Settings()
+    results: list[dict[str, Any]] = []
+    ok_count = 0
+    skip_count = 0
+    fail_count = 0
+
+    if not as_json:
+        console.print(f"\n[bold]Workspace doctor[/bold]  [cyan]{workspace.root}[/cyan]")
+        console.print(f"[dim]{len(member_pairs)} member(s)[/dim]\n")
+
+    for name, root in member_pairs:
+        entry: dict[str, Any] = {"name": name, "path": str(root)}
+        if settings.resolve_locked(root):
+            entry["ok"] = True
+            entry["skipped"] = True
+            entry["reason"] = "locked"
+            skip_count += 1
+            results.append(entry)
+            if not as_json:
+                console.print(f"[yellow]skip[/yellow]  {escape(name)}  (locked)")
+            continue
+        try:
+            audit = _audit_payload(root)
+            entry["ok"] = True
+            entry["audit"] = audit
+            if audit.get("has_error"):
+                fail_count += 1
+            else:
+                ok_count += 1
+            if not as_json:
+                console.print(f"[bold]{escape(name)}[/bold]  {root}")
+                _render_audit_text(console, audit)
+                console.print()
+        except Exception as exc:  # noqa: BLE001 — continue-on-fail fan-out
+            entry["ok"] = False
+            entry["error"] = str(exc)
+            fail_count += 1
+            if not as_json:
+                console.print(f"[red]fail[/red]  {escape(name)}: {escape(str(exc))}")
+        results.append(entry)
+
+    payload = {
+        "ok": fail_count == 0,
+        "workspace_root": str(workspace.root),
+        "members": results,
+        "ok_count": ok_count,
+        "fail_count": fail_count,
+        "skip_count": skip_count,
+    }
+    if as_json:
+        _emit_json(console, payload)
+    return 0 if fail_count == 0 else 1
+
+
+def run_workspace_dirty(
+    workspace_dir: Path,
+    console: Console,
+    as_json: bool,
+) -> int:
+    """Classify each member's working tree (no writes)."""
+    start = workspace_dir.resolve()
+    prepared = _prepare_workspace_members(start, console, as_json)
+    if prepared is None:
+        return 1
+    workspace, member_pairs = prepared
+    settings = Settings()
+    results: list[dict[str, Any]] = []
+    ok_count = 0
+    skip_count = 0
+    fail_count = 0
+
+    if not as_json:
+        console.print(f"\n[bold]Workspace dirty[/bold]  [cyan]{workspace.root}[/cyan]")
+        console.print(f"[dim]{len(member_pairs)} member(s)[/dim]\n")
+
+    for name, root in member_pairs:
+        entry: dict[str, Any] = {"name": name, "path": str(root)}
+        if settings.resolve_locked(root):
+            entry["ok"] = True
+            entry["skipped"] = True
+            entry["reason"] = "locked"
+            skip_count += 1
+            results.append(entry)
+            if not as_json:
+                console.print(f"[yellow]skip[/yellow]  {escape(name)}  (locked)")
+            continue
+        paths = gitutils.dirty_paths(root)
+        klass = _dirty_class(paths, settings.issueflows_dir)
+        entry["ok"] = True
+        entry["class"] = klass
+        entry["dirty_paths"] = paths if paths is not None else []
+        entry["issueflows_only"] = klass == "issueflows_only"
+        ok_count += 1
+        results.append(entry)
+        if not as_json:
+            console.print(f"  {escape(name)}  {klass}")
+            if paths:
+                for path in paths:
+                    console.print(f"    {escape(path)}")
+
+    payload = {
+        "ok": fail_count == 0,
+        "workspace_root": str(workspace.root),
+        "members": results,
+        "ok_count": ok_count,
+        "fail_count": fail_count,
+        "skip_count": skip_count,
+    }
+    if as_json:
+        _emit_json(console, payload)
     return 0 if fail_count == 0 else 1
 
 
@@ -3976,8 +4187,8 @@ def audit_unmanaged_editor_skills(
     return findings
 
 
-def run_audit(project_root: Path, console: Console, as_json: bool) -> int:
-    """Audit ``.issueflows/`` for dirty conditions."""
+def _audit_payload(project_root: Path) -> dict[str, Any]:
+    """JSON-shaped doctor audit for one project root."""
     settings = Settings()
     folders, base, branch = _audit_context(project_root, settings)
     findings = tracking.audit_issueflows(
@@ -3991,33 +4202,42 @@ def run_audit(project_root: Path, console: Console, as_json: bool) -> int:
     findings.extend(audit_editor_scaffolds(project_root, settings))
     findings.extend(audit_unmanaged_editor_skills(project_root, settings))
     has_error = any(f.severity == tracking.SEVERITY_ERROR for f in findings)
-    payload: dict[str, Any] = {
+    return {
         "findings": [_finding_payload(f) for f in findings],
         "has_error": has_error,
         "count": len(findings),
     }
 
-    if as_json:
-        _emit_json(console, payload)
-        return 1 if has_error else 0
 
+def _render_audit_text(console: Console, payload: dict[str, Any]) -> None:
+    findings = payload.get("findings") or []
     if not findings:
         console.print("[green]OK[/green]  No dirty conditions detected.")
-        return 0
-
+        return
     for finding in findings:
         color = {
             tracking.SEVERITY_ERROR: "red",
             tracking.SEVERITY_WARN: "yellow",
             tracking.SEVERITY_INFO: "dim",
-        }.get(finding.severity, "white")
+        }.get(finding.get("severity", ""), "white")
         console.print(
-            f"  [{color}]{finding.severity}[/{color}]  "
-            f"{escape(finding.code)}: {escape(finding.message)}"
+            f"  [{color}]{finding.get('severity')}[/{color}]  "
+            f"{escape(str(finding.get('code', '')))}: "
+            f"{escape(str(finding.get('message', '')))}"
         )
-        if finding.suggested_command:
-            console.print(f"         -> {escape(finding.suggested_command)}")
-    return 1 if has_error else 0
+        suggested = finding.get("suggested_command")
+        if suggested:
+            console.print(f"         -> {escape(str(suggested))}")
+
+
+def run_audit(project_root: Path, console: Console, as_json: bool) -> int:
+    """Audit ``.issueflows/`` for dirty conditions."""
+    payload = _audit_payload(project_root)
+    if as_json:
+        _emit_json(console, payload)
+        return 1 if payload["has_error"] else 0
+    _render_audit_text(console, payload)
+    return 1 if payload["has_error"] else 0
 
 
 def run_repair(
@@ -4790,8 +5010,8 @@ def run_config_edit(
 # ---------------------------------------------------------------------------
 
 
-def run_status(project_root: Path, console: Console, local: bool, as_json: bool) -> int:
-    """Read-only overview: focus stage, parked, solved, optional GitHub cross-ref."""
+def _status_payload(project_root: Path, local: bool) -> dict[str, Any]:
+    """JSON-shaped status overview for one project root."""
     settings = Settings()
     folders = _folders(project_root, settings)
     branch = gitutils.current_branch(project_root)
@@ -4823,7 +5043,7 @@ def run_status(project_root: Path, console: Console, local: bool, as_json: bool)
     if not local:
         github = _github_section(project_root, folders)
 
-    payload: dict[str, Any] = {
+    return {
         "branch": branch,
         "focus": focus_section,
         "ambiguous_candidates": focus.candidates,
@@ -4834,11 +5054,14 @@ def run_status(project_root: Path, console: Console, local: bool, as_json: bool)
         "github": github,
     }
 
+
+def run_status(project_root: Path, console: Console, local: bool, as_json: bool) -> int:
+    """Read-only overview: focus stage, parked, solved, optional GitHub cross-ref."""
+    payload = _status_payload(project_root, local)
     if as_json:
         _emit_json(console, payload)
         return 0
-
-    _render_status_text(console, settings, payload)
+    _render_status_text(console, Settings(), payload)
     return 0
 
 

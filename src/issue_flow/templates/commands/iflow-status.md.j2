@@ -19,6 +19,9 @@ Optional free-form text after the command:
 
 - **No extra text** — full report (local tracking + GitHub).
 - **`local`** — skip the GitHub query; report only the `{{ issueflows_dir }}/` state.
+- **`workspace` / `all`** — fan out with `issue-flow workspace status` (every
+  scaffolded member). Same if cwd is the workspace root (toml present, not a
+  member).
 - **A hint** (e.g. `milestone v0.4`, `bugs`) — bias the GitHub section toward
   matching issues (best-effort filter; still read-only).
 
@@ -27,6 +30,7 @@ Optional free-form text after the command:
 > **CLI fast path (optional).** If the `issue-flow` CLI is on `PATH`, run
 > `issue-flow status` (add `--local` to skip the GitHub query, `--json` for a
 > machine-readable object) — it produces this whole overview deterministically.
+> Workspace scope: `issue-flow workspace status [--local] [--json]`.
 > The CLI is optional: if it is missing or errors, fall back to the manual
 > steps below. (`issue-flow` is only present when the user installed it, e.g.
 > `uv tool install issue-flow`.)

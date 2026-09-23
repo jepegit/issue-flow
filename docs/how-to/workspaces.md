@@ -25,6 +25,7 @@ one repo.
 | First time: scaffold every git sibling **and** write the toml | `issue-flow workspace bootstrap --yes --default batbase` |
 | Repos already have `.issueflows/`; only write the toml | `issue-flow workspace init --default batbase` |
 | Toml exists; refresh skills/rules in every member | `issue-flow workspace update` |
+| Status / doctor / dirty-tree for every member | `issue-flow workspace status` / `doctor` / `dirty` |
 | Peek before writing (no `init`, no toml) | `issue-flow workspace bootstrap --json` |
 
 `--default` is the member folder name lifecycle commands use when you are
@@ -102,13 +103,27 @@ resolve the target repo in this order: `root:` / `repo:` hints, then
 `issue-flow agent resolve`, then “exactly one issue branch / one scaffold”,
 then the **default** member. They never guess between siblings.
 
-Work **per repo**: `iflow pick`, close, and cleanup in `batbase` do not
-touch `batbase-loader`. Repeat in the other repo when needed.
+Work **per repo**: `iflow pick` and close in `batbase` do not touch
+`batbase-loader`. Repeat in the other repo when needed.
+
+**Workspace-wide inspect** (from the parent, or with trailing `workspace`):
+
+```bash
+issue-flow workspace status --local
+issue-flow workspace doctor
+issue-flow workspace dirty          # after workspace update
+iflow cleanup workspace             # opt-in sequential per-repo cleanup
+```
+
+`workspace doctor` is audit-only. Repair one member:
+`issue-flow doctor --fix -C batbase`. After `workspace update`,
+`workspace dirty` lists members whose tree changed; land those commits
+per repo (chore branch if you are on default). There is no auto-push.
 
 ## Related
 
 - [Upgrade, init, and workspace (for agents)](for-agents.md) — package vs scaffold; global init
-- [CLI: `workspace init` / `bootstrap` / `update`](../cli.md#issue-flow-workspace-init)
+- [CLI: `workspace` commands](../cli.md#issue-flow-workspace-init)
 - [Editor support — multi-root](../editors.md#multi-root-workspaces)
 - [Work in a sibling worktree](worktrees.md) — issue worktrees (`../repo-N`),
   not the same as this parent-folder registry
