@@ -55,8 +55,10 @@ Confirm before running upgrade/update unless the human already said to do it.
 
 User-global `iflow-init` is written on the first successful `issue-flow init`
 or `issue-flow update` (or `uvx issue-flow workspace bootstrap --yes …`) on
-that machine. After that, chat `iflow init` works in a folder with no
-project scaffold.
+that machine — into **every** harness path (`~/.cursor/skills/`,
+`~/.claude/skills/`, `~/.agents/skills/`, and opencode's XDG skills dir),
+not only the `--editor` you passed. After that, chat `iflow init` works in
+a folder with no project scaffold, including after you switch harness.
 
 First machine (CLI not installed yet):
 

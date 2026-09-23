@@ -520,7 +520,6 @@ def run_init(
     global_result = materialize_user_global_both_skills(
         project_root,
         settings,
-        profiles,
         mode_obj,
         skill_level_id,
         overwrite_foreign=force,
@@ -676,7 +675,6 @@ def run_update(
     global_result = materialize_user_global_both_skills(
         project_root,
         settings,
-        profiles,
         mode_obj,
         skill_level_id,
         overwrite_foreign=force,
