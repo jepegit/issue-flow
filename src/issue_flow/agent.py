@@ -29,7 +29,15 @@ from typing import Any
 from rich.console import Console
 from rich.markup import escape
 
-from issue_flow import gitutils, history, modes, project, readiness, tracking
+from issue_flow import (
+    epic_session,
+    gitutils,
+    history,
+    modes,
+    project,
+    readiness,
+    tracking,
+)
 from issue_flow.config import Settings
 from issue_flow.editors import DEFAULT_EDITOR, EDITORS
 from issue_flow.templating import packaged_skill_output_names
@@ -71,7 +79,12 @@ def run_state(project_root: Path, console: Console, as_json: bool) -> int:
         "files": {"original": False, "plan": False, "status": False, "done": False},
         "ambiguous": focus.resolved_via == "ambiguous",
         "epic_hint": None,
+        "epic_session": None,
     }
+
+    session = epic_session.read_epic_session(folders["current"])
+    if session is not None:
+        payload["epic_session"] = session.as_dict()
 
     if focus.number is not None:
         group = _focus_group(folders, focus.number)
@@ -105,6 +118,12 @@ def run_state(project_root: Path, console: Console, as_json: bool) -> int:
         return 0
     if focus.number is None:
         epic_hint = payload.get("epic_hint") or {"epics": []}
+        session_info = payload.get("epic_session")
+        if session_info:
+            console.print(
+                "[dim]Epic session[/dim] "
+                f"#{session_info['epic']} ({escape(str(session_info['mode']))})"
+            )
         if epic_hint["epics"]:
             console.print(
                 "[dim]No focus issue found.[/dim] Active epic next candidates "

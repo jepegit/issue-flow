@@ -35,3 +35,7 @@ there is no focus (and focus is not ambiguous). Each entry:
 
 - Auto-dispatch to `/iflow-pick` / `/iflow-cycle` / `/iflow-auto`
 - Changing epic publish or stage-gate offers (#139)
+
+An **opt-in** epic session (`/iflow-epic start`) that asks before
+starting the next candidate is [epic-start.md](./epic-start.md) — it
+does not change the no-session `/iflow` behaviour above.

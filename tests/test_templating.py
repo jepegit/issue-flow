@@ -654,6 +654,9 @@ def test_iflow_dispatcher_epic_gap_contract() -> None:
         ), template_name
         assert "Never auto-dispatch" in rendered or "never auto-dispatch" in rendered
         assert "/iflow-pick" in rendered, template_name
+        assert "epic_session" in rendered, template_name
+        assert "one-and-ask" in rendered, template_name
+        assert "never silent-pick" in rendered.lower(), template_name
 
 
 def test_cycle_bakes_max_issues() -> None:
@@ -1269,6 +1272,23 @@ def test_iflow_epic_documents_goal_and_model_markers() -> None:
     )
 
 
+def test_iflow_epic_documents_start_and_stop() -> None:
+    """Issue #333: epic skill+command mention start [N] / stop; never silent-pick."""
+    skill = render_template("skills/iflow_epic/SKILL.md.j2", _default_context())
+    cmd = render_template("commands/iflow-epic.md.j2", _default_context())
+    for rendered in (skill, cmd):
+        assert "start [N]" in rendered
+        assert "stop" in rendered
+        assert "never silent-pick" in rendered.lower()
+        assert "epic_session.md" in rendered
+        assert "one-and-ask" in rendered
+    close = render_template("skills/iflow_close/SKILL.md.j2", _default_context())
+    close_cmd = render_template("commands/iflow-close.md.j2", _default_context())
+    for rendered in (close, close_cmd):
+        assert "epic_session" in rendered
+        assert "run `/iflow`" in rendered
+
+
 def test_iflow_lists_review_as_off_path() -> None:
     """/iflow must list /iflow-review among the explicit-only commands."""
     cmd = render_template("commands/iflow.md.j2", _default_context())
@@ -1475,6 +1495,7 @@ def test_issue_workflow_doc_covers_epic_cycle_review_examples() -> None:
     assert "iflow cycle yolo" in rendered
     assert "/iflow-cycle yolo" in rendered
     assert "iflow epic" in rendered
+    assert "iflow epic start" in rendered
     assert "publish" in rendered
     assert "iflow-epic" in rendered
     assert "iflow-cycle" in rendered
