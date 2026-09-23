@@ -58,9 +58,18 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 > **CLI fast path (optional).** If the `issue-flow` CLI is on `PATH`, run
 > `issue-flow status` (add `--local` to skip the GitHub query, `--json` for a
 > machine-readable object) — it produces this whole overview deterministically.
-> The CLI is optional: if it is missing or errors, fall back to the manual
+> **Workspace fan-out:** trailing `workspace` / `all`, or cwd is the workspace
+> root (`issueflow-workspace.toml` present and not a member scaffold) → run
+> `issue-flow workspace status [--local] [--json]` instead of the single-repo
+> command. The CLI is optional: if it is missing or errors, fall back to the manual
 > instructions below. (`issue-flow` is only present when the user installed it,
 > e.g. `uv tool install issue-flow`.)
+
+0. **Workspace scope.** If the user passed `workspace` / `all`, or resolve
+   shows you are at the workspace root (toml present, cwd is not a member),
+   run `issue-flow workspace status` and present each member. Do **not** guess
+   a single repo. Then stop (skip the single-repo steps unless they also named
+   `root:` / `repo:`).
 
 1. **Context / preflight.** Detect the default branch (`gh repo view --json defaultBranchRef -q .defaultBranchRef.name`; fall back to `git symbolic-ref --quiet --short refs/remotes/origin/HEAD | sed 's|^origin/||'`, else `main`). Report current branch, clean/dirty tree (`git status --porcelain`), and ahead/behind vs `origin/<default>`. If the branch matches `^(\d+)-.+`, treat the leading digits as the focus issue `N`.
 

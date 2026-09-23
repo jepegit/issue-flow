@@ -65,11 +65,17 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 > - **Audit:** `issue-flow doctor [--json]` (or `issue-flow agent audit`).
 > - **Repair:** `issue-flow doctor --fix [--except N] [--dry-run] [--json]`
 >   (or `issue-flow agent repair`).
+> - **Workspace audit:** trailing `workspace` / `all`, or cwd is the workspace
+>   root → `issue-flow workspace doctor [--json]` (no `--fix`).
 >
 > The CLI is optional: if it is missing or errors, fall back to the manual
 > checklist in `.issueflows/04-designs-and-guides/dirty-issueflows.md`.
 
 1. **Resolve project root** — use `issue-flow agent resolve` when available.
+   If the user passed `workspace` / `all`, or cwd is the workspace root (toml
+   present, not a member), run `issue-flow workspace doctor` and present each
+   member. Repair stays per-repo: `issue-flow doctor --fix -C <member>` after
+   they name members. Do not `--fix` the whole workspace in one shot.
 
 2. **Audit** — run `issue-flow doctor` (or manual checks per the design doc).
    Present every finding: code, severity, message, suggested next step.

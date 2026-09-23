@@ -62,6 +62,7 @@ Optional free-form text after the command:
 - A **branch name** — Phase A targets that branch instead of the current one (e.g. `/iflow-cleanup 42-fix-login`).
 - **GitHub remote audit (opt-in tokens)** — trailing text containing (case-insensitive) `include github`, `include gh`, `with github`, or a standalone `github` token enables **Phase B** after Phase A.
 - **GitHub remote audit (opt-out tokens)** — trailing `no github`, `local only`, or `local-only` (case-insensitive) **skips Phase B** even when `cleanup_include_github` is baked true.
+- **Workspace walk (opt-in tokens)** — trailing `workspace`, `all`, or `include workspace` (case-insensitive) runs this skill **sequentially for every scaffolded workspace member**. One up-front confirm listing member names. Then existing Phase A1/A2 (and optional B) **per member**. A declined A2 in one repo continues to the next; user `abort` / `stop` ends the walk. Ignore these tokens when parsing a named branch. There is no mute `workspace cleanup` CLI.
 
 **Phase B enable rule:** run Phase B when (`cleanup_include_github` is baked true **or** an opt-in GitHub token is present) **and** no opt-out token is present.
 
@@ -129,7 +130,7 @@ Never: rebase default, `push --force` default, or push default to skip CI.
      - Optional: create a findings issue with `gh issue create --repo <owner/repo>` after showing the draft title/body (deletable list + unique-work summaries). Suggested title: `chore: remote branch audit (<YYYY-MM-DD>)`. Create only on yes.
    - Phase B is **read-only until that second confirm**. Declining leaves remotes untouched.
 
-10. **Report.** Summarize: default branch, PR/merge status, Phase A1 commands and `-d` deletions, Phase A2 `-D` deletions with their tip SHAs (or "declined" / "none offered"), branches left alone as unique work, folder sweep, epic stage-gate offer, and (when run) Phase B bucket counts, remote deletes, findings issue URL or "skipped". If `issue-flow agent resolve --json` reports `sibling_roots`, list them and remind the user that **each scaffolded repo needs its own `/iflow-cleanup`** — do not loop automatically in this step. If other open PRs still show `DIRTY` / CONFLICTING (often `HISTORY.md`), **offer** `/iflow-pr-sync` — do not auto-run it.
+10. **Report.** Summarize: default branch, PR/merge status, Phase A1 commands and `-d` deletions, Phase A2 `-D` deletions with their tip SHAs (or "declined" / "none offered"), branches left alone as unique work, folder sweep, epic stage-gate offer, and (when run) Phase B bucket counts, remote deletes, findings issue URL or "skipped". If this run used a workspace token, report each member. Else if `issue-flow agent resolve --json` reports `sibling_roots`, list them and remind the user that **each scaffolded repo needs its own `/iflow-cleanup`** (or `/iflow-cleanup workspace`) — do not loop automatically without the token. If other open PRs still show `DIRTY` / CONFLICTING (often `HISTORY.md`), **offer** `/iflow-pr-sync` — do not auto-run it.
 
 ## Constraints
 
