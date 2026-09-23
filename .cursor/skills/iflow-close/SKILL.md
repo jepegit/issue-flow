@@ -102,7 +102,29 @@ Use this path **only** when the command input included `ops`, `nopr`, or `no-pr`
 
 ## Instructions
 
-1. **Sanity check** — Run the project test suite (e.g. `uv run pytest`) and any checks the repo relies on. **Ruff (when present):** if the project uses ruff (`[tool.ruff]` in `pyproject.toml`, ruff in dev dependencies, or `.issueflows/04-designs-and-guides/python-quality-tools.md` exists), run auto-fix lint through the documented Python runner before committing — e.g. `uv run ruff check --fix …` then `uv run ruff format …` (match paths to what the project documents). Skim the diff; avoid bundling unrelated changes. Confirm that any design decisions or good practices that emerged from this issue are captured under `.issueflows/04-designs-and-guides/` before committing. If this change touched project structure (new modules, big refactor, removed files) and `graphify-out/` exists, *suggest* `/iflow-graphify` (AST-only default) — do not run it automatically.
+1. **Sanity check** — Run the project test suite (e.g. `uv run pytest`) and any checks the repo relies on.
+ **Essential tests:** run `pytest -m essential` (via the project's
+ documented runner) as the required local sanity gate; *remind* that the full
+ suite belongs on schedule/release CI when dual workflows exist (see
+ `.issueflows/04-designs-and-guides/essential-tests.md`). If the project
+ has no essential CI yet, still run essential locally and note the gap. Never
+ skip a failing essential suite without explicit user agreement. **Ruff (when present):** if the project uses ruff (`[tool.ruff]` in `pyproject.toml`, ruff in dev dependencies, or `.issueflows/04-designs-and-guides/python-quality-tools.md` exists), run auto-fix lint through the documented Python runner before committing — e.g. `uv run ruff check --fix …` then `uv run ruff format …` (match paths to what the project documents). Skim the diff; avoid bundling unrelated changes. Confirm that any design decisions or good practices that emerged from this issue are captured under `.issueflows/04-designs-and-guides/` before committing. If this change touched project structure (new modules, big refactor, removed files) and `graphify-out/` exists, *suggest* `/iflow-graphify` (AST-only default) — do not run it automatically.
+
+1a. **Essential tests review** — This project has `essential_tests = true` and `essential_review = close`.
+
+### Essential tests review (`essential_tests = true`)
+
+Marker: `@pytest.mark.essential`. Contract:
+`.issueflows/04-designs-and-guides/essential-tests.md`. Registry:
+`.issueflows/04-designs-and-guides/test-registry.md`.
+
+1. Confirm `[tool.pytest.ini_options]` (or `pytest.ini`) registers marker
+   `essential`; if missing, add it (or ask) before marking tests.
+2. List tests **added or changed by this issue** only (diff / status). For each:
+   recommend mark vs leave unmarked; update the registry row; get confirm before
+   editing many files.
+3. Do **not** reclassify the whole suite here — that is `/iflow-doctor`.
+
 
 2. **Optional version bump** — If the user asked for a bump (see above), follow `.cursor/skills/iflow-version-bump/SKILL.md` — it resolves the project's **release strategy** first (the "Release & version bump" section of `.issueflows/04-designs-and-guides/this-project.md`, else `pyproject.toml` detection, else the uv default). **Static version:** run `uv version --bump <level>`. **Git-tag derived:** edit nothing — compute and report the **planned tag** (e.g. `v1.0.4a3`), record it in the status file, and defer creating it until after the merge (step 9 with `yolo`, else `/iflow-cleanup`). If neither strategy applies, skip and continue.
 
@@ -123,7 +145,7 @@ Use this path **only** when the command input included `ops`, `nopr`, or `no-pr`
 8. **Pull request** — Against the default branch; always pass `--repo <owner/repo>`.
    - **List before create.** Run `gh pr list --repo <owner/repo> --head <branch> --state open --json number,url,title,isDraft`. If an open PR already exists for this head (including a draft from `/iflow-build` early PR), **update** it (title/body as needed; prefer `Closes #n` when shipping) instead of opening a second one. Otherwise `gh pr create` — add `--draft` when the user passed the `draft` token. Body should explain the change, how to test, and link the GitHub issue (`Closes #n` / `Refs #n`).
    - **Ready from draft (when not `draft`).** If the open PR is still a draft and the user did **not** pass `draft`, mark it ready for review (`gh pr ready <number> --repo <owner/repo>`) before the checks snapshot / yolo merge.
-   - **Checks snapshot.** After the PR exists, run `gh pr checks <number> --repo <owner/repo>` and report pass / fail / pending. "CI is green" means this command exits 0 (or JSON buckets are all `pass` / `skipping`). Without `yolo`, prefer this one-shot list; offer `gh pr checks <number> --repo <owner/repo> --watch --fail-fast` only when the user wants to wait in-session, and still honour the **15-minute** wall-clock cap (agent-enforced — `gh` has no max-duration flag). Full CI/`gh` cheatsheet (including `gh run list` / `gh run watch` fallback when PR checks are empty): `.cursor/skills/gh-ci/SKILL.md`. If `gh pr checks` returns empty or cannot resolve checks, fall back to `gh run list --repo <owner/repo>` then `gh run watch <run-id> --repo <owner/repo>` under the same budget.
+   - **Checks snapshot.** After the PR exists, run `gh pr checks <number> --repo <owner/repo>` and report pass / fail / pending. "CI is green" means this command exits 0 (or JSON buckets are all `pass` / `skipping`). Without `yolo`, prefer this one-shot list; **offer** `issue-flow agent pr-ready <number> --watch` when the user wants to wait until the PR is merge-ready (do **not** auto-run; honour the **15-minute** wall-clock cap). Full CI/`gh` cheatsheet (including `gh run list` / `gh run watch` fallback when PR checks are empty): `.cursor/skills/gh-ci/SKILL.md`. If `gh pr checks` returns empty or cannot resolve checks, fall back to `gh run list --repo <owner/repo>` then `gh run watch <run-id> --repo <owner/repo>` under the same budget.
 
 8a. **Merge the PR (`yolo` token only)** — Never `--delete-branch`; branch deletion stays in `/iflow-cleanup`. Without the `yolo` token, skip this step — merging stays a user decision (step 10). With `yolo`:
    1. If the user passed `draft`, **skip merge entirely** and say so.
