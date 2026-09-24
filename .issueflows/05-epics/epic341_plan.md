@@ -101,6 +101,61 @@ stages can link to it instead of re-explaining them.
 - yolo: no — the home page is the project's front door, so wording and tone need the user's judgement.
 - Published: #348
 
+## Stage 3 — Reference pages
+
+Epic goal part (4): make the two big reference pages editor-neutral and easy to scan. The specs are the published issue bodies; summaries below.
+- Goal: the command reference and the configuration page are editor-neutral and start where the reader does.
+
+### Issue: docs: restructure the command reference and make it editor-neutral
+
+- Spec: Change the template `src/issue_flow/templates/docs/issue-workflow.md.j2` and re-render. Use an editor-neutral H1 ("Command reference"). Drop the `0a/1a/8b` numbering. Group commands under Core loop / Starting work / Helpers / Automation / Maintenance. Keep one table (command · purpose · on/off path · modes). Give every command section the same layout (When · Arguments · What it does · What it asks you · Result · Related). Move the workspace paragraph to `how-to/workspaces.md`, remove the changelog wording, and update the "The workflow" link texts across `docs/`. See #358.
+- Goal: editor-neutral H1, no numbered sections, a single command table, the same section layout for every command, and `grep -rn 'The workflow\](' docs` returns nothing. Template tests pass for every editor.
+- Model: deep
+- Depends on: #348
+- yolo: no — a large template restructure that ships to every editor; it may need two PRs.
+- Published: #358
+
+### Issue: docs: reorder the configuration page around common changes
+
+- Spec: Start `docs/configuration.md` with a **Common changes** table (the knobs people actually touch, with `config set` examples). Follow it with a full knob table, checked by a test that every `config add` key appears. Move precedence / user-global / registry to the end, and replace issue-number references. See #359.
+- Goal: the page starts with Common changes, every `config.toml` key appears exactly once in the full table (test), and the prose has no bare issue-number references.
+- Model: deep
+- Depends on: #348
+- yolo: no — a large reorganisation of a 440-line reference page plus a new consistency test.
+- Published: #359
+
+## Stage 4 — New content
+
+The anchor's remaining acceptance items. #363 (sample session) is deliberately left out of the automated run: it needs a real interactive transcript.
+- Goal: troubleshooting, the missing how-tos and diagrams are published, and the link check passes.
+
+### Issue: docs: add a troubleshooting page
+
+- Spec: Add `docs/how-to/troubleshooting.md` with symptom → cause → fix entries (gh auth, PATH, missing or stale skills, "commits ahead" after a squash merge, dirty `01-current-issues/`, a refused ff-only pull, WSL vs Windows config). Put it in the nav, and link it from Getting started, the How-to index and Concepts. See #360.
+- Goal: the page is in the nav, covers the listed symptoms, is linked from those three pages, and the link check passes.
+- Model: deep
+- Depends on: #348
+- yolo: no — new explanatory content; accuracy matters.
+- Published: #360
+
+### Issue: docs: add how-tos for fix, issue, split, ops and drive
+
+- Spec: Add five Goal → Steps → Related pages (`fix-session`, `write-an-issue`, `split-an-issue`, `ops`, `drive`), and put them in the nav groups and the How-to index. See #362.
+- Goal: five new pages in the nav and the index, each stating when to use the command, with the steps and the confirmation points. The link check passes.
+- Model: deep
+- Depends on: #348
+- yolo: no — five new pages of explanatory content.
+- Published: #362
+
+### Issue: docs: add diagrams for the lifecycle, folder moves and epic flow
+
+- Spec: Decide between Mermaid (superfences) and committed SVGs, and record the decision in 04-designs-and-guides. Add a lifecycle state machine and folder-move diagrams to Concepts, and an epic-flow diagram to `how-to/epics.md`. See #361.
+- Goal: three diagrams render in light and dark mode on the site, and the rendering decision is recorded.
+- Model: deep
+- Depends on: #348
+- yolo: no — a rendering-tech decision plus visual content.
+- Published: #361
+
 ## Outcome (drive run, 2026-09-24)
 
 Run with `/iflow-drive 341` (draft already confirmed; Stage 2 published during the drive). Run records: `01-current-issues/auto_status.md`, `03-solved-issues/drive_status_2026-09-24_epic341.md`, and `03-solved-issues/cycle_status_2026-09-24_epic341-*.md`.
@@ -121,7 +176,7 @@ Run with `/iflow-drive 341` (draft already confirmed; Stage 2 published during t
 
 ## Later (unstaged)
 
-_Superseded by #358–#363 (see Outcome)._
+_Superseded by #358–#363. Stages 3–4 above schedule #358–#362 (drive run 2). #363 stays manual._
 
 
 - **Command reference restructure (§6):** make the site render of
