@@ -154,8 +154,14 @@ where the agent stops to ask you.
 No issues on GitHub yet? Type `iflow issue` and the agent will help you write a
 well-specified one first.
 
+Want to see what this looks like before you try it?
+[A sample session](how-to/sample-session.md) follows one real issue from
+`iflow pick` to `iflow cleanup`, including every place the agent stopped to ask.
+
 ## Where to go next
 
+- **[A sample session](how-to/sample-session.md)** — one real issue, start to
+  finish.
 - **[Troubleshooting](how-to/troubleshooting.md)** — if something above did
   not work.
 - **[Concepts](concepts.md)** — the lifecycle, the `.issueflows/` folder, and
