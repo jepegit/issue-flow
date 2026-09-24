@@ -18,6 +18,9 @@ current issue**. `/iflow-doctor` may audit the whole suite against this table.
 | `tests/test_doc_links.py::test_no_unversioned_readthedocs_page_links` | yes | yes | README, `docs/`, `src/issue_flow/templates/` links | #342 | Fast text scan; stops scaffolded projects getting 404 doc links |
 | `tests/test_doc_links.py::test_no_mangled_graphify_domain` | yes | yes | README, `docs/`, `src/issue_flow/templates/` links | #353 | Blocks the `iflow-graphify.net` rename artefact |
 | `tests/test_doc_quickstart.py` (module) | no | no | `docs/index.md`, `docs/getting-started.md`, `README.md` quick-start tables | #348 | Docs consistency guard; not essential |
+| `tests/test_queueplan.py::test_build_queue_closed_external_dependency_does_not_block` | yes | yes | `queueplan.build_queue` (`closed_external`) | #364 | Epic stage N+1 must not look blocked by closed stage N |
+| `tests/test_queueplan.py::test_build_queue_blocking_is_transitive` | yes | yes | `queueplan.build_queue` | #364 | A dependant must never be queued ahead of a blocked dep |
+| `tests/test_cli.py::test_agent_queue_closed_dependency_outside_queue_is_satisfied` | no | no | `agent.run_queue` outside-dep state lookup | #364 | CLI wiring for `closed_external` |
 
 **Columns**
 
