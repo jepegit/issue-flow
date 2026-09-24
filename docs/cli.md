@@ -4,8 +4,8 @@ title: CLI reference
 
 # CLI reference
 
-Grouped overview first. Flags live in each command section. The raw
-`--help`-style dump is folded at the bottom of this page intro.
+Grouped overview first. Flags live in each command section. A full
+synopsis of every command is in the collapsible block below the tables.
 
 ## Commands at a glance
 
@@ -47,7 +47,7 @@ Grouped overview first. Flags live in each command section. The raw
 
 | Command | What it does |
 | --- | --- |
-| [`agent …`](#issue-flow-agent) | Deterministic state / sweep / capture helpers the skills call |
+| [`agent …`](#issue-flow-agent) | Deterministic state / sweep / capture helpers the skills call. You rarely run these by hand |
 
 ??? tip "Full synopsis (copy-paste)"
 
@@ -242,6 +242,11 @@ Exit code is `1` when the audit finds any **error**-severity finding (for
 example ambiguous multi-focus or duplicate groups across folders).
 
 ## `issue-flow agent ...` { #issue-flow-agent }
+
+!!! note "Mostly for skills, not humans"
+
+    The scaffolded skills call these helpers for you. You rarely need to
+    run them by hand, except `agent setup-status` and `agent pr-ready`.
 
 The `agent` sub-app exposes the deterministic, mechanical building blocks the
 scaffolded skills repeat over and over, so an AI agent can ask the tool for an

@@ -53,9 +53,10 @@ When the editor workspace already contains those siblings, lifecycle
 commands must still target the correct repo. Use slash hints (`root:<path>`,
 `repo:<folder-name>`, `repo:owner/name`), or run
 `issue-flow agent resolve [--from-file <active-file>] [--json]` before
-`git`/`gh` calls. See `.issueflows/04-designs-and-guides/multi-repo-workspaces.md`
-in scaffolded projects (or run `issue-flow update` to refresh scoped
-`issueflow-rules.mdc` files).
+`git`/`gh` calls. The design notes are in
+[multi-repo-workspaces.md](https://github.com/jepegit/issue-flow/blob/main/.issueflows/04-designs-and-guides/multi-repo-workspaces.md)
+in the issue-flow repository. Run `issue-flow update` to refresh the scoped
+`issueflow-rules.mdc` files.
 
 ### Workspace registry and default repo
 

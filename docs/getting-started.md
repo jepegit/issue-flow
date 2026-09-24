@@ -12,6 +12,14 @@ opencode, Codex), and you want to get to the point where you can say
 You do not need to have used agentic coding before. Two of the four steps below
 happen in a terminal; the rest happens in your editor's chat window.
 
+**Before you start** you need:
+
+- an editor with an AI agent (see [Editor support](editors.md));
+- a [GitHub](https://github.com/) account, because the workflow is built
+  around GitHub issues and pull requests;
+- about 15–30 minutes, most of it for installing tools and signing in to
+  GitHub the first time.
+
 ## 1. Install uv, then issue-flow
 
 issue-flow is a Python CLI. The easiest way to install it is with

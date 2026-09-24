@@ -52,5 +52,5 @@ review loop. `iflow auto 42` adds adversarial review and the next-stage gate.
 - [Run a cycle of issues](cycle.md) — batch yolo without the review loop
 - [Configuration](../configuration.md) — `auto_adversarial_loops`
 - [The workflow](../issue-workflow.md) — `/iflow-auto`
-- Design depth (agents): `.issueflows/04-designs-and-guides/advanced-auto-mode.md`
-  after `issue-flow init`
+- Design notes: [advanced-auto-mode.md](https://github.com/jepegit/issue-flow/blob/main/.issueflows/04-designs-and-guides/advanced-auto-mode.md)
+  (issue-flow repository)

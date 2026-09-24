@@ -23,7 +23,7 @@ issue-flow config show --global
 issue-flow config set --global caveman_default true
 ```
 
-Contract: [user-global-config.md](../.issueflows/04-designs-and-guides/user-global-config.md)
+Contract: [user-global-config.md](https://github.com/jepegit/issue-flow/blob/main/.issueflows/04-designs-and-guides/user-global-config.md)
 (issues #281 / #285, epic #269).
 
 `init` / `update` also copy the `both` skills (`iflow-init`,
@@ -35,7 +35,7 @@ project skill with the same name wins. `--editor` still controls
 which project tree is written. Stamps for those global dirs live beside the
 user-global config (`skill-stamps.json`), not in the repo. `--force`
 overwrites a foreign global skill dir the same way it does a project
-one. See [global-vs-local-skills.md](../.issueflows/04-designs-and-guides/global-vs-local-skills.md)
+one. See [global-vs-local-skills.md](https://github.com/jepegit/issue-flow/blob/main/.issueflows/04-designs-and-guides/global-vs-local-skills.md)
 (#282 / #293).
 
 ## Environment variables (`.env`)
@@ -350,7 +350,7 @@ issue-flow config show locked
 user-global file is ignored. `ISSUEFLOW_LOCKED=true|false` wins for that
 process only (CI / one-off include-or-skip without editing the file).
 
-Contract: [user-global-config.md](../.issueflows/04-designs-and-guides/user-global-config.md)
+Contract: [user-global-config.md](https://github.com/jepegit/issue-flow/blob/main/.issueflows/04-designs-and-guides/user-global-config.md)
 (issue #286).
 
 ## Linguist `.gitattributes`
