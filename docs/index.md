@@ -105,7 +105,8 @@ small issues), `/iflow-fix` (iterative fixes session), `/iflow-status`
 `/iflow-cycle` (batch yolo queue), `/iflow-auto` (unattended epic stage +
 adversarial review), `/iflow-review` (label open issues), `/iflow-doctor`
 (scaffold health check), and `/iflow-archive` (condense the solved archive).
-The full lifecycle is described in [The workflow](issue-workflow.md).
+The full lifecycle is described in [The workflow](issue-workflow.md). New to
+terms like *focus issue*, *off-path* or *yolo*? See [Concepts](concepts.md).
 
 ## Recipes
 
@@ -149,6 +150,8 @@ else ranked open GitHub issues).
 
 - **[Getting started](getting-started.md)** — the from-scratch path for new
   users: install uv, scaffold, and let the agent finish the setup.
+- **[Concepts](concepts.md)** — the lifecycle, the `.issueflows/` folder,
+  on-path vs off-path commands, and a glossary.
 - **[How-to guides](how-to/index.md)** — task-oriented paths for common jobs
   (including [a folder of repos](how-to/workspaces.md) and
   [agent setup](how-to/for-agents.md)).
