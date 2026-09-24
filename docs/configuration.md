@@ -1,100 +1,81 @@
 # Configuration
 
-issue-flow reads settings from these layers (later beats earlier only
-when a key is **unset** above it):
-
-- **baked default**
-- **`ISSUEFLOW_*` env / `.env`** (project root, via python-dotenv)
-- **user-global** `config.toml` — Linux/macOS/WSL:
-  `$XDG_CONFIG_HOME/issue-flow/config.toml` or `~/.config/issue-flow/config.toml`;
-  native Windows: `%APPDATA%\issue-flow\config.toml`.
-  WSL is the Linux view (no `/mnt/c/Users/…` or `%APPDATA%` reads).
-  A native Windows install is a separate machine.
-- **project** `.issueflows/config.toml` — wins over every layer below
-
-So: **project `config.toml` > user-global > env > default**. A committed
-project file stays portable; user-global fills knobs the project did not
-set. `mode` and `locked` are project-only (`config set --global mode …`
-or `locked` is refused). `issue-flow register` / `init` write
-`registry.toml` beside the user-global file; `update --all` walks it.
+Most settings live in your project's `.issueflows/config.toml`, under
+`[issueflow]`. Change one with `issue-flow config set` (or edit the file),
+then run `issue-flow update` so the skills and rules pick it up:
 
 ```bash
-issue-flow config show --global
-issue-flow config set --global caveman_default true
+issue-flow config set auto_plan false
+issue-flow update
+issue-flow config show            # every setting and its current value
 ```
 
-Contract: [user-global-config.md](https://github.com/jepegit/issue-flow/blob/main/.issueflows/04-designs-and-guides/user-global-config.md)
-(issues #281 / #285, epic #269).
+A few settings are environment variables only (folder names, editor); see
+[How settings are resolved](#how-settings-are-resolved) at the end.
 
-`init` / `update` also copy the `both` skills (`iflow-init`,
-`caveman`, `grill-me`, `gh-ci`) into **every** editor user-global
-skill dir (Cursor `~/.cursor/skills/`, Claude `~/.claude/skills/`,
-Codex `~/.agents/skills/`, opencode `~/.config/opencode/skills/`),
-even when `--editor` is Cursor-only. The project copy stays; a
-project skill with the same name wins. `--editor` still controls
-which project tree is written. Stamps for those global dirs live beside the
-user-global config (`skill-stamps.json`), not in the repo. `--force`
-overwrites a foreign global skill dir the same way it does a project
-one. See [global-vs-local-skills.md](https://github.com/jepegit/issue-flow/blob/main/.issueflows/04-designs-and-guides/global-vs-local-skills.md)
-(#282 / #293).
+## Common changes
 
-## Environment variables (`.env`)
+| To … | Setting | Example |
+| --- | --- | --- |
+| Install fewer or more commands | `mode` | `issue-flow init --mode novice` (see [Modes](#modes)) |
+| Stop after pick instead of going straight into planning | `auto_plan` | `issue-flow config set auto_plan false` |
+| Stop after plan approval instead of starting the build | `auto_build` | `issue-flow config set auto_build false` |
+| Work in your main checkout instead of a sibling worktree | `worktree_first` | `issue-flow config set worktree_first false` |
+| Get terse answers by default | `caveman_default` | `issue-flow config set caveman_default true` |
+| Be interviewed about every plan | `grill_me_default` | `issue-flow config set grill_me_default true` |
+| Stop labels from choosing the flow (yolo / ops) | `label_flows` | `issue-flow config set label_flows false` |
+| Merge yolo PRs with a merge commit or rebase | `pr_merge_method` | `issue-flow config set pr_merge_method merge` |
+| Get a "what next" hint after every step | `noob` | `issue-flow config set noob true` |
 
-`issue-flow init` **creates a starter `.env` when one is missing** (all
-`ISSUEFLOW_*` lines written commented-out, so nothing is overridden until you
-uncomment). It never replaces an existing `.env` — not even with `--force`; on
-later runs it only *appends* commented hints for any `ISSUEFLOW_*` keys you
-don't already have. `issue-flow update` does not touch `.env` at all.
+Run `issue-flow update` after any of these (`config set` reminds you).
 
-| Variable                 | Default        | Description |
-| ------------------------ | -------------- | ----------- |
-| `ISSUEFLOW_DIR`          | `.issueflows`  | Name of the issue-tracking directory. |
-| `ISSUEFLOW_EDITOR`       | `cursor`       | Default editor profile when `--editor` is not passed (`cursor`, `claude`, `opencode`, `codex`). |
-| `ISSUEFLOW_AGENT_DIR`    | *(per editor)* | Override the agent/IDE config directory. When unset it is derived from the editor profile (e.g. `.cursor`, `.claude`, `.opencode`, `.codex`). |
-| `ISSUEFLOW_DOCS_DIR`     | `docs`         | Where to write the workflow documentation file. |
-| `ISSUEFLOW_HISTORY_FILE` | `HISTORY.md`   | Changelog file that `/iflow-close` updates (set to e.g. `CHANGELOG.md` for different conventions). |
-| `ISSUEFLOW_MODE`         | `standard`     | Fallback [scaffolding mode](#modes) when none is persisted in `config.toml`. Full order: `--mode` (CLI) > `config.toml` > `ISSUEFLOW_MODE` > `standard`. |
-| `ISSUEFLOW_SKILL_LEVEL`  | `standard`     | Fallback [skill level](#skill-levels) when none is persisted in `config.toml`. Full order: `--skill-level` (CLI) > `config.toml` > `ISSUEFLOW_SKILL_LEVEL` > `standard`. |
-| `ISSUEFLOW_CAVEMAN_DEFAULT` | `false`     | Fallback for the [always-on caveman](#caveman-skill) toggle. Full order: `config.toml` > `ISSUEFLOW_CAVEMAN_DEFAULT` > `false`. Only honored when the `caveman` skill is in the active mode. |
-| `ISSUEFLOW_GRILL_ME_DEFAULT` | `false`    | Fallback for the [grill-me-during-planning](#grill-me-skill) toggle. Full order: `config.toml` > `ISSUEFLOW_GRILL_ME_DEFAULT` > `false`. Only honored when the `grill_me` skill is in the active mode. |
-| `ISSUEFLOW_LABEL_FLOWS`  | `true`         | Fallback for the [label-driven flows](#label-driven-flows) toggle. Full order: `config.toml` > `ISSUEFLOW_LABEL_FLOWS` > `true`. Only honored when the `iflow-pick` and `iflow-yolo` commands are in the active mode. |
-| `ISSUEFLOW_YOLO_LABEL`   | `yolo`         | Fallback for the [yolo trigger label](#label-driven-flows). Full order: `config.toml` > `ISSUEFLOW_YOLO_LABEL` > `yolo`. |
-| `ISSUEFLOW_LINGUIST_ATTRIBUTES` | `false` | Fallback for the [Linguist `.gitattributes`](#linguist-gitattributes) toggle. Full order: `config.toml` > `ISSUEFLOW_LINGUIST_ATTRIBUTES` > `false` (opt-in). |
-| `ISSUEFLOW_PSTACK_SKILLS` | *(none)* | Fallback for the [pstack skills](#pstack-skills) selection: comma-separated upstream names (`unslop,tdd`) or `all`. Full order: `config.toml` > `ISSUEFLOW_PSTACK_SKILLS` > none. |
-| `ISSUEFLOW_LOCKED` | `false` | Process override for the [per-repo lock](#per-repo-lock). **Wins over** project `config.toml` for this invocation only (the one exception to project-beats-env). |
+## All settings
 
-The optional [graphify integration](graphify.md) additionally reads an LLM API
-key (`GEMINI_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`,
-`MOONSHOT_API_KEY`) from `.env` for its semantic `extract` pass.
+Every key `issue-flow config add` writes, with its default. Each key also has
+an environment-variable fallback, `ISSUEFLOW_<KEY>` (for example
+`ISSUEFLOW_AUTO_PLAN`), used when the key is not set in any `config.toml`.
 
-## Creating `config.toml`
-
-`init --mode <id>` is the usual way `.issueflows/config.toml` first appears, but
-you can also materialize a fully-commented file on demand:
-
-```bash
-issue-flow config add            # create .issueflows/config.toml if missing
-issue-flow config add --force    # regenerate its [issueflow] keys in place
-```
-
-It writes the keys issue-flow actually reads from `config.toml` — `mode`,
-`skill_level`, `caveman_default`, `grill_me_default`, `label_flows`,
-`yolo_label`, `checks_watch_minutes`, `step_directives`, `model_label_flows`,
-`deep_model_label`, `fast_model_label`, `linguist_attributes`,
-`remind_cleanup`, `noob`, `cleanup_include_github`, `suggest_graphify`,
-`auto_switchback`, `worktree_first`, `pr_merge_method`, `cycle_max_issues`,
-`confirm_version_bump`, `ruff_autofix`, `auto_close`, `auto_plan`,
-`auto_build`, `confirm_changelog_update`, `defer_changelog`, `locked`, `essential_tests`,
-`test_runner`, `essential_marker`, `essential_review`, `pstack_skills` — taking each value from
-its `ISSUEFLOW_*` env var / `.env`
-when set, otherwise the issue-flow default.
-The other `ISSUEFLOW_*` settings are **environment-only** and are deliberately
-*not* written to `config.toml` (putting them there would have no effect). An
-existing file is left untouched unless `--force` is passed, in which case the
-keys are upserted while your comments and `[modes.*]` tables are preserved.
-After changing any of these keys, re-run `issue-flow update` so the rule and
-commands re-render (and so optional side effects like the Linguist
-`.gitattributes` block can apply). Pass `--json` for a machine-readable result.
+| Key | Type | Default | Effect |
+| --- | --- | --- | --- |
+| `mode` | text | `"standard"` | Which commands are installed: `standard`, `novice`, `simple`, or a custom mode. Project only. See [Modes](#modes). |
+| `skill_level` | text | `"standard"` | How opinionated the quality-tooling guidance is: `basic`, `standard`, `advanced`. See [Skill levels](#skill-levels). |
+| `caveman_default` | bool | `false` | Terse caveman reply style on from the first message. See [Caveman skill](#caveman-skill). |
+| `grill_me_default` | bool | `false` | Run the grill-me interview during every `/iflow-plan`. See [Grill-me skill](#grill-me-skill). |
+| `label_flows` | bool | `true` | Let issue labels choose the flow in `/iflow-pick` (yolo → `/iflow-yolo`, ops → `/iflow-ops`). See [Label-driven flows](#label-driven-flows). |
+| `yolo_label` | text | `"yolo"` | The label that routes an issue to `/iflow-yolo`; also what `/iflow-cycle yolo` and `/iflow-review yolo` use. |
+| `ops_label` | text | `"ops"` | The label that routes an issue to `/iflow-ops` (ops wins over yolo). |
+| `checks_watch_minutes` | int | `15` | How long hands-off closes watch pending CI checks before falling back to `--auto` merge. |
+| `step_directives` | bool | `true` | Add a MODEL & EXECUTION DIRECTIVE (economy or reasoning) to lifecycle skills; tune per step under `[issueflow.step_profiles]`. |
+| `model_label_flows` | bool | `false` | Let `/iflow-pick` announce a deeper or faster model based on issue labels. |
+| `deep_model_label` | text | `"deep"` | Label that asks for a reasoning-heavy model (with `model_label_flows`). |
+| `fast_model_label` | text | `"fast"` | Label that asks for a fast, economical model (with `model_label_flows`). |
+| `linguist_attributes` | bool | `false` | Write a managed `.gitattributes` block for GitHub language stats. See [Linguist](#linguist-gitattributes). |
+| `pstack_skills` | list | `[]` | Opt-in vendored pstack skills: names such as `["unslop", "tdd"]`, or `"all"`. See [pstack skills](#pstack-skills). |
+| `remind_cleanup` | bool | `true` | Remind you to run `/iflow-cleanup` after close / cycle (never runs it). `false` = no reminders. |
+| `noob` | bool | `false` | End every lifecycle step with a recommended next command and a short list of relevant commands. Separate from `--mode novice`. |
+| `cleanup_include_github` | bool | `false` | `/iflow-cleanup` also audits remote branches (Phase B) by default; opt out per run with `local only`. |
+| `suggest_graphify` | bool | `true` | Suggest reading `GRAPH_REPORT.md` / rebuilding graphify (never runs it). |
+| `auto_graphify_on_plan` | bool | `false` | `/iflow-plan` rebuilds the graphify graph (AST only) before prior-art discovery. |
+| `auto_switchback` | bool | `true` | After `/iflow-close` opens a PR, switch back to the default branch when the tree is clean (`false` ≈ always `stay`). |
+| `auto_remove_worktree` | bool | `true` | Close removes the issue's sibling worktree once the PR is open (or merged) and the tree is clean; `false` asks first. |
+| `worktree_first` | bool | `true` | `/iflow-pick`, `/iflow-issue` and `/iflow-fix` start in a sibling worktree `../<repo>-<N>`; `false` uses `git switch -c` in your checkout. Tokens `inplace` / `worktree` override per run. |
+| `pr_merge_method` | text | `"squash"` | How hands-off closes merge: `squash`, `merge`, or `rebase`. |
+| `cycle_max_issues` | int | `10` | Safety cap on `/iflow-cycle` queue length (raise per run with `max:<n>`). |
+| `auto_adversarial_loops` | int | `2` | `/iflow-auto` review-and-fix loops per stage before it stops to ask (override per run with `loops:<n>`). |
+| `confirm_version_bump` | bool | `false` | Non-yolo close asks once about a version bump when none was requested. |
+| `ruff_autofix` | bool | `true` | When the project uses ruff, run `ruff check --fix` + `ruff format` during build and close. |
+| `auto_close` | bool | `false` | `/iflow-build` (and the end of `/iflow-fix`) chain into `/iflow-close` when the work is ready; close keeps its own confirms. |
+| `auto_plan` | bool | `true` | `/iflow-pick` chains into `/iflow-plan` after the pick and branch; trailing `noplan` skips once. |
+| `auto_build` | bool | `true` | `/iflow-plan` chains into `/iflow-build` when you accept the plan; trailing `nobuild` skips once. |
+| `early_pr` | bool | `false` | `/iflow-build` opens a draft PR after the first push; trailing `early` / `pr` / `noearly` override per run. |
+| `fix_auto_name` | bool | `false` | `/iflow-fix` invents the session name without asking (creating the issue and branch still asks). |
+| `locked` | bool | `false` | `issue-flow update --all` skips this repo. Project only. See [Per-repo lock](#per-repo-lock). |
+| `confirm_changelog_update` | bool | `false` | `/iflow-close` shows the changelog entry and asks once before writing; declining stops close. `false` writes without asking (`nohistory` still skips). |
+| `defer_changelog` | bool | `false` | Issue branches never write the changelog; the entry goes in the status file and PR body and is applied on the default branch after merge (`issue-flow agent apply-changelog`). |
+| `essential_tests` | bool | `false` | Opt-in essential-test suite: close runs `pytest -m essential` as its required local check and triages the tests an issue touched. |
+| `test_runner` | text | `"pytest"` | Test runner for essential tests (only `pytest` for now). |
+| `essential_marker` | text | `"essential"` | The pytest marker name for the essential suite. |
+| `essential_review` | text | `"close"` | When to triage issue-touched tests: `close`, `build`, `both`, or `never`. |
 
 ## Modes
 
@@ -210,8 +191,8 @@ Persisted keys in `config.toml`:
 directories. Re-run with `issue-flow convert --gitignore` if you adopted the
 workflow later.
 
-Git hooks for automatic pull/push conversion are planned as a follow-up (#23
-phase 2 / #101-adjacent); hooks remain opt-in.
+Git hooks for automatic pull/push conversion are planned as a follow-up;
+hooks remain opt-in.
 
 ## Caveman skill
 
@@ -338,7 +319,7 @@ Related off-path flows (see [Command reference](issue-workflow.md)):
 `[issueflow] locked = true` lives on the **project**
 `.issueflows/config.toml` only (default `false`; missing key = unlocked).
 It is a bulk-update skip, not a write-protect: `issue-flow update --all`
-(#287) will list and skip locked roots; a single-repo
+will list and skip locked roots; a single-repo
 `issue-flow update <root>` still runs.
 
 ```bash
@@ -350,8 +331,7 @@ issue-flow config show locked
 user-global file is ignored. `ISSUEFLOW_LOCKED=true|false` wins for that
 process only (CI / one-off include-or-skip without editing the file).
 
-Contract: [user-global-config.md](https://github.com/jepegit/issue-flow/blob/main/.issueflows/04-designs-and-guides/user-global-config.md)
-(issue #286).
+Design notes: [user-global-config.md](https://github.com/jepegit/issue-flow/blob/main/.issueflows/04-designs-and-guides/user-global-config.md).
 
 ## Linguist `.gitattributes`
 
@@ -370,71 +350,86 @@ idempotent: it appends a `# BEGIN issue-flow linguist` … `# END` marker block
 once and never rewrites user rules outside those markers. Turning the flag
 back to `false` leaves an existing managed block in place (no auto-delete).
 
-## Skill-behaviour knobs
+## How settings are resolved
 
-Lifecycle skills can be tuned with additional `[issueflow]` keys (baked at
-`issue-flow update`; same precedence as other toggles):
+issue-flow reads settings from these layers (later beats earlier only
+when a key is **unset** above it):
 
-| Key | Default | Effect |
-| --- | --- | --- |
-| `remind_cleanup` | `true` | Soft-remind the user to run `/iflow-cleanup` after close / cycle / dispatcher state D (never auto-runs cleanup). Set `false` for no in-flow nudges — cleanup only when you run `/iflow-cleanup` yourself |
-| `noob` | `false` | When `true`, each lifecycle step ends with a recommended next command from `issue-flow agent state` (focus → `next_command`; no-focus epic gap → session + `epic_hint`, not raw `next_command`) plus a short relevant `/iflow-*` list. Distinct from `--mode novice`. Never auto-dispatches. |
-| `cleanup_include_github` | `false` | When `true`, `/iflow-cleanup` runs the GitHub remote-branch audit (Phase B) by default; override per run with `no github` / `local only` |
-| `suggest_graphify` | `true` | Soft-suggest skimming `GRAPH_REPORT.md` / rebuilding graphify (never auto-runs) |
-| `auto_graphify_on_plan` | `false` | When `true`, `/iflow-plan` runs `issue-flow graphify` (AST `update`) before prior-art discovery; missing/failing graphify → note and continue |
-| `auto_switchback` | `true` | After `/iflow-close` opens a PR, switch to the default branch when clean (`false` ≈ always `stay`) |
-| `worktree_first` | `true` | When `true`, `/iflow-pick` / `/iflow-issue` / `/iflow-fix` start in a sibling worktree. `false` → `git switch -c` on home. Tokens `inplace` / `no worktree` / `worktree` still override. Distinct from `auto_remove_worktree` and from worktree location (#328). |
-| `pr_merge_method` | `"squash"` | Yolo close merge flag: `squash`, `merge`, or `rebase` |
-| `cycle_max_issues` | `10` | Default `/iflow-cycle` queue safety cap (raise per run with `max:<n>`) |
-| `auto_adversarial_loops` | `2` | Default `/iflow-auto` inter-epoch adversarial loop budget (override per run with `loops:<n>`) |
-| `confirm_version_bump` | `false` | When `true`, non-yolo close asks once about a version bump if none was requested |
-| `ruff_autofix` | `true` | When ruff is present, run `ruff check --fix` + `ruff format` from start/close |
-| `auto_close` | `false` | When `true`, `/iflow-build` (and `/iflow-fix` end) chain into `/iflow-close` when work is ready to ship; close keeps its own confirms |
-| `auto_plan` | `true` | When `true`, `/iflow-pick` chains into `/iflow-plan` after pick confirm + branch/init; trailing `noplan` skips once |
-| `auto_build` | `true` | When `true`, `/iflow-plan` chains into `/iflow-build` on plan Accept; trailing `nobuild` skips once |
-| `early_pr` | `false` | When `true`, `/iflow-build` opens a draft PR after the first push; trailing `early` / `pr` / `noearly` override per run |
-| `locked` | `false` | `update --all` skips this root. Project `config.toml` only; see [Per-repo lock](#per-repo-lock) |
-| `confirm_changelog_update` | `false` | When `true`, `/iflow-close` shows the changelog diff and confirms once before writing (decline **stops** close); `false` writes without asking so the bullet lands in the PR (`nohistory` still skips) |
-| `defer_changelog` | `false` | When `true`, issue branches never write HISTORY/CHANGELOG; the bullet is recorded on the status file + PR body and applied on the default branch after merge (`issue-flow agent apply-changelog`) |
-| `essential_tests` | `false` | Opt-in essential-suite paradigm for pytest; see `.issueflows/04-designs-and-guides/essential-tests.md` |
-| `test_runner` | `"pytest"` | Test runner for essential-tests (v1: only `"pytest"` supported) |
-| `essential_marker` | `"essential"` | pytest mark name for the essential suite |
-| `essential_review` | `"close"` | When to triage issue-touched tests: `close`, `build`, `both`, or `never` |
+- **baked default**
+- **`ISSUEFLOW_*` env / `.env`** (project root, via python-dotenv)
+- **user-global** `config.toml` — Linux/macOS/WSL:
+  `$XDG_CONFIG_HOME/issue-flow/config.toml` or `~/.config/issue-flow/config.toml`;
+  native Windows: `%APPDATA%\issue-flow\config.toml`.
+  WSL is the Linux view (no `/mnt/c/Users/…` or `%APPDATA%` reads).
+  A native Windows install is a separate machine.
+- **project** `.issueflows/config.toml` — wins over every layer below
 
-```toml
-[issueflow]
-remind_cleanup = true
-noob = false
-cleanup_include_github = false
-suggest_graphify = true
-auto_graphify_on_plan = false
-auto_switchback = true
-worktree_first = true
-pr_merge_method = "squash"
-cycle_max_issues = 10
-auto_adversarial_loops = 2
-confirm_version_bump = false
-ruff_autofix = true
-auto_close = false
-auto_plan = true
-auto_build = true
-early_pr = false
-confirm_changelog_update = false
-defer_changelog = false
-essential_tests = false
-test_runner = "pytest"
-essential_marker = "essential"
-essential_review = "close"
+So: **project `config.toml` > user-global > env > default**. A committed
+project file stays portable; user-global fills knobs the project did not
+set. `mode` and `locked` are project-only (`config set --global mode …`
+or `locked` is refused). The one exception to "project beats env" is
+`ISSUEFLOW_LOCKED`, which overrides the project file for a single run.
+`issue-flow register` / `init` write `registry.toml` beside the
+user-global file; `update --all` walks it.
+
+```bash
+issue-flow config show --global
+issue-flow config set --global caveman_default true
 ```
 
-Env fallbacks: `ISSUEFLOW_REMIND_CLEANUP`, `ISSUEFLOW_SUGGEST_GRAPHIFY`,
-`ISSUEFLOW_AUTO_GRAPHIFY_ON_PLAN`, `ISSUEFLOW_AUTO_SWITCHBACK`,
-`ISSUEFLOW_PR_MERGE_METHOD`, `ISSUEFLOW_CYCLE_MAX_ISSUES`,
-`ISSUEFLOW_AUTO_ADVERSARIAL_LOOPS`, `ISSUEFLOW_CONFIRM_VERSION_BUMP`,
-`ISSUEFLOW_RUFF_AUTOFIX`, `ISSUEFLOW_AUTO_CLOSE`, `ISSUEFLOW_AUTO_PLAN`,
-`ISSUEFLOW_AUTO_BUILD`, `ISSUEFLOW_EARLY_PR`, `ISSUEFLOW_LOCKED`,
-`ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE`, `ISSUEFLOW_DEFER_CHANGELOG`,
-`ISSUEFLOW_ESSENTIAL_TESTS`,
-`ISSUEFLOW_TEST_RUNNER`, `ISSUEFLOW_ESSENTIAL_MARKER`,
-`ISSUEFLOW_ESSENTIAL_REVIEW`. Re-run `issue-flow update` after changing any of
-these so skills and rules re-render.
+Design notes: [user-global-config.md](https://github.com/jepegit/issue-flow/blob/main/.issueflows/04-designs-and-guides/user-global-config.md).
+
+`init` / `update` also copy the `both` skills (`iflow-init`,
+`caveman`, `grill-me`, `gh-ci`) into **every** editor user-global
+skill dir (Cursor `~/.cursor/skills/`, Claude `~/.claude/skills/`,
+Codex `~/.agents/skills/`, opencode `~/.config/opencode/skills/`),
+even when `--editor` is Cursor-only. The project copy stays; a
+project skill with the same name wins. `--editor` still controls
+which project tree is written. Stamps for those global dirs live beside the
+user-global config (`skill-stamps.json`), not in the repo. `--force`
+overwrites a foreign global skill dir the same way it does a project
+one. Design notes: [global-vs-local-skills.md](https://github.com/jepegit/issue-flow/blob/main/.issueflows/04-designs-and-guides/global-vs-local-skills.md).
+
+### Environment-only variables
+
+These are read from the environment or the project `.env` only; putting them
+in `config.toml` has no effect.
+
+| Variable                 | Default        | Description |
+| ------------------------ | -------------- | ----------- |
+| `ISSUEFLOW_DIR`          | `.issueflows`  | Name of the issue-tracking directory. |
+| `ISSUEFLOW_EDITOR`       | `cursor`       | Default editor profile when `--editor` is not passed (`cursor`, `claude`, `opencode`, `codex`). |
+| `ISSUEFLOW_AGENT_DIR`    | *(per editor)* | Override the agent/IDE config directory. When unset it is derived from the editor profile (e.g. `.cursor`, `.claude`, `.opencode`, `.codex`). |
+| `ISSUEFLOW_DOCS_DIR`     | `docs`         | Where to write the workflow documentation file. |
+| `ISSUEFLOW_HISTORY_FILE` | `HISTORY.md`   | Changelog file that `/iflow-close` updates (set to e.g. `CHANGELOG.md` for different conventions). |
+
+`issue-flow init` **creates a starter `.env` when one is missing** (all
+`ISSUEFLOW_*` lines written commented-out, so nothing is overridden until you
+uncomment). It never replaces an existing `.env` — not even with `--force`; on
+later runs it only *appends* commented hints for any `ISSUEFLOW_*` keys you
+don't already have. `issue-flow update` does not touch `.env` at all.
+
+`--mode` and `--skill-level` on the command line beat everything for that
+run: `--mode` (CLI) > `config.toml` > `ISSUEFLOW_MODE` > `standard`.
+
+The optional [graphify integration](graphify.md) additionally reads an LLM API
+key (`GEMINI_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`,
+`MOONSHOT_API_KEY`) from `.env` for its semantic `extract` pass.
+
+### Creating `config.toml`
+
+`init --mode <id>` is the usual way `.issueflows/config.toml` first appears, but
+you can also materialize a fully-commented file on demand:
+
+```bash
+issue-flow config add            # create .issueflows/config.toml if missing
+issue-flow config add --force    # regenerate its [issueflow] keys in place
+```
+
+It writes every key in [All settings](#all-settings), taking each value from
+its `ISSUEFLOW_*` env var / `.env` when set, otherwise the issue-flow default.
+An existing file is left untouched unless `--force` is passed, in which case the
+keys are upserted while your comments and `[modes.*]` tables are preserved.
+After changing any of these keys, re-run `issue-flow update` so the rule and
+commands re-render (and so optional side effects like the Linguist
+`.gitattributes` block can apply). Pass `--json` for a machine-readable result.
