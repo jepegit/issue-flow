@@ -45,6 +45,7 @@ GitHub issues ranked for you.
 | --- | --- |
 | [Fast-track a small issue](yolo.md) | Low-risk change: one confirm, then hands-off |
 | [Run a cycle of issues](cycle.md) | Batch many yolo-fit issues under one confirm |
+| [Run a fix session](fix-session.md) | Many small, unrelated fixes on one branch and one PR |
 
 ## Bigger changes
 
@@ -52,6 +53,9 @@ GitHub issues ranked for you.
 | --- | --- |
 | [Create and run epics](epics.md) | A change too big for one issue |
 | [Use auto mode](auto-mode.md) | Unattended epic stage with adversarial review |
+| [Drive an epic hands-off](drive.md) | One issue → whole epic path after a single confirm |
+| [Write a good issue](write-an-issue.md) | Turn an idea into one well-specified GitHub issue |
+| [Split a big issue](split-an-issue.md) | Cut an existing issue into 2–5 linked sub-issues |
 
 ## Team and repos
 
@@ -59,6 +63,7 @@ GitHub issues ranked for you.
 | --- | --- |
 | [Use issue-flow in a folder of repos](workspaces.md) | Parent folder + sibling repos: bootstrap / init / update |
 | [Refresh dirty open PRs](pr-sync.md) | Open PRs went dirty after another merge |
+| [Do ops work without a PR](ops.md) | Deploys, flag flips, checklists that should not open a PR |
 
 ## Extras
 
