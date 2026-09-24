@@ -19,9 +19,11 @@ still win.
 
 1. Home checkout stays on the **default** branch (`git fetch --prune`;
    `git pull --ff-only` only when home is not ahead of origin).
-2. Agent creates a sibling worktree at `../<repo>-<N>` on branch
-   `<N>-<slug>` via `issue-flow agent worktree-add` (from fetched
-   `origin/<default>` — home does not need to be fast-forwardable).
+2. Agent creates a worktree on branch `<N>-<slug>` via
+   `issue-flow agent worktree-add` (from fetched `origin/<default>` — home
+   does not need to be fast-forwardable). It is a sibling folder
+   `../<repo>-<N>` unless you set a common folder; see
+   [Where the worktree goes](#where-the-worktree-goes).
 3. It prints an `open-workspace` path (print-only). Skills do not open a
    new editor window.
 4. Capture / plan / build / close run with `-C <worktree-path>`.
@@ -33,6 +35,34 @@ still win.
 
 Use this when you want home free for other work, parallel agents, or a
 clean default checkout while an issue is in progress.
+
+## Where the worktree goes
+
+By default the worktree is a sibling of your repo: `../<repo>-<N>`. Two
+settings change that:
+
+| Situation | Worktree goes to |
+| --- | --- |
+| The repo is inside a workspace folder (an `issueflow-workspace.toml` above it) and `worktrees_in_workspace = true` (default) | `../<repo>-<N>`, inside the workspace folder |
+| `worktrees_dir` is set and that folder exists | `<worktrees_dir>/<repo>-<N>` |
+| `worktrees_dir` is set but the folder is missing, or the path is relative | `../<repo>-<N>`, with a note saying why |
+| Nothing set | `../<repo>-<N>` |
+
+For stand-alone repos, a common folder keeps your projects folder tidy.
+Create it once and set it for your whole machine:
+
+```bash
+mkdir -p ~/worktrees
+issue-flow config set --global worktrees_dir ~/worktrees
+```
+
+Repos in a workspace folder (such as `cellpy-workspace/` holding `cellpy`,
+`cellpy-core`, …) still keep their worktrees in that folder. Set
+`worktrees_in_workspace = false` to send those to `worktrees_dir` too.
+`issue-flow agent worktree-add` reports which rule applied in its
+`location` field (`sibling`, `workspace`, `worktrees_dir`, or `fallback`).
+A project can switch a user-wide folder off with `worktrees_dir = ""` in its
+own `config.toml`.
 
 ## Project default (inplace)
 

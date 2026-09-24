@@ -67,6 +67,8 @@ CONFIG_KEYS: dict[str, ConfigKeySpec] = {
     "auto_switchback": ConfigKeySpec("bool"),
     "auto_remove_worktree": ConfigKeySpec("bool"),
     "worktree_first": ConfigKeySpec("bool"),
+    "worktrees_dir": ConfigKeySpec("str", needs_update=False),
+    "worktrees_in_workspace": ConfigKeySpec("bool", needs_update=False),
     "pr_merge_method": ConfigKeySpec("enum", ALLOWED_PR_MERGE_METHODS),
     "cycle_max_issues": ConfigKeySpec("int", needs_update=False),
     "auto_adversarial_loops": ConfigKeySpec("int"),

@@ -14,7 +14,7 @@ This project uses **Cursor**. The commands are **Agent Skills** under `.cursor/s
 
 It also seeds `.issueflows/00-tools/README.md` — the index of the project's **shared toolbox**. Drop reusable helper scripts there during issue work and add a one-line index entry; check the folder before writing a new one-off helper. Like the project brief, this README is never overwritten by `issue-flow update`, so its index grows over time.
 
-**Several repos in one folder?** Scaffold and refresh them from the parent with `issue-flow workspace bootstrap` / `update`, and resolve the target repo (`root:` / `repo:` hints, or `issue-flow agent resolve`) before any `git` / `gh` call. Details: [Use issue-flow in a folder of repos](https://issue-flow.readthedocs.io/en/latest/how-to/workspaces/). `/iflow-pick`, `/iflow-issue` and `/iflow-fix` start in a sibling worktree (`../<repo>-<N>`) so this checkout stays on the default branch (knob: `worktree_first`).
+**Several repos in one folder?** Scaffold and refresh them from the parent with `issue-flow workspace bootstrap` / `update`, and resolve the target repo (`root:` / `repo:` hints, or `issue-flow agent resolve`) before any `git` / `gh` call. Details: [Use issue-flow in a folder of repos](https://issue-flow.readthedocs.io/en/latest/how-to/workspaces/). `/iflow-pick`, `/iflow-issue` and `/iflow-fix` start in a separate worktree (`../<repo>-<N>` by default, or under `worktrees_dir`) so this checkout stays on the default branch (knob: `worktree_first`).
 
 
 ## All commands
@@ -248,7 +248,7 @@ Every command below is described the same way: **When to use**, **Arguments**, *
 **What it does:**
 
 1. **Choose.** Prefers parked work in `.issueflows/02-partly-solved-issues/`; otherwise lists open GitHub issues (`gh issue list`) ranked by **milestone**, **labels**, and **topical similarity** to recently solved issues. With `label:<L>`, hard-filters that shortlist (`--label <L>` on GitHub; parked/epic only if they carry `<L>`). `fix` skips the survey and creates a new `chore: general fixes` issue.
-2. **Branch.** Requires a clean tree (or, when the only dirt is under `.issueflows/`, offers a default housekeeping commit first — typical after `/iflow-doctor`), then creates `<N>-<short-slug>` off the default branch in a sibling worktree `../<repo>-<N>` (`issue-flow agent worktree-add`), leaving this checkout on the default, and runs the `/iflow-capture` flow for `<N>`.
+2. **Branch.** Requires a clean tree (or, when the only dirt is under `.issueflows/`, offers a default housekeeping commit first — typical after `/iflow-doctor`), then creates `<N>-<short-slug>` off the default branch in a separate worktree (`issue-flow agent worktree-add`; `../<repo>-<N>` by default, or under `worktrees_dir`), leaving this checkout on the default, and runs the `/iflow-capture` flow for `<N>`.
 3. **Hand off.** When `auto_plan` is true (default), chains into `/iflow-plan` after capture; otherwise asks first. Trailing `noplan` skips the chain once. Issues labelled `yolo` route to `/iflow-yolo`, and `ops` to `/iflow-ops` (ops wins when both are present).
 
 **Over-large issues:** if the chosen issue is too big for one PR, `/iflow-pick` **offers** `/iflow-split` (flat parent/child) or `/iflow-epic` (staged). It does not create children itself.

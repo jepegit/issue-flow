@@ -21,6 +21,7 @@ A few settings are environment variables only (folder names, editor); see
 | Stop after pick instead of going straight into planning | `auto_plan` | `issue-flow config set auto_plan false` |
 | Stop after plan approval instead of starting the build | `auto_build` | `issue-flow config set auto_build false` |
 | Work in your main checkout instead of a sibling worktree | `worktree_first` | `issue-flow config set worktree_first false` |
+| Keep issue worktrees in one common folder | `worktrees_dir` | `issue-flow config set --global worktrees_dir ~/worktrees` |
 | Get terse answers by default | `caveman_default` | `issue-flow config set caveman_default true` |
 | Be interviewed about every plan | `grill_me_default` | `issue-flow config set grill_me_default true` |
 | Stop labels from choosing the flow (yolo / ops) | `label_flows` | `issue-flow config set label_flows false` |
@@ -59,6 +60,8 @@ an environment-variable fallback, `ISSUEFLOW_<KEY>` (for example
 | `auto_switchback` | bool | `true` | After `/iflow-close` opens a PR, switch back to the default branch when the tree is clean (`false` ≈ always `stay`). |
 | `auto_remove_worktree` | bool | `true` | Close removes the issue's sibling worktree once the PR is open (or merged) and the tree is clean; `false` asks first. |
 | `worktree_first` | bool | `true` | `/iflow-pick`, `/iflow-issue` and `/iflow-fix` start in a sibling worktree `../<repo>-<N>`; `false` uses `git switch -c` in your checkout. Tokens `inplace` / `worktree` override per run. |
+| `worktrees_dir` | text | `""` | Common folder for issue worktrees, e.g. `~/worktrees` (absolute or `~`). Empty = next to the repo. A missing folder or a relative path falls back to next-to-repo with a note. Best set user-wide (`--global`). See [Where the worktree goes](how-to/worktrees.md#where-the-worktree-goes). |
+| `worktrees_in_workspace` | bool | `true` | When the repo sits in a workspace folder (an `issueflow-workspace.toml` above it), keep its worktrees next to it, inside that folder, even if `worktrees_dir` is set. |
 | `pr_merge_method` | text | `"squash"` | How hands-off closes merge: `squash`, `merge`, or `rebase`. |
 | `cycle_max_issues` | int | `10` | Safety cap on `/iflow-cycle` queue length (raise per run with `max:<n>`). |
 | `auto_adversarial_loops` | int | `2` | `/iflow-auto` review-and-fix loops per stage before it stops to ask (override per run with `loops:<n>`). |

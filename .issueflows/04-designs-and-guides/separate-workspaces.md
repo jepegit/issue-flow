@@ -14,7 +14,7 @@ source of truth for *which* repo a command targets.
 | Situation | Prefer |
 | --- | --- |
 | One human, one focus repo, light sibling glance | Multi-root (see [multi-repo-workspaces.md](./multi-repo-workspaces.md)) |
-| `/iflow-pick` / `/iflow-issue` / `/iflow-fix` start (#255) | Sibling worktree `../<repo>-<N>`; home stays on default |
+| `/iflow-pick` / `/iflow-issue` / `/iflow-fix` start (#255) | Worktree `../<repo>-<N>` by default, or `<worktrees_dir>/<repo>-<N>` (#328); home stays on default |
 | Parallel cycle workers (`parallel:<n>`) | Isolated worktree **per issue** (print path; no skill-launched window) |
 | Concurrent agents on sibling member repos | Isolated worktree / member folder (print path) |
 | Headless / CI / no GUI editor | Print path only |
@@ -82,3 +82,14 @@ Skills that start or parallelize work:
   `agent` surface (`resolve`, etc.). Registry lifecycle stays on `workspace`.
 - **Always auto-open during `parallel:<n>`** — rejected; silent window spam and
   headless breakage.
+
+## Worktree location (#328)
+
+`gitutils.resolve_worktree_location` is the single source for the folder.
+
+- A repo inside a workspace folder (an `issueflow-workspace.toml` above it) keeps worktrees next to itself while `worktrees_in_workspace = true` (the default).
+- Otherwise an existing, absolute `worktrees_dir` (`~` and environment variables expanded) holds `<repo>-<N>`.
+- Anything else stays next to the repo. A configured but unusable folder reports `location = "fallback"` with a note; the folder is never auto-created.
+
+`worktrees_dir` is machine-specific, so it is meant for the user-global config. A project can switch it off with `worktrees_dir = ""`. The `<repo>-<N>` name is kept everywhere; a name clash in a shared folder stops safely on "target path already exists".
+

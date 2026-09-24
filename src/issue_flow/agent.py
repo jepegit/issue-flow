@@ -2119,6 +2119,17 @@ def run_open_workspace(
 # ---------------------------------------------------------------------------
 
 
+def _worktree_location(home: Path, number: int) -> gitutils.WorktreeLocation:
+    """Resolve where issue ``number``'s worktree goes, honouring #328 settings."""
+    settings = Settings()
+    return gitutils.resolve_worktree_location(
+        home,
+        number,
+        worktrees_dir=settings.resolve_worktrees_dir(home),
+        in_workspace=settings.resolve_worktrees_in_workspace(home),
+    )
+
+
 def run_worktree_add(
     project_dir: Path,
     console: Console,
@@ -2126,7 +2137,12 @@ def run_worktree_add(
     slug: str,
     as_json: bool,
 ) -> int:
-    """Create ``../<repo>-<N>`` on ``<N>-<slug>`` without switching home."""
+    """Create the issue worktree on ``<N>-<slug>`` without switching home.
+
+    The folder is ``../<repo>-<N>`` unless ``worktrees_dir`` /
+    ``worktrees_in_workspace`` say otherwise; ``location`` in the payload
+    reports which rule applied (#328).
+    """
     home = project_dir.resolve()
     cleaned = slug.strip().lstrip("/")
     if cleaned.startswith(f"{number}-"):
@@ -2147,13 +2163,18 @@ def run_worktree_add(
             console.print(f"[red]error[/red]  {escape(error)}")
         return 1
 
-    path, created, error = gitutils.add_worktree(home, number=number, slug=cleaned)
+    location = _worktree_location(home, number)
+    path, created, error = gitutils.add_worktree(
+        home, number=number, slug=cleaned, target=location.path
+    )
     payload = {
         "path": str(path) if path is not None else None,
         "branch": f"{number}-{cleaned}",
         "home_path": str(home),
         "home_branch": gitutils.current_branch(home),
         "created": created,
+        "location": location.reason,
+        "location_note": location.note,
         "error": error,
     }
     if error or path is None:
@@ -2166,7 +2187,9 @@ def run_worktree_add(
         _emit_json(console, payload)
         return 0
     verb = "Created" if created else "Reused"
-    console.print(f"[bold]{verb}[/bold]: {path}")
+    console.print(f"[bold]{verb}[/bold]: {path}  [dim]({location.reason})[/dim]")
+    if location.note:
+        console.print(f"[yellow]note[/yellow]  {escape(location.note)}")
     console.print(f"[bold]Branch[/bold]: {payload['branch']}")
     console.print(f"[bold]Home[/bold]: {home} ({payload['home_branch']})")
     return 0
@@ -2219,7 +2242,7 @@ def run_worktree_remove(
     raw = target.strip()
     if raw.isdigit():
         number = int(raw)
-        expected = gitutils.worktree_path_for_issue(home, number)
+        expected = _worktree_location(home, number).path
         prefix = f"{number}-"
         for info in gitutils.list_worktrees(home):
             if info.is_main:

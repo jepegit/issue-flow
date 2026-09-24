@@ -15,6 +15,8 @@ and translate failures into ``None`` rather than exceptions.
 
 from __future__ import annotations
 
+import os
+
 import json
 import re
 import shutil
@@ -1312,10 +1314,78 @@ def list_worktrees(cwd: Path) -> list[WorktreeInfo]:
     return entries
 
 
-def worktree_path_for_issue(home: Path, number: int) -> Path:
-    """Sibling folder ``<home.name>-<N>`` next to the main checkout."""
+@dataclass(frozen=True)
+class WorktreeLocation:
+    """Where an issue worktree goes, and why (#328).
+
+    ``reason`` is ``"sibling"`` (default, next to the repo), ``"workspace"``
+    (next to the repo because it sits in a workspace folder), ``"worktrees_dir"``
+    (inside the common worktrees folder), or ``"fallback"`` (a common folder
+    was configured but unusable; ``note`` says why).
+    """
+
+    path: Path
+    reason: str
+    note: str | None = None
+
+
+def resolve_worktree_location(
+    home: Path,
+    number: int,
+    *,
+    worktrees_dir: str = "",
+    in_workspace: bool = True,
+) -> WorktreeLocation:
+    """Resolve the folder for issue ``number``'s worktree of the repo at ``home``.
+
+    1. Repo inside a workspace folder (``issueflow-workspace.toml`` above it)
+       and ``in_workspace`` → next to the repo (inside that folder).
+    2. ``worktrees_dir`` set, absolute after ``~`` / env expansion, and an
+       existing directory → ``<worktrees_dir>/<repo>-<N>``.
+    3. Otherwise next to the repo (``../<repo>-<N>``). A configured but unusable
+       ``worktrees_dir`` yields ``reason="fallback"`` with a ``note``. The
+       folder is never created here.
+    """
+    from issue_flow.project import find_workspace_file
+
     resolved = home.resolve()
-    return resolved.parent / f"{resolved.name}-{number}"
+    name = f"{resolved.name}-{number}"
+    sibling = resolved.parent / name
+
+    if in_workspace and find_workspace_file(resolved.parent) is not None:
+        return WorktreeLocation(sibling, "workspace")
+
+    raw = (worktrees_dir or "").strip()
+    if not raw:
+        return WorktreeLocation(sibling, "sibling")
+
+    expanded = Path(os.path.expandvars(os.path.expanduser(raw)))
+    if not expanded.is_absolute():
+        return WorktreeLocation(
+            sibling,
+            "fallback",
+            f"worktrees_dir {raw!r} is not an absolute path; using the repo's parent folder",
+        )
+    if not expanded.is_dir():
+        return WorktreeLocation(
+            sibling,
+            "fallback",
+            f"worktrees_dir {str(expanded)!r} does not exist; using the repo's parent folder",
+        )
+    return WorktreeLocation(expanded.resolve() / name, "worktrees_dir")
+
+
+def worktree_path_for_issue(
+    home: Path,
+    number: int,
+    *,
+    worktrees_dir: str = "",
+    in_workspace: bool = True,
+) -> Path:
+    """Folder for issue ``number``'s worktree (``../<repo>-<N>`` by default)."""
+    return resolve_worktree_location(
+        home, number, worktrees_dir=worktrees_dir, in_workspace=in_workspace
+    ).path
 
 
 def add_worktree(
@@ -1324,16 +1394,20 @@ def add_worktree(
     number: int,
     slug: str,
     start_point: str | None = None,
+    target: Path | None = None,
 ) -> tuple[Path | None, bool, str | None]:
-    """Add ``../<repo>-<N>`` checked out at ``<N>-<slug>``.
+    """Add the issue worktree checked out at ``<N>-<slug>``.
 
+    ``target`` defaults to ``../<repo>-<N>``; callers pass the result of
+    :func:`resolve_worktree_location` to honour ``worktrees_dir`` (#328).
     Returns ``(path, created, error)``. Idempotent when that branch is already
     in a worktree or the target path is already that worktree. Never switches
     ``home``.
     """
     home = home.resolve()
     branch = f"{number}-{slug}"
-    target = worktree_path_for_issue(home, number)
+    if target is None:
+        target = worktree_path_for_issue(home, number)
 
     existing = list_worktrees(home)
     for info in existing:

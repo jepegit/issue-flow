@@ -106,7 +106,7 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 
 1. Home stays on the **default** branch. `git fetch --prune`. Do **not** `git switch -c` on home.
 2. Run `issue-flow agent default-sync --json -C <home>`. If `action` is `even` or `ff_only`, `git pull --ff-only`. If home is ahead or diverged, **print** the classification and **still continue** — starting work must not wait for home to be ff-able.
-3. `issue-flow agent worktree-add <N> --slug <slug> -C <home> --json` — path is `../<repo>-<N>`. Starts from fetched `origin/<default>`, not local default HEAD. On error, **stop and ask**; never silently fall back to inplace.
+3. `issue-flow agent worktree-add <N> --slug <slug> -C <home> --json` — use the `path` it returns: `../<repo>-<N>` by default, or `<worktrees_dir>/<repo>-<N>` when a common worktrees folder is configured (`location` in the payload says which rule applied; a `location_note` explains a fallback). Starts from fetched `origin/<default>`, not local default HEAD. On error, **stop and ask**; never silently fall back to inplace.
 4. `issue-flow agent open-workspace <path> --json` (print-only). Tell the user the worktree path. Do **not** ask to open a window.
 5. Run `/iflow-capture` (and later plan/build/close) with `-C <worktree-path>`. Continue the session in that folder.
 6. Token `inplace` / `no worktree` keeps legacy `git switch -c <N>-<slug>` on home. Token `worktree` is a no-op when `worktree_first` is already on.

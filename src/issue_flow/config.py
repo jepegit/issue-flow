@@ -29,6 +29,8 @@ from issue_flow.modes import (
     DEFAULT_AUTO_SWITCHBACK,
     DEFAULT_AUTO_REMOVE_WORKTREE,
     DEFAULT_WORKTREE_FIRST,
+    DEFAULT_WORKTREES_DIR,
+    DEFAULT_WORKTREES_IN_WORKSPACE,
     DEFAULT_AUTO_ADVERSARIAL_LOOPS,
     DEFAULT_CYCLE_MAX_ISSUES,
     DEFAULT_DEEP_MODEL_LABEL,
@@ -476,6 +478,40 @@ class Settings:
             _env_flag("ISSUEFLOW_WORKTREE_FIRST", default=DEFAULT_WORKTREE_FIRST),
         )
 
+    def resolve_worktrees_dir(self, project_root: Path) -> str:
+        """Resolve the common worktrees folder (``""`` = next to the repo).
+
+        Order: project ``config.toml`` (an explicit ``""`` switches a user-wide
+        value off) > user-global > ``ISSUEFLOW_WORKTREES_DIR`` > ``""``. The
+        raw value is returned; expansion and validation happen when a worktree
+        location is resolved (#328).
+        """
+        persisted = modes_module.read_worktrees_dir(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        user = self.user_global_or("worktrees_dir", None)
+        if user is not None:
+            return str(user).strip()
+        env = os.getenv("ISSUEFLOW_WORKTREES_DIR")
+        if env is not None:
+            return env.strip()
+        return DEFAULT_WORKTREES_DIR
+
+    def resolve_worktrees_in_workspace(self, project_root: Path) -> bool:
+        """Resolve whether worktrees stay next to a repo inside a workspace folder."""
+        persisted = modes_module.read_worktrees_in_workspace(
+            self.config_path(project_root)
+        )
+        if persisted is not None:
+            return persisted
+        return self.user_global_or(
+            "worktrees_in_workspace",
+            _env_flag(
+                "ISSUEFLOW_WORKTREES_IN_WORKSPACE",
+                default=DEFAULT_WORKTREES_IN_WORKSPACE,
+            ),
+        )
+
     def resolve_pr_merge_method(self, project_root: Path) -> str:
         """Resolve the ``gh pr merge`` method for yolo close (squash/merge/rebase)."""
         persisted = modes_module.read_pr_merge_method(self.config_path(project_root))
@@ -844,6 +880,13 @@ class Settings:
             "worktree_first": _env_flag(
                 "ISSUEFLOW_WORKTREE_FIRST", default=DEFAULT_WORKTREE_FIRST
             ),
+            "worktrees_dir": (
+                os.getenv("ISSUEFLOW_WORKTREES_DIR") or DEFAULT_WORKTREES_DIR
+            ).strip(),
+            "worktrees_in_workspace": _env_flag(
+                "ISSUEFLOW_WORKTREES_IN_WORKSPACE",
+                default=DEFAULT_WORKTREES_IN_WORKSPACE,
+            ),
             "pr_merge_method": pr_merge or DEFAULT_PR_MERGE_METHOD,
             "cycle_max_issues": cycle_max_issues,
             "auto_adversarial_loops": auto_adversarial_loops,
@@ -910,6 +953,8 @@ class Settings:
             "auto_switchback": self.resolve_auto_switchback(project_root),
             "auto_remove_worktree": self.resolve_auto_remove_worktree(project_root),
             "worktree_first": self.resolve_worktree_first(project_root),
+            "worktrees_dir": self.resolve_worktrees_dir(project_root),
+            "worktrees_in_workspace": self.resolve_worktrees_in_workspace(project_root),
             "pr_merge_method": self.resolve_pr_merge_method(project_root),
             "cycle_max_issues": self.resolve_cycle_max_issues(project_root),
             "auto_adversarial_loops": self.resolve_auto_adversarial_loops(project_root),
