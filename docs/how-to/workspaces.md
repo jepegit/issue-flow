@@ -101,7 +101,10 @@ issue-flow update
 Open the parent (or a multi-root editor workspace). Lifecycle commands
 resolve the target repo in this order: `root:` / `repo:` hints, then
 `issue-flow agent resolve`, then “exactly one issue branch / one scaffold”,
-then the **default** member. They never guess between siblings.
+then the **default** member. They never guess between siblings, and
+never let `git` or `gh` infer the repository from the current directory
+alone. Design notes:
+[multi-repo-workspaces.md](https://github.com/jepegit/issue-flow/blob/main/.issueflows/04-designs-and-guides/multi-repo-workspaces.md).
 
 Work **per repo**: `iflow pick` and close in `batbase` do not touch
 `batbase-loader`. Repeat in the other repo when needed.

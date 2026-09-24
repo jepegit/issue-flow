@@ -17,6 +17,7 @@ than the GitHub release notes they link to.
 - New Concepts page in the docs: the issue lifecycle, the `.issueflows/` folder, on-path vs off-path commands, where the agent stops to ask, and a glossary. (#347)
 - The docs home page is now a short pitch, the quick start, and three entry points (new users, specific tasks, AI agents). Home, Getting started and README now share one quick start. (#348)
 - `issue-flow agent queue` no longer treats closed issues outside the queue (such as an earlier epic stage) as open blockers, and an issue that depends on a blocked issue is now blocked too, instead of being queued ahead of it. (#364)
+- The scaffolded `docs/issue-workflow.md` is now an editor-neutral **command reference**: one table of every command, with its on/off path and the modes that install it, grouped by purpose, and the same When / Arguments / What it does / What it asks you / Result / Related layout for each command. `/iflow-pr-sync` and `/iflow-doctor` now have their own sections. Run `issue-flow update` to refresh it in your projects. (#358)
 
 ## [0.5.10] - 2026-09-23
 
