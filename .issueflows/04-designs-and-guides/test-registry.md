@@ -23,6 +23,8 @@ current issue**. `/iflow-doctor` may audit the whole suite against this table.
 | `tests/test_cli.py::test_agent_queue_closed_dependency_outside_queue_is_satisfied` | no | no | `agent.run_queue` outside-dep state lookup | #364 | CLI wiring for `closed_external` |
 | `tests/test_workflow_doc.py::test_command_mode_membership_lists_standard_first` | yes | yes | `modes.command_mode_membership` | #358 | Pure; feeds the Modes column |
 | `tests/test_workflow_doc.py` (other tests) | no | no | `docs/issue-workflow.md.j2` structure per editor / novice | #358 | Renders via `run_init`; guards the command-reference layout |
+| `tests/test_doc_configuration.py::test_all_settings_table_lists_every_config_key_once` | yes | yes | `docs/configuration.md` vs `config_ops.CONFIG_KEYS` | #359 | Adding a knob without documenting it fails fast |
+| `tests/test_doc_configuration.py` (other tests) | no | no | `docs/configuration.md` layout | #359 | Starts with Common changes; no bare issue numbers |
 
 **Columns**
 
