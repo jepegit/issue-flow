@@ -15,6 +15,7 @@ than the GitHub release notes they link to.
 - Fixed dead external links: the graphify site (`graphify.net`, mangled to `iflow-graphify.net` in scaffolded rules and skills), graphify's license, the lychee install guide and PEP 440. (#353)
 - The docs site navigation is now grouped into tabs (Getting started, How-to guides, Reference, For agents, Project), and the How-to index is grouped by situation. (#346)
 - New Concepts page in the docs: the issue lifecycle, the `.issueflows/` folder, on-path vs off-path commands, where the agent stops to ask, and a glossary. (#347)
+- The docs home page is now a short pitch, the quick start, and three entry points (new users, specific tasks, AI agents). Home, Getting started and README now share one quick start. (#348)
 
 ## [0.5.10] - 2026-09-23
 

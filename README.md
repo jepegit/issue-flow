@@ -13,9 +13,9 @@ Agents should behave. Let them follow the issue flow.
 
 ## Why use it
 
-I guess it is just a matter of taste. If you are familiar with coding using agents and harnesses, `issue-flow` could very well slow you down. But...
+Every change starts from a GitHub issue, gets a written plan that **you approve before any code is touched**, and lands as a pull request with a changelog entry. The state of each issue is kept in plain markdown files in your repository, so the work survives across chat sessions and the next agent can pick it up.
 
-Maybe that is a good thing?
+It may slow you down a little compared with letting an agent loose. Maybe that is a good thing.
 
 
 ## What it does
@@ -207,7 +207,18 @@ cd your-project
 issue-flow init
 ```
 
-That's it. Open the project in Cursor and start with `/iflow` — or step through the linear path explicitly:
+That's it. Open the project in your editor and, in the chat window:
+
+| Type this | What happens |
+|---|---|
+| `iflow pick` | Shows you the open GitHub issues, you choose one, it creates a branch |
+| `iflow plan` | Writes a plan and **stops** for you to approve it |
+| `iflow build` | Implements the approved plan |
+| `iflow close` | Runs tests, updates the changelog, commits, pushes, opens a pull request |
+| `iflow cleanup` | After the PR is merged: back to the main branch, tidy up local branches |
+
+Forgot where you are? Type `iflow` and it runs the next step. (Slash forms
+such as `/iflow-plan` work too.)
 
 > **New to agentic coding, or starting from an empty folder?** Use
 > `issue-flow init --mode novice` instead — a smaller command surface with
@@ -215,12 +226,6 @@ That's it. Open the project in Cursor and start with `/iflow` — or step throug
 > window and the agent walks you through `uv init`, `git init`, `gh auth login`,
 > and creating the GitHub repository. See
 > [Getting started](https://issue-flow.readthedocs.io/en/latest/getting-started/).
-
-1. `/iflow-capture 42` — pulls GitHub issue #42 into `.issueflows/01-current-issues/` and archives older issues.
-2. `/iflow-plan` — drafts `issue<N>_plan.md` (Goal / Constraints / Approach / Files to touch / Test strategy / Open questions) and stops for your confirmation.
-3. `/iflow-build` — reads the confirmed plan and implements it.
-4. `/iflow-close` — runs tests, optionally bumps version, appends a `HISTORY.md` entry, updates status files, commits, pushes, and opens a PR.
-5. `/iflow-cleanup` — after the PR merges, switches to the default branch, fast-forwards, prunes, and deletes the merged local branch.
 
 Plus a few off-path commands (never auto-dispatched):
 
