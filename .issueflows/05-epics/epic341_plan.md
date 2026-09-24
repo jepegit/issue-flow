@@ -174,6 +174,14 @@ Run with `/iflow-drive 341` (draft already confirmed; Stage 2 published during t
 - **Tool bug found during the run:** #364. `agent queue` reported Stage 2 as blocked by the closed Stage 1 issue #344, so the stage order was derived by hand.
 - **Design note:** [docs-link-check.md](../04-designs-and-guides/docs-link-check.md).
 
+### Drive run 2 (2026-09-24)
+
+- Prerequisite: queue-tool fix #364 → PR #366. Stages 3–4 added to this plan → PR #367.
+- **Stage 3:** #358 → PR #368 + PR #369 (stopped the hands-off run as too big; done interactively with an approved plan), #359 → PR #370. Adversarial review: clear.
+- **Stage 4:** #360 → PR #371, #361 → PR #372, #362 → PR #373. Adversarial review: clear.
+- **Final review:** all seven acceptance criteria on #341 met (evidence in a comment on #341). #363 (sample session) was left for an interactive run; it is being produced by working #328 normally.
+- Records: `01-current-issues/auto_status.md` (run 2 section), `03-solved-issues/drive_status_2026-09-24_epic341-run2.md`, `03-solved-issues/cycle_status_2026-09-24_epic341-stage{3,4}.md`.
+
 ## Later (unstaged)
 
 _Superseded by #358–#363. Stages 3–4 above schedule #358–#362 (drive run 2). #363 stays manual._
