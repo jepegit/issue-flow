@@ -9,6 +9,27 @@ full command reference. Unfamiliar terms (focus issue, off-path, yolo, epic
 stage …) are explained in [Concepts](../concepts.md). For every slash command in detail, see
 [The workflow](../issue-workflow.md).
 
+## Quick recipes
+
+Label a batch of small issues and ship them hands-off
+([Run a cycle of issues](cycle.md)):
+
+```text
+iflow review yolo    # propose yolo labels; confirm once; apply
+iflow cycle yolo     # process every open yolo-labelled issue
+```
+
+Plan a large change as an epic ([Create and run epics](epics.md)):
+
+```text
+iflow epic 42                 # draft .issueflows/05-epics/epic42_plan.md
+iflow epic 42 publish         # or: publish stage 1
+iflow cycle epic 42 stage 1   # optional: batch the published stage
+```
+
+Not sure what to work on? `iflow pick` shows parked work first, then open
+GitHub issues ranked for you.
+
 ## Everyday
 
 | Guide | When to use it |
