@@ -7,7 +7,7 @@ title: How-to guides
 Short, task-oriented paths. Each page is goal → steps → related links — not a
 full command reference. Unfamiliar terms (focus issue, off-path, yolo, epic
 stage …) are explained in [Concepts](../concepts.md). For every slash command in detail, see
-[The workflow](../issue-workflow.md).
+[Command reference](../issue-workflow.md).
 
 ## Quick recipes
 

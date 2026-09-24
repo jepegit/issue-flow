@@ -59,4 +59,4 @@ iflow cleanup              # once, after the batch
 - [Use auto mode](auto-mode.md) — cycle a stage + adversarial review
 - [Create and run epics](epics.md) — `epic <N> [stage <k>]` queues
 - [After a squash merge](after-squash-merge.md) — post-batch cleanup
-- [The workflow](../issue-workflow.md) — `/iflow-cycle`
+- [Command reference](../issue-workflow.md) — `/iflow-cycle`

@@ -187,7 +187,7 @@ Details, loop budget, and stop conditions: [Use auto mode](auto-mode.md).
 
 ## Related
 
-- [The workflow](../issue-workflow.md) — `/iflow-epic`, `/iflow-cycle`, `/iflow-auto`
+- [Command reference](../issue-workflow.md) — `/iflow-epic`, `/iflow-cycle`, `/iflow-auto`
 - [Use auto mode](auto-mode.md) — unattended stage + review loop
 - [Fast-track a small issue](yolo.md) — single-issue hands-off
 - CLI: `issue-flow agent epic-status` — [CLI reference](../cli.md)
