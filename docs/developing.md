@@ -90,11 +90,11 @@ in [Configuration → Modes](configuration.md#modes). This section is for
 contributors changing how modes work in the package.
 
 **Built-in mode definitions** ship in
-[src/issue_flow/modes.toml](../src/issue_flow/modes.toml). Each `[modes.<id>]`
+[src/issue_flow/modes.toml](https://github.com/jepegit/issue-flow/blob/main/src/issue_flow/modes.toml). Each `[modes.<id>]`
 table accepts `name`, `description`, `skills`/`commands` (`"all"` or a list of
 stems), or `extends` + `add`/`remove` to compose on top of another mode.
 **Resolution and persistence** live in
-[src/issue_flow/modes.py](../src/issue_flow/modes.py).
+[src/issue_flow/modes.py](https://github.com/jepegit/issue-flow/blob/main/src/issue_flow/modes.py).
 
 Templates branch on surface membership via `included_skills` /
 `included_commands` (not on the mode id), so new modes and surfaces compose
@@ -154,6 +154,18 @@ We have two GitHub Actions workflows:
 - Installs dependencies
 - Runs ruff
 - Runs pytest
+- Builds the docs site and checks its links with [lychee](https://lychee.cli.rs/)
+  (`docs-links` job). Broken internal links (pages, anchors, assets) fail the
+  job. External links are reported in the job summary but never fail it.
+
+To run the internal link check locally ([install lychee](https://lychee.cli.rs/installation/) first):
+
+```bash
+scripts/check_doc_links.sh
+```
+
+The script builds the site and copies it to `_linkcheck/en/latest/` before
+checking, because Read the Docs serves pages under `/en/latest/`.
 
 **Publish** (`.github/workflows/publish.yml`) -- runs when you create a GitHub release:
 - Runs the full test suite first

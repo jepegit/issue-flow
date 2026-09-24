@@ -217,3 +217,4 @@ graphify-out/cache/
 # run; GRAPH_REPORT.md stays tracked because the scaffolded skills read it)
 graphify-out/graph.html
 graphify-out/graph.json
+/_linkcheck
