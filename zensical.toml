@@ -29,7 +29,7 @@ nav = [
     { "Choose a mode" = "how-to/choose-a-mode.md" },
     { "Editor support" = "editors.md" },
   ] },
-  # Concepts page lands with #347 (epic #341, stage 2).
+  { "Concepts" = "concepts.md" },
   { "How-to guides" = [
     "how-to/index.md",
     { "Everyday" = [

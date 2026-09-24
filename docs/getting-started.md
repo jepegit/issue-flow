@@ -148,13 +148,16 @@ Now the ordinary loop. In the chat window:
 | `iflow cleanup` | After the PR is merged: back to the main branch, tidy up local branches |
 
 If you forget where you are, just type `iflow` — it works out which step is
-next and runs it.
+next and runs it. [Concepts](concepts.md) explains what each step writes and
+where the agent stops to ask you.
 
 No issues on GitHub yet? Type `iflow issue` and the agent will help you write a
 well-specified one first.
 
 ## Where to go next
 
+- **[Concepts](concepts.md)** — the lifecycle, the `.issueflows/` folder, and
+  a glossary of terms.
 - **[How-to guides](how-to/index.md)** — short task paths (one issue, yolo,
   pause, cleanup, epics, auto, …).
 - **[The workflow](issue-workflow.md)** — every command in detail.

@@ -14,6 +14,7 @@ than the GitHub release notes they link to.
 - CI now builds the docs site and fails on broken internal links (lychee). External links are reported but never block a PR. Run it locally with `scripts/check_doc_links.sh`. (#344)
 - Fixed dead external links: the graphify site (`graphify.net`, mangled to `iflow-graphify.net` in scaffolded rules and skills), graphify's license, the lychee install guide and PEP 440. (#353)
 - The docs site navigation is now grouped into tabs (Getting started, How-to guides, Reference, For agents, Project), and the How-to index is grouped by situation. (#346)
+- New Concepts page in the docs: the issue lifecycle, the `.issueflows/` folder, on-path vs off-path commands, where the agent stops to ask, and a glossary. (#347)
 
 ## [0.5.10] - 2026-09-23
 
