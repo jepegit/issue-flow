@@ -35,6 +35,7 @@ GitHub issues ranked for you.
 | Guide | When to use it |
 | --- | --- |
 | [Work one issue end-to-end](work-one-issue.md) | The normal loop: pick → plan → build → close → cleanup |
+| [A sample session](sample-session.md) | One real issue from pick to cleanup, with what the agent printed and where it stopped |
 | [Park and resume](park-and-resume.md) | Stop mid-issue without losing state |
 | [After a squash merge](after-squash-merge.md) | PR landed; tidy local (and optionally remote) branches |
 | [Work in a sibling worktree (or stay inplace)](worktrees.md) | Default `../repo-N` start; `worktree_first` knob; `inplace` / `worktree` tokens |

@@ -34,6 +34,7 @@ nav = [
     "how-to/index.md",
     { "Everyday" = [
       { "Work one issue end-to-end" = "how-to/work-one-issue.md" },
+      { "A sample session" = "how-to/sample-session.md" },
       { "Park and resume" = "how-to/park-and-resume.md" },
       { "After a squash merge" = "how-to/after-squash-merge.md" },
       { "Work in a sibling worktree" = "how-to/worktrees.md" },

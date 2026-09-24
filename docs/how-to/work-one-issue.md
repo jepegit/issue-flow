@@ -28,6 +28,7 @@ plan, build, or close from the focus-issue files under `.issueflows/`.
 
 ## Related
 
+- [A sample session](sample-session.md) — these steps on a real issue, with the agent's output
 - [Command reference](../issue-workflow.md) — every command in detail
 - [Work in a sibling worktree](worktrees.md) — default start, `worktree_first` knob, `inplace` / `worktree` tokens
 - [Getting started](../getting-started.md) — first-hour setup
