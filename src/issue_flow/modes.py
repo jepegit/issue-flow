@@ -78,6 +78,9 @@ DEFAULT_AUTO_GRAPHIFY_ON_PLAN = False
 DEFAULT_AUTO_SWITCHBACK = True
 DEFAULT_AUTO_REMOVE_WORKTREE = True
 DEFAULT_WORKTREE_FIRST = True
+# Where issue worktrees go (#328): "" = next to the repo (default).
+DEFAULT_WORKTREES_DIR = ""
+DEFAULT_WORKTREES_IN_WORKSPACE = True
 DEFAULT_PR_MERGE_METHOD = "squash"
 ALLOWED_PR_MERGE_METHODS = frozenset({"squash", "merge", "rebase"})
 DEFAULT_CYCLE_MAX_ISSUES = 10
@@ -734,6 +737,33 @@ def read_worktree_first(cfg_path: Path) -> bool | None:
     return None
 
 
+def read_worktrees_dir(cfg_path: Path) -> str | None:
+    """Return the persisted ``[issueflow].worktrees_dir`` (``None`` if unset).
+
+    An explicit empty string is returned as ``""`` so a project can switch off
+    a user-global common worktrees folder.
+    """
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "worktrees_dir" in section:
+        value = section.get("worktrees_dir")
+        return "" if value is None else str(value).strip()
+    return None
+
+
+def read_worktrees_in_workspace(cfg_path: Path) -> bool | None:
+    """Return the persisted ``[issueflow].worktrees_in_workspace`` flag."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "worktrees_in_workspace" in section:
+        return bool(section.get("worktrees_in_workspace"))
+    return None
+
+
 def read_pr_merge_method(cfg_path: Path) -> str | None:
     """Return persisted ``[issueflow].pr_merge_method``, or ``None`` if unset/invalid."""
     if not cfg_path.is_file():
@@ -1132,6 +1162,8 @@ def write_default_config(
     essential_review: str = DEFAULT_ESSENTIAL_REVIEW,
     pstack_skills: object = DEFAULT_PSTACK_SKILLS,
     overwrite: bool = False,
+    worktrees_dir: str = DEFAULT_WORKTREES_DIR,
+    worktrees_in_workspace: bool = DEFAULT_WORKTREES_IN_WORKSPACE,
 ) -> bool:
     """Create (or, with ``overwrite``, refresh) the project's ``config.toml``.
 
@@ -1200,6 +1232,8 @@ def write_default_config(
         section["essential_marker"] = essential_marker
         section["essential_review"] = essential_review
         section["pstack_skills"] = normalize_pstack_skills(pstack_skills)
+        section["worktrees_dir"] = worktrees_dir
+        section["worktrees_in_workspace"] = worktrees_in_workspace
     else:
         doc = tomlkit.document()
         doc.add(
@@ -1253,6 +1287,8 @@ def write_default_config(
             essential_marker,
             essential_review,
             normalize_pstack_skills(pstack_skills),
+            worktrees_dir=worktrees_dir,
+            worktrees_in_workspace=worktrees_in_workspace,
         )
 
     cfg_path.write_text(tomlkit.dumps(doc), encoding="utf-8")
@@ -1314,6 +1350,8 @@ def _commented_issueflow_table(
     essential_marker: str,
     essential_review: str,
     pstack_skills: list[str] | None = None,
+    worktrees_dir: str = DEFAULT_WORKTREES_DIR,
+    worktrees_in_workspace: bool = DEFAULT_WORKTREES_IN_WORKSPACE,
 ) -> tomlkit.items.Table:
     """Build a fresh ``[issueflow]`` table with explanatory comments per key."""
     table = tomlkit.table()
@@ -1616,4 +1654,20 @@ def _commented_issueflow_table(
         )
     )
     table["pstack_skills"] = list(pstack_skills or [])
+    table.add(
+        tomlkit.comment(
+            "Common folder for issue worktrees, e.g. '~/worktrees' (absolute or "
+            "~; best set user-wide with 'config set --global'). Empty = next to "
+            "the repo. A missing folder falls back to next-to-repo."
+        )
+    )
+    table["worktrees_dir"] = worktrees_dir
+    table.add(
+        tomlkit.comment(
+            "When the repo sits in a workspace folder (issueflow-workspace.toml "
+            "above it), keep worktrees next to the repo, inside that folder "
+            "(true/false; default true)."
+        )
+    )
+    table["worktrees_in_workspace"] = worktrees_in_workspace
     return table

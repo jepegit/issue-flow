@@ -22,6 +22,7 @@ than the GitHub release notes they link to.
 - New Troubleshooting page in the docs covering common first-hour problems: `gh` not signed in, `issue-flow` not on PATH, commands missing from the editor, stale skills after an upgrade, squash-merged branches, several issues marked current, a refused pull, conflicting PRs, and WSL/Windows config paths. (#360)
 - The docs now have Mermaid diagrams: the issue lifecycle, what `iflow` runs next, how issue files move between folders (on Concepts), and the epic flow. They render in both light and dark mode. (#361)
 - New how-to guides: run a fix session, write a good issue, split a big issue, do ops work without a PR, and drive an epic hands-off. The command reference links to them. (#362)
+- You can now choose where issue worktrees go. Set `worktrees_dir` (for example `issue-flow config set --global worktrees_dir ~/worktrees`) to keep them in one common folder. Repos inside a workspace folder keep their worktrees next to them unless `worktrees_in_workspace = false`. A missing folder falls back to the old location with a note, and `issue-flow agent worktree-add` reports which rule applied. (#328)
 
 ## [0.5.10] - 2026-09-23
 
