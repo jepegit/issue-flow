@@ -1,19 +1,35 @@
 # auto_status
 
-- epic: 269
-- stage: 3
-- stage_title: User-global skill materialize
+- epic: 341
+- stage: 2
+- stage_title: Restructure navigation and entry points
 - loop_count: 0
 - budget: 2
 - last_outcome: complete
-- overnight_authorization: yes (2026-09-17)
-- started_at: 2026-09-17T21:45:00Z
-- finished_at: 2026-09-17T21:55:00Z
-- queue: #292, #293
-- findings: none
-- adversarial: clear
-  - Stage goal: `init`/`update` write `caveman`/`grill-me`/`gh-ci` to verified per-editor globals; project copies stay; #276 stamps skip foreign unless `--force`. Met by #292 (opencode path verified) + #293 (PR #295).
-  - Epic goal: item (3) implemented for default harness; no regression vs lock/registry/update-all constraints; not skillbook.
-  - Spec honesty: four editor write targets, user-global stamp store, `--force` overwrite_foreign, isolated HOME/XDG tests, docs. No silent scope cut.
-  - Blast radius: scoped to init/update/surfaces/user_global/skill_ownership + conftest HOME isolation.
-- notes: All published stages (1–3) done. Later (disk discovery, workspace/registry dedupe, Windows-native from WSL) unpublished — not started. Stash `iflow-auto-269-unrelated-dirt` still holds pre-stage-3 local dirt.
+- overnight_authorization: yes (via /iflow-drive 341 confirm, 2026-09-24)
+- started_at: 2026-09-24T08:00:49Z
+- queue: #346, #347, #348 (stage 2); stage 1 was #342, #343, #344 + #353
+- cycle: #342 → PR #350, #343 → PR #351, #344 → PR #352 (all merged)
+- findings:
+  - #353 (created): 6 dead external links reported by the new docs-links external step. `iflow-graphify.net` (a #74 rename artefact in templates), graphify LICENSE branch, lychee install URL (from #344), PEP 440 URL. Conflicts with the epic goal of "no 404s".
+- adversarial (loop 1):
+  - Stage goal: MET. The internal check reports 0 errors in CI (PR #352 run), and fails (rc=2) when a broken link is reintroduced.
+  - Epic goal: no regression. Goal (1) is met for internal links; external 404s are tracked in #353.
+  - Spec honesty: #342/#343/#344 goals verified. #344 added one dead external URL (folded into #353).
+  - Blast radius: templates changed only in URLs (#342). The new CI job is independent of the test job.
+- adversarial (loop 2, after re-queue of #353 → PR #354):
+  - Stage goal: MET. Internal 0 errors; the external step now also reports 0 errors (PR #354 CI run).
+  - Epic goal: no regression; link goal (1) is fully met, internal and external.
+  - Spec honesty: #353 goal verified (grep returns nothing; external 0 errors).
+  - Blast radius: URL-only template changes plus one new test.
+- gate: stage 1 clear (2026-09-24T08:19:15Z); advancing to stage 2
+- note (2026-09-24T08:19:57Z): `agent queue --epic 341` wrongly reports #346 blocked by the closed #344. `queueplan.build_queue` only treats deps as closed when they are in the queue itself, and it also queued #347 ahead of the blocked #346 (no transitive blocking). Verified #344 CLOSED. Stage 2 runs in dependency order #346 → #347 → #348. Filed as #364.
+- stage 2 cycle: #346 → PR #355, #347 → PR #356, #348 → PR #357 (all merged)
+- adversarial (stage 2, loop 1): CLEAR
+  - Stage goal: MET. Nav grouped with tabs; one canonical quick start (Home / Getting started / README, enforced by tests/test_doc_quickstart.py); every core term on Concepts.
+  - Epic goal: parts (1)–(3) met. Part (4), the reference pages, is still open: it is in the unstaged Later work and goes to the drive final review.
+  - Spec honesty: deviations documented in the status files (#346: no stub page, Extras group; #347: optional tooltips skipped).
+  - Blast radius: docs, README, 2 tests; no code paths.
+  - Note: nav label "Commands" vs page H1 "Cursor issue workflow" and 12 "The workflow" link texts. This belongs to the Later command-reference restructure.
+- gate: stage 2 clear; no later published stage → complete (2026-09-24T08:36:27Z)
+- finished_at: 2026-09-24T08:36:27Z
