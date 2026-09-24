@@ -1,6 +1,6 @@
 # Status — Issue #358
 
-- [ ] Done
+- [x] Done
 
 ## What's done (PR 1 — template restructure)
 
@@ -16,6 +16,11 @@
 - Tests: `tests/test_workflow_doc.py`, with a structure check for each of cursor / claude / opencode / codex, a Modes column vs `modes.toml` check, the novice marking, and a membership check (essential). `test_config.py` expects the new context key.
 - Verified by rendering 5 throwaway projects (4 editors + novice). All 869 tests pass. Link check: internal and external both 0 errors.
 
+## What's done (PR 2 — site link texts)
+
+- Renamed 13 "[The workflow](…)" links across `docs/` to "[Command reference](…)", and updated the `llms.txt` entry. `grep -rn 'The workflow\](' docs` returns nothing.
+- No extra `HISTORY.md` bullet: PR 1's #358 bullet covers the issue.
+
 ## Remaining work
 
-- PR 2: rename the "[The workflow]" link texts across `docs/` and `llms.txt` to "Command reference".
+- None.

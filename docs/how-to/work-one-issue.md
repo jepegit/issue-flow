@@ -28,7 +28,7 @@ plan, build, or close from the focus-issue files under `.issueflows/`.
 
 ## Related
 
-- [The workflow](../issue-workflow.md) — full command reference
+- [Command reference](../issue-workflow.md) — every command in detail
 - [Work in a sibling worktree](worktrees.md) — default start, `worktree_first` knob, `inplace` / `worktree` tokens
 - [Getting started](../getting-started.md) — first-hour setup
 - [Fast-track a small issue](yolo.md) — when the change is tiny

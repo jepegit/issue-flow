@@ -29,5 +29,5 @@ route the group correctly.
 
 ## Related
 
-- [The workflow](../issue-workflow.md) — `/iflow-pause`
+- [Command reference](../issue-workflow.md) — `/iflow-pause`
 - [Work one issue end-to-end](work-one-issue.md)

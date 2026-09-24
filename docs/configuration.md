@@ -326,7 +326,7 @@ trigger label; re-run `issue-flow update` after changing either so the commands
 re-render. Only honored when the `iflow-pick` and `iflow-yolo` commands are part
 of the active mode.
 
-Related off-path flows (see [The workflow](issue-workflow.md)):
+Related off-path flows (see [Command reference](issue-workflow.md)):
 
 - `/iflow-review` — propose which open issues should get the configured
   `yolo_label` (re-score all open issues; apply behind one confirm).

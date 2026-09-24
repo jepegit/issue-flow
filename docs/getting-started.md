@@ -160,7 +160,7 @@ well-specified one first.
   a glossary of terms.
 - **[How-to guides](how-to/index.md)** — short task paths (one issue, yolo,
   pause, cleanup, epics, auto, …).
-- **[The workflow](issue-workflow.md)** — every command in detail.
+- **[Command reference](issue-workflow.md)** — every command in detail.
 - **[Configuration](configuration.md)** — the settings `--mode novice` chose
   for you, and how to change them.
 - **[Editor support](editors.md)** — what gets scaffolded for each editor.

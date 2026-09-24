@@ -25,6 +25,6 @@ Close / yolo / cycle **remind** you to run cleanup; they do not run it for you.
 
 ## Related
 
-- [The workflow](../issue-workflow.md) — `/iflow-cleanup`
+- [Command reference](../issue-workflow.md) — `/iflow-cleanup`
 - [CLI](../cli.md) — `agent local-branches` / `agent branches` (read-only audits)
 - [Refresh dirty open PRs](pr-sync.md) — when other open PRs went dirty

@@ -76,7 +76,7 @@ still removes any leftover worktree (reachable / squash-landed) **before**
 
 - [Work one issue end-to-end](work-one-issue.md) — pick → close loop
 - [After a squash merge](after-squash-merge.md) — prune branches / worktrees
-- [The workflow](../issue-workflow.md) — multi-root / worktree note
+- [Command reference](../issue-workflow.md) — `/iflow-pick` worktree start
 - [Use issue-flow in a folder of repos](workspaces.md) — parent folder + sibling repos (not the same as `../repo-N` worktrees)
 - Design notes: [separate-workspaces.md](https://github.com/jepegit/issue-flow/blob/main/.issueflows/04-designs-and-guides/separate-workspaces.md)
   (issue-flow repository)

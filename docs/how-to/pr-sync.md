@@ -24,6 +24,6 @@ owns the confirm).
 
 ## Related
 
-- [The workflow](../issue-workflow.md) — `/iflow-pr-sync` reference
+- [Command reference](../issue-workflow.md) — `/iflow-pr-sync` reference
 - [CLI](../cli.md) — `agent sync-branch` / `agent pr-sync`
 - [After a squash merge](after-squash-merge.md)
