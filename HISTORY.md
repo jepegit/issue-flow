@@ -20,6 +20,7 @@ than the GitHub release notes they link to.
 - The scaffolded `docs/issue-workflow.md` is now an editor-neutral **command reference**: one table of every command, with its on/off path and the modes that install it, grouped by purpose, and the same When / Arguments / What it does / What it asks you / Result / Related layout for each command. `/iflow-pr-sync` and `/iflow-doctor` now have their own sections. Run `issue-flow update` to refresh it in your projects. (#358)
 - The configuration docs now start with the common changes, and have one table of every `config.toml` setting with its type, default and effect. A test keeps that table in sync with the code. How settings are resolved (precedence, user-global config, environment-only variables) moved to the end. (#359)
 - New Troubleshooting page in the docs covering common first-hour problems: `gh` not signed in, `issue-flow` not on PATH, commands missing from the editor, stale skills after an upgrade, squash-merged branches, several issues marked current, a refused pull, conflicting PRs, and WSL/Windows config paths. (#360)
+- The docs now have Mermaid diagrams: the issue lifecycle, what `iflow` runs next, how issue files move between folders (on Concepts), and the epic flow. They render in both light and dark mode. (#361)
 
 ## [0.5.10] - 2026-09-23
 
