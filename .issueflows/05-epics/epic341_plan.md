@@ -81,22 +81,25 @@ stages can link to it instead of re-explaining them.
 - Model: default
 - Depends on: #344
 - yolo: no — grouping and labels are judgement calls the user should see.
+- Published: #346
 
 ### Issue: docs: add a Concepts page with glossary
 
 - Spec: Create `docs/concepts.md` covering: the lifecycle (capture → plan → build → close → cleanup) and the file each step writes; the `.issueflows/` layout and how issue groups move between 01/02/03 (move the file tree here from the home page); on-path vs off-path commands; where the agent always stops to ask; and a glossary table (focus issue, off-path, dispatcher, parked, sweep, yolo, epic, stage, epoch, adversarial review, squash-landed, mode vs skill level vs noob, managed block, harness, worktree-first). Explain once that "command" and "skill" refer to the same thing depending on the editor. Optionally add glossary tooltips site-wide via `abbr` + snippets. See review §5, §13.
 - Goal: every term above is defined on one page, and the other pages link to it at first use on Home, Getting started, and the How-to index.
 - Model: deep
-- Depends on: stage 2 issue 1
+- Depends on: #346
 - yolo: no — new explanatory content; accuracy needs careful review.
+- Published: #347
 
 ### Issue: docs: slim the home page and unify the quick start
 
 - Spec: Rewrite `docs/index.md` as: a concrete benefit statement (replacing the current "Why" section), a small lifecycle overview, three entry points (New to issue-flow → Getting started; Want to do X → How-to; AI agent → For agents / llms.txt), and an install one-liner. Move the recipes into the How-to index. Use one canonical quick start (`iflow pick → plan → build → close → cleanup`) on Home, Getting started and README. Make the file tree editor-neutral, or put it in tabs per editor (`pymdownx.tabbed`). See review §3, §12.
 - Goal: the home page fits roughly one screen plus the entry points, and Home, Getting started and README show the same quick start.
 - Model: deep
-- Depends on: stage 2 issue 2
+- Depends on: #347
 - yolo: no — the home page is the project's front door, so wording and tone need the user's judgement.
+- Published: #348
 
 ## Later (unstaged)
 
