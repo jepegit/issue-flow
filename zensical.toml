@@ -13,7 +13,7 @@ site_author = "jepegit"
 
 # Canonical URL of the published docs. Adjust if the Read the Docs project
 # ends up under a different slug than "issue-flow".
-site_url = "https://issue-flow.readthedocs.io/"
+site_url = "https://issue-flow.readthedocs.io/en/latest/"
 
 repo_url = "https://github.com/jepegit/issue-flow"
 repo_name = "jepegit/issue-flow"

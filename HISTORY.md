@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- Docs links now include `/en/latest/`, so they no longer return 404 on Read the Docs. This covers scaffolded templates, `llms.txt` and the README. (#342)
+
 ## [0.5.10] - 2026-09-23
 
 - Workspace-wide status, doctor, and dirty commands; opt-in `/iflow-cleanup workspace`. (#318)
