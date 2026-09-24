@@ -53,6 +53,7 @@ nav = [
     { "Extras" = [
       { "Use pstack skills" = "how-to/pstack-skills.md" },
     ] },
+    { "Troubleshooting" = "how-to/troubleshooting.md" },
   ] },
   { "Reference" = [
     { "Commands" = "issue-workflow.md" },

@@ -125,7 +125,8 @@ first:
   override, or skipping CI.
 
 With `--mode novice`, every step also stops and asks before chaining into the
-next one. See [Choose a mode](how-to/choose-a-mode.md).
+next one. See [Choose a mode](how-to/choose-a-mode.md). If something does not
+behave as described here, see [Troubleshooting](how-to/troubleshooting.md).
 
 ## Glossary
 

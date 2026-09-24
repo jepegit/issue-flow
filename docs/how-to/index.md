@@ -66,6 +66,12 @@ GitHub issues ranked for you.
 | --- | --- |
 | [Use pstack skills](pstack-skills.md) | Opt-in unslop / tdd / blast-radius and friends |
 
+## Something went wrong?
+
+[Troubleshooting](troubleshooting.md) collects common problems (`gh` not
+signed in, commands missing from the editor, a stale scaffold, a merged branch
+"ahead of main", a refused pull) with the fix for each.
+
 ## Elsewhere
 
 - **Setting up:** [Choose a mode](choose-a-mode.md) (`novice` / `simple` /
