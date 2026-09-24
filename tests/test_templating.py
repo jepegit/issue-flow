@@ -369,8 +369,8 @@ def test_iflow_init_is_harness_cold_start_not_capture() -> None:
     rendered = render_template("commands/iflow-init.md.j2", _default_context())
     assert "issue-flow init" in rendered
     assert "workspace bootstrap" in rendered
-    assert "https://issue-flow.readthedocs.io/how-to/workspaces/" in rendered
-    assert "https://issue-flow.readthedocs.io/how-to/for-agents/" in rendered
+    assert "https://issue-flow.readthedocs.io/en/latest/how-to/workspaces/" in rendered
+    assert "https://issue-flow.readthedocs.io/en/latest/how-to/for-agents/" in rendered
     assert "issue-flow agent capture" not in rendered
     assert "/iflow-capture" in rendered
     assert "off-path" in rendered.lower()
@@ -379,8 +379,8 @@ def test_iflow_init_is_harness_cold_start_not_capture() -> None:
 def test_iflow_init_skill_points_at_workspace_howto() -> None:
     """Agents following /iflow-init must see the same parent-folder recipe (#313)."""
     rendered = render_template("skills/iflow_init/SKILL.md.j2", _default_context())
-    assert "https://issue-flow.readthedocs.io/how-to/workspaces/" in rendered
-    assert "https://issue-flow.readthedocs.io/how-to/for-agents/" in rendered
+    assert "https://issue-flow.readthedocs.io/en/latest/how-to/workspaces/" in rendered
+    assert "https://issue-flow.readthedocs.io/en/latest/how-to/for-agents/" in rendered
     assert "uv tool upgrade issue-flow" in rendered
     assert "workspace bootstrap --yes --default" in rendered
     assert "workspace init --default" in rendered

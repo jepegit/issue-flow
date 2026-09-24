@@ -4,15 +4,15 @@
 
 ## Agent setup (read first)
 
-- [Upgrade, init, and workspace](https://issue-flow.readthedocs.io/how-to/for-agents/): package upgrade (`uv tool upgrade`) vs scaffold refresh (`issue-flow update` / `workspace update`); user-global `iflow init`; parent-folder workspace.
-- [Folder of repos](https://issue-flow.readthedocs.io/how-to/workspaces/): `workspace bootstrap` / `init` / `update` from the parent. Never `init` the parent.
+- [Upgrade, init, and workspace](https://issue-flow.readthedocs.io/en/latest/how-to/for-agents/): package upgrade (`uv tool upgrade`) vs scaffold refresh (`issue-flow update` / `workspace update`); user-global `iflow init`; parent-folder workspace.
+- [Folder of repos](https://issue-flow.readthedocs.io/en/latest/how-to/workspaces/): `workspace bootstrap` / `init` / `update` from the parent. Never `init` the parent.
 
 ## Humans
 
-- [Getting started](https://issue-flow.readthedocs.io/getting-started/): install uv + issue-flow, first `init`, `iflow setup`.
-- [How-to index](https://issue-flow.readthedocs.io/how-to/): pick, worktrees, yolo, cycle, epics, cleanup.
-- [Workflow](https://issue-flow.readthedocs.io/issue-workflow/): every slash/skill in detail.
-- [CLI reference](https://issue-flow.readthedocs.io/cli/): `init`, `update`, `workspace`, `agent`, completion.
+- [Getting started](https://issue-flow.readthedocs.io/en/latest/getting-started/): install uv + issue-flow, first `init`, `iflow setup`.
+- [How-to index](https://issue-flow.readthedocs.io/en/latest/how-to/): pick, worktrees, yolo, cycle, epics, cleanup.
+- [Workflow](https://issue-flow.readthedocs.io/en/latest/issue-workflow/): every slash/skill in detail.
+- [CLI reference](https://issue-flow.readthedocs.io/en/latest/cli/): `init`, `update`, `workspace`, `agent`, completion.
 - After `/iflow-close` (non-yolo): `issue-flow agent pr-ready [N] [--watch]` classifies merge-ready; never merges.
 
 ## Do not

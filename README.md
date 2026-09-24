@@ -214,7 +214,7 @@ That's it. Open the project in Cursor and start with `/iflow` — or step throug
 > settings that stop and ask at each step — then type `iflow setup` in the chat
 > window and the agent walks you through `uv init`, `git init`, `gh auth login`,
 > and creating the GitHub repository. See
-> [Getting started](https://issue-flow.readthedocs.io/getting-started/).
+> [Getting started](https://issue-flow.readthedocs.io/en/latest/getting-started/).
 
 1. `/iflow-capture 42` — pulls GitHub issue #42 into `.issueflows/01-current-issues/` and archives older issues.
 2. `/iflow-plan` — drafts `issue<N>_plan.md` (Goal / Constraints / Approach / Files to touch / Test strategy / Open questions) and stops for your confirmation.
