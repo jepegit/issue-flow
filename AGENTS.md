@@ -457,9 +457,9 @@ When an editor workspace contains **multiple sibling repositories**, each with i
 - `/iflow-capture` and `/iflow-build` both sweep that folder automatically: every `issue<n>_*` group **other than the focus issue** is moved to `.issueflows/03-solved-issues` if a status file contains `- [x] Done`, otherwise to `.issueflows/02-partly-solved-issues`. Keep status files accurate so the sweep routes them correctly.
 
 
-### Knowledge graph (optional, via [graphify](https://iflow-graphify.net))
+### Knowledge graph (optional, via [graphify](https://graphify.net))
 
-If a `graphify-out/` folder exists in the project root, the project has the optional [graphify](https://iflow-graphify.net) integration enabled and a knowledge graph is available alongside the source.
+If a `graphify-out/` folder exists in the project root, the project has the optional [graphify](https://graphify.net) integration enabled and a knowledge graph is available alongside the source.
 
 - **Before grepping**, skim `graphify-out/GRAPH_REPORT.md`. It surfaces god-nodes (most-connected concepts), surprising cross-module connections, and suggested questions the graph can answer — often a faster way to locate the files an issue actually touches than full-text search.
 - **`/iflow-graphify`** (slash command) or **`issue-flow graphify`** (CLI) rebuild the graph. With no extra args this runs `graphify update <project>` — AST-only, **no LLM API key needed**. For richer semantic relationships (cross-file links surfaced by an LLM pass), run `issue-flow graphify extract` after setting `GEMINI_API_KEY` / `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `MOONSHOT_API_KEY` (or pass `--backend ollama` for a local LLM). Other subcommands: `watch` (live), `cluster-only --no-viz` (re-cluster). Trailing flags pass through verbatim. Your agent's own LLM cannot be reused by subprocesses; graphify needs its own backend.

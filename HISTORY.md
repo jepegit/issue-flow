@@ -12,6 +12,7 @@ than the GitHub release notes they link to.
 - Docs links now include `/en/latest/`, so they no longer return 404 on Read the Docs. This covers scaffolded templates, `llms.txt` and the README. (#342)
 - Docs no longer link to design notes outside the published site. The Getting started page now lists prerequisites, and the CLI reference says the `agent` helpers are mostly for skills. (#343)
 - CI now builds the docs site and fails on broken internal links (lychee). External links are reported but never block a PR. Run it locally with `scripts/check_doc_links.sh`. (#344)
+- Fixed dead external links: the graphify site (`graphify.net`, mangled to `iflow-graphify.net` in scaffolded rules and skills), graphify's license, the lychee install guide and PEP 440. (#353)
 
 ## [0.5.10] - 2026-09-23
 

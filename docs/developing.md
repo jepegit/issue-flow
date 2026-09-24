@@ -158,7 +158,7 @@ We have two GitHub Actions workflows:
   (`docs-links` job). Broken internal links (pages, anchors, assets) fail the
   job. External links are reported in the job summary but never fail it.
 
-To run the internal link check locally ([install lychee](https://lychee.cli.rs/installation/) first):
+To run the internal link check locally ([install lychee](https://lychee.cli.rs/guides/getting-started/) first):
 
 ```bash
 scripts/check_doc_links.sh
@@ -202,7 +202,7 @@ uv version --bump patch                     # or: minor / major / alpha / …
 ```
 
 `uv version --bump <level>` updates `[project].version` in `pyproject.toml`.
-Levels follow [PEP 440](https://packaging.python.org/en/latest/specifications/pep-0440/)
+Levels follow [PEP 440](https://packaging.python.org/en/latest/specifications/version-specifiers/)
 via uv (`patch`, `minor`, `major`, `stable`, `alpha`, `beta`, `rc`, `post`,
 `dev`). A bare `bump` in `/iflow-close` stays on the current pre-release
 channel when the version is already an alpha/beta/rc.

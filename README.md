@@ -130,7 +130,7 @@ Lifecycle commands must still target the correct repo (`root:` / `repo:` hints, 
 
 ### Optional: graphify integration
 
-issue-flow has a lightweight integration with [graphify](https://iflow-graphify.net)
+issue-flow has a lightweight integration with [graphify](https://graphify.net)
 (PyPI: `graphifyy`, CLI: `graphify`) — a tool that turns the project into a
 queryable knowledge graph that AI assistants can read instead of grepping
 through files. The integration is **opt-in by installing `graphifyy` as its
