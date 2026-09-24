@@ -142,6 +142,11 @@ pygments_lang_class = true
 [project.markdown_extensions.pymdownx.snippets]
 base_path = ["."]
 [project.markdown_extensions.pymdownx.superfences]
+# Mermaid diagrams (```mermaid fences); the theme loads Mermaid and follows
+# the light/dark palette. Decision: .issueflows/04-designs-and-guides/docs-diagrams.md
+custom_fences = [
+  { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" }
+]
 [project.markdown_extensions.pymdownx.tabbed]
 alternate_style = true
 combine_header_slug = true

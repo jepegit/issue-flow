@@ -34,8 +34,13 @@ One GitHub issue becomes one branch and one pull request. Each step writes or
 moves a markdown file under `.issueflows/`, so the state of the work survives
 across chat sessions and can be read by the next agent.
 
-```text
-pick ──▶ capture ──▶ plan ──▶ build ──▶ close ──▶ (merge on GitHub) ──▶ cleanup
+```mermaid
+flowchart LR
+    pick(["iflow pick"]) --> capture["capture<br/>issueN_original.md"]
+    capture --> plan["plan<br/>issueN_plan.md"]
+    plan -->|you approve| build["build<br/>code + issueN_status.md"]
+    build --> close["close<br/>tests, changelog, PR"]
+    close -->|PR merged on GitHub| cleanup(["iflow cleanup"])
 ```
 
 | Step | Command | What it writes or does |
@@ -49,6 +54,23 @@ pick ──▶ capture ──▶ plan ──▶ build ──▶ close ──▶ 
 
 If you lose track, type `iflow`. It looks at the **focus issue's** files and
 dispatches:
+
+```mermaid
+flowchart TD
+    iflow{{"iflow"}} --> q1{"issueN_original.md<br/>exists?"}
+    q1 -->|no| capture["capture"]
+    q1 -->|yes| q2{"issueN_plan.md<br/>exists?"}
+    q2 -->|no| plan["plan"]
+    q2 -->|yes| q3{"status says<br/>- [x] Done?"}
+    q3 -->|no| build["build"]
+    q3 -->|yes| close["close"]
+    pick(["iflow pick<br/>(off-path)"]) -.-> capture
+    build -.-> pause(["iflow pause<br/>(off-path)"])
+    close -.->|after the merge| cleanup(["iflow cleanup<br/>(off-path)"])
+```
+
+Solid arrows are what `iflow` chooses; dotted ones are off-path commands you
+run yourself. As a table:
 
 | What exists | Next step |
 | --- | --- |
@@ -72,10 +94,13 @@ dispatches:
 An issue's files (`issue<N>_original.md`, `_plan.md`, `_status.md`) move as one
 **group**:
 
-```text
-                     ┌─ status says - [x] Done ─▶ 03-solved-issues/
-01-current-issues/ ──┤
-                     └─ otherwise ──────────────▶ 02-partly-solved-issues/
+```mermaid
+flowchart LR
+    gh[("GitHub issue")] -->|capture| cur["01-current-issues/"]
+    cur -->|"close, or sweep<br/>(status says Done)"| solved["03-solved-issues/"]
+    cur -->|"pause, or sweep<br/>(not Done)"| parked["02-partly-solved-issues/"]
+    parked -->|"pick or capture<br/>to resume"| cur
+    solved -->|archive| summary["dated summary file"]
 ```
 
 - `iflow close` moves the focus issue when it is finished.

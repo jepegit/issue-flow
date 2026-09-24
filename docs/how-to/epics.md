@@ -15,6 +15,19 @@ yolo/cycle).
 
 ## Mental model
 
+```mermaid
+flowchart TD
+    anchor["Anchor issue #N<br/>iflow issue epic"] --> draft["epicN_plan.md<br/>iflow epic N"]
+    draft -->|you confirm| confirmed["Status: confirmed"]
+    confirmed -->|"iflow epic N publish"| s1["Stage 1 issues<br/>on GitHub"]
+    s1 -->|"pick / yolo / cycle,<br/>or iflow auto N"| d1["Stage 1 closed<br/>(auto: adversarial review)"]
+    d1 -->|publish next stage| s2["Stage 2 issues"]
+    s2 --> d2["… until every stage is closed"]
+```
+
+`iflow drive N` runs this whole path hands-off after one confirmation.
+The same structure as text:
+
 ```text
 Anchor issue (#N)                 ← umbrella on GitHub; tracks progress
     └─ epic<N>_plan.md            ← local plan under .issueflows/05-epics/
