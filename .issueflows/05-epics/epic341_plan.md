@@ -101,7 +101,28 @@ stages can link to it instead of re-explaining them.
 - yolo: no — the home page is the project's front door, so wording and tone need the user's judgement.
 - Published: #348
 
+## Outcome (drive run, 2026-09-24)
+
+Run with `/iflow-drive 341` (draft already confirmed; Stage 2 published during the drive). Run records: `01-current-issues/auto_status.md`, `03-solved-issues/drive_status_2026-09-24_epic341.md`, and `03-solved-issues/cycle_status_2026-09-24_epic341-*.md`.
+
+- **Stage 1:** done. #342 → PR #350, #343 → PR #351, #344 → PR #352.
+  - The adversarial review (loop 1) found 6 dead external links, including `iflow-graphify.net` in the shipped templates. Blocker #353 → PR #354. Loop 2: clear.
+- **Stage 2:** done. #346 → PR #355, #347 → PR #356, #348 → PR #357. Adversarial review: clear.
+- **Epic goal:** parts (1)–(3) met. Part (4) (reference pages) is still open.
+- **Final review:** created the remaining work as issues. They cover goal part (4) and the anchor's acceptance items. These supersede the "Later" bullets below.
+  - #358 — command reference restructure, editor-neutral (goal part 4)
+  - #359 — configuration page reorder + full knob table (goal part 4)
+  - #360 — troubleshooting page
+  - #361 — diagrams
+  - #362 — how-tos for fix / issue / split / ops / drive
+  - #363 — annotated sample session
+- **Tool bug found during the run:** #364. `agent queue` reported Stage 2 as blocked by the closed Stage 1 issue #344, so the stage order was derived by hand.
+- **Design note:** [docs-link-check.md](../04-designs-and-guides/docs-link-check.md).
+
 ## Later (unstaged)
+
+_Superseded by #358–#363 (see Outcome)._
+
 
 - **Command reference restructure (§6):** make the site render of
   `issue-workflow.md.j2` editor-neutral, retitle it "Command reference",
