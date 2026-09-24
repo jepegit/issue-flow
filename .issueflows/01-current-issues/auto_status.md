@@ -33,3 +33,36 @@
   - Note: nav label "Commands" vs page H1 "Cursor issue workflow" and 12 "The workflow" link texts. This belongs to the Later command-reference restructure.
 - gate: stage 2 clear; no later published stage → complete (2026-09-24T08:36:27Z)
 - finished_at: 2026-09-24T08:36:27Z
+
+---
+
+# Run 2 (drive continuation, 2026-09-24T09:16:01Z)
+
+- epic: 341
+- stage: 3
+- stage_title: Reference pages
+- loop_count: 0
+- budget: 2
+- last_outcome: pending
+- overnight_authorization: yes (via /iflow-drive 341 run 2 confirm, 2026-09-24)
+- prereq: #364 (queue fix) → PR #366 merged; stages 3–4 added to the plan via PR #367
+- queue: #358, #359 (from `uv run issue-flow agent queue --epic 341`, fixed code)
+- stop (2026-09-24T09:16:20Z): #358 yolo scope check: not small. The template is 660 lines with 53 Jinja conditionals, rendered per editor and mode; ~11 tests assert on its text; the spec already allows 2 PRs. Stage 3 not run; stage 4 not reached.
+- resume (2026-09-24T10:08:44Z): #358 landed interactively (PR #368 template, PR #369 link texts); continuing the stage 3 queue with #359.
+- stage 3 result: #358 → PR #368 + PR #369 (done interactively), #359 → PR #370
+- adversarial (stage 3, loop 1): CLEAR
+  - Stage goal: MET. The command reference has an editor-neutral H1 ("issue-flow command reference", live), one table, the same layout per command, and structure tests for every editor + novice. The config page starts with Common changes, and a test covers all 38 keys.
+  - Epic goal: part (4) is now met. Parts (1)–(4) are all met.
+  - Spec honesty: deviations documented (#358: no per-editor tabs, per-editor render instead; #359: no modes column). #358 also found and documented `/iflow-pr-sync`.
+  - Blast radius: the scaffolded workflow doc changes for every project on `update` (intended; in HISTORY); new render key `command_modes` (test updated).
+- gate: stage 3 clear (2026-09-24T10:17:07Z); advancing to stage 4
+- stage: 4 (New content), loop_count: 0, queue: #360, #361, #362
+- stage 4 result: #360 → PR #371, #361 → PR #372, #362 → PR #373
+- adversarial (stage 4, loop 1): CLEAR
+  - Stage goal: MET. Troubleshooting (9 entries, commands verified), diagrams (4, checked in light and dark with Playwright; decision in docs-diagrams.md), and 5 how-tos, all in the nav. Link check 0 errors.
+  - Epic goal: all four parts met.
+  - Spec honesty: #361 delivered 4 diagrams (spec: 3). #360 left out one claim it couldn't verify. #362 also linked the command reference to the new pages.
+  - Blast radius: docs, `zensical.toml` (Mermaid fence, nav), and the command-reference template Related links (URLs only).
+- gate: stage 4 clear; every published stage is done → complete (2026-09-24T10:35:44Z)
+- last_outcome: complete
+
