@@ -312,6 +312,26 @@ def available_modes(cfg_path: Path | None = None) -> list[str]:
     return sorted(_merged_raw(cfg_path))
 
 
+def command_mode_membership(cfg_path: Path | None = None) -> dict[str, list[str]]:
+    """Map each command stem to the ids of the modes that install it.
+
+    Built-in modes plus any project ``[modes.*]`` overrides at ``cfg_path``.
+    ``standard`` is listed first, the rest alphabetically. Used by the workflow
+    doc's command table (issue #358); a mode that fails to resolve is skipped.
+    """
+    raw = _merged_raw(cfg_path)
+    order = sorted(raw, key=lambda mode_id: (mode_id != "standard", mode_id))
+    membership: dict[str, list[str]] = {command: [] for command in sorted(_COMMAND_SET)}
+    for mode_id in order:
+        try:
+            _skills, commands = _resolve_sets(mode_id, raw)
+        except ValueError:
+            continue
+        for command in sorted(commands):
+            membership.setdefault(command, []).append(mode_id)
+    return membership
+
+
 def resolve_mode(
     mode_id: str,
     cfg_path: Path | None = None,

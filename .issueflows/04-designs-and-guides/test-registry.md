@@ -21,6 +21,8 @@ current issue**. `/iflow-doctor` may audit the whole suite against this table.
 | `tests/test_queueplan.py::test_build_queue_closed_external_dependency_does_not_block` | yes | yes | `queueplan.build_queue` (`closed_external`) | #364 | Epic stage N+1 must not look blocked by closed stage N |
 | `tests/test_queueplan.py::test_build_queue_blocking_is_transitive` | yes | yes | `queueplan.build_queue` | #364 | A dependant must never be queued ahead of a blocked dep |
 | `tests/test_cli.py::test_agent_queue_closed_dependency_outside_queue_is_satisfied` | no | no | `agent.run_queue` outside-dep state lookup | #364 | CLI wiring for `closed_external` |
+| `tests/test_workflow_doc.py::test_command_mode_membership_lists_standard_first` | yes | yes | `modes.command_mode_membership` | #358 | Pure; feeds the Modes column |
+| `tests/test_workflow_doc.py` (other tests) | no | no | `docs/issue-workflow.md.j2` structure per editor / novice | #358 | Renders via `run_init`; guards the command-reference layout |
 
 **Columns**
 

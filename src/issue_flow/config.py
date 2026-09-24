@@ -979,6 +979,9 @@ class Settings:
             "mode_name": mode.name,
             "included_skills": sorted(mode.skills),
             "included_commands": sorted(mode.commands),
+            "command_modes": modes_module.command_mode_membership(
+                self.config_path(project_root)
+            ),
             # Upstream names of the vendored pstack skills in the surface (also
             # covers custom modes that `add` pstack stems directly).
             "pstack_skills": modes_module.pstack_names_for(mode.skills),

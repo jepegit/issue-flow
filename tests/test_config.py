@@ -52,6 +52,7 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "mode_name",
         "included_skills",
         "included_commands",
+        "command_modes",
         "caveman_default",
         "grill_me_default",
         "label_flows",
