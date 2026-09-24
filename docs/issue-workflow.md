@@ -42,7 +42,7 @@ It also seeds `.issueflows/00-tools/README.md` — the index of the project's **
 | `/iflow-cycle` | `iflow-cycle/SKILL.md` | **Off-path.** Process a queue of yolo-fit issues hands-off in a row under one up-front confirm — the batch equivalent of `/iflow-yolo`. Resolves the queue via `issue-flow agent queue`, runs each issue through the full yolo chain (PR auto-merged), and stops only when input is strictly necessary. **All yolo-labelled issues:** `/iflow-cycle yolo` (alias for `label:yolo`). |
 | `/iflow-auto` | `iflow-auto/SKILL.md` | **Off-path.** Unattended large-change orchestrator over a confirmed epic: cycle a stage via `/iflow-cycle`, record `auto_status.md`, run adversarial review (`review`; may reopen/create). Loop budget **2** (`[issueflow].auto_adversarial_loops`); override `loops:<n>`. See `.issueflows/04-designs-and-guides/advanced-auto-mode.md`. |
 | `/iflow-drive` | `iflow-drive/SKILL.md` | **Off-path.** Compose-only path from an existing issue: draft epic (auto-confirm unless grill-me) → publish all stages → `/iflow-auto` each epoch → final review (create leftover findings) → local cleanup **`-d` only** → `/iflow-status`. See `.issueflows/04-designs-and-guides/drive-mode.md`. |
-| `/iflow-graphify` | `iflow-graphify/SKILL.md` | **Off-path.** Rebuild the [graphify](https://iflow-graphify.net) knowledge graph (`graphify-out/graph.html`, `GRAPH_REPORT.md`, `graph.json`). Wraps `issue-flow graphify` / `graphify`. Optional: only meaningful when `graphifyy` is installed. |
+| `/iflow-graphify` | `iflow-graphify/SKILL.md` | **Off-path.** Rebuild the [graphify](https://graphify.net) knowledge graph (`graphify-out/graph.html`, `GRAPH_REPORT.md`, `graph.json`). Wraps `issue-flow graphify` / `graphify`. Optional: only meaningful when `graphifyy` is installed. |
 
 
 
@@ -286,7 +286,7 @@ The bump runs **after** tests and **before** issue-folder moves and **before** c
 
 ## 7. `/iflow-graphify` — rebuild the knowledge graph (optional)
 
-**When:** The project has the optional [graphify](https://iflow-graphify.net) integration enabled (the `graphify` CLI is on `PATH` and a `graphify-out/` folder is present), and the graph has gone stale relative to the source tree.
+**When:** The project has the optional [graphify](https://graphify.net) integration enabled (the `graphify` CLI is on `PATH` and a `graphify-out/` folder is present), and the graph has gone stale relative to the source tree.
 
 **What you pass:** Optional graphify subcommand and args, forwarded verbatim. Common picks:
 

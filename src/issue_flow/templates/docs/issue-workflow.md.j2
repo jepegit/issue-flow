@@ -48,7 +48,7 @@ It also seeds `{{ issueflows_dir }}/{{ tools_folder }}/README.md` — the index 
 | `/iflow-cycle` | `{% if commands_supported %}iflow-cycle.md{% else %}iflow-cycle/SKILL.md{% endif %}` | **Off-path.** Process a queue of yolo-fit issues hands-off in a row under one up-front confirm — the batch equivalent of `/iflow-yolo`. Resolves the queue via `issue-flow agent queue`, runs each issue through the full yolo chain (PR auto-merged), and stops only when input is strictly necessary. **All yolo-labelled issues:** `/iflow-cycle yolo` (alias for `label:{{ yolo_label }}`). |
 | `/iflow-auto` | `{% if commands_supported %}iflow-auto.md{% else %}iflow-auto/SKILL.md{% endif %}` | **Off-path.** Unattended large-change orchestrator over a confirmed epic: cycle a stage via `/iflow-cycle`, record `auto_status.md`, run adversarial review (`review`; may reopen/create). Loop budget **{{ auto_adversarial_loops }}** (`[issueflow].auto_adversarial_loops`); override `loops:<n>`. See `{{ issueflows_dir }}/{{ designs_folder }}/advanced-auto-mode.md`. |
 | `/iflow-drive` | `{% if commands_supported %}iflow-drive.md{% else %}iflow-drive/SKILL.md{% endif %}` | **Off-path.** Compose-only path from an existing issue: draft epic (auto-confirm unless grill-me) → publish all stages → `/iflow-auto` each epoch → final review (create leftover findings) → local cleanup **`-d` only** → `/iflow-status`. See `{{ issueflows_dir }}/{{ designs_folder }}/drive-mode.md`. |
-| `/iflow-graphify` | `{% if commands_supported %}iflow-graphify.md{% else %}iflow-graphify/SKILL.md{% endif %}` | **Off-path.** Rebuild the [graphify](https://iflow-graphify.net) knowledge graph (`graphify-out/graph.html`, `GRAPH_REPORT.md`, `graph.json`). Wraps `issue-flow graphify` / `graphify`. Optional: only meaningful when `graphifyy` is installed. |
+| `/iflow-graphify` | `{% if commands_supported %}iflow-graphify.md{% else %}iflow-graphify/SKILL.md{% endif %}` | **Off-path.** Rebuild the [graphify](https://graphify.net) knowledge graph (`graphify-out/graph.html`, `GRAPH_REPORT.md`, `graph.json`). Wraps `issue-flow graphify` / `graphify`. Optional: only meaningful when `graphifyy` is installed. |
 
 {% if commands_supported -%}
 > On skills-first profiles, invoke the mirrored Agent Skills under that editor's `skills/` directory instead — for example `iflow-capture` in place of `/iflow-capture`.
@@ -295,7 +295,7 @@ The bump runs **after** tests and **before** issue-folder moves and **before** c
 
 ## 7. `/iflow-graphify` — rebuild the knowledge graph (optional)
 
-**When:** The project has the optional [graphify](https://iflow-graphify.net) integration enabled (the `graphify` CLI is on `PATH` and a `graphify-out/` folder is present), and the graph has gone stale relative to the source tree.
+**When:** The project has the optional [graphify](https://graphify.net) integration enabled (the `graphify` CLI is on `PATH` and a `graphify-out/` folder is present), and the graph has gone stale relative to the source tree.
 
 **What you pass:** Optional graphify subcommand and args, forwarded verbatim. Common picks:
 

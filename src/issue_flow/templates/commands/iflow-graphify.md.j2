@@ -1,6 +1,6 @@
 # Rebuild the project's knowledge graph (`/iflow-graphify`)
 
-`/iflow-graphify` rebuilds the [graphify](https://iflow-graphify.net) knowledge graph for this project so the assistant can navigate by graph instead of grepping through files. Outputs land in `graphify-out/` (`graph.html`, `GRAPH_REPORT.md`, `graph.json`).
+`/iflow-graphify` rebuilds the [graphify](https://graphify.net) knowledge graph for this project so the assistant can navigate by graph instead of grepping through files. Outputs land in `graphify-out/` (`graph.html`, `GRAPH_REPORT.md`, `graph.json`).
 
 This is an **off-path** command — the lifecycle dispatcher (`/iflow`) never auto-runs it. Invoke it explicitly when the project's structure has changed enough that the existing graph is stale (new modules, large refactors, new docs/papers added).
 
@@ -17,7 +17,7 @@ Optional free-form text after the command. The first word, if it is a recognized
 - **`./subdir`** — scan a sub-directory instead of the project root (`graphify update ./subdir`).
 - **Trailing flags** (e.g. `--force`, `--no-cluster`, `--no-viz`, `--backend ollama`) — passed straight through to the chosen subcommand. See `graphify --help` for the per-subcommand flag set.
 
-See the [graphify CLI reference](https://iflow-graphify.net/iflow-graphify-cli-commands.html) for the full subcommand and flag list.
+See the [graphify CLI reference](https://graphify.net/iflow-graphify-cli-commands.html) for the full subcommand and flag list.
 
 ## Steps
 

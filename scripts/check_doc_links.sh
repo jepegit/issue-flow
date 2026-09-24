@@ -8,7 +8,7 @@
 # Usage: scripts/check_doc_links.sh [--stage-only] [extra lychee args]
 #   --stage-only  build and stage the site, but skip lychee (CI runs lychee
 #                 through lycheeverse/lychee-action instead).
-# Needs lychee on PATH: https://lychee.cli.rs/installation/
+# Needs lychee on PATH: https://lychee.cli.rs/guides/getting-started/
 set -euo pipefail
 
 cd "$(dirname "$0")/.."

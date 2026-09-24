@@ -9,7 +9,7 @@ issue-flow-version: 0.4.2a4
 
 # issue-flow — graph rebuild (`/iflow-graphify`)
 
-Follow this skill to refresh the project's [graphify](https://iflow-graphify.net) knowledge graph — a stale `graphify-out/` after a large refactor, or the initial graph after installing `graphifyy`.
+Follow this skill to refresh the project's [graphify](https://graphify.net) knowledge graph — a stale `graphify-out/` after a large refactor, or the initial graph after installing `graphifyy`.
 
 Do **not** use this skill from `/iflow-build`, `/iflow-close`, or `/iflow`. `/iflow-graphify` is opt-in only.
 
