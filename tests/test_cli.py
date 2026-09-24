@@ -2165,6 +2165,39 @@ def test_agent_queue_numbers_orders_by_dependencies(
     assert payload["skipped_closed"] == [3]
 
 
+def test_agent_queue_closed_dependency_outside_queue_is_satisfied(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # #364: deps outside the queue are looked up; closed ones do not block.
+    from issue_flow import gitutils as gitutils_module
+
+    metas = {
+        346: _fake_meta(346, body="Depends on: #344"),
+        347: _fake_meta(347, body="Depends on: #346"),
+    }
+    states = {344: "closed", 99: "open"}
+    monkeypatch.setattr(gitutils_module, "remote_owner_repo", lambda _cwd: None)
+    monkeypatch.setattr(
+        gitutils_module,
+        "gh_issue_meta",
+        lambda number, _cwd, _repo=None: metas.get(number),
+    )
+    monkeypatch.setattr(
+        gitutils_module,
+        "gh_issue_state",
+        lambda number, _cwd, _repo=None: states.get(number),
+    )
+
+    result = runner.invoke(
+        app, ["agent", "queue", "347", "346", "-C", str(tmp_path), "--json"]
+    )
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert [entry["number"] for entry in payload["queue"]] == [346, 347]
+    assert payload["blocked"] == []
+
+
 def test_agent_queue_refuses_partial_fetch(
     runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

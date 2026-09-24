@@ -55,14 +55,22 @@ class QueuePlan:
     cycle: list[int] | None = None
 
 
-def build_queue(items: list[QueueItem]) -> QueuePlan:
+def build_queue(
+    items: list[QueueItem], closed_external: set[int] | frozenset[int] = frozenset()
+) -> QueuePlan:
     """Order ``items`` for sequential hands-off execution.
 
     Rules:
 
     - closed items are skipped (their number still satisfies dependencies);
+    - ``closed_external`` names dependencies **outside** the queue that are
+      already closed (e.g. a previous epic stage); they satisfy dependencies
+      too. Any other outside dependency counts as open;
     - an item with an **open dependency outside the queue** is blocked —
       the cycle cannot unblock it, so it is set aside with the blockers named;
+    - blocking is **transitive**: an item depending on a blocked item is
+      blocked too (its blocker is that in-queue item), so it is never queued
+      ahead of an unmet dependency;
     - remaining items are Kahn-toposorted over in-queue dependency edges,
       ties broken by issue number for determinism;
     - a dependency cycle aborts the plan (``cycle`` names the members);
@@ -72,20 +80,36 @@ def build_queue(items: list[QueueItem]) -> QueuePlan:
     """
     plan = QueuePlan()
     closed = {item.number for item in items if item.state == "closed"}
+    closed |= set(closed_external)
     members = {item.number: item for item in items if item.state != "closed"}
     plan.skipped_closed = [item for item in items if item.state == "closed"]
 
-    # Split off items blocked by open dependencies outside the queue.
-    runnable: dict[int, QueueItem] = {}
+    # Split off items blocked by open dependencies outside the queue, then
+    # propagate: depending on a blocked member blocks you too.
+    blocked: dict[int, list[int]] = {}
     for number, item in members.items():
         external_open = [
             dep for dep in item.depends_on if dep not in closed and dep not in members
         ]
         if external_open:
-            plan.blocked.append((item, external_open))
-        else:
-            runnable[number] = item
-    plan.blocked.sort(key=lambda pair: pair[0].number)
+            blocked[number] = external_open
+    changed = True
+    while changed:
+        changed = False
+        for number, item in members.items():
+            if number in blocked:
+                continue
+            via = [dep for dep in item.depends_on if dep in blocked]
+            if via:
+                blocked[number] = via
+                changed = True
+    runnable: dict[int, QueueItem] = {
+        number: item for number, item in members.items() if number not in blocked
+    }
+    plan.blocked = sorted(
+        ((members[number], deps) for number, deps in blocked.items()),
+        key=lambda pair: pair[0].number,
+    )
 
     # Kahn toposort over in-queue edges (dep -> dependant), among runnables.
     indegree: dict[int, int] = {number: 0 for number in runnable}

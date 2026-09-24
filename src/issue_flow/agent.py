@@ -2989,7 +2989,16 @@ def run_queue(
                     )
                 )
 
-    plan = queueplan.build_queue(items)
+    # Dependencies outside the queue (e.g. a previous epic stage): look up
+    # their state so closed ones satisfy dependencies instead of blocking.
+    in_queue = {item.number for item in items}
+    outside = sorted({dep for item in items for dep in item.depends_on} - in_queue)
+    closed_external = {
+        dep
+        for dep in outside
+        if gitutils.gh_issue_state(dep, project_root, repo_slug) == "closed"
+    }
+    plan = queueplan.build_queue(items, closed_external=closed_external)
 
     if plan.cycle:
         payload = {

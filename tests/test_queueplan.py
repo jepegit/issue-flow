@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 from issue_flow.queueplan import QueueItem, build_queue, parse_dependencies
 
 # ---------------------------------------------------------------------------
@@ -77,6 +79,42 @@ def test_build_queue_blocks_on_open_external_dependency() -> None:
     item, deps = plan.blocked[0]
     assert item.number == 2
     assert deps == [99]
+
+
+@pytest.mark.essential
+def test_build_queue_closed_external_dependency_does_not_block() -> None:
+    # #364: a closed dep outside the queue (previous epic stage) is satisfied.
+    plan = build_queue(
+        [_item(346, deps=[344]), _item(347, deps=[346]), _item(348, deps=[347])],
+        closed_external={344},
+    )
+    assert [item.number for item in plan.ordered] == [346, 347, 348]
+    assert plan.blocked == []
+
+
+def test_build_queue_open_external_dependency_still_blocks() -> None:
+    plan = build_queue([_item(2, deps=[99])], closed_external={98})
+    assert plan.ordered == []
+    assert [(item.number, deps) for item, deps in plan.blocked] == [(2, [99])]
+
+
+@pytest.mark.essential
+def test_build_queue_blocking_is_transitive() -> None:
+    # #364: a dependant of a blocked item must not be queued ahead of it.
+    plan = build_queue(
+        [
+            _item(346, deps=[344]),
+            _item(347, deps=[346]),
+            _item(348, deps=[347]),
+            _item(5),
+        ]
+    )
+    assert [item.number for item in plan.ordered] == [5]
+    assert [(item.number, deps) for item, deps in plan.blocked] == [
+        (346, [344]),
+        (347, [346]),
+        (348, [347]),
+    ]
 
 
 def test_build_queue_reports_cycle() -> None:

@@ -16,6 +16,7 @@ than the GitHub release notes they link to.
 - The docs site navigation is now grouped into tabs (Getting started, How-to guides, Reference, For agents, Project), and the How-to index is grouped by situation. (#346)
 - New Concepts page in the docs: the issue lifecycle, the `.issueflows/` folder, on-path vs off-path commands, where the agent stops to ask, and a glossary. (#347)
 - The docs home page is now a short pitch, the quick start, and three entry points (new users, specific tasks, AI agents). Home, Getting started and README now share one quick start. (#348)
+- `issue-flow agent queue` no longer treats closed issues outside the queue (such as an earlier epic stage) as open blockers, and an issue that depends on a blocked issue is now blocked too, instead of being queued ahead of it. (#364)
 
 ## [0.5.10] - 2026-09-23
 
