@@ -41,14 +41,19 @@ nav = [
     { "Faster" = [
       { "Fast-track a small issue" = "how-to/yolo.md" },
       { "Run a cycle of issues" = "how-to/cycle.md" },
+      { "Run a fix session" = "how-to/fix-session.md" },
     ] },
     { "Bigger changes" = [
       { "Create and run epics" = "how-to/epics.md" },
       { "Use auto mode" = "how-to/auto-mode.md" },
+      { "Drive an epic hands-off" = "how-to/drive.md" },
+      { "Write a good issue" = "how-to/write-an-issue.md" },
+      { "Split a big issue" = "how-to/split-an-issue.md" },
     ] },
     { "Team and repos" = [
       { "Use issue-flow in a folder of repos" = "how-to/workspaces.md" },
       { "Refresh dirty open PRs" = "how-to/pr-sync.md" },
+      { "Do ops work without a PR" = "how-to/ops.md" },
     ] },
     { "Extras" = [
       { "Use pstack skills" = "how-to/pstack-skills.md" },

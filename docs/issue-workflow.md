@@ -276,7 +276,7 @@ Every command below is described the same way: **When to use**, **Arguments**, *
 
 **Result:** A new GitHub issue (and optionally a branch + local capture ready for `/iflow-plan`).
 
-**Related:** [Create and run epics](https://issue-flow.readthedocs.io/en/latest/how-to/epics/) (for epic anchors)
+**Related:** [Write a good issue](https://issue-flow.readthedocs.io/en/latest/how-to/write-an-issue/) · [Create and run epics](https://issue-flow.readthedocs.io/en/latest/how-to/epics/) (for epic anchors)
 
 ### `/iflow-split` — linked sub-issues for an over-large issue
 
@@ -294,7 +294,7 @@ Every command below is described the same way: **When to use**, **Arguments**, *
 
 **Result:** An open parent tracker + linked children ready for `/iflow-pick`.
 
-**Related:** [Create and run epics](https://issue-flow.readthedocs.io/en/latest/how-to/epics/) (for staged work instead)
+**Related:** [Split a big issue](https://issue-flow.readthedocs.io/en/latest/how-to/split-an-issue/) · [Create and run epics](https://issue-flow.readthedocs.io/en/latest/how-to/epics/) (for staged work instead)
 
 ### `/iflow-epic` — plan a large change as staged issues
 
@@ -368,7 +368,7 @@ issue-flow agent epic-status 144 --json
 
 **Result:** A session issue + branch with a running fixes log, ready to land via `/iflow-close`.
 
-**Related:** [Concepts](https://issue-flow.readthedocs.io/en/latest/concepts/)
+**Related:** [Run a fix session](https://issue-flow.readthedocs.io/en/latest/how-to/fix-session/)
 
 ### `/iflow-ops` — ops / no-PR work
 
@@ -389,7 +389,7 @@ issue-flow agent epic-status 144 --json
 
 **Result:** Local tracking solved + GitHub issue closed, without a pull request.
 
-**Related:** [Concepts](https://issue-flow.readthedocs.io/en/latest/concepts/)
+**Related:** [Do ops work without a PR](https://issue-flow.readthedocs.io/en/latest/how-to/ops/)
 
 ### `/iflow-cycle` — batch-process a queue of yolo-fit issues
 
@@ -471,7 +471,7 @@ iflow cycle yolo
 
 **Result:** Epic published and driven through auto; findings issues recorded; reachable local branches pruned; status report.
 
-**Related:** [Create and run epics](https://issue-flow.readthedocs.io/en/latest/how-to/epics/) · [Use auto mode](https://issue-flow.readthedocs.io/en/latest/how-to/auto-mode/)
+**Related:** [Drive an epic hands-off](https://issue-flow.readthedocs.io/en/latest/how-to/drive/) · [Use auto mode](https://issue-flow.readthedocs.io/en/latest/how-to/auto-mode/)
 
 ---
 

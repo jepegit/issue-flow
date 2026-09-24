@@ -21,6 +21,7 @@ than the GitHub release notes they link to.
 - The configuration docs now start with the common changes, and have one table of every `config.toml` setting with its type, default and effect. A test keeps that table in sync with the code. How settings are resolved (precedence, user-global config, environment-only variables) moved to the end. (#359)
 - New Troubleshooting page in the docs covering common first-hour problems: `gh` not signed in, `issue-flow` not on PATH, commands missing from the editor, stale skills after an upgrade, squash-merged branches, several issues marked current, a refused pull, conflicting PRs, and WSL/Windows config paths. (#360)
 - The docs now have Mermaid diagrams: the issue lifecycle, what `iflow` runs next, how issue files move between folders (on Concepts), and the epic flow. They render in both light and dark mode. (#361)
+- New how-to guides: run a fix session, write a good issue, split a big issue, do ops work without a PR, and drive an epic hands-off. The command reference links to them. (#362)
 
 ## [0.5.10] - 2026-09-23
 
