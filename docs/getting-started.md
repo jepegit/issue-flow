@@ -156,6 +156,8 @@ well-specified one first.
 
 ## Where to go next
 
+- **[Troubleshooting](how-to/troubleshooting.md)** — if something above did
+  not work.
 - **[Concepts](concepts.md)** — the lifecycle, the `.issueflows/` folder, and
   a glossary of terms.
 - **[How-to guides](how-to/index.md)** — short task paths (one issue, yolo,
