@@ -9,8 +9,8 @@
 - Close / cleanup / rules templates: label → bump; post-merge `gh release create`.
 - Design note in `label-driven-flows.md`; `verify_scaffold` close markers.
 - Tests green (895); `issue-flow update` refreshed local skills; config set.
+- Draft PR: https://github.com/jepegit/issue-flow/pull/378 (#378)
 
 ## Remaining work
 
-- `/iflow-close` (HISTORY bullet, PR). Optional: bump not required for this
-  feature PR unless user asks.
+- `/iflow-close` (HISTORY bullet, mark ready / merge). Optional bump only if asked.
