@@ -3034,6 +3034,7 @@ def test_config_add_creates_defaults(
     assert payload["worktree_first"] is True
     assert payload["pr_merge_method"] == "squash"
     assert payload["cycle_max_issues"] == 10
+    assert payload["cycle_onfail"] == "stop"
     assert payload["auto_adversarial_loops"] == 2
     assert payload["confirm_version_bump"] is False
     assert payload["ruff_autofix"] is True
@@ -3066,6 +3067,7 @@ def test_config_add_creates_defaults(
     assert data["issueflow"]["worktree_first"] is True
     assert data["issueflow"]["pr_merge_method"] == "squash"
     assert data["issueflow"]["cycle_max_issues"] == 10
+    assert data["issueflow"]["cycle_onfail"] == "stop"
     assert data["issueflow"]["auto_adversarial_loops"] == 2
     assert data["issueflow"]["early_pr"] is False
     assert data["issueflow"]["fix_auto_name"] is False

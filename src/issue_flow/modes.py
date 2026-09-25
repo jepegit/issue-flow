@@ -85,6 +85,8 @@ DEFAULT_WORKTREES_IN_WORKSPACE = True
 DEFAULT_PR_MERGE_METHOD = "squash"
 ALLOWED_PR_MERGE_METHODS = frozenset({"squash", "merge", "rebase"})
 DEFAULT_CYCLE_MAX_ISSUES = 10
+DEFAULT_CYCLE_ONFAIL = "stop"
+ALLOWED_CYCLE_ONFAIL = frozenset({"stop", "skip"})
 DEFAULT_AUTO_ADVERSARIAL_LOOPS = 2
 DEFAULT_CONFIRM_VERSION_BUMP = False
 DEFAULT_RUFF_AUTOFIX = True
@@ -641,6 +643,16 @@ def normalize_pr_merge_method(value: str | None) -> str | None:
     return None
 
 
+def normalize_cycle_onfail(value: str | None) -> str | None:
+    """Return a canonical cycle onfail policy, or ``None`` when unset/invalid."""
+    if value is None:
+        return None
+    cleaned = str(value).strip().lower()
+    if cleaned in ALLOWED_CYCLE_ONFAIL:
+        return cleaned
+    return None
+
+
 def normalize_essential_review(value: str | None) -> str | None:
     """Return a canonical essential-review timing, or ``None`` when unset/invalid."""
     if value is None:
@@ -810,6 +822,21 @@ def read_cycle_max_issues(cfg_path: Path) -> int | None:
     if isinstance(value, bool) or not isinstance(value, int):
         return None
     return value
+
+
+def read_cycle_onfail(cfg_path: Path) -> str | None:
+    """Return persisted ``[issueflow].cycle_onfail``, or ``None`` if unset/invalid."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict):
+        return normalize_cycle_onfail(
+            str(section["cycle_onfail"])
+            if "cycle_onfail" in section and section.get("cycle_onfail") is not None
+            else None
+        )
+    return None
 
 
 def read_auto_adversarial_loops(cfg_path: Path) -> int | None:
@@ -1160,6 +1187,7 @@ def write_default_config(
     worktree_first: bool = DEFAULT_WORKTREE_FIRST,
     pr_merge_method: str = DEFAULT_PR_MERGE_METHOD,
     cycle_max_issues: int = DEFAULT_CYCLE_MAX_ISSUES,
+    cycle_onfail: str = DEFAULT_CYCLE_ONFAIL,
     auto_adversarial_loops: int = DEFAULT_AUTO_ADVERSARIAL_LOOPS,
     confirm_version_bump: bool = DEFAULT_CONFIRM_VERSION_BUMP,
     ruff_autofix: bool = DEFAULT_RUFF_AUTOFIX,
@@ -1232,6 +1260,7 @@ def write_default_config(
         section["worktree_first"] = worktree_first
         section["pr_merge_method"] = pr_merge_method
         section["cycle_max_issues"] = cycle_max_issues
+        section["cycle_onfail"] = cycle_onfail
         section["auto_adversarial_loops"] = auto_adversarial_loops
         section["confirm_version_bump"] = confirm_version_bump
         section["ruff_autofix"] = ruff_autofix
@@ -1288,6 +1317,7 @@ def write_default_config(
             worktree_first,
             pr_merge_method,
             cycle_max_issues,
+            cycle_onfail,
             auto_adversarial_loops,
             confirm_version_bump,
             ruff_autofix,
@@ -1352,6 +1382,7 @@ def _commented_issueflow_table(
     worktree_first: bool,
     pr_merge_method: str,
     cycle_max_issues: int,
+    cycle_onfail: str,
     auto_adversarial_loops: int,
     confirm_version_bump: bool,
     ruff_autofix: bool,
@@ -1550,6 +1581,14 @@ def _commented_issueflow_table(
         )
     )
     table["cycle_max_issues"] = cycle_max_issues
+    table.add(
+        tomlkit.comment(
+            "Default /iflow-cycle failure policy: 'stop' (halt) or 'skip' "
+            "(park and continue). Per-run onfail:stop|skip overrides. "
+            "Re-run 'issue-flow update' after changing."
+        )
+    )
+    table["cycle_onfail"] = cycle_onfail
     table.add(
         tomlkit.comment(
             "Default /iflow-auto inter-epoch adversarial loop budget "

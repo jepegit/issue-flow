@@ -22,9 +22,11 @@ from tomlkit.items import Item
 from issue_flow.modes import (
     ALLOWED_ESSENTIAL_REVIEWS,
     ALLOWED_PR_MERGE_METHODS,
+    ALLOWED_CYCLE_ONFAIL,
     ALLOWED_TEST_RUNNERS,
     normalize_essential_review,
     normalize_pr_merge_method,
+    normalize_cycle_onfail,
     normalize_pstack_skills,
     normalize_test_runner,
 )
@@ -72,6 +74,7 @@ CONFIG_KEYS: dict[str, ConfigKeySpec] = {
     "worktrees_in_workspace": ConfigKeySpec("bool", needs_update=False),
     "pr_merge_method": ConfigKeySpec("enum", ALLOWED_PR_MERGE_METHODS),
     "cycle_max_issues": ConfigKeySpec("int", needs_update=False),
+    "cycle_onfail": ConfigKeySpec("enum", ALLOWED_CYCLE_ONFAIL),
     "auto_adversarial_loops": ConfigKeySpec("int"),
     "confirm_version_bump": ConfigKeySpec("bool"),
     "ruff_autofix": ConfigKeySpec("bool"),
@@ -154,6 +157,8 @@ def parse_config_value(key: str, raw: str) -> Any:
     if spec.kind == "enum":
         if key == "pr_merge_method":
             normalized = normalize_pr_merge_method(text)
+        elif key == "cycle_onfail":
+            normalized = normalize_cycle_onfail(text)
         elif key == "test_runner":
             normalized = normalize_test_runner(text)
         elif key == "essential_review":

@@ -65,6 +65,7 @@ an environment-variable fallback, `ISSUEFLOW_<KEY>` (for example
 | `worktrees_in_workspace` | bool | `true` | When the repo sits in a workspace folder (an `issueflow-workspace.toml` above it), keep its worktrees next to it, inside that folder, even if `worktrees_dir` is set. |
 | `pr_merge_method` | text | `"squash"` | How hands-off closes merge: `squash`, `merge`, or `rebase`. |
 | `cycle_max_issues` | int | `10` | Safety cap on `/iflow-cycle` queue length (raise per run with `max:<n>`). |
+| `cycle_onfail` | text | `"stop"` | Default `/iflow-cycle` failure policy: `stop` (halt) or `skip` (park and continue). Per-run `onfail:stop\|skip` overrides. |
 | `auto_adversarial_loops` | int | `2` | `/iflow-auto` review-and-fix loops per stage before it stops to ask (override per run with `loops:<n>`). |
 | `confirm_version_bump` | bool | `false` | Non-yolo close asks once about a version bump when none was requested. |
 | `ruff_autofix` | bool | `true` | When the project uses ruff, run `ruff check --fix` + `ruff format` during build and close. |

@@ -54,6 +54,7 @@ _MODE_CONTEXT = {
     "worktree_first": True,
     "pr_merge_method": "squash",
     "cycle_max_issues": 10,
+    "cycle_onfail": "stop",
     "auto_adversarial_loops": 2,
     "confirm_version_bump": False,
     "ruff_autofix": True,
@@ -667,6 +668,27 @@ def test_cycle_bakes_max_issues() -> None:
     )
     assert "longer than **20**" in rendered
     assert "default 20" in rendered
+
+
+def test_cycle_bakes_onfail_default() -> None:
+    stop = render_template(
+        "skills/iflow_cycle/SKILL.md.j2",
+        {**_default_context(), "cycle_onfail": "stop"},
+    )
+    assert "Default from config **`stop`**" in stop
+    skip = render_template(
+        "skills/iflow_cycle/SKILL.md.j2",
+        {**_default_context(), "cycle_onfail": "skip"},
+    )
+    assert "Default from config **`skip`**" in skip
+    assert "default from config is **`skip`**" in skip
+    assert "otherwise config **`skip`**" in skip
+    cmd = render_template(
+        "commands/iflow-cycle.md.j2",
+        {**_default_context(), "cycle_onfail": "skip"},
+    )
+    assert "Default from config **`skip`**" in cmd
+    assert "cycle_onfail` = **`skip`**" in cmd
 
 
 def test_workflow_doc_bakes_auto_adversarial_loops() -> None:

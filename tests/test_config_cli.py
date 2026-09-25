@@ -44,6 +44,9 @@ def test_parse_config_value_list_and_enum() -> None:
     assert config_ops.parse_config_value("pr_merge_method", "rebase") == "rebase"
     with pytest.raises(ValueError, match="one of"):
         config_ops.parse_config_value("pr_merge_method", "fast-forward")
+    assert config_ops.parse_config_value("cycle_onfail", "skip") == "skip"
+    with pytest.raises(ValueError, match="one of"):
+        config_ops.parse_config_value("cycle_onfail", "continue")
 
 
 def test_upsert_and_read_persisted(tmp_path: Path) -> None:
