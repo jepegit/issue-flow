@@ -56,6 +56,7 @@ an environment-variable fallback, `ISSUEFLOW_<KEY>` (for example
 | `remind_cleanup` | bool | `true` | Remind you to run `/iflow-cleanup` after close / cycle (never runs it). `false` = no reminders. |
 | `noob` | bool | `false` | End every lifecycle step with a recommended next command and a short list of relevant commands. Separate from `--mode novice`. |
 | `cleanup_include_github` | bool | `false` | `/iflow-cleanup` also audits remote branches (Phase B) by default; opt out per run with `local only`. |
+| `on_bleeding_edge` | bool | `false` | `/iflow-cleanup` upgrades the `uv tool` install to `issue-flow@latest` and runs `issue-flow update` after a successful fast-forward pull. Opt in per run with `bleeding edge`; opt out with `no bleeding`. Skips editable installs. |
 | `suggest_graphify` | bool | `true` | Suggest reading `GRAPH_REPORT.md` / rebuilding graphify (never runs it). |
 | `auto_graphify_on_plan` | bool | `false` | `/iflow-plan` rebuilds the graphify graph (AST only) before prior-art discovery. |
 | `auto_switchback` | bool | `true` | After `/iflow-close` opens a PR, switch back to the default branch when the tree is clean (`false` ≈ always `stay`). |

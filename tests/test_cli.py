@@ -2982,6 +2982,7 @@ def _clear_issueflow_env(monkeypatch: pytest.MonkeyPatch) -> None:
         "ISSUEFLOW_CHECKS_WATCH_MINUTES",
         "ISSUEFLOW_LINGUIST_ATTRIBUTES",
         "ISSUEFLOW_REMIND_CLEANUP",
+        "ISSUEFLOW_ON_BLEEDING_EDGE",
         "ISSUEFLOW_SUGGEST_GRAPHIFY",
         "ISSUEFLOW_AUTO_SWITCHBACK",
         "ISSUEFLOW_AUTO_REMOVE_WORKTREE",
@@ -3027,6 +3028,7 @@ def test_config_add_creates_defaults(
     assert payload["remind_cleanup"] is True
     assert payload["noob"] is False
     assert payload["cleanup_include_github"] is False
+    assert payload["on_bleeding_edge"] is False
     assert payload["suggest_graphify"] is True
     assert payload["auto_graphify_on_plan"] is False
     assert payload["auto_switchback"] is True
@@ -3063,6 +3065,7 @@ def test_config_add_creates_defaults(
     assert data["issueflow"]["remind_cleanup"] is True
     assert data["issueflow"]["noob"] is False
     assert data["issueflow"]["cleanup_include_github"] is False
+    assert data["issueflow"]["on_bleeding_edge"] is False
     assert data["issueflow"]["auto_remove_worktree"] is True
     assert data["issueflow"]["worktree_first"] is True
     assert data["issueflow"]["pr_merge_method"] == "squash"

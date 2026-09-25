@@ -47,6 +47,7 @@ _MODE_CONTEXT = {
     "remind_cleanup": True,
     "noob": False,
     "cleanup_include_github": False,
+    "on_bleeding_edge": False,
     "suggest_graphify": True,
     "auto_graphify_on_plan": False,
     "auto_switchback": True,
@@ -626,6 +627,28 @@ def test_cleanup_bakes_include_github_default() -> None:
     )
     assert "cleanup_include_github = true" in on
     assert "Phase B also runs by default" in on
+
+
+def test_cleanup_bakes_on_bleeding_edge() -> None:
+    """on_bleeding_edge gates self-update default wording in cleanup skill."""
+    off = render_template(
+        "skills/iflow_cleanup/SKILL.md.j2",
+        {**_default_context(), "on_bleeding_edge": False},
+    )
+    assert "issue-flow agent self-update" in off
+    assert "on_bleeding_edge = true" not in off
+    on = render_template(
+        "skills/iflow_cleanup/SKILL.md.j2",
+        {**_default_context(), "on_bleeding_edge": True},
+    )
+    assert "on_bleeding_edge = true" in on
+    assert "issue-flow agent self-update" in on
+    cmd_on = render_template(
+        "commands/iflow-cleanup.md.j2",
+        {**_default_context(), "on_bleeding_edge": True},
+    )
+    assert "on_bleeding_edge = true" in cmd_on
+    assert "issue-flow agent self-update" in cmd_on
 
 
 def test_rules_soften_remind_cleanup_wording() -> None:

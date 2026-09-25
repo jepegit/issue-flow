@@ -74,6 +74,7 @@ PSTACK_ALL = "all"
 DEFAULT_REMIND_CLEANUP = True
 DEFAULT_NOOB = False
 DEFAULT_CLEANUP_INCLUDE_GITHUB = False
+DEFAULT_ON_BLEEDING_EDGE = False
 DEFAULT_SUGGEST_GRAPHIFY = True
 DEFAULT_AUTO_GRAPHIFY_ON_PLAN = False
 DEFAULT_AUTO_SWITCHBACK = True
@@ -708,6 +709,17 @@ def read_cleanup_include_github(cfg_path: Path) -> bool | None:
     return None
 
 
+def read_on_bleeding_edge(cfg_path: Path) -> bool | None:
+    """Return the persisted ``[issueflow].on_bleeding_edge`` flag."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "on_bleeding_edge" in section:
+        return bool(section.get("on_bleeding_edge"))
+    return None
+
+
 def read_suggest_graphify(cfg_path: Path) -> bool | None:
     """Return the persisted ``[issueflow].suggest_graphify`` flag."""
     if not cfg_path.is_file():
@@ -1180,6 +1192,7 @@ def write_default_config(
     remind_cleanup: bool = DEFAULT_REMIND_CLEANUP,
     noob: bool = DEFAULT_NOOB,
     cleanup_include_github: bool = DEFAULT_CLEANUP_INCLUDE_GITHUB,
+    on_bleeding_edge: bool = DEFAULT_ON_BLEEDING_EDGE,
     suggest_graphify: bool = DEFAULT_SUGGEST_GRAPHIFY,
     auto_graphify_on_plan: bool = DEFAULT_AUTO_GRAPHIFY_ON_PLAN,
     auto_switchback: bool = DEFAULT_AUTO_SWITCHBACK,
@@ -1253,6 +1266,7 @@ def write_default_config(
         section["remind_cleanup"] = remind_cleanup
         section["noob"] = noob
         section["cleanup_include_github"] = cleanup_include_github
+        section["on_bleeding_edge"] = on_bleeding_edge
         section["suggest_graphify"] = suggest_graphify
         section["auto_graphify_on_plan"] = auto_graphify_on_plan
         section["auto_switchback"] = auto_switchback
@@ -1310,6 +1324,7 @@ def write_default_config(
             remind_cleanup,
             noob,
             cleanup_include_github,
+            on_bleeding_edge,
             suggest_graphify,
             auto_graphify_on_plan,
             auto_switchback,
@@ -1375,6 +1390,7 @@ def _commented_issueflow_table(
     remind_cleanup: bool,
     noob: bool,
     cleanup_include_github: bool,
+    on_bleeding_edge: bool,
     suggest_graphify: bool,
     auto_graphify_on_plan: bool,
     auto_switchback: bool,
@@ -1529,6 +1545,15 @@ def _commented_issueflow_table(
         )
     )
     table["cleanup_include_github"] = cleanup_include_github
+    table.add(
+        tomlkit.comment(
+            "When true, /iflow-cleanup upgrades the uv-tool install to "
+            "issue-flow@latest and runs issue-flow update after a successful "
+            "FF pull. Override per run with 'no bleeding' / 'skip self-update'. "
+            "Re-run 'issue-flow update' after changing."
+        )
+    )
+    table["on_bleeding_edge"] = on_bleeding_edge
     table.add(
         tomlkit.comment(
             "Soft-suggest skimming GRAPH_REPORT.md / rebuilding graphify "

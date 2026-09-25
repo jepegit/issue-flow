@@ -43,6 +43,7 @@ from issue_flow.modes import (
     DEFAULT_MODEL_LABEL_FLOWS,
     DEFAULT_PR_MERGE_METHOD,
     DEFAULT_CLEANUP_INCLUDE_GITHUB,
+    DEFAULT_ON_BLEEDING_EDGE,
     DEFAULT_NOOB,
     DEFAULT_REMIND_CLEANUP,
     DEFAULT_RUFF_AUTOFIX,
@@ -437,6 +438,19 @@ class Settings:
             _env_flag(
                 "ISSUEFLOW_CLEANUP_INCLUDE_GITHUB",
                 default=DEFAULT_CLEANUP_INCLUDE_GITHUB,
+            ),
+        )
+
+    def resolve_on_bleeding_edge(self, project_root: Path) -> bool:
+        """Resolve whether ``/iflow-cleanup`` self-upgrades the CLI."""
+        persisted = modes_module.read_on_bleeding_edge(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        return self.user_global_or(
+            "on_bleeding_edge",
+            _env_flag(
+                "ISSUEFLOW_ON_BLEEDING_EDGE",
+                default=DEFAULT_ON_BLEEDING_EDGE,
             ),
         )
 
@@ -905,6 +919,10 @@ class Settings:
                 "ISSUEFLOW_CLEANUP_INCLUDE_GITHUB",
                 default=DEFAULT_CLEANUP_INCLUDE_GITHUB,
             ),
+            "on_bleeding_edge": _env_flag(
+                "ISSUEFLOW_ON_BLEEDING_EDGE",
+                default=DEFAULT_ON_BLEEDING_EDGE,
+            ),
             "suggest_graphify": _env_flag(
                 "ISSUEFLOW_SUGGEST_GRAPHIFY", default=DEFAULT_SUGGEST_GRAPHIFY
             ),
@@ -992,6 +1010,7 @@ class Settings:
             "remind_cleanup": self.resolve_remind_cleanup(project_root),
             "noob": self.resolve_noob(project_root),
             "cleanup_include_github": self.resolve_cleanup_include_github(project_root),
+            "on_bleeding_edge": self.resolve_on_bleeding_edge(project_root),
             "suggest_graphify": self.resolve_suggest_graphify(project_root),
             "auto_graphify_on_plan": self.resolve_auto_graphify_on_plan(project_root),
             "auto_switchback": self.resolve_auto_switchback(project_root),
@@ -1093,6 +1112,7 @@ class Settings:
             "remind_cleanup": self.resolve_remind_cleanup(project_root),
             "noob": self.resolve_noob(project_root),
             "cleanup_include_github": self.resolve_cleanup_include_github(project_root),
+            "on_bleeding_edge": self.resolve_on_bleeding_edge(project_root),
             "suggest_graphify": self.resolve_suggest_graphify(project_root),
             "auto_graphify_on_plan": self.resolve_auto_graphify_on_plan(project_root),
             "auto_switchback": self.resolve_auto_switchback(project_root),
