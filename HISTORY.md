@@ -9,6 +9,10 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+## [0.5.13] - 2026-09-25
+
+- Git processing all repos in workspace. (#381)
+
 ## [0.5.12] - 2026-09-25
 
 - Option for not stopping in a cycle: `[issueflow].cycle_onfail` (`stop`|`skip`, default `stop`) sets the `/iflow-cycle` failure policy; per-run `onfail:` tokens still override. (#248)

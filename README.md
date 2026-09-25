@@ -65,6 +65,7 @@ Plus a few off-path commands:
 - `/iflow-issue` — create **one well-specified normal GitHub issue** (context / spec / acceptance criteria), then optionally branch + `/iflow-capture` into the standard lifecycle. Use `/iflow-issue epic …` for an epic anchor. Off-path; never auto-dispatched.
 - `/iflow-split` — cut one over-large **existing** issue into 2–5 flat GitHub native sub-issues behind one confirm. Parent stays open as the tracker. Off-path; never auto-dispatched.
 - `/iflow-status` — **read-only** overview of where every issue stands: the local tracking state (focus / parked / solved) plus open GitHub issues cross-referenced against it. Pass `local` to skip the GitHub query. Changes nothing; off-path; never auto-dispatched.
+- `/iflow-workspace-git` (`iflow git`) — **git** snapshot (branch, dirty paths, ahead/behind) for every workspace member. Optional `fetch` runs `git fetch --prune`. Not the same as `/iflow-status`. Off-path; never auto-dispatched.
 - `/iflow-epic` — plan a change too large for one issue as staged specs under `.issueflows/05-epics/`; `publish` creates a confirmed stage's GitHub issues behind one confirm. Off-path; never auto-dispatched.
 - `/iflow-cycle` — batch-process a queue of yolo-fit issues under one up-front confirm (`yolo` / `label:<L>` / numbers / `epic <N>`). Off-path; never auto-dispatched.
 - `/iflow-auto` — unattended large-change orchestrator over a confirmed epic (cycle a stage, record `auto_status.md`, adversarial `review` may reopen/create). Off-path; never auto-dispatched.
@@ -74,7 +75,7 @@ Plus a few off-path commands:
 
 See the [docs](https://issue-flow.readthedocs.io/) for worked recipes (review → cycle, epic publish, cycle queues).
 
-The **Agent Skills** under `.cursor/skills/` carry the workflows for on-demand use with `/iflow-setup`, `/iflow-pick`, `/iflow`, `/iflow-init`, `/iflow-capture`, `/iflow-plan`, `/iflow-build`, `/iflow-pause`, `/iflow-close`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-split`, `/iflow-status`, `/iflow-epic`, `/iflow-cycle`, `/iflow-auto`, `/iflow-review`, `/iflow-doctor`, `/iflow-archive`, `@iflow-version-bump` when you need only the bump steps, or `@iflow-history-update` when you need only the changelog update (see [Cursor Agent Skills](https://cursor.com/help/customization/skills)).
+The **Agent Skills** under `.cursor/skills/` carry the workflows for on-demand use with `/iflow-setup`, `/iflow-pick`, `/iflow`, `/iflow-init`, `/iflow-capture`, `/iflow-plan`, `/iflow-build`, `/iflow-pause`, `/iflow-close`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-fix`, `/iflow-issue`, `/iflow-split`, `/iflow-status`, `/iflow-workspace-git`, `/iflow-epic`, `/iflow-cycle`, `/iflow-auto`, `/iflow-review`, `/iflow-doctor`, `/iflow-archive`, `@iflow-version-bump` when you need only the bump steps, or `@iflow-history-update` when you need only the changelog update (see [Cursor Agent Skills](https://cursor.com/help/customization/skills)).
 
 ## Prerequisites
 
@@ -239,6 +240,7 @@ Plus a few off-path commands (never auto-dispatched):
 - `/iflow-issue` — create one well-specified normal GitHub issue; optional branch + `/iflow-capture`.
 - `/iflow-split` — cut an over-large issue into linked GitHub sub-issues.
 - `/iflow-status` — **read-only** overview of where every issue stands, locally and on GitHub.
+- `/iflow-workspace-git` — git snapshot (optional fetch) for every workspace member.
 - `/iflow-epic` — staged epic plan + publish; decomposes into normal single-issue work.
 - `/iflow-cycle` — batch yolo queue (`yolo` / `label:<L>` / numbers / epic).
 - `/iflow-auto` — unattended epic stage via `/iflow-cycle` + adversarial `review`.

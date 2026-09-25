@@ -114,6 +114,9 @@ When the user message is **exactly** one of these forms, or **starts with** it f
 {% for cmd in included_commands %}{% if cmd != "iflow" %}
 | `iflow {{ cmd[6:] }}`, `{{ cmd }}`, `/{{ cmd }}`, `/iflow {{ cmd[6:] }}` | `{{ cmd }}` |
 {% endif %}{% endfor %}
+{% if "iflow-workspace-git" in included_commands %}
+| `iflow git`, `/iflow git` | `iflow-workspace-git` |
+{% endif %}
 
 Skill `@` attachment is supported on some editors but is not the recommended keyboard-friendly path.
 
@@ -174,6 +177,9 @@ Lifecycle skills include a **`### MODEL & EXECUTION DIRECTIVE`** section that te
 {% endif %}
 {% if "iflow_status" in included_skills %}
 `/iflow-status` prints a **read-only** overview of where every issue stands — the local tracking state under `{{ issueflows_dir }}/` (focus / parked / solved) plus open GitHub issues cross-referenced against it. It is off-path (never auto-dispatched) and changes nothing.
+{% endif %}
+{% if "iflow_workspace_git" in included_skills %}
+`/iflow-workspace-git` (chat: `iflow git`) prints a **git** snapshot for every workspace member (branch, dirty paths, ahead/behind). Optional `fetch` runs `git fetch --prune` first. Not the same as `/iflow-status`. Off-path (never auto-dispatched).
 {% endif %}
 {% if "iflow_doctor" in included_skills %}
 `/iflow-doctor` audits `{{ issueflows_dir }}/` for **dirty** conditions (ambiguous multi-focus, leftovers in `{{ current_issues_folder }}/`, duplicates across folders, and similar) and can apply **safe repairs** on confirmation (`issue-flow doctor` / `agent audit` + `repair`). It is off-path and never auto-dispatched.

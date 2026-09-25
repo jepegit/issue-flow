@@ -26,6 +26,7 @@ one repo.
 | Repos already have `.issueflows/`; only write the toml | `issue-flow workspace init --default batbase` |
 | Toml exists; refresh skills/rules in every member | `issue-flow workspace update` |
 | Status / doctor / dirty-tree for every member | `issue-flow workspace status` / `doctor` / `dirty` |
+| Git status / fetch for every member | `issue-flow workspace git status` / `fetch` |
 | Peek before writing (no `init`, no toml) | `issue-flow workspace bootstrap --json` |
 
 `--default` is the member folder name lifecycle commands use when you are
@@ -115,7 +116,10 @@ Work **per repo**: `iflow pick` and close in `batbase` do not touch
 issue-flow workspace status --local
 issue-flow workspace doctor
 issue-flow workspace dirty          # after workspace update
+issue-flow workspace git status     # branch / dirty / ahead-behind
+issue-flow workspace git fetch      # git fetch --prune only
 iflow cleanup workspace             # opt-in sequential per-repo cleanup
+iflow git                           # agent path for workspace git
 ```
 
 `workspace doctor` is audit-only. Repair one member:

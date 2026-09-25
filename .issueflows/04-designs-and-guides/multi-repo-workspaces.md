@@ -98,6 +98,15 @@ flag on the single-repo commands). Same continue-on-fail loop as
 classifies each tree so agents can land scaffold dirt without guessing
 cwd. Auto-commit / auto-push after update is a follow-up.
 
+## Phase 4b (issue #381) — workspace git
+
+`issue-flow workspace git status` (default verb) is a **git** snapshot
+per member: branch, dirty paths, ahead/behind vs `origin/<default>`. It
+does **not** fetch. `issue-flow workspace git fetch` is `git fetch
+--prune` only. No pull, rebase, merge, or push. Agent path:
+`/iflow-workspace-git` (`iflow git`). Distinct from `workspace status`
+(issue-flow lifecycle) and `workspace dirty` (post-update dirt class).
+
 ## Out of scope (follow-ups)
 
 - **Cross-repo `/iflow-pick` ranking** across registry members (Phase 3a).
