@@ -53,6 +53,7 @@ CONFIG_KEYS: dict[str, ConfigKeySpec] = {
     "label_flows": ConfigKeySpec("bool"),
     "yolo_label": ConfigKeySpec("str"),
     "ops_label": ConfigKeySpec("str"),
+    "publish_label": ConfigKeySpec("str"),
     "checks_watch_minutes": ConfigKeySpec("int"),
     "step_directives": ConfigKeySpec("bool"),
     "model_label_flows": ConfigKeySpec("bool"),

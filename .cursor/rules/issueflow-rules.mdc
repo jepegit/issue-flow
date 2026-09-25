@@ -203,7 +203,7 @@ The full slash-command lifecycle is:
 
 
 
-Issue labels can select the flow: when an issue picked via `/iflow-pick` carries the **`yolo`** label, it is routed through `/iflow-yolo` (one combined confirmation). The **`ops`** label routes to `/iflow-ops` (no PR); when both labels are present, **ops wins**. Controlled by `label_flows` (default `true`), `yolo_label` (default `"yolo"`), and `ops_label` (default `"ops"`) under `[issueflow]` in `.issueflows/config.toml`; re-run `issue-flow update` after changing them.
+Issue labels can select the flow: when an issue picked via `/iflow-pick` carries the **`yolo`** label, it is routed through `/iflow-yolo` (one combined confirmation). The **`ops`** label routes to `/iflow-ops` (no PR); when both labels are present, **ops wins**. A **`publish`** label (or `publish:<level|version>`) does not change pick routing — on `/iflow-close` it requests a version bump (default patch) and a post-merge `gh release create`. Controlled by `label_flows` (default `true`), `yolo_label` (default `"yolo"`), `ops_label` (default `"ops"`), and `publish_label` (default `"publish"`) under `[issueflow]` in `.issueflows/config.toml`; re-run `issue-flow update` after changing them.
 
 
 

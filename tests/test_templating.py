@@ -37,6 +37,7 @@ _MODE_CONTEXT = {
     "label_flows": True,
     "yolo_label": "yolo",
     "ops_label": "ops",
+    "publish_label": "publish",
     "checks_watch_minutes": 15,
     "step_directives": True,
     "model_label_flows": False,
@@ -894,6 +895,18 @@ def test_close_formalizes_draft_and_early_pr_reuse() -> None:
     assert "`draft`" in cmd
     assert "gh pr create --draft" in cmd
     assert "gh pr ready" in cmd
+
+
+def test_close_documents_publish_on_success_label() -> None:
+    ctx = {**_default_context(), "publish_label": "ship-it"}
+    close = render_template("skills/iflow_close/SKILL.md.j2", ctx)
+    assert "Publish-on-success label" in close
+    assert "publish-intent" in close
+    assert "`ship-it`" in close
+    assert "gh release create" in close
+    cleanup = render_template("skills/iflow_cleanup/SKILL.md.j2", ctx)
+    assert "publish-on-success" in cleanup.lower() or "Publish label" in cleanup
+    assert "gh release create" in cleanup
 
 
 def test_history_confirm_changelog_update_gate() -> None:

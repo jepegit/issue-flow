@@ -336,6 +336,9 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
     assert read_label_flows(cfg) is DEFAULT_LABEL_FLOWS
     assert read_yolo_label(cfg) == DEFAULT_YOLO_LABEL
     assert read_ops_label(cfg) == DEFAULT_OPS_LABEL
+    from issue_flow.modes import DEFAULT_PUBLISH_LABEL, read_publish_label
+
+    assert read_publish_label(cfg) == DEFAULT_PUBLISH_LABEL
     assert read_checks_watch_minutes(cfg) == DEFAULT_CHECKS_WATCH_MINUTES
     assert read_linguist_attributes(cfg) is DEFAULT_LINGUIST_ATTRIBUTES
     from issue_flow.modes import (

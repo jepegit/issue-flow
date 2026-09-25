@@ -2439,6 +2439,103 @@ def _render_version_plan_text(
         console.print(f"  [{style}]{escape(note)}[/{style}]")
 
 
+def run_publish_intent(
+    project_root: Path,
+    console: Console,
+    *,
+    issue: int | None,
+    labels: list[str],
+    as_json: bool,
+) -> int:
+    """Resolve publish-on-success intent from labels (read-only; issue #308).
+
+    When ``issue`` is set, fetch that issue's labels via ``gh``. Otherwise use
+    the explicit ``labels`` list. Never bumps or creates releases.
+    """
+    from issue_flow import publishintent, versionplan
+
+    settings = Settings()
+    publish_label = settings.resolve_publish_label(project_root)
+    notes: list[str] = []
+
+    resolved_labels = list(labels)
+    if issue is not None:
+        repo_slug: str | None = None
+        owner_repo = gitutils.remote_owner_repo(project_root)
+        if owner_repo is not None:
+            repo_slug = f"{owner_repo[0]}/{owner_repo[1]}"
+        meta = gitutils.gh_issue_meta(issue, project_root, repo_slug)
+        if meta is None:
+            msg = f"could not fetch issue #{issue} (gh missing or unauthenticated)."
+            if as_json:
+                _emit_json(console, {"error": msg, "issue": issue})
+            else:
+                console.print(f"[red]error[/red]  {msg}")
+            return 1
+        resolved_labels = _label_names(meta.get("labels"))
+        notes.append(
+            f"labels from issue #{issue}: "
+            + (", ".join(resolved_labels) or "(none)")
+        )
+
+    strategy, _reason, static_version = versionplan.detect_strategy(project_root)
+    current_text: str | None = None
+    if strategy == "uv":
+        current_text = static_version
+    elif strategy == "tag":
+        tag = gitutils.latest_tag(project_root)
+        current_text = tag
+        if tag is None:
+            notes.append(
+                "no git tags found; explicit-version logic may be unverified."
+            )
+    else:
+        notes.append(
+            "release strategy unknown; explicit-version logic may be unverified."
+        )
+
+    current = versionplan.parse_version(current_text) if current_text else None
+    current_version = (
+        current.formatted().lstrip("v") if current else (current_text or None)
+    )
+
+    intent = publishintent.resolve_publish_intent(
+        resolved_labels,
+        publish_label,
+        current_version=current_version,
+    )
+    payload = publishintent.intent_to_dict(intent)
+    payload["current_version"] = current_version
+    payload["labels"] = resolved_labels
+    payload["issue"] = issue
+    payload["label_flows"] = settings.resolve_label_flows(project_root)
+    merged_notes = list(payload.get("notes") or [])
+    merged_notes.extend(notes)
+    payload["notes"] = merged_notes
+
+    if as_json:
+        _emit_json(console, payload)
+    else:
+        if not intent.matched:
+            console.print(
+                f"no publish label matched "
+                f"(looking for '{publish_label}' / '{publish_label}:…')"
+            )
+        else:
+            console.print(
+                f"publish intent: kind={intent.kind} level={intent.level} "
+                f"target={intent.target_version} logical={intent.logical} "
+                f"conflict={intent.conflict} label={intent.label!r}"
+            )
+            if intent.suggestion:
+                console.print(f"suggestion: {intent.suggestion}")
+        for note in payload["notes"]:
+            console.print(f"[dim]- {note}[/dim]")
+    if intent.conflict or intent.logical is False:
+        return 2
+    return 0
+
+
 # ---------------------------------------------------------------------------
 # agent epic-status
 # ---------------------------------------------------------------------------
@@ -4672,8 +4769,9 @@ def _print_config_guide(console: Console, cfg_path: Path) -> None:
     )
     console.print(
         "  [dim]- [bold]label_flows[/bold] / [bold]yolo_label[/bold] / "
-        "[bold]ops_label[/bold]: let issue labels pick the flow (e.g. a "
-        "'yolo' label runs /iflow-yolo; 'ops' runs /iflow-ops no-PR close); "
+        "[bold]ops_label[/bold] / [bold]publish_label[/bold]: let issue labels "
+        "pick the flow (e.g. a 'yolo' label runs /iflow-yolo; 'ops' runs "
+        "/iflow-ops no-PR close; 'publish' bumps + releases after merge); "
         "re-run 'issue-flow update' so the commands re-render.[/dim]"
     )
     console.print(

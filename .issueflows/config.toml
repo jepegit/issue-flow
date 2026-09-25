@@ -6,3 +6,4 @@ auto_plan = true
 auto_build = true
 fix_auto_name = true
 essential_tests = true
+publish_label = "publish"

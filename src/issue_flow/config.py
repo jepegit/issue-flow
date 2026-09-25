@@ -51,6 +51,7 @@ from issue_flow.modes import (
     DEFAULT_TEST_RUNNER,
     DEFAULT_YOLO_LABEL,
     DEFAULT_OPS_LABEL,
+    DEFAULT_PUBLISH_LABEL,
     Mode,
     normalize_essential_review,
     normalize_pr_merge_method,
@@ -293,6 +294,23 @@ class Settings:
         if env and env.strip():
             return env.strip()
         return DEFAULT_OPS_LABEL
+
+    def resolve_publish_label(self, project_root: Path) -> str:
+        """Resolve the GitHub label that triggers publish-on-success.
+
+        Order: persisted ``.issueflows/config.toml [issueflow].publish_label`` >
+        ``ISSUEFLOW_PUBLISH_LABEL`` env/``.env`` > ``"publish"``.
+        """
+        persisted = modes_module.read_publish_label(self.config_path(project_root))
+        if persisted:
+            return persisted
+        user = self.user_global_or("publish_label", None)
+        if user:
+            return str(user)
+        env = os.getenv("ISSUEFLOW_PUBLISH_LABEL")
+        if env and env.strip():
+            return env.strip()
+        return DEFAULT_PUBLISH_LABEL
 
     def resolve_checks_watch_minutes(self, project_root: Path) -> int:
         """Resolve the ``gh pr checks --watch`` wall-clock budget (minutes).
@@ -774,6 +792,7 @@ class Settings:
         skill_level = os.getenv("ISSUEFLOW_SKILL_LEVEL")
         yolo_label = os.getenv("ISSUEFLOW_YOLO_LABEL")
         ops_label = os.getenv("ISSUEFLOW_OPS_LABEL")
+        publish_label = os.getenv("ISSUEFLOW_PUBLISH_LABEL")
         deep_model_label = os.getenv("ISSUEFLOW_DEEP_MODEL_LABEL")
         fast_model_label = os.getenv("ISSUEFLOW_FAST_MODEL_LABEL")
         checks_watch_raw = os.getenv("ISSUEFLOW_CHECKS_WATCH_MINUTES")
@@ -830,6 +849,11 @@ class Settings:
                 ops_label.strip()
                 if ops_label and ops_label.strip()
                 else DEFAULT_OPS_LABEL
+            ),
+            "publish_label": (
+                publish_label.strip()
+                if publish_label and publish_label.strip()
+                else DEFAULT_PUBLISH_LABEL
             ),
             "checks_watch_minutes": checks_watch_minutes,
             "step_directives": _env_flag(
@@ -938,6 +962,7 @@ class Settings:
             "label_flows": self.resolve_label_flows(project_root),
             "yolo_label": self.resolve_yolo_label(project_root),
             "ops_label": self.resolve_ops_label(project_root),
+            "publish_label": self.resolve_publish_label(project_root),
             "checks_watch_minutes": self.resolve_checks_watch_minutes(project_root),
             "step_directives": self.resolve_step_directives(project_root),
             "model_label_flows": self.resolve_model_label_flows(project_root),
@@ -1035,6 +1060,7 @@ class Settings:
             "label_flows": self.resolve_label_flows(project_root),
             "yolo_label": self.resolve_yolo_label(project_root),
             "ops_label": self.resolve_ops_label(project_root),
+            "publish_label": self.resolve_publish_label(project_root),
             "checks_watch_minutes": self.resolve_checks_watch_minutes(project_root),
             "step_directives": self.resolve_step_directives(project_root),
             "model_label_flows": self.resolve_model_label_flows(project_root),

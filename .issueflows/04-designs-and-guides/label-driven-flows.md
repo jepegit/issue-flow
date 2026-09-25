@@ -60,3 +60,17 @@ Issue #175 (batch alias).
 - `/iflow-pick` routes to `/iflow-ops` → `/iflow-close ops` (no PR).
 - When both `ops_label` and `yolo_label` are present on an issue, **ops wins**.
 - See [ops-no-pr.md](./ops-no-pr.md).
+
+## Publish on success (issue #308)
+
+- `[issueflow].publish_label` (default `"publish"`) under the same
+  `label_flows` gate.
+- **Not** a pick router — close/cleanup concern only.
+- Bare label → bump **patch** in the close PR (uv) or plan the tag
+  (tag-derived); `publish:<level>` / `publish:<version>` override.
+- Illogical explicit versions → stop and ask (even under yolo); CLI
+  `issue-flow agent publish-intent` returns `logical` / `suggestion`.
+- After merge: `gh release create "v<version>" --generate-notes` from yolo
+  close step 9 or `/iflow-cleanup` Phase A.
+- **ops wins** over publish (no PR → no release). Command-line bump tokens
+  win over the label when both are present.

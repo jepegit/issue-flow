@@ -51,6 +51,7 @@ DEFAULT_SKILL_LEVEL = "standard"
 DEFAULT_LABEL_FLOWS = True
 DEFAULT_YOLO_LABEL = "yolo"
 DEFAULT_OPS_LABEL = "ops"
+DEFAULT_PUBLISH_LABEL = "publish"
 
 # Hard wall-clock budget for `gh pr checks --watch` during /iflow-close yolo.
 DEFAULT_CHECKS_WATCH_MINUTES = 15
@@ -546,6 +547,19 @@ def read_ops_label(cfg_path: Path) -> str | None:
     section = data.get("issueflow")
     if isinstance(section, dict):
         value = section.get("ops_label")
+        if value:
+            return str(value)
+    return None
+
+
+def read_publish_label(cfg_path: Path) -> str | None:
+    """Return the persisted ``[issueflow].publish_label`` value, or ``None`` if unset."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict):
+        value = section.get("publish_label")
         if value:
             return str(value)
     return None
@@ -1129,6 +1143,7 @@ def write_default_config(
     label_flows: bool = DEFAULT_LABEL_FLOWS,
     yolo_label: str = DEFAULT_YOLO_LABEL,
     ops_label: str = DEFAULT_OPS_LABEL,
+    publish_label: str = DEFAULT_PUBLISH_LABEL,
     checks_watch_minutes: int = DEFAULT_CHECKS_WATCH_MINUTES,
     step_directives: bool = DEFAULT_STEP_DIRECTIVES,
     model_label_flows: bool = DEFAULT_MODEL_LABEL_FLOWS,
@@ -1200,6 +1215,7 @@ def write_default_config(
         section["label_flows"] = label_flows
         section["yolo_label"] = yolo_label
         section["ops_label"] = ops_label
+        section["publish_label"] = publish_label
         section["checks_watch_minutes"] = checks_watch_minutes
         section["step_directives"] = step_directives
         section["model_label_flows"] = model_label_flows
@@ -1255,6 +1271,7 @@ def write_default_config(
             label_flows,
             yolo_label,
             ops_label,
+            publish_label,
             checks_watch_minutes,
             step_directives,
             model_label_flows,
@@ -1318,6 +1335,7 @@ def _commented_issueflow_table(
     label_flows: bool,
     yolo_label: str,
     ops_label: str,
+    publish_label: str,
     checks_watch_minutes: int,
     step_directives: bool,
     model_label_flows: bool,
@@ -1405,6 +1423,14 @@ def _commented_issueflow_table(
         )
     )
     table["ops_label"] = ops_label
+    table.add(
+        tomlkit.comment(
+            "The GitHub label that triggers publish-on-success (bump + release "
+            "after merge). Bare label = patch; publish:minor / publish:0.6.0 "
+            "override. Re-run 'issue-flow update' after changing."
+        )
+    )
+    table["publish_label"] = publish_label
     table.add(tomlkit.nl())
     table.add(
         tomlkit.comment(

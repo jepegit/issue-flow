@@ -60,7 +60,7 @@ Optional free-form text after the command:
    - `git fetch --prune`
    - `issue-flow agent worktree-list --json` — for each **linked** worktree whose branch is **`reachable`**, `issue-flow agent worktree-remove <path>` (or the issue number) **before** deleting the branch. Git cannot `-d` a branch that is still checked out in a worktree. Never remove a worktree whose branch is `unique_work`.
    - `git branch -d <branch>` for each **`reachable`** branch, listed explicitly by name first. If `-d` still refuses, report that branch and move on.
-   - **Planned release tag (tag-derived projects only).** When `/iflow-close` planned a tag it did not create — check the focus issue's status file and the newest `{{ history_file }}` release section for a version whose tag is missing from `git tag -l` — include creating it here: `git tag <planned>` then `git push origin <planned>` (or `gh release create <planned> --generate-notes`). Run it **after** the pull so the tag lands on the merged {{ pr_merge_method }} commit.
+   - **Planned release / publish-on-success.** When `/iflow-close` planned a tag (tag-derived) **or** recorded a publish label / planned version on the status file — check the focus issue's status file and the newest `{{ history_file }}` release section for a version whose tag is missing from `git tag -l` (or whose GitHub release is missing) — include creating it here: prefer `gh release create "v<version>" --generate-notes` (creates the tag too); for tag-only projects without publish, `git tag <planned>` then `git push origin <planned>` is enough. Run it **after** the pull so the tag lands on the merged {{ pr_merge_method }} commit. Do not invent releases for ordinary bumps that had no publish label and no planned tag.
 
 {% include "skills/_default_sync_recover.md.j2" %}
 
@@ -94,7 +94,7 @@ Optional free-form text after the command:
 - Never delete the default branch (local or remote).
 - Remote deletes and findings-issue creation require the **Phase B** confirm; the Phase A1 and A2 yeses must not imply them (nor each other).
 - If anything is ambiguous (detached HEAD, multiple remotes, missing tracking info), report and stop rather than guess.
-- Do not open or update PRs. Do not bump version fields — pyproject bumps belong to `/iflow-close`. The only version action allowed here is creating a release tag that `/iflow-close` **planned** (tag-derived strategy), inside the Phase A consolidated confirm.
+- Do not open or update PRs. Do not bump version fields — pyproject bumps belong to `/iflow-close`. The only version action allowed here is creating a release tag / GitHub release that `/iflow-close` **planned** (tag-derived strategy or publish-on-success label), inside the Phase A consolidated confirm.
 {% if defer_changelog %}- Apply a **deferred** changelog bullet after the FF pull (`issue-flow agent apply-changelog`). That is not a new HISTORY *offer* — do not invent a fresh bullet here. Skip when there is no deferred section, `nohistory`, or the bullet is already present.
 {% else %}- Do **not** offer to update `{{ history_file }}` / CHANGELOG here — that belongs in `/iflow-close` before the PR.
 {% endif %}
