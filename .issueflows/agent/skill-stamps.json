@@ -4,7 +4,7 @@
     ".cursor/skills/caveman": "0689fb6b8decb86e17c4c6e4b4e5d4b320442a4fe33781f4e2a3031ea0948f28",
     ".cursor/skills/gh-ci": "f7253cef9f2f2ad4d7117c1bc04bfde7d1c599f563d568082ea916fc4a8accf3",
     ".cursor/skills/grill-me": "eebf8df68f8a393eeb4c90f803b35b3328aba3934ff1bf89fee712be614b3313",
-    ".cursor/skills/iflow": "3ff617194519f861abe32b2d2775775bf3995eab6b6cb673df1e758abfacbdcc",
+    ".cursor/skills/iflow": "724fa5c71e2822a5c72ee116ea49781e35f68f35f67d6294643cd1e645b1f35f",
     ".cursor/skills/iflow-archive": "f67ff91e5329bcbbfae16da2ef3b03ac60e76fc1f75b47cedba7c643679d8b0c",
     ".cursor/skills/iflow-auto": "dca2b4649d1622367103a2fc34cc11424f52525c689adffb84301cba0e9b1a65",
     ".cursor/skills/iflow-build": "68b7a8ecd594c133b05908fd31f545bd51dc018c2c67ce4ffe7073274f1af428",
@@ -29,8 +29,9 @@
     ".cursor/skills/iflow-review": "593f72af0400319145527f1d78a66cb1ce1405b01bd4ddd3db7b3487fe977af7",
     ".cursor/skills/iflow-setup": "080713087c2ab07d40bb54462af5381993b5c2aeaebc654cbfa70403d6c50c4b",
     ".cursor/skills/iflow-split": "b0e03ac71a44eb6ac98e7c1d471a7ee5ad7fcf3afd06e928f004a3bda1120413",
-    ".cursor/skills/iflow-status": "d4aed2ee59fd68a97b4fedb0a7164392d761396ac11a71d95349ed55633c33b1",
+    ".cursor/skills/iflow-status": "e31040598845775bb6118721ba5fca55afe1435d91fc0d1bacd09fe0e3ab5641",
     ".cursor/skills/iflow-version-bump": "27089e016337e6e35673852e8af456458dcc4c334a4c417a98762877205c4f09",
+    ".cursor/skills/iflow-workspace-git": "3d9d967dab4833670440a5a91898c9698eae1efd656d38179ed4b144ff6dba15",
     ".cursor/skills/iflow-yolo": "849955d5d780fbcb908b3cdb3278d3d4f420b8816e072c78d5f2330fe01767f2"
   }
 }

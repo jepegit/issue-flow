@@ -90,6 +90,8 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 
 6. **Summary line.** One terse line, e.g. `Focus: #20 (start). Parked: 2. Solved: 31. Open on GitHub: 7 (5 untracked).`
 
+Git hygiene across members (branch / dirty / ahead-behind) is **`/iflow-workspace-git`** (`iflow git` / `issue-flow workspace git status`), not this command.
+
 ## Constraints
 
 - **Read-only.** Writes nothing, moves no files, creates no branches/commits/GitHub issues. Only reads `.issueflows/` and runs read-only `git` / `gh` queries.
