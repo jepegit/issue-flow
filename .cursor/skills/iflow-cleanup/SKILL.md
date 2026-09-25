@@ -94,7 +94,7 @@ Optional free-form text after the command:
    - `git fetch --prune`
    - `issue-flow agent worktree-list --json` — for each **linked** worktree whose branch is **`reachable`**, `issue-flow agent worktree-remove <path>` (or the issue number) **before** deleting the branch. Git cannot `-d` a branch that is still checked out in a worktree. Never remove a worktree whose branch is `unique_work`.
    - `git branch -d <branch>` for each **`reachable`** branch, listed explicitly by name first. If `-d` still refuses, report that branch and move on.
-   - **Planned release tag (tag-derived projects only).** When `/iflow-close` planned a tag it did not create — check the focus issue's status file and the newest `HISTORY.md` release section for a version whose tag is missing from `git tag -l` — include creating it here: `git tag <planned>` then `git push origin <planned>` (or `gh release create <planned> --generate-notes`). Run it **after** the pull so the tag lands on the merged squash commit.
+   - **Planned release / publish-on-success.** When `/iflow-close` planned a tag (tag-derived) **or** recorded a publish label / planned version on the status file — check the focus issue's status file and the newest `HISTORY.md` release section for a version whose tag is missing from `git tag -l` (or whose GitHub release is missing) — include creating it here: prefer `gh release create "v<version>" --generate-notes` (creates the tag too); for tag-only projects without publish, `git tag <planned>` then `git push origin <planned>` is enough. Run it **after** the pull so the tag lands on the merged squash commit. Do not invent releases for ordinary bumps that had no publish label and no planned tag.
 
 If `git pull --ff-only` fails on default (or home default is **ahead** of origin), run `issue-flow agent default-sync --json` (classify-only; never mutates). Print ahead/behind, unique commit onelines + paths, and the recommended `action`. Do **not** only dump `fatal: Not possible to fast-forward`.
 
@@ -139,6 +139,6 @@ Never: rebase default, `push --force` default, or push default to skip CI.
 - Never delete the default branch (local or remote).
 - Remote deletes and findings-issue creation require the **Phase B** confirm; the Phase A1 and A2 yeses must not imply them (nor each other).
 - If anything is ambiguous (detached HEAD, multiple remotes, missing tracking info), report and stop rather than guess.
-- Do not open or update PRs. Do not bump version fields — pyproject bumps belong to `/iflow-close`. The only version action allowed here is creating a release tag that `/iflow-close` **planned** (tag-derived strategy), inside the Phase A consolidated confirm.
+- Do not open or update PRs. Do not bump version fields — pyproject bumps belong to `/iflow-close`. The only version action allowed here is creating a release tag / GitHub release that `/iflow-close` **planned** (tag-derived strategy or publish-on-success label), inside the Phase A consolidated confirm.
 - Do **not** offer to update `HISTORY.md` / CHANGELOG here — that belongs in `/iflow-close` before the PR.
 

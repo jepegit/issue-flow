@@ -58,6 +58,7 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "label_flows",
         "yolo_label",
         "ops_label",
+        "publish_label",
         "checks_watch_minutes",
         "step_directives",
         "model_label_flows",
@@ -346,6 +347,41 @@ def test_ops_label_from_env(
     monkeypatch.setenv("ISSUEFLOW_OPS_LABEL", "ship-it")
     settings = Settings()
     assert settings.resolve_ops_label(tmp_path) == "ship-it"
+
+
+def test_publish_label_default(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    monkeypatch.delenv("ISSUEFLOW_PUBLISH_LABEL", raising=False)
+    settings = Settings()
+    assert settings.resolve_publish_label(tmp_path) == "publish"
+    assert settings.template_context(tmp_path)["publish_label"] == "publish"
+
+
+def test_publish_label_from_config(tmp_path: Path) -> None:
+    _write_config(tmp_path, '[issueflow]\npublish_label = "ship"\n')
+    settings = Settings()
+    assert settings.resolve_publish_label(tmp_path) == "ship"
+
+
+def test_publish_label_from_env(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    monkeypatch.setenv("ISSUEFLOW_PUBLISH_LABEL", "release-me")
+    settings = Settings()
+    assert settings.resolve_publish_label(tmp_path) == "release-me"
+
+
+def test_publish_label_config_beats_env(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    _write_config(tmp_path, '[issueflow]\npublish_label = "from-toml"\n')
+    monkeypatch.setenv("ISSUEFLOW_PUBLISH_LABEL", "from-env")
+    settings = Settings()
+    assert settings.resolve_publish_label(tmp_path) == "from-toml"
 
 
 def test_checks_watch_minutes_default(

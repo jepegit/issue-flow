@@ -401,8 +401,10 @@ def test_init_cleanup_skill_offers_planned_tag(tmp_path: Path) -> None:
     content = (
         tmp_path / ".cursor" / "skills" / "iflow-cleanup" / "SKILL.md"
     ).read_text(encoding="utf-8")
-    assert "Planned release tag" in content
+    assert "Planned release" in content
     assert "git tag -l" in content
+    assert "gh release create" in content
+    assert "publish-on-success" in content.lower() or "publish label" in content.lower()
 
 
 def test_init_epic_skill_is_staged_and_gated(tmp_path: Path) -> None:

@@ -839,6 +839,45 @@ def agent_version_plan(
     )
 
 
+@agent_app.command("publish-intent")
+def agent_publish_intent(
+    project_dir: Path = _PROJECT_DIR_OPTION,
+    issue: int | None = typer.Option(
+        None,
+        "--issue",
+        "-i",
+        help="GitHub issue number whose labels to inspect.",
+    ),
+    label: list[str] = typer.Option(
+        [],
+        "--label",
+        "-l",
+        help="Explicit label name (repeatable). Ignored when --issue is set.",
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Resolve publish-on-success intent from labels (read-only).
+
+    Bare ``publish`` (or the configured ``publish_label``) means patch.
+    ``publish:minor`` / ``publish:0.6.0`` override. Exit 2 when the intent
+    conflicts or an explicit version is not a sensible next release — the
+    agent must stop and ask. Never bumps or creates releases.
+    """
+    from issue_flow.agent import run_publish_intent
+
+    raise typer.Exit(
+        code=run_publish_intent(
+            project_dir,
+            _console,
+            issue=issue,
+            labels=list(label),
+            as_json=json_output,
+        )
+    )
+
+
 @agent_app.command("epic-status")
 def agent_epic_status(
     number: int = typer.Argument(..., help="Epic anchor issue number."),
@@ -1300,7 +1339,8 @@ def config_add(
 
     Writes the ``[issueflow]`` keys issue-flow reads from ``config.toml`` —
     ``mode``, ``skill_level``, ``caveman_default``, ``grill_me_default``,
-    ``label_flows``, ``yolo_label``, ``ops_label``, ``checks_watch_minutes``,
+    ``label_flows``, ``yolo_label``, ``ops_label``, ``publish_label``,
+    ``checks_watch_minutes``,
     ``step_directives``, ``model_label_flows``, ``deep_model_label``,
     ``fast_model_label``, ``linguist_attributes``, ``remind_cleanup``,
     ``noob``,

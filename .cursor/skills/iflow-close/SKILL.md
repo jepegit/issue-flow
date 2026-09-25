@@ -23,6 +23,22 @@ If the user included text after `/iflow-close` that requests a version bump:
 
 The exact semantics and the default rule live in `.cursor/skills/iflow-version-bump/SKILL.md` — that skill is the source of truth. When a bump applies: read it, then run the bump from the **project root** **after** the sanity check and **before** issue-folder updates and **before** commit / push / PR.
 
+## Publish-on-success label (issue labels)
+
+When `label_flows` is on and the focus issue carries the configured **`publish`** label (exact match, or `publish:<level>` / `publish:<version>`), close treats that as a **bump request** unless the `ops` token is also present (ops wins — no publish). Prefer the CLI fast path:
+
+```bash
+issue-flow agent publish-intent --issue <N> --json
+```
+
+- Bare `publish` → bump level **patch**.
+- `publish:minor` (any level in the version-bump skill) → that level.
+- `publish:0.6.0` (or `v0.6.0`) → explicit target version.
+- Exit code **2** or `logical: false` / `conflict: true` → **stop and ask** (even under `yolo`): show `suggestion` and `notes`, wait for the user (`patch` / `minor` / accept target / abort).
+- An explicit bump token on the command line **wins** over the label when both are present — announce which one you used.
+- Record `Publish label: <raw>` and the planned version on `issue<N>_status.md`.
+- After the PR merges, create the GitHub release (yolo step 9, or `/iflow-cleanup` Phase A) with `gh release create "v<version>" --generate-notes` so the publish workflow can run. Do **not** create the release on the issue branch.
+
 ## Changelog update tokens (command input)
 
 - **`nohistory`** or **`skip history`** → skip step 3 entirely.
@@ -126,7 +142,7 @@ Marker: `@pytest.mark.essential`. Contract:
 3. Do **not** reclassify the whole suite here — that is `/iflow-doctor`.
 
 
-2. **Optional version bump** — If the user asked for a bump (see above), follow `.cursor/skills/iflow-version-bump/SKILL.md` — it resolves the project's **release strategy** first (the "Release & version bump" section of `.issueflows/04-designs-and-guides/this-project.md`, else `pyproject.toml` detection, else the uv default). **Static version:** run `uv version --bump <level>`. **Git-tag derived:** edit nothing — compute and report the **planned tag** (e.g. `v1.0.4a3`), record it in the status file, and defer creating it until after the merge (step 9 with `yolo`, else `/iflow-cleanup`). If neither strategy applies, skip and continue.
+2. **Optional version bump** — Resolve publish-on-success first when applicable (see **Publish-on-success label** above): if `issue-flow agent publish-intent --issue <N> --json` reports `matched: true` and not ops, treat it as a bump request at `level` / `target_version` (stop-and-ask when `logical` is false or `conflict` is true). Then, if the user asked for a bump (see above), follow `.cursor/skills/iflow-version-bump/SKILL.md` — it resolves the project's **release strategy** first (the "Release & version bump" section of `.issueflows/04-designs-and-guides/this-project.md`, else `pyproject.toml` detection, else the uv default). **Static version:** run `uv version --bump <level>` (or set the explicit target when the label named a version). **Git-tag derived:** edit nothing — compute and report the **planned tag** (e.g. `v1.0.4a3`), record it in the status file, and defer creating it until after the merge (step 9 with `yolo`, else `/iflow-cleanup`). If neither strategy applies, skip and continue.
 
 3. **Update `HISTORY.md`** — Unless the user passed `nohistory`, follow `.cursor/skills/iflow-history-update/SKILL.md`. If step 2 did not bump (or plan) a version, append a bullet to the `## [Unreleased]` section. If step 2 bumped or planned a version, promote `## [Unreleased]` to `## [<new_version>] - <YYYY-MM-DD>` (for tag-derived projects use the planned tag's version) and open a fresh empty `## [Unreleased]` above it. Write without a confirm prompt (`confirm_changelog_update` is false) so the bullet is in the PR commit. Skip with a note if `HISTORY.md` does not exist at the project root. With the `yolo` token, do not ask — decide yourself and write the bullet (issue title, or `log "..."` text) directly. Write this step **even when a draft PR already exists** from `/iflow-build` early PR — the bullet must land in the close commit that updates that PR. **Never** propose a changelog update *after close finishes* (PR already updated/merged) or after merge.
 
@@ -174,6 +190,7 @@ Never: rebase default, `push --force` default, or push default to skip CI.
    - **Manual fallback.** Detect the default branch (prefer `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`, else `git symbolic-ref --quiet --short refs/remotes/origin/HEAD`, else `main`). If this checkout is a linked worktree, **do not** `git switch <default>` here (two checkouts of default are forbidden). Run `git status --porcelain`; if clean and this is the **home** tree, run `git switch <default>` and then `git pull --ff-only`. If dirty, stay put and list the uncommitted paths.
    - Never delete the issue branch here. With the `yolo` token this step runs **after** the merge from step 8a so the pull brings the merged commit into the local default branch (a queued auto-merge arrives later; note that). Pull-on-default after yolo must run from **home**, not the issue worktree.
    - **Planned release tag (`yolo` + tag-derived strategy only):** if step 2 planned a tag, create it now — after the pull, standing on the merge commit — with `git tag <planned>` then `git push origin <planned>` (covered by the yolo consolidated confirm). If the merge was only queued via `--auto`, leave the tag to `/iflow-cleanup` and say so.
+   - **Publish-on-success release (`yolo`):** if step 2 recorded a publish label / planned version on the status file (or `publish-intent` matched), after the pull create the GitHub release with `gh release create "v<version>" --generate-notes` (use the version that landed on default — static `pyproject` or the planned tag). Skip if the release/tag already exists. If the merge was only queued via `--auto`, leave the release to `/iflow-cleanup` and say so.
 
 9a. **Remove the issue worktree** — Skip when: no linked worktree for `<N>` (`inplace`); input included `stay`; the PR is still `draft`; a `yolo` merge failed or was only queued via `--auto`; the worktree is dirty (report paths and leave the folder — never `--force`).
    - Run from **home**: `issue-flow agent worktree-remove <N> -C <home> --json`.

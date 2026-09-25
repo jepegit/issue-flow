@@ -150,10 +150,13 @@ The full slash-command lifecycle is:
 {% endif %}
 {% if label_flows and "iflow-yolo" in included_commands and "iflow-pick" in included_commands %}
 
-Issue labels can select the flow: when an issue picked via `/iflow-pick` carries the **`{{ yolo_label }}`** label, it is routed through `/iflow-yolo` (one combined confirmation).{% if "iflow-ops" in included_commands %} The **`{{ ops_label }}`** label routes to `/iflow-ops` (no PR); when both labels are present, **ops wins**.{% endif %} Controlled by `label_flows` (default `true`), `yolo_label` (default `"yolo"`){% if "iflow-ops" in included_commands %}, and `ops_label` (default `"ops"`){% endif %} under `[issueflow]` in `{{ issueflows_dir }}/config.toml`; re-run `issue-flow update` after changing them.
+Issue labels can select the flow: when an issue picked via `/iflow-pick` carries the **`{{ yolo_label }}`** label, it is routed through `/iflow-yolo` (one combined confirmation).{% if "iflow-ops" in included_commands %} The **`{{ ops_label }}`** label routes to `/iflow-ops` (no PR); when both labels are present, **ops wins**.{% endif %} A **`{{ publish_label }}`** label (or `{{ publish_label }}:<level|version>`) does not change pick routing — on `/iflow-close` it requests a version bump (default patch) and a post-merge `gh release create`. Controlled by `label_flows` (default `true`), `yolo_label` (default `"yolo"`){% if "iflow-ops" in included_commands %}, `ops_label` (default `"ops"`){% endif %}, and `publish_label` (default `"{{ publish_label }}"`) under `[issueflow]` in `{{ issueflows_dir }}/config.toml`; re-run `issue-flow update` after changing them.
 {% elif label_flows and "iflow-ops" in included_commands and "iflow-pick" in included_commands %}
 
-Issue labels can select the flow: when an issue picked via `/iflow-pick` carries the **`{{ ops_label }}`** label, it is routed through `/iflow-ops` (no-PR close). Controlled by `label_flows` (default `true`) and `ops_label` (default `"ops"`) under `[issueflow]` in `{{ issueflows_dir }}/config.toml`; re-run `issue-flow update` after changing them.
+Issue labels can select the flow: when an issue picked via `/iflow-pick` carries the **`{{ ops_label }}`** label, it is routed through `/iflow-ops` (no-PR close). A **`{{ publish_label }}`** label still drives bump + release on close when `label_flows` is on. Controlled by `label_flows` (default `true`), `ops_label` (default `"ops"`), and `publish_label` (default `"{{ publish_label }}"`) under `[issueflow]` in `{{ issueflows_dir }}/config.toml`; re-run `issue-flow update` after changing them.
+{% elif label_flows %}
+
+When `label_flows` is on, a **`{{ publish_label }}`** label (or `{{ publish_label }}:<level|version>`) on the focus issue makes `/iflow-close` bump (default patch) and create a GitHub release after merge. Controlled by `publish_label` (default `"{{ publish_label }}"`) under `[issueflow]` in `{{ issueflows_dir }}/config.toml`; re-run `issue-flow update` after changing.
 {% endif %}
 {% if step_directives %}
 

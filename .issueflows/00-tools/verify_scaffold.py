@@ -221,6 +221,8 @@ def main() -> int:
             _check(project / rel, "--squash --auto", True, rel)
             _check(project / rel, "gh pr create --draft", True, rel)
             _check(project / rel, "Ops close path", True, rel)
+            _check(project / rel, "Publish-on-success label", True, rel)
+            _check(project / rel, "publish-intent", True, rel)
         for rel in YOLO_SURFACES:
             _check(project / rel, "/iflow-close yolo", True, rel)
         for rel in OPS_SURFACES:

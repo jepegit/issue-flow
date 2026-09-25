@@ -45,6 +45,7 @@ an environment-variable fallback, `ISSUEFLOW_<KEY>` (for example
 | `label_flows` | bool | `true` | Let issue labels choose the flow in `/iflow-pick` (yolo → `/iflow-yolo`, ops → `/iflow-ops`). See [Label-driven flows](#label-driven-flows). |
 | `yolo_label` | text | `"yolo"` | The label that routes an issue to `/iflow-yolo`; also what `/iflow-cycle yolo` and `/iflow-review yolo` use. |
 | `ops_label` | text | `"ops"` | The label that routes an issue to `/iflow-ops` (ops wins over yolo). |
+| `publish_label` | text | `"publish"` | Label that bumps + creates a GitHub release after merge (bare = patch; `publish:minor` / `publish:0.6.0` override). See [Label-driven flows](#label-driven-flows). |
 | `checks_watch_minutes` | int | `15` | How long hands-off closes watch pending CI checks before falling back to `--auto` merge. |
 | `step_directives` | bool | `true` | Add a MODEL & EXECUTION DIRECTIVE (economy or reasoning) to lifecycle skills; tune per step under `[issueflow.step_profiles]`. |
 | `model_label_flows` | bool | `false` | Let `/iflow-pick` announce a deeper or faster model based on issue labels. |
@@ -303,12 +304,22 @@ keys under `[issueflow]` in `.issueflows/config.toml`:
 [issueflow]
 label_flows = true    # allow labels to select the flow (default: true)
 yolo_label = "yolo"   # the label that triggers the yolo flow (default: "yolo")
+ops_label = "ops"     # no-PR / ops close (default: "ops"; wins over yolo)
+publish_label = "publish"  # bump + GitHub release after merge (default: "publish")
 ```
 
-Set `label_flows = false` to opt out, or change `yolo_label` to use a different
-trigger label; re-run `issue-flow update` after changing either so the commands
-re-render. Only honored when the `iflow-pick` and `iflow-yolo` commands are part
-of the active mode.
+Set `label_flows = false` to opt out, or change `yolo_label` / `ops_label` /
+`publish_label` to use different trigger labels; re-run `issue-flow update`
+after changing so the commands re-render. Yolo/ops routing is only honored when
+the matching commands are part of the active mode.
+
+**Publish-on-success** (`publish_label`) does not change which
+skill `/iflow-pick` runs. On `/iflow-close`, a matching label is treated as a
+bump request (bare label → patch; `publish:minor` or `publish:0.6.0` for
+overrides). Illogical explicit versions stop and ask. After the PR merges,
+yolo close or `/iflow-cleanup` creates `gh release create "v<version>"
+--generate-notes`. Ops wins over publish (no PR → no release). Fast path:
+`issue-flow agent publish-intent --issue <N> --json`.
 
 Related off-path flows (see [Command reference](issue-workflow.md)):
 

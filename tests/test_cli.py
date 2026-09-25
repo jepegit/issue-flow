@@ -3021,6 +3021,7 @@ def test_config_add_creates_defaults(
     assert payload["label_flows"] is True
     assert payload["yolo_label"] == "yolo"
     assert payload["ops_label"] == "ops"
+    assert payload["publish_label"] == "publish"
     assert payload["checks_watch_minutes"] == 15
     assert payload["linguist_attributes"] is False
     assert payload["remind_cleanup"] is True
@@ -3055,6 +3056,7 @@ def test_config_add_creates_defaults(
     assert data["issueflow"]["label_flows"] is True
     assert data["issueflow"]["yolo_label"] == "yolo"
     assert data["issueflow"]["ops_label"] == "ops"
+    assert data["issueflow"]["publish_label"] == "publish"
     assert data["issueflow"]["checks_watch_minutes"] == 15
     assert data["issueflow"]["linguist_attributes"] is False
     assert data["issueflow"]["remind_cleanup"] is True
