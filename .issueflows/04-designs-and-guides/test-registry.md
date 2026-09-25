@@ -28,6 +28,9 @@ current issue**. `/iflow-doctor` may audit the whole suite against this table.
 | `tests/test_doc_configuration.py` (other tests) | no | no | `docs/configuration.md` layout | #359 | Starts with Common changes; no bare issue numbers |
 | `tests/test_worktree_location.py::test_default_is_sibling` / `test_workspace_folder_keeps_sibling_even_with_worktrees_dir` / `test_existing_worktrees_dir_is_used` | yes | yes | `gitutils.resolve_worktree_location` | #328 | Core location rules; pure, fast |
 | `tests/test_worktree_location.py` (other tests) | no | no | fallbacks, `~`, CLI add/remove, project-vs-user override | #328 | Uses real temp git repos |
+| `tests/test_self_update.py` (module) | no | no | `self_update.run_self_update`, receipt inspect | #382 | Mocked uv/CLI; leave unmarked |
+| `tests/test_templating.py::test_cleanup_bakes_on_bleeding_edge` | no | no | cleanup skill/command bake of `on_bleeding_edge` | #382 | Config default bake |
+| `tests/test_doc_configuration.py::test_all_settings_table_lists_every_config_key_once` | yes | yes | `docs/configuration.md` vs `CONFIG_KEYS` | #382 | Already essential; covers new knob |
 
 **Columns**
 

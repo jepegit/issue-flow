@@ -69,6 +69,7 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "remind_cleanup",
         "noob",
         "cleanup_include_github",
+        "on_bleeding_edge",
         "suggest_graphify",
         "auto_graphify_on_plan",
         "auto_switchback",
@@ -458,6 +459,7 @@ def test_skill_behaviour_knob_defaults(
         "ISSUEFLOW_DEFER_CHANGELOG",
         "ISSUEFLOW_AUTO_GRAPHIFY_ON_PLAN",
         "ISSUEFLOW_CLEANUP_INCLUDE_GITHUB",
+        "ISSUEFLOW_ON_BLEEDING_EDGE",
         "ISSUEFLOW_ESSENTIAL_TESTS",
         "ISSUEFLOW_TEST_RUNNER",
         "ISSUEFLOW_ESSENTIAL_MARKER",
@@ -468,6 +470,7 @@ def test_skill_behaviour_knob_defaults(
     assert settings.resolve_remind_cleanup(tmp_path) is True
     assert settings.resolve_noob(tmp_path) is False
     assert settings.resolve_cleanup_include_github(tmp_path) is False
+    assert settings.resolve_on_bleeding_edge(tmp_path) is False
     assert settings.resolve_suggest_graphify(tmp_path) is True
     assert settings.resolve_auto_graphify_on_plan(tmp_path) is False
     assert settings.resolve_auto_switchback(tmp_path) is True
@@ -500,6 +503,7 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
         "remind_cleanup = false\n"
         "noob = true\n"
         "cleanup_include_github = true\n"
+        "on_bleeding_edge = true\n"
         "suggest_graphify = false\n"
         "auto_graphify_on_plan = true\n"
         "auto_switchback = false\n"
@@ -528,6 +532,7 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
     assert settings.resolve_remind_cleanup(tmp_path) is False
     assert settings.resolve_noob(tmp_path) is True
     assert settings.resolve_cleanup_include_github(tmp_path) is True
+    assert settings.resolve_on_bleeding_edge(tmp_path) is True
     assert settings.resolve_suggest_graphify(tmp_path) is False
     assert settings.resolve_auto_graphify_on_plan(tmp_path) is True
     assert settings.resolve_auto_switchback(tmp_path) is False

@@ -18,9 +18,13 @@ Optional free-form text after the command. Examples:
 - A branch name — clean up that specific branch instead of the current one (e.g. `/iflow-cleanup 42-fix-login`).
 - **GitHub audit opt-in tokens** (case-insensitive): `include github`, `include gh`, `with github`, or standalone `github` — also run Phase B after Phase A.
 - **GitHub audit opt-out tokens** (case-insensitive): `no github`, `local only`, `local-only` — skip Phase B even when `cleanup_include_github` is baked true.
-- **Workspace walk** (case-insensitive): `workspace`, `all`, `include workspace` — one up-front confirm, then this cleanup **per member**. Not a mute CLI. Ignore these tokens when parsing a named branch.
+- **Self-update opt-in tokens** (case-insensitive): `bleeding edge`, `bleeding-edge`, `self-update` — upgrade the CLI after a successful FF pull.{% if on_bleeding_edge %} This project bakes `on_bleeding_edge = true`, so that step also runs by default.{% endif %}
+- **Self-update opt-out tokens** (case-insensitive): `no bleeding`, `no bleeding-edge`, `skip self-update` — skip the upgrade even when `on_bleeding_edge` is baked true.
+- **Workspace walk** (case-insensitive): `workspace`, `all`, `include workspace` — one up-front confirm, then this cleanup **per member**. Not a mute CLI. Ignore these tokens when parsing a named branch. When self-update is enabled, upgrade the tool **once** at the start of the walk.
 
 **Phase B enable rule:** (`cleanup_include_github` baked true **or** opt-in token) **and** no opt-out token.
+
+**Self-update enable rule:** (`on_bleeding_edge` baked true **or** opt-in token) **and** no self-update opt-out token.
 
 ## Steps
 
@@ -48,7 +52,8 @@ Optional free-form text after the command. Examples:
 
 5. **Consolidated confirm for post-merge cleanup (Phase A1).** Gather the full action list into a single yes/no prompt:
    - `git switch <default>` (home only)
-   - `git pull --ff-only` — if it fails, stop A1 steps that assume default is current (apply-changelog, release tag). Run `issue-flow agent default-sync --json`, print ahead/behind + unique commit onelines/paths + `action`, and follow that recovery (tracking → tiny PR; obsolete merge → replay; product → stop). Never rebase default, force-push default, or push default to skip CI.
+   - `git pull --ff-only` — if it fails, stop A1 steps that assume default is current (apply-changelog, release tag, self-update). Run `issue-flow agent default-sync --json`, print ahead/behind + unique commit onelines/paths + `action`, and follow that recovery (tracking → tiny PR; obsolete merge → replay; product → stop). Never rebase default, force-push default, or push default to skip CI.
+   - **Self-update (when enabled).** After a successful FF pull, on home: `issue-flow agent self-update --json -C <home>`. Skip when FF failed. Report skip/fail; do not roll back deletes.
 {% if defer_changelog %}   - **Apply deferred changelog.** After a **successful** FF pull, for each just-merged issue with `### Deferred changelog` on `issue<N>_status.md`: `issue-flow agent apply-changelog --issue N --json`. If it wrote, commit on default: `docs: changelog for #<N>` (`{{ history_file }}` only). Auto-commit when this cleanup run is already confirmed; honour `confirm_changelog_update` only for an interactive cleanup.
 {% endif %}   - `git fetch --prune`
    - `issue-flow agent worktree-remove` for each linked worktree whose branch is `reachable` (**before** deleting the branch)

@@ -22,7 +22,7 @@ agent_app = typer.Typer(
         "Agent-facing helpers that read the .issueflows/ tree and git/gh so "
         "AI agents get deterministic answers instead of re-deriving lifecycle "
         "state by hand. All are read-only except `sweep`, `archive`, `capture`, "
-        "`switchback`, `sync-branch`, `pr-sync`, `apply-changelog`, `repair`, `label-apply`, "
+        "`switchback`, `sync-branch`, `pr-sync`, `apply-changelog`, `self-update`, `repair`, `label-apply`, "
         "`open-workspace --open`, `worktree-add`, and `worktree-remove`. "
         "`branches` (remote), `local-branches` (local), and `default-sync` only classify: "
         "every delete stays in `/iflow-cleanup`; `default-sync` never mutates."
@@ -625,6 +625,25 @@ def agent_apply_changelog(
     raise typer.Exit(
         code=run_apply_changelog(project_dir, _console, issue, json_output)
     )
+
+
+@agent_app.command("self-update")
+def agent_self_update(
+    project_dir: Path = _PROJECT_DIR_OPTION,
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Upgrade the uv-tool install to issue-flow@latest, then refresh the scaffold.
+
+    Runs ``uv tool install issue-flow@latest`` then ``issue-flow update`` on
+    ``project_dir`` (``--skip-dep-check``). Skips when the current tool
+    install is editable or a local path. Used by ``/iflow-cleanup`` when
+    ``on_bleeding_edge`` is on (issue #382).
+    """
+    from issue_flow.agent import run_self_update
+
+    raise typer.Exit(code=run_self_update(project_dir, _console, json_output))
 
 
 @agent_app.command("pr-sync")
@@ -1353,7 +1372,7 @@ def config_add(
     ``step_directives``, ``model_label_flows``, ``deep_model_label``,
     ``fast_model_label``, ``linguist_attributes``, ``remind_cleanup``,
     ``noob``,
-    ``cleanup_include_github``, ``suggest_graphify``,
+    ``cleanup_include_github``, ``on_bleeding_edge``, ``suggest_graphify``,
     ``auto_graphify_on_plan``, ``auto_switchback``, ``auto_remove_worktree``,
     ``worktree_first``,
     ``pr_merge_method``, ``cycle_max_issues``, ``cycle_onfail``,

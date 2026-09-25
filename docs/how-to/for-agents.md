@@ -30,11 +30,21 @@ issue-flow` never refreshes a project's `.cursor/skills/` by itself.
 The CLI must be on `PATH` (`uv tool install issue-flow` once). Then:
 
 ```bash
+# scripted (preferred when an agent is driving)
+issue-flow agent self-update --json
+
+# or by hand
 uv tool upgrade issue-flow
 issue-flow --version
 ```
 
-Then refresh scaffolds so skills match the new CLI:
+`issue-flow agent self-update` runs `uv tool install issue-flow@latest`
+then `issue-flow update` on the current project. It skips editable or
+path installs. `/iflow-cleanup` can run the same command when
+`on_bleeding_edge` is true (or you pass `bleeding edge`).
+
+Then refresh scaffolds so skills match the new CLI (already included in
+`agent self-update`):
 
 ```bash
 # one repo

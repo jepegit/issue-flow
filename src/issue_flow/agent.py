@@ -4106,6 +4106,22 @@ def run_workspace_git_fetch(
 
 
 # ---------------------------------------------------------------------------
+# agent self-update
+# ---------------------------------------------------------------------------
+
+
+def run_self_update(
+    project_root: Path,
+    console: Console,
+    as_json: bool,
+) -> int:
+    """Upgrade the uv-tool install, then refresh this project's scaffold."""
+    from issue_flow.self_update import run_self_update as _run
+
+    return _run(project_root, console, as_json)
+
+
+# ---------------------------------------------------------------------------
 # agent apply-changelog
 # ---------------------------------------------------------------------------
 
@@ -4949,7 +4965,8 @@ def _print_config_guide(console: Console, cfg_path: Path) -> None:
     )
     console.print(
         "  [dim]- [bold]remind_cleanup[/bold] / [bold]noob[/bold] / "
-        "[bold]cleanup_include_github[/bold] / [bold]suggest_graphify[/bold] / "
+        "[bold]cleanup_include_github[/bold] / [bold]on_bleeding_edge[/bold] / "
+        "[bold]suggest_graphify[/bold] / "
         "[bold]auto_graphify_on_plan[/bold]; "
         "[bold]auto_switchback[/bold] / [bold]auto_remove_worktree[/bold] / "
         "[bold]worktree_first[/bold] / "

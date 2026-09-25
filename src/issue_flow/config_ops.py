@@ -65,6 +65,7 @@ CONFIG_KEYS: dict[str, ConfigKeySpec] = {
     "remind_cleanup": ConfigKeySpec("bool"),
     "noob": ConfigKeySpec("bool"),
     "cleanup_include_github": ConfigKeySpec("bool"),
+    "on_bleeding_edge": ConfigKeySpec("bool"),
     "suggest_graphify": ConfigKeySpec("bool"),
     "auto_graphify_on_plan": ConfigKeySpec("bool"),
     "auto_switchback": ConfigKeySpec("bool"),

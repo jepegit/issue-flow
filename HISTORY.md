@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- `on_bleeding_edge` lets `/iflow-cleanup` upgrade the installed CLI (`uv tool install issue-flow@latest`) and refresh the scaffold via `issue-flow agent self-update`. (#382)
+
 ## [0.5.13] - 2026-09-25
 
 - Git processing all repos in workspace. (#381)
