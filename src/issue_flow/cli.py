@@ -44,6 +44,15 @@ workspace_app = typer.Typer(
         "('parent') repo that lifecycle commands fall back to."
     ),
 )
+workspace_git_app = typer.Typer(
+    name="git",
+    add_completion=False,
+    help=(
+        "Git hygiene across every scaffolded workspace member: "
+        "status (read-only snapshot) or fetch --prune. No pull/push."
+    ),
+    invoke_without_command=True,
+)
 
 _console = Console()
 
@@ -1766,6 +1775,51 @@ def workspace_dirty(
     raise typer.Exit(code=run_workspace_dirty(workspace_dir, _console, json_output))
 
 
+@workspace_git_app.callback(invoke_without_command=True)
+def workspace_git_default(ctx: typer.Context) -> None:
+    """Default verb is ``status`` when no subcommand is given."""
+    if ctx.invoked_subcommand is not None:
+        return
+    from issue_flow.agent import run_workspace_git_status
+
+    raise typer.Exit(code=run_workspace_git_status(Path("."), _console, False))
+
+
+@workspace_git_app.command("status")
+def workspace_git_status(
+    workspace_dir: Path = _WORKSPACE_DIR_ARGUMENT,
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Read-only git snapshot for every scaffolded workspace member.
+
+    Branch, dirty paths, and ahead/behind vs ``origin/<default>``. Does not
+    fetch. Distinct from ``workspace status`` (issue-flow lifecycle).
+    """
+    from issue_flow.agent import run_workspace_git_status
+
+    raise typer.Exit(
+        code=run_workspace_git_status(workspace_dir, _console, json_output)
+    )
+
+
+@workspace_git_app.command("fetch")
+def workspace_git_fetch(
+    workspace_dir: Path = _WORKSPACE_DIR_ARGUMENT,
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Run ``git fetch --prune`` in every scaffolded workspace member.
+
+    Continue-on-fail. Does not pull, rebase, merge, or push.
+    """
+    from issue_flow.agent import run_workspace_git_fetch
+
+    raise typer.Exit(code=run_workspace_git_fetch(workspace_dir, _console, json_output))
+
+
 @app.command()
 def register(
     project_dir: Path = typer.Argument(
@@ -1912,6 +1966,7 @@ def unregister(
 
 app.add_typer(agent_app)
 app.add_typer(config_app)
+workspace_app.add_typer(workspace_git_app)
 app.add_typer(workspace_app)
 
 

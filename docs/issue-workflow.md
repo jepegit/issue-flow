@@ -47,6 +47,7 @@ It also seeds `.issueflows/00-tools/README.md` — the index of the project's **
 | **Helpers** | | | |
 | `/iflow-pause` | Park the focus issue in `02-partly-solved-issues/` with resume notes. | off | standard, novice, simple |
 | `/iflow-status` | Read-only overview of every issue, locally and on GitHub. | off | standard, novice, simple |
+| `/iflow-workspace-git` | Git snapshot (and optional fetch) for every workspace member. | off | standard |
 | `/iflow-review` | Propose and apply workflow labels on open issues (v1: yolo). | off | standard |
 | **Maintenance** | | | |
 | `/iflow-doctor` | Audit `.issueflows/` for dirty conditions; optional safe repair. | off | standard, novice |
@@ -86,7 +87,7 @@ Every command below is described the same way: **When to use**, **Arguments**, *
 
 **Focus-issue resolution:** prefer the leading digits of the current branch when it matches `^<N>-.+`; else the single group in `.issueflows/01-current-issues/`; else the epic gap check; else ask. See `04-designs-and-guides/iflow-epic-awareness.md`.
 
-**Not auto-dispatched:** `/iflow-setup`, `/iflow-init`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-ops`, `/iflow-fix`, `/iflow-issue`, `/iflow-split`, `/iflow-status`, `/iflow-doctor`, `/iflow-review`, `/iflow-epic`, `/iflow-cycle`, `/iflow-auto`, `/iflow-drive`, and `/iflow-archive`. `/iflow` will mention them in its output when relevant (e.g. "after the PR merges, run `/iflow-cleanup`") but never picks them for you.
+**Not auto-dispatched:** `/iflow-setup`, `/iflow-init`, `/iflow-pause`, `/iflow-cleanup`, `/iflow-yolo`, `/iflow-ops`, `/iflow-fix`, `/iflow-issue`, `/iflow-split`, `/iflow-status`, `/iflow-workspace-git`, `/iflow-doctor`, `/iflow-review`, `/iflow-epic`, `/iflow-cycle`, `/iflow-auto`, `/iflow-drive`, and `/iflow-archive`. `/iflow` will mention them in its output when relevant (e.g. "after the PR merges, run `/iflow-cleanup`") but never picks them for you.
 
 **What it asks you:** Nothing itself — each dispatched command keeps its own checkpoints. The epic gap without a session only **recommends** `/iflow-pick`; with a session it **asks** (never silent-pick).
 
@@ -516,6 +517,20 @@ iflow cycle yolo
 
 **Related:** [Concepts](https://issue-flow.readthedocs.io/en/latest/concepts/)
 
+### `/iflow-workspace-git` — git snapshot for every workspace member
+
+**When to use:** You want `git status`-shaped hygiene (branch, dirty paths, ahead/behind) on **every** repo in an `issueflow-workspace.toml` workspace. Not the same as `/iflow-status` (issue-flow lifecycle + GitHub).
+
+**Arguments:** Nothing or `status` (read-only snapshot, no fetch). `fetch` runs `git fetch --prune` on each unlocked member first (continue-on-fail).
+
+**What it does:** Runs `issue-flow workspace git status` (and optionally `workspace git fetch`) from the workspace root. Locked members are skipped. Does not pull, rebase, merge, or push.
+
+**What it asks you:** Nothing. Status is read-only; fetch only updates remotes.
+
+**Result:** One line per member: name, branch, ahead/behind, clean/dirty (plus dirty paths). `--json` is available on the CLI.
+
+**Related:** [Use issue-flow in a folder of repos](https://issue-flow.readthedocs.io/en/latest/how-to/workspaces/)
+
 ### `/iflow-review` — review open issues and apply labels
 
 **When to use:** You want help deciding which open GitHub issues should carry workflow labels (v1: the configured `yolo` label).
@@ -666,6 +681,7 @@ Detours:
   /iflow-issue  — create one well-specified normal GitHub issue (optional branch + capture)
   /iflow-split  — cut an over-large issue into linked GitHub sub-issues
   /iflow-status — read-only overview of all issues (focus / parked / solved + GitHub)
+  /iflow-workspace-git — git snapshot (optional fetch) for every workspace member
   /iflow-doctor — audit/repair dirty .issueflows/ folders
   /iflow-review — review open issues and apply labels (v1: yolo)
   /iflow-epic   — stage a large change; publish stages as real issues

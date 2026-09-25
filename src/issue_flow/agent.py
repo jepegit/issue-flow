@@ -2474,8 +2474,7 @@ def run_publish_intent(
             return 1
         resolved_labels = _label_names(meta.get("labels"))
         notes.append(
-            f"labels from issue #{issue}: "
-            + (", ".join(resolved_labels) or "(none)")
+            f"labels from issue #{issue}: " + (", ".join(resolved_labels) or "(none)")
         )
 
     strategy, _reason, static_version = versionplan.detect_strategy(project_root)
@@ -2486,9 +2485,7 @@ def run_publish_intent(
         tag = gitutils.latest_tag(project_root)
         current_text = tag
         if tag is None:
-            notes.append(
-                "no git tags found; explicit-version logic may be unverified."
-            )
+            notes.append("no git tags found; explicit-version logic may be unverified.")
     else:
         notes.append(
             "release strategy unknown; explicit-version logic may be unverified."
@@ -3933,6 +3930,167 @@ def run_workspace_dirty(
             if paths:
                 for path in paths:
                     console.print(f"    {escape(path)}")
+
+    payload = {
+        "ok": fail_count == 0,
+        "workspace_root": str(workspace.root),
+        "members": results,
+        "ok_count": ok_count,
+        "fail_count": fail_count,
+        "skip_count": skip_count,
+    }
+    if as_json:
+        _emit_json(console, payload)
+    return 0 if fail_count == 0 else 1
+
+
+def _git_member_snapshot(root: Path, settings: Settings) -> dict[str, Any]:
+    """Local git hygiene fields for one member (no fetch)."""
+    dirty = gitutils.dirty_paths(root)
+    clean = gitutils.working_tree_clean(root)
+    default = gitutils.default_branch(root)
+    counts = gitutils.ahead_behind(root, default)
+    return {
+        "branch": gitutils.current_branch(root),
+        "default_branch": default,
+        "clean": clean,
+        "dirty_paths": dirty if dirty is not None else [],
+        "issueflows_only": gitutils.issueflows_only_dirty(
+            dirty, settings.issueflows_dir
+        ),
+        "ahead": counts[0] if counts else None,
+        "behind": counts[1] if counts else None,
+    }
+
+
+def _format_ahead_behind(ahead: int | None, behind: int | None) -> str:
+    if ahead is None or behind is None:
+        return "? ahead / ? behind"
+    return f"{ahead} ahead / {behind} behind"
+
+
+def run_workspace_git_status(
+    workspace_dir: Path,
+    console: Console,
+    as_json: bool,
+) -> int:
+    """Read-only git snapshot across workspace members (no fetch)."""
+    start = workspace_dir.resolve()
+    prepared = _prepare_workspace_members(start, console, as_json)
+    if prepared is None:
+        return 1
+    workspace, member_pairs = prepared
+    settings = Settings()
+    results: list[dict[str, Any]] = []
+    ok_count = 0
+    skip_count = 0
+    fail_count = 0
+
+    if not as_json:
+        console.print(f"\n[bold]Workspace git[/bold]  [cyan]{workspace.root}[/cyan]")
+        console.print(f"[dim]{len(member_pairs)} member(s)[/dim]\n")
+
+    for name, root in member_pairs:
+        entry: dict[str, Any] = {"name": name, "path": str(root)}
+        if settings.resolve_locked(root):
+            entry["ok"] = True
+            entry["skipped"] = True
+            entry["reason"] = "locked"
+            skip_count += 1
+            results.append(entry)
+            if not as_json:
+                console.print(f"[yellow]skip[/yellow]  {escape(name)}  (locked)")
+            continue
+        try:
+            git_info = _git_member_snapshot(root, settings)
+            entry["ok"] = True
+            entry.update(git_info)
+            ok_count += 1
+            if not as_json:
+                tree = (
+                    "clean"
+                    if git_info["clean"]
+                    else "dirty"
+                    if git_info["clean"] is not None
+                    else "unknown"
+                )
+                branch = git_info["branch"] or "(detached)"
+                counts_str = _format_ahead_behind(git_info["ahead"], git_info["behind"])
+                console.print(
+                    f"  {escape(name)}  {escape(branch)}  {counts_str}  {tree}"
+                )
+                for path in git_info["dirty_paths"]:
+                    console.print(f"    {escape(path)}")
+        except Exception as exc:  # noqa: BLE001 — continue-on-fail fan-out
+            entry["ok"] = False
+            entry["error"] = str(exc)
+            fail_count += 1
+            if not as_json:
+                console.print(f"[red]fail[/red]  {escape(name)}: {escape(str(exc))}")
+        results.append(entry)
+
+    payload = {
+        "ok": fail_count == 0,
+        "workspace_root": str(workspace.root),
+        "members": results,
+        "ok_count": ok_count,
+        "fail_count": fail_count,
+        "skip_count": skip_count,
+    }
+    if as_json:
+        _emit_json(console, payload)
+    return 0 if fail_count == 0 else 1
+
+
+def run_workspace_git_fetch(
+    workspace_dir: Path,
+    console: Console,
+    as_json: bool,
+) -> int:
+    """``git fetch --prune`` across workspace members. Continue-on-fail."""
+    start = workspace_dir.resolve()
+    prepared = _prepare_workspace_members(start, console, as_json)
+    if prepared is None:
+        return 1
+    workspace, member_pairs = prepared
+    settings = Settings()
+    results: list[dict[str, Any]] = []
+    ok_count = 0
+    skip_count = 0
+    fail_count = 0
+
+    if not as_json:
+        console.print(
+            f"\n[bold]Workspace git fetch[/bold]  [cyan]{workspace.root}[/cyan]"
+        )
+        console.print(f"[dim]{len(member_pairs)} member(s)[/dim]\n")
+
+    for name, root in member_pairs:
+        entry: dict[str, Any] = {"name": name, "path": str(root)}
+        if settings.resolve_locked(root):
+            entry["ok"] = True
+            entry["skipped"] = True
+            entry["reason"] = "locked"
+            skip_count += 1
+            results.append(entry)
+            if not as_json:
+                console.print(f"[yellow]skip[/yellow]  {escape(name)}  (locked)")
+            continue
+        fetched = gitutils.fetch_prune(root)
+        entry["ok"] = fetched
+        entry["fetched"] = fetched
+        if fetched:
+            ok_count += 1
+            if not as_json:
+                console.print(f"[green]ok[/green]  {escape(name)}")
+        else:
+            fail_count += 1
+            entry["error"] = "git fetch --prune failed"
+            if not as_json:
+                console.print(
+                    f"[red]fail[/red]  {escape(name)}: git fetch --prune failed"
+                )
+        results.append(entry)
 
     payload = {
         "ok": fail_count == 0,

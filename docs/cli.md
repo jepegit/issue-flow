@@ -27,6 +27,7 @@ synopsis of every command is in the collapsible block below the tables.
 | [`workspace status`](#issue-flow-workspace-status) | Status overview for every member |
 | [`workspace doctor`](#issue-flow-workspace-doctor) | Audit every member (no `--fix`) |
 | [`workspace dirty`](#issue-flow-workspace-dirty) | Classify each member's working tree |
+| [`workspace git`](#issue-flow-workspace-git) | Git snapshot / fetch --prune for every member |
 
 ### Inspect and repair
 
@@ -95,6 +96,9 @@ synopsis of every command is in the collapsible block below the tables.
     issue-flow workspace status [WORKSPACE_DIR] [--local] [--json]
     issue-flow workspace doctor [WORKSPACE_DIR] [--json]
     issue-flow workspace dirty [WORKSPACE_DIR] [--json]
+    issue-flow workspace git
+    issue-flow workspace git status [WORKSPACE_DIR] [--json]
+    issue-flow workspace git fetch [WORKSPACE_DIR] [--json]
     ```
 
 ## Shell completion
@@ -125,6 +129,7 @@ pages do not repeat these flags.
 | Parent folder of several git repos (first time) | `issue-flow workspace bootstrap --yes --default NAME` |
 | Parent folder already has `issueflow-workspace.toml`; refresh members | `issue-flow workspace update` |
 | Status / doctor / dirty-tree for every workspace member | `issue-flow workspace status` / `doctor` / `dirty` |
+| Git status / fetch for every workspace member | `issue-flow workspace git status` / `fetch` |
 | Write `issueflow-workspace.toml` only (members already scaffolded) | `issue-flow workspace init --default NAME` |
 | Refresh every unlocked registered repo | `issue-flow update --all` |
 | Add / remove a root in the user-global registry | `issue-flow register` / `unregister` |
@@ -401,3 +406,20 @@ agents can land scaffold dirt per repo (chore branch if on default).
 | ----------------- | ----------- |
 | `WORKSPACE_DIR`   | Start directory. Defaults to `.`. Walks up for `issueflow-workspace.toml`. |
 | `--json`          | Emit `{workspace_root, members:[{name,path,class,dirty_paths}]}`. |
+
+## `issue-flow workspace git` { #issue-flow-workspace-git }
+
+Read-only **git** snapshot for every scaffolded member (`status`, the
+default verb): branch, dirty paths, ahead/behind vs `origin/<default>`.
+Does not fetch. `fetch` runs `git fetch --prune` only (continue-on-fail).
+No pull, rebase, merge, or push.
+
+Distinct from `workspace status` (issue-flow lifecycle) and
+`workspace dirty` (post-update dirt class).
+
+| Argument / Option | Description |
+| ----------------- | ----------- |
+| `WORKSPACE_DIR`   | Start directory. Defaults to `.`. Walks up for `issueflow-workspace.toml`. |
+| `--json`          | Emit `{workspace_root, members:[…]}`. |
+
+`/iflow-workspace-git` (chat: `iflow git`) is the agent path.

@@ -10,7 +10,7 @@ current issue**. `/iflow-doctor` may audit the whole suite against this table.
 
 | Test (node id or path::name) | Essential? | Always? | Code under test | Issue | Notes / demote? |
 | --- | --- | --- | --- | --- | --- |
-| `tests/test_workspace_actions.py` (module) | yes | yes | `run_workspace_status` / `_doctor` / `_dirty`, `iter_workspace_members` | #318 | Fast fan-out contract |
+| `tests/test_workspace_actions.py` (module) | yes | yes | `run_workspace_status` / `_doctor` / `_dirty` / `_git_status` / `_git_fetch`, `iter_workspace_members` | #318 / #381 | Fast fan-out contract |
 | `tests/test_project.py::test_iter_workspace_members_dedupes_and_walks_up` | yes | yes | `project.iter_workspace_members` | #318 | |
 | `tests/test_project.py::test_iter_workspace_members_none_without_toml` | yes | yes | `project.iter_workspace_members` | #318 | |
 | `tests/test_templating.py::test_noob_footer_epic_gap_uses_session_not_next_command` | no | no | `_noob_next.md.j2` | #337 | Footer decision table; not marked essential on this branch |

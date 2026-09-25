@@ -54,6 +54,8 @@ Do **not** use this skill to *change* anything. It is read-only and off-path; fo
 
 6. **Summary line.** One terse line, e.g. `Focus: #20 (start). Parked: 2. Solved: 31. Open on GitHub: 7 (5 untracked).`
 
+Git hygiene across members (branch / dirty / ahead-behind) is **`/iflow-workspace-git`** (`iflow git` / `issue-flow workspace git status`), not this command.
+
 ## Constraints
 
 - **Read-only.** Writes nothing, moves no files, creates no branches/commits/GitHub issues. Only reads `{{ issueflows_dir }}/` and runs read-only `git` / `gh` queries.

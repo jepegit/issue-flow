@@ -90,6 +90,7 @@ the global copy. Other `iflow_*` stems stay `local`.
 | `iflow_issue` | `iflow-issue` | `local` |
 | `iflow_split` | `iflow-split` | `local` |
 | `iflow_status` | `iflow-status` | `local` |
+| `iflow_workspace_git` | `iflow-workspace-git` | `local` |
 | `iflow_doctor` | `iflow-doctor` | `local` |
 | `iflow_review` | `iflow-review` | `local` |
 | `iflow_archive` | `iflow-archive` | `local` |

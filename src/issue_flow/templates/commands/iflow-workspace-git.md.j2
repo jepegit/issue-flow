@@ -1,0 +1,26 @@
+# Git hygiene across workspace members (`/iflow-workspace-git`)
+
+`/iflow-workspace-git` (chat: `iflow git`) runs **git status-shaped
+hygiene** on every scaffolded workspace member. It is **not**
+`/iflow-status` (issue-flow lifecycle / GitHub issues).
+
+This is an **off-path** command — `/iflow` never auto-runs it.
+
+{% include "skills/_model_directive.md.j2" %}
+
+{% include "skills/_resolve_project_root.md.j2" %}
+
+## Input
+
+- **(nothing)** or **`status`** — read-only snapshot (branch, dirty paths,
+  ahead/behind). No fetch.
+- **`fetch`** — `git fetch --prune` on every unlocked member, then the
+  same snapshot. Continue-on-fail.
+
+## Steps
+
+> **CLI fast path.** `issue-flow workspace git status [--json]` and
+> `issue-flow workspace git fetch [--json]`. Bare `issue-flow workspace git`
+> is status. Walks up for `issueflow-workspace.toml`.
+
+Follow `{{ agent_dir }}/skills/iflow-workspace-git/SKILL.md` verbatim.

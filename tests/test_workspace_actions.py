@@ -1,4 +1,4 @@
-"""Tests for workspace status / doctor / dirty fan-out (#318)."""
+"""Tests for workspace status / doctor / dirty / git fan-out (#318, #381)."""
 
 from __future__ import annotations
 
@@ -15,6 +15,8 @@ from typer.testing import CliRunner
 from issue_flow.agent import (
     run_workspace_dirty,
     run_workspace_doctor,
+    run_workspace_git_fetch,
+    run_workspace_git_status,
     run_workspace_status,
 )
 from issue_flow.cli import app
@@ -205,6 +207,92 @@ def test_workspace_cli_status_json(
     runner = CliRunner()
     result = runner.invoke(
         app, ["workspace", "status", str(workspace), "--local", "--json"]
+    )
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["ok"] is True
+    assert payload["ok_count"] == 2
+
+
+def test_workspace_git_status_json(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("ISSUEFLOW_LOCKED", raising=False)
+    workspace = _make_members(tmp_path)
+    alpha = workspace / "alpha"
+    beta = workspace / "beta"
+    _git_init(alpha)
+    _git_init(beta)
+    (alpha / ".issueflows" / "note.md").write_text("tracking\n", encoding="utf-8")
+
+    console = Console(record=True)
+    code = run_workspace_git_status(workspace, console, as_json=True)
+    assert code == 0
+    payload = _json(console.export_text())
+    by_name = {m["name"]: m for m in payload["members"]}
+    assert by_name["alpha"]["ok"] is True
+    assert by_name["alpha"]["clean"] is False
+    assert by_name["alpha"]["issueflows_only"] is True
+    assert by_name["beta"]["clean"] is True
+    assert by_name["beta"]["dirty_paths"] == []
+    assert "branch" in by_name["alpha"]
+    assert "ahead" in by_name["alpha"]
+
+
+def test_workspace_git_status_skips_locked(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("ISSUEFLOW_LOCKED", raising=False)
+    workspace = _make_members(tmp_path, lock=("beta",))
+    _git_init(workspace / "alpha")
+    console = Console(record=True)
+    code = run_workspace_git_status(workspace, console, as_json=True)
+    assert code == 0
+    payload = _json(console.export_text())
+    by_name = {m["name"]: m for m in payload["members"]}
+    assert by_name["beta"]["skipped"] is True
+    assert by_name["beta"]["reason"] == "locked"
+    assert payload["skip_count"] == 1
+
+
+def test_workspace_git_fetch_continues_on_fail(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("ISSUEFLOW_LOCKED", raising=False)
+    workspace = _make_members(tmp_path)
+
+    def fetch(root: Path) -> bool:
+        return root.name != "beta"
+
+    monkeypatch.setattr("issue_flow.gitutils.fetch_prune", fetch)
+    console = Console(record=True)
+    code = run_workspace_git_fetch(workspace, console, as_json=True)
+    assert code == 1
+    payload = _json(console.export_text())
+    by_name = {m["name"]: m for m in payload["members"]}
+    assert by_name["alpha"]["fetched"] is True
+    assert by_name["beta"]["ok"] is False
+    assert payload["fail_count"] == 1
+
+
+def test_workspace_cli_git_help() -> None:
+    runner = CliRunner()
+    result = runner.invoke(app, ["workspace", "git", "--help"])
+    assert result.exit_code == 0, result.output
+    assert "status" in result.output
+    assert "fetch" in result.output
+
+
+def test_workspace_cli_git_status_json(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("ISSUEFLOW_LOCKED", raising=False)
+    workspace = _make_members(tmp_path)
+    _git_init(workspace / "alpha")
+    _git_init(workspace / "beta")
+    runner = CliRunner()
+    result = runner.invoke(
+        app, ["workspace", "git", "status", str(workspace), "--json"]
     )
     assert result.exit_code == 0, result.output
     payload = _json(result.stdout)
