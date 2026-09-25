@@ -284,7 +284,12 @@ When the user message is **exactly** one of these forms, or **starts with** it f
 
 | `iflow status`, `iflow-status`, `/iflow-status`, `/iflow status` | `iflow-status` |
 
+| `iflow workspace-git`, `iflow-workspace-git`, `/iflow-workspace-git`, `/iflow workspace-git` | `iflow-workspace-git` |
+
 | `iflow yolo`, `iflow-yolo`, `/iflow-yolo`, `/iflow yolo` | `iflow-yolo` |
+
+
+| `iflow git`, `/iflow git` | `iflow-workspace-git` |
 
 
 Skill `@` attachment is supported on some editors but is not the recommended keyboard-friendly path.
@@ -339,6 +344,9 @@ Lifecycle skills include a **`### MODEL & EXECUTION DIRECTIVE`** section that te
 
 
 `/iflow-status` prints a **read-only** overview of where every issue stands — the local tracking state under `.issueflows/` (focus / parked / solved) plus open GitHub issues cross-referenced against it. It is off-path (never auto-dispatched) and changes nothing.
+
+
+`/iflow-workspace-git` (chat: `iflow git`) prints a **git** snapshot for every workspace member (branch, dirty paths, ahead/behind). Optional `fetch` runs `git fetch --prune` first. Not the same as `/iflow-status`. Off-path (never auto-dispatched).
 
 
 `/iflow-doctor` audits `.issueflows/` for **dirty** conditions (ambiguous multi-focus, leftovers in `01-current-issues/`, duplicates across folders, and similar) and can apply **safe repairs** on confirmation (`issue-flow doctor` / `agent audit` + `repair`). It is off-path and never auto-dispatched.
