@@ -9,6 +9,10 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+## [0.5.12] - 2026-09-25
+
+- Option for not stopping in a cycle: `[issueflow].cycle_onfail` (`stop`|`skip`, default `stop`) sets the `/iflow-cycle` failure policy; per-run `onfail:` tokens still override. (#248)
+
 ## [0.5.11] - 2026-09-24
 
 - Docs links now include `/en/latest/`, so they no longer return 404 on Read the Docs. This covers scaffolded templates, `llms.txt` and the README. (#342)

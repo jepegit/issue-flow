@@ -25,7 +25,7 @@ epic #269). Until Stage 2 ships, only the project file and env exist.
 | Auto / advanced | `auto_adversarial_loops` (see [advanced-auto-mode.md](./advanced-auto-mode.md)) |
 | Confirm gates (`confirm_*`) | `confirm_version_bump`, `confirm_changelog_update` |
 | Changelog write timing | `defer_changelog` |
-| Tool / value | `ruff_autofix`, `pr_merge_method`, `cycle_max_issues`, `test_runner`, `essential_marker`, `essential_review` |
+| Tool / value | `ruff_autofix`, `pr_merge_method`, `cycle_max_issues`, `cycle_onfail`, `test_runner`, `essential_marker`, `essential_review` |
 | Feature masters (`*_tests` / paradigm) | `essential_tests` |
 | Per-repo skip (`locked`) | `locked` (project `config.toml` only; `update --all` skips) |
 
@@ -50,6 +50,7 @@ epic #269). Until Stage 2 ships, only the project file and env exist.
 | `defer_changelog` | `false` | When `true`, issue branches never write `HISTORY.md` / CHANGELOG; the bullet is recorded on `issue<N>_status.md` + PR body and applied on the default branch after merge (`issue-flow agent apply-changelog`). Default off keeps today's #171 / #240 / #260 path. |
 | `pr_merge_method` | `"squash"` | Yolo `gh pr merge --{squash\|merge\|rebase}` |
 | `cycle_max_issues` | `10` | `/iflow-cycle` safety cap before `max:<n>` |
+| `cycle_onfail` | `"stop"` | Default `/iflow-cycle` failure policy (`stop` \| `skip`); per-run `onfail:` token overrides (issue #248) |
 | `ruff_autofix` | `true` | Gate ruff `--fix` / format in start/close |
 | `essential_tests` | `false` | Opt-in essential-suite paradigm (pytest); see [essential-tests.md](./essential-tests.md) (issue #213) |
 | `test_runner` | `"pytest"` | Runner for essential-tests; v1 only `"pytest"` supported |

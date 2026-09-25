@@ -24,6 +24,7 @@ current issue**. `/iflow-doctor` may audit the whole suite against this table.
 | `tests/test_workflow_doc.py::test_command_mode_membership_lists_standard_first` | yes | yes | `modes.command_mode_membership` | #358 | Pure; feeds the Modes column |
 | `tests/test_workflow_doc.py` (other tests) | no | no | `docs/issue-workflow.md.j2` structure per editor / novice | #358 | Renders via `run_init`; guards the command-reference layout |
 | `tests/test_doc_configuration.py::test_all_settings_table_lists_every_config_key_once` | yes | yes | `docs/configuration.md` vs `config_ops.CONFIG_KEYS` | #359 | Adding a knob without documenting it fails fast |
+| `tests/test_templating.py::test_cycle_bakes_onfail_default` | no | no | `iflow_cycle` skill/command bake of `cycle_onfail` | #248 | Config default bake; leave unmarked |
 | `tests/test_doc_configuration.py` (other tests) | no | no | `docs/configuration.md` layout | #359 | Starts with Common changes; no bare issue numbers |
 | `tests/test_worktree_location.py::test_default_is_sibling` / `test_workspace_folder_keeps_sibling_even_with_worktrees_dir` / `test_existing_worktrees_dir_is_used` | yes | yes | `gitutils.resolve_worktree_location` | #328 | Core location rules; pure, fast |
 | `tests/test_worktree_location.py` (other tests) | no | no | fallbacks, `~`, CLI add/remove, project-vs-user override | #328 | Uses real temp git repos |

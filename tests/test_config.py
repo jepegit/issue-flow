@@ -76,6 +76,7 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "worktree_first",
         "pr_merge_method",
         "cycle_max_issues",
+        "cycle_onfail",
         "auto_adversarial_loops",
         "confirm_version_bump",
         "ruff_autofix",
@@ -443,6 +444,7 @@ def test_skill_behaviour_knob_defaults(
         "ISSUEFLOW_WORKTREE_FIRST",
         "ISSUEFLOW_PR_MERGE_METHOD",
         "ISSUEFLOW_CYCLE_MAX_ISSUES",
+        "ISSUEFLOW_CYCLE_ONFAIL",
         "ISSUEFLOW_AUTO_ADVERSARIAL_LOOPS",
         "ISSUEFLOW_CONFIRM_VERSION_BUMP",
         "ISSUEFLOW_RUFF_AUTOFIX",
@@ -473,6 +475,7 @@ def test_skill_behaviour_knob_defaults(
     assert settings.resolve_worktree_first(tmp_path) is True
     assert settings.resolve_pr_merge_method(tmp_path) == "squash"
     assert settings.resolve_cycle_max_issues(tmp_path) == 10
+    assert settings.resolve_cycle_onfail(tmp_path) == "stop"
     assert settings.resolve_auto_adversarial_loops(tmp_path) == 2
     assert settings.resolve_confirm_version_bump(tmp_path) is False
     assert settings.resolve_ruff_autofix(tmp_path) is True
@@ -504,6 +507,7 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
         "worktree_first = false\n"
         'pr_merge_method = "rebase"\n'
         "cycle_max_issues = 25\n"
+        'cycle_onfail = "skip"\n'
         "auto_adversarial_loops = 4\n"
         "confirm_version_bump = true\n"
         "ruff_autofix = false\n"
@@ -531,6 +535,7 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
     assert settings.resolve_worktree_first(tmp_path) is False
     assert settings.resolve_pr_merge_method(tmp_path) == "rebase"
     assert settings.resolve_cycle_max_issues(tmp_path) == 25
+    assert settings.resolve_cycle_onfail(tmp_path) == "skip"
     assert settings.resolve_auto_adversarial_loops(tmp_path) == 4
     assert settings.resolve_confirm_version_bump(tmp_path) is True
     assert settings.resolve_ruff_autofix(tmp_path) is False
@@ -579,6 +584,29 @@ def test_cycle_max_issues_nonpositive_falls_back(
     monkeypatch.setenv("ISSUEFLOW_CYCLE_MAX_ISSUES", "-1")
     settings = Settings()
     assert settings.resolve_cycle_max_issues(tmp_path) == 10
+
+
+def test_cycle_onfail_invalid_falls_back(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    _write_config(tmp_path, '[issueflow]\ncycle_onfail = "continue"\n')
+    monkeypatch.setenv("ISSUEFLOW_CYCLE_ONFAIL", "nope")
+    settings = Settings()
+    assert settings.resolve_cycle_onfail(tmp_path) == "stop"
+
+
+def test_cycle_onfail_from_env(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    monkeypatch.delenv("ISSUEFLOW_CYCLE_ONFAIL", raising=False)
+    settings = Settings()
+    assert settings.resolve_cycle_onfail(tmp_path) == "stop"
+    monkeypatch.setenv("ISSUEFLOW_CYCLE_ONFAIL", "skip")
+    settings = Settings()
+    assert settings.resolve_cycle_onfail(tmp_path) == "skip"
+    assert settings.effective_config(tmp_path)["cycle_onfail"] == "skip"
 
 
 def test_locked_env_overrides_project(

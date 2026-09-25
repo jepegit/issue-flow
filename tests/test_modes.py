@@ -354,6 +354,7 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
         DEFAULT_WORKTREE_FIRST,
         DEFAULT_CONFIRM_CHANGELOG_UPDATE,
         DEFAULT_CYCLE_MAX_ISSUES,
+        DEFAULT_CYCLE_ONFAIL,
         DEFAULT_AUTO_ADVERSARIAL_LOOPS,
         DEFAULT_PR_MERGE_METHOD,
         DEFAULT_CLEANUP_INCLUDE_GITHUB,
@@ -375,6 +376,7 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
         read_confirm_changelog_update,
         read_defer_changelog,
         read_cycle_max_issues,
+        read_cycle_onfail,
         read_auto_adversarial_loops,
         read_pr_merge_method,
         read_cleanup_include_github,
@@ -404,6 +406,7 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
     assert read_worktree_first(cfg) is DEFAULT_WORKTREE_FIRST
     assert read_pr_merge_method(cfg) == DEFAULT_PR_MERGE_METHOD
     assert read_cycle_max_issues(cfg) == DEFAULT_CYCLE_MAX_ISSUES
+    assert read_cycle_onfail(cfg) == DEFAULT_CYCLE_ONFAIL
     assert read_auto_adversarial_loops(cfg) == DEFAULT_AUTO_ADVERSARIAL_LOOPS
     assert read_confirm_version_bump(cfg) is DEFAULT_CONFIRM_VERSION_BUMP
     assert read_ruff_autofix(cfg) is DEFAULT_RUFF_AUTOFIX

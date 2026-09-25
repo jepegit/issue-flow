@@ -26,14 +26,15 @@ returns to a clean default before the next.
    | `epic <N> [stage <k>]` | Current (or named) stage of an epic |
 
    Optional tokens: `max:<n>` (default cap is 10 without it),
-   `onfail:stop` (default) / `onfail:skip`, `resume`, experimental
-   `parallel:<n>`.
+   `onfail:stop` / `onfail:skip` (default from config `cycle_onfail`, usually
+   `stop`), `resume`, experimental `parallel:<n>`.
 3. Confirm once: ordered queue, skipped/blocked items, and that each PR will
    auto-merge.
 4. Cycle writes `cycle_status.md` and processes issues sequentially. It stops
    only when input is **strictly necessary** (unfixable failure, refused
-   merge, ambiguous / not-actually-small scope). Default `onfail:stop` leaves
-   you on a clean default branch.
+   merge, ambiguous / not-actually-small scope). With `onfail:stop` (the usual
+   default) it leaves you on a clean default branch; `onfail:skip` (or
+   `cycle_onfail = "skip"`) parks the failed issue and continues the queue.
 5. After the batch report, run `iflow cleanup` yourself to prune merged local
    branches — cycle does not auto-cleanup.
 
