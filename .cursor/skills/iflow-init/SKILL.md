@@ -5,7 +5,7 @@ description: >-
   scaffold is missing; bootstrap a parent folder of git siblings; point at
   update / doctor / iflow-capture when a project scaffold exists.
 disable-model-invocation: true
-issue-flow-version: 0.4.2a4
+issue-flow-version: 0.5.14
 ---
 
 # issue-flow — harness init (`/iflow-init`)

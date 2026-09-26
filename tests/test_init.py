@@ -572,7 +572,10 @@ def test_init_scaffolds_iflow_drive_skeleton(tmp_path: Path) -> None:
     assert "/iflow-auto" in content
     assert "local only" in content
     assert "git branch -d" in content
-    assert "Never `git branch -D`" in content
+    # #386: drive carries through — -D on squash-landed under the drive confirm,
+    # never on unique work.
+    assert "`git branch -D` on **`squash_landed`**" in content
+    assert "Leave `unique_work` untouched, always" in content
     assert "abort" in content and "halt" in content
     assert "/iflow-status" in content
     run_init(tmp_path, mode="simple", force=True)

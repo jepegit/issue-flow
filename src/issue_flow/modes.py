@@ -88,6 +88,12 @@ ALLOWED_PR_MERGE_METHODS = frozenset({"squash", "merge", "rebase"})
 DEFAULT_CYCLE_MAX_ISSUES = 10
 DEFAULT_CYCLE_ONFAIL = "stop"
 ALLOWED_CYCLE_ONFAIL = frozenset({"stop", "skip"})
+#: Merge policy for the non-yolo lane in ``/iflow-cycle`` / ``/iflow-auto`` /
+#: ``/iflow-drive`` (issue #386): ``merge`` lands the PR like yolo, ``pr-only``
+#: opens the PR and continues (next issue stacks on the branch), ``stop`` halts
+#: at the first ``yolo: no`` issue (the pre-#386 behaviour).
+DEFAULT_CYCLE_NONYOLO = "merge"
+ALLOWED_CYCLE_NONYOLO = frozenset({"merge", "pr-only", "stop"})
 DEFAULT_AUTO_ADVERSARIAL_LOOPS = 2
 DEFAULT_CONFIRM_VERSION_BUMP = False
 DEFAULT_RUFF_AUTOFIX = True
@@ -654,6 +660,18 @@ def normalize_cycle_onfail(value: str | None) -> str | None:
     return None
 
 
+def normalize_cycle_nonyolo(value: str | None) -> str | None:
+    """Return a canonical non-yolo lane merge policy, or ``None`` if invalid."""
+    if value is None:
+        return None
+    cleaned = str(value).strip().lower().replace("_", "-")
+    if cleaned == "pronly":
+        cleaned = "pr-only"
+    if cleaned in ALLOWED_CYCLE_NONYOLO:
+        return cleaned
+    return None
+
+
 def normalize_essential_review(value: str | None) -> str | None:
     """Return a canonical essential-review timing, or ``None`` when unset/invalid."""
     if value is None:
@@ -846,6 +864,21 @@ def read_cycle_onfail(cfg_path: Path) -> str | None:
         return normalize_cycle_onfail(
             str(section["cycle_onfail"])
             if "cycle_onfail" in section and section.get("cycle_onfail") is not None
+            else None
+        )
+    return None
+
+
+def read_cycle_nonyolo(cfg_path: Path) -> str | None:
+    """Return persisted ``[issueflow].cycle_nonyolo``, or ``None`` if unset/invalid."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict):
+        return normalize_cycle_nonyolo(
+            str(section["cycle_nonyolo"])
+            if "cycle_nonyolo" in section and section.get("cycle_nonyolo") is not None
             else None
         )
     return None
@@ -1201,6 +1234,7 @@ def write_default_config(
     pr_merge_method: str = DEFAULT_PR_MERGE_METHOD,
     cycle_max_issues: int = DEFAULT_CYCLE_MAX_ISSUES,
     cycle_onfail: str = DEFAULT_CYCLE_ONFAIL,
+    cycle_nonyolo: str = DEFAULT_CYCLE_NONYOLO,
     auto_adversarial_loops: int = DEFAULT_AUTO_ADVERSARIAL_LOOPS,
     confirm_version_bump: bool = DEFAULT_CONFIRM_VERSION_BUMP,
     ruff_autofix: bool = DEFAULT_RUFF_AUTOFIX,
@@ -1275,6 +1309,7 @@ def write_default_config(
         section["pr_merge_method"] = pr_merge_method
         section["cycle_max_issues"] = cycle_max_issues
         section["cycle_onfail"] = cycle_onfail
+        section["cycle_nonyolo"] = cycle_nonyolo
         section["auto_adversarial_loops"] = auto_adversarial_loops
         section["confirm_version_bump"] = confirm_version_bump
         section["ruff_autofix"] = ruff_autofix
@@ -1333,6 +1368,7 @@ def write_default_config(
             pr_merge_method,
             cycle_max_issues,
             cycle_onfail,
+            cycle_nonyolo,
             auto_adversarial_loops,
             confirm_version_bump,
             ruff_autofix,
@@ -1399,6 +1435,7 @@ def _commented_issueflow_table(
     pr_merge_method: str,
     cycle_max_issues: int,
     cycle_onfail: str,
+    cycle_nonyolo: str,
     auto_adversarial_loops: int,
     confirm_version_bump: bool,
     ruff_autofix: bool,
@@ -1614,6 +1651,15 @@ def _commented_issueflow_table(
         )
     )
     table["cycle_onfail"] = cycle_onfail
+    table.add(
+        tomlkit.comment(
+            "Merge policy for yolo:no issues run hands-off by /iflow-cycle, "
+            "/iflow-auto and /iflow-drive: 'merge' (land like yolo), 'pr-only' "
+            "(open the PR, continue), or 'stop' (halt at the first one). "
+            "Per-run nonyolo:<policy> overrides. Re-run 'issue-flow update'."
+        )
+    )
+    table["cycle_nonyolo"] = cycle_nonyolo
     table.add(
         tomlkit.comment(
             "Default /iflow-auto inter-epoch adversarial loop budget "

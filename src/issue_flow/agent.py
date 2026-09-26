@@ -62,6 +62,48 @@ def _emit_json(console: Console, payload: dict[str, Any]) -> None:
 # ---------------------------------------------------------------------------
 
 
+_SKILL_VERSION_RE = re.compile(r"^issue-flow-version:\s*(\S+)\s*$", re.MULTILINE)
+VERSION_DRIFT_NOTE = (
+    "rendered skills are stamped issue-flow {skills} but the CLI is {cli} — "
+    "run `issue-flow update` so the skills match the installed CLI."
+)
+
+
+def rendered_skills_version(project_root: Path, settings: Settings) -> str | None:
+    """``issue-flow-version`` stamped on the rendered ``iflow`` dispatcher skill.
+
+    ``None`` when the skill is not rendered (or carries no stamp). Only the
+    dispatcher is read: every skill is re-stamped by the same ``update`` run,
+    so one file is a faithful proxy for the whole set.
+    """
+    skill_md = project_root / settings.agent_dir / "skills" / "iflow" / "SKILL.md"
+    if not skill_md.is_file():
+        return None
+    try:
+        text = skill_md.read_text(encoding="utf-8")
+    except OSError:
+        return None
+    match = _SKILL_VERSION_RE.search(text)
+    return match.group(1) if match else None
+
+
+def version_drift_fields(project_root: Path, settings: Settings) -> dict[str, Any]:
+    """``cli_version`` / ``skills_version`` / ``version_drift`` for a payload.
+
+    Issue #386: an installed CLI newer than the rendered skills is how drive
+    mode ended up planning with stale skill text. Surfacing it in ``agent
+    state`` / ``preflight`` lets every entry point warn instead of guessing.
+    """
+    from issue_flow import __version__
+
+    skills_version = rendered_skills_version(project_root, settings)
+    return {
+        "cli_version": __version__,
+        "skills_version": skills_version,
+        "version_drift": skills_version is not None and skills_version != __version__,
+    }
+
+
 def run_state(project_root: Path, console: Console, as_json: bool) -> int:
     """Resolve the focus issue + lifecycle stage and the suggested next step."""
     settings = Settings()
@@ -80,6 +122,7 @@ def run_state(project_root: Path, console: Console, as_json: bool) -> int:
         "ambiguous": focus.resolved_via == "ambiguous",
         "epic_hint": None,
         "epic_session": None,
+        **version_drift_fields(project_root, settings),
     }
 
     session = epic_session.read_epic_session(folders["current"])
@@ -108,6 +151,13 @@ def run_state(project_root: Path, console: Console, as_json: bool) -> int:
         _emit_json(console, payload)
         return 0
 
+    if payload["version_drift"]:
+        console.print(
+            "  [yellow]warn[/yellow]  "
+            + VERSION_DRIFT_NOTE.format(
+                skills=payload["skills_version"], cli=payload["cli_version"]
+            )
+        )
     if focus.resolved_via == "ambiguous":
         console.print(
             "[yellow]Ambiguous focus[/yellow]: multiple issue groups in "
@@ -195,6 +245,13 @@ def run_preflight(project_root: Path, console: Console, as_json: bool) -> int:
                 f"branch looks stale: issue #{issue_number} is already archived "
                 "under partly/solved — switch to the default branch before resuming."
             )
+    drift = version_drift_fields(project_root, settings)
+    if drift["version_drift"]:
+        notes.append(
+            VERSION_DRIFT_NOTE.format(
+                skills=drift["skills_version"], cli=drift["cli_version"]
+            )
+        )
 
     payload = {
         "git_available": True,
@@ -207,6 +264,7 @@ def run_preflight(project_root: Path, console: Console, as_json: bool) -> int:
         "behind": counts[1] if counts else None,
         "issue_number": issue_number,
         "stale": stale,
+        **drift,
         "notes": notes,
     }
 
@@ -1018,11 +1076,117 @@ _SYNC_RESOLVE_LIMIT = 10
 SYNC_STRATEGIES = ("rebase", "merge")
 
 
+RESOLVER_CHANGELOG = "changelog"
+RESOLVER_ADDITIVE = "additive"
+
+_STATUS_FILE_RE = re.compile(r"^issue\d+_status\.md$")
+
+
+def _resolver_for_path(
+    rel_path: str,
+    *,
+    changelog: str,
+    settings: Settings,
+) -> str | None:
+    """Which keep-both resolver may rewrite ``rel_path`` (repo-relative).
+
+    * the changelog → strict ``[Unreleased]``-only resolver (issue #240);
+    * anything under ``<issueflows>/<designs>/`` or an ``issue<N>_status.md``
+      under ``<issueflows>/`` → the additive resolver (bullets + table rows,
+      issue #386);
+    * everything else → ``None``: product code is a human decision.
+    """
+    normalized = rel_path.replace("\\", "/")
+    if normalized == changelog.replace("\\", "/"):
+        return RESOLVER_CHANGELOG
+    issueflows = settings.issueflows_dir.strip("/")
+    designs_prefix = f"{issueflows}/{settings.designs_folder.strip('/')}/"
+    if normalized.startswith(designs_prefix) and normalized.endswith(".md"):
+        return RESOLVER_ADDITIVE
+    if normalized.startswith(f"{issueflows}/") and _STATUS_FILE_RE.match(
+        normalized.rsplit("/", 1)[-1]
+    ):
+        return RESOLVER_ADDITIVE
+    return None
+
+
+def _detect_stacked_base(
+    project_root: Path,
+    default: str,
+    notes: list[str],
+) -> str | None:
+    """Find a squash-landed parent branch this branch was stacked on.
+
+    A child PR built on a sibling issue branch (``Depends on: #N``) still
+    carries the parent's commits after the parent squash-merges. Replaying
+    those onto ``origin/<default>`` conflicts on every file they touched, so
+    the sync must start *after* the parent's tip (issue #386).
+
+    Candidate = a local branch or ``origin/*`` ref that is an ancestor of
+    ``HEAD``, is **not** already reachable from ``origin/<default>``, and is
+    provably landed — a ``MERGED`` PR on that head, zero ``git cherry`` unique
+    commits, or its touched files byte-identical on the default branch
+    (:func:`gitutils.content_landed`). The nearest one (fewest commits between
+    it and ``HEAD``) wins. Returns ``None`` when nothing qualifies.
+    """
+    base_ref = f"origin/{default}"
+    current = gitutils.current_branch(project_root)
+    candidates: list[str] = []
+    for name in gitutils.list_local_branches(project_root) or []:
+        if name in {default, current}:
+            continue
+        candidates.append(name)
+    for name in gitutils.list_origin_branches(project_root) or []:
+        if name in {default, current}:
+            continue
+        candidates.append(f"origin/{name}")
+
+    prs_by_head: dict[str, list[dict[str, Any]]] | None = None
+    if gitutils.gh_available():
+        remote = gitutils.remote_owner_repo(project_root)
+        repo = f"{remote[0]}/{remote[1]}" if remote else None
+        prs_by_head = gitutils.gh_prs_by_head(project_root, repo)
+
+    best: tuple[int, str] | None = None
+    for ref in candidates:
+        if gitutils.is_ancestor(project_root, ref, "HEAD") is not True:
+            continue
+        if gitutils.is_ancestor(project_root, ref, base_ref) is True:
+            continue
+        head_name = ref.removeprefix("origin/")
+        _open, merged = _pr_bucket((prs_by_head or {}).get(head_name))
+        landed = bool(merged)
+        if not landed:
+            unique = gitutils.cherry_unique_count(project_root, base_ref, ref)
+            landed = unique == 0
+        if not landed:
+            # Multi-commit squash: patch-ids differ, but the parent's files
+            # are exactly what sits on the default branch now.
+            landed = gitutils.content_landed(project_root, ref, base_ref) is True
+        if not landed:
+            continue
+        distance = gitutils.rev_list_count(project_root, ref, "HEAD")
+        if distance is None or distance <= 0:
+            continue
+        if best is None or distance < best[0]:
+            best = (distance, ref)
+
+    if best is None:
+        return None
+    notes.append(
+        f"stacked on squash-landed {best[1]}; replaying only the "
+        f"{best[0]} commit(s) after it"
+    )
+    return best[1]
+
+
 def run_sync_branch(
     project_root: Path,
     console: Console,
     strategy: str,
     as_json: bool,
+    *,
+    base: str | None = None,
 ) -> int:
     """Bring the current issue branch up to date with ``origin/<default>``.
 
@@ -1032,10 +1196,16 @@ def run_sync_branch(
     merge time, with ``mergeable: CONFLICTING`` (issue #240).
 
     This replays the branch onto ``origin/<default>`` (``--strategy merge``
-    merges instead) and auto-resolves the one conflict shape that is pure
+    merges instead) and auto-resolves the conflict shapes that are pure
     bookkeeping: both sides appending bullets to the changelog's
-    ``[Unreleased]`` section. Anything else aborts the operation, leaves the
-    branch exactly as it was, and exits 1 for the caller to stop on.
+    ``[Unreleased]`` section, and both sides appending bullets / table rows to
+    a design guide or an ``issue<N>_status.md`` (issue #386). Anything else
+    aborts the operation, leaves the branch exactly as it was, and exits 1 for
+    the caller to stop on.
+
+    ``base`` (``--base <ref>``) rebases ``--onto origin/<default>`` from that
+    ref so a squash-merged parent's commits are dropped; without it a landed
+    parent is auto-detected (:func:`_detect_stacked_base`).
 
     Pushing is deliberately out of scope: a rebase rewrites the branch, so the
     force-with-lease push stays in ``/iflow-close`` where the user's tokens and
@@ -1055,8 +1225,12 @@ def run_sync_branch(
         "changelog": changelog,
         "changelog_resolved": False,
         "resolved_paths": [],
+        "resolvers": {},
         "conflicts": [],
         "dirty_paths": [],
+        "base": base,
+        "base_detected": False,
+        "dropped_commits": 0,
         "needs_force_push": False,
         "notes": notes,
     }
@@ -1124,14 +1298,39 @@ def run_sync_branch(
         return emit(0)
 
     ref = f"origin/{default}"
+
+    if base is not None:
+        if gitutils.rev_parse_verify(project_root, base) is None:
+            notes.append(f"--base {base!r} does not resolve to a commit")
+            return emit(1)
+        if gitutils.is_ancestor(project_root, base, "HEAD") is not True:
+            notes.append(
+                f"--base {base!r} is not an ancestor of {branch}; refusing to "
+                "guess which commits to drop"
+            )
+            return emit(1)
+    elif strategy == "rebase":
+        detected = _detect_stacked_base(project_root, default, notes)
+        if detected is not None:
+            base = detected
+            payload["base"] = detected
+            payload["base_detected"] = True
+
+    if base is not None:
+        if strategy != "rebase":
+            notes.append("--base only applies to the rebase strategy")
+            return emit(1)
+        dropped = gitutils.rev_list_count(project_root, ref, base)
+        payload["dropped_commits"] = dropped or 0
+
     if strategy == "rebase":
-        ok, error = gitutils.rebase_onto(project_root, ref)
+        ok, error = gitutils.rebase_onto(project_root, ref, base=base)
     else:
         ok, error = gitutils.merge_ref(project_root, ref)
 
     if not ok:
         resolved = _resolve_sync_conflicts(
-            project_root, strategy, changelog, payload, notes, error
+            project_root, strategy, changelog, payload, notes, error, settings
         )
         if not resolved:
             return emit(1)
@@ -1161,13 +1360,14 @@ def _abort_sync(
         gitutils.rebase_abort(project_root)
     else:
         gitutils.merge_abort(project_root)
-    if payload["changelog_resolved"]:
+    if payload["changelog_resolved"] or payload["resolved_paths"]:
         notes.append(
-            f"rolled back the {payload['changelog']} resolve — the abort "
-            "restored the branch as it was"
+            "rolled back the keep-both resolve(s) — the abort restored the "
+            "branch as it was"
         )
         payload["changelog_resolved"] = False
         payload["resolved_paths"] = []
+        payload["resolvers"] = {}
 
 
 def _resolve_sync_conflicts(
@@ -1177,17 +1377,30 @@ def _resolve_sync_conflicts(
     payload: dict[str, Any],
     notes: list[str],
     error: str | None,
+    settings: Settings | None = None,
 ) -> bool:
-    """Auto-resolve changelog-only conflicts; abort on anything else.
+    """Auto-resolve bookkeeping-only conflicts; abort on anything else.
+
+    Every conflicted path must map to a resolver (:func:`_resolver_for_path`)
+    **and** that resolver must accept the file's conflict shape. One product
+    file, one heading conflict, one prose edit → abort, branch untouched.
 
     Returns True when the rebase/merge completed. On False the operation has
     been aborted and ``notes`` explains why the caller must stop.
     """
+    settings = settings or Settings()
     # During a rebase HEAD is the upstream being replayed onto, so the issue's
     # own commit is the "theirs" side; a merge is the other way around.
     in_flight_side = "theirs" if strategy == "rebase" else "ours"
     root = gitutils.repo_root(project_root) or project_root
-    target = (project_root / changelog).resolve()
+    changelog_abs = (project_root / changelog).resolve()
+
+    def rel_to_project(path: str) -> str:
+        absolute = (root / path).resolve()
+        try:
+            return absolute.relative_to(project_root.resolve()).as_posix()
+        except ValueError:
+            return path.replace("\\", "/")
 
     for _ in range(_SYNC_RESOLVE_LIMIT):
         unmerged = gitutils.unmerged_paths(project_root)
@@ -1203,38 +1416,71 @@ def _resolve_sync_conflicts(
             return False
 
         payload["conflicts"] = unmerged
-        offending = [path for path in unmerged if (root / path).resolve() != target]
+        plan: list[tuple[str, str]] = []
+        offending: list[str] = []
+        for path in unmerged:
+            if (root / path).resolve() == changelog_abs:
+                plan.append((path, RESOLVER_CHANGELOG))
+                continue
+            resolver = _resolver_for_path(
+                rel_to_project(path), changelog=changelog, settings=settings
+            )
+            if resolver is None:
+                offending.append(path)
+            else:
+                plan.append((path, resolver))
         if offending:
             _abort_sync(project_root, strategy, payload, notes)
             notes.append(
-                "conflicts outside "
-                f"{changelog} ({', '.join(offending)}); aborted and stopped — "
+                "conflicts outside the bookkeeping set "
+                f"({', '.join(offending)}); aborted and stopped — "
                 "this needs a human decision."
             )
             return False
 
-        conflicted = root / unmerged[0]
-        text = conflicted.read_text(encoding="utf-8")
-        result = history.resolve_changelog_conflict(text, in_flight_side=in_flight_side)
-        if not result.ok or result.text is None:
-            _abort_sync(project_root, strategy, payload, notes)
-            notes.append(
-                f"{changelog} conflict is not two additive [Unreleased] bullet "
-                f"lists ({result.reason}); aborted and stopped."
-            )
-            return False
+        for path, resolver in plan:
+            conflicted = root / path
+            text = conflicted.read_text(encoding="utf-8")
+            if resolver == RESOLVER_CHANGELOG:
+                result = history.resolve_changelog_conflict(
+                    text, in_flight_side=in_flight_side
+                )
+                refusal = (
+                    f"{changelog} conflict is not two additive [Unreleased] "
+                    f"bullet lists ({result.reason}); aborted and stopped."
+                )
+            else:
+                result = history.resolve_additive_conflict(
+                    text, in_flight_side=in_flight_side
+                )
+                refusal = (
+                    f"{path} conflict is not two additive bullet / table-row "
+                    f"sets ({result.reason}); aborted and stopped — this needs "
+                    "a human decision."
+                )
+            if not result.ok or result.text is None:
+                _abort_sync(project_root, strategy, payload, notes)
+                notes.append(refusal)
+                return False
+            conflicted.write_text(result.text, encoding="utf-8", newline="")
 
-        conflicted.write_text(result.text, encoding="utf-8", newline="")
         ok, stage_error = gitutils.stage_paths(project_root, unmerged)
         if not ok:
             _abort_sync(project_root, strategy, payload, notes)
-            notes.append(f"could not stage the resolved {changelog}: {stage_error}")
+            notes.append(f"could not stage the resolved paths: {stage_error}")
             return False
 
-        payload["changelog_resolved"] = True
-        if unmerged[0] not in payload["resolved_paths"]:
-            payload["resolved_paths"].append(unmerged[0])
-        notes.append(f"kept both {changelog} bullet sets (in-flight bullet last)")
+        for path, resolver in plan:
+            if resolver == RESOLVER_CHANGELOG:
+                payload["changelog_resolved"] = True
+                notes.append(
+                    f"kept both {changelog} bullet sets (in-flight bullet last)"
+                )
+            else:
+                notes.append(f"kept both {path} additions (in-flight last)")
+            if path not in payload["resolved_paths"]:
+                payload["resolved_paths"].append(path)
+            payload["resolvers"][path] = resolver
 
         if strategy == "rebase":
             ok, error = gitutils.rebase_continue(project_root)
@@ -1270,6 +1516,14 @@ def _render_sync_branch_text(
                 "  [yellow]note[/yellow]  history was rewritten — push with "
                 "--force-with-lease"
             )
+        if payload.get("base"):
+            how = "detected" if payload.get("base_detected") else "given"
+            console.print(
+                f"  [dim]base {escape(str(payload['base']))} ({how}); dropped "
+                f"{payload.get('dropped_commits', 0)} landed commit(s)[/dim]"
+            )
+        for path, resolver in (payload.get("resolvers") or {}).items():
+            console.print(f"  [dim]resolved[/dim]  {escape(path)} ({resolver})")
     for path in payload["dirty_paths"]:
         console.print(f"  [yellow]dirty[/yellow]  {escape(path)}")
     for path in payload["conflicts"]:
@@ -3155,6 +3409,12 @@ def run_queue(
         ],
         "skipped_closed": [item.number for item in plan.skipped_closed],
         "independent": plan.independent,
+        # #386: the hands-off drivers (/iflow-cycle, /iflow-auto, /iflow-drive)
+        # surface these in their confirm so the operator knows which issues
+        # will take the non-yolo lane (policy: cycle_nonyolo) instead of
+        # stopping the run.
+        "nonyolo": [item.number for item in plan.ordered if not item.yolo],
+        "nonyolo_count": sum(1 for item in plan.ordered if not item.yolo),
         "notes": notes,
     }
 
@@ -3165,7 +3425,7 @@ def run_queue(
     if not plan.ordered:
         console.print("[dim]Nothing to queue.[/dim]")
     for entry in payload["queue"]:
-        flags = " [yolo]" if entry["yolo"] else ""
+        flags = " [yolo]" if entry["yolo"] else " [non-yolo]"
         deps = (
             f" (after {', '.join(f'#{d}' for d in entry['depends_on'])})"
             if entry["depends_on"]
@@ -3192,6 +3452,12 @@ def run_queue(
             "  [dim]independent (parallel-safe): "
             + ", ".join(f"#{n}" for n in plan.independent)
             + "[/dim]"
+        )
+    if payload["nonyolo"]:
+        console.print(
+            f"  [yellow]non-yolo lane[/yellow] ({payload['nonyolo_count']}): "
+            + ", ".join(f"#{n}" for n in payload["nonyolo"])
+            + " — merge policy: cycle_nonyolo"
         )
     for note in notes:
         console.print(f"  [dim]{escape(note)}[/dim]")

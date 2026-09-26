@@ -2,8 +2,9 @@
 
 `/iflow-drive <N>` takes an existing GitHub issue and runs: draft epic
 (auto-accept unless grill-me) → publish every stage → `/iflow-auto` each
-epoch → final review (create leftover findings) → local cleanup **`-d`
-only** → `/iflow-status`.
+epoch (yolo **and** non-yolo issues) → final review (create leftover
+findings) → local cleanup (`-d` reachable + `-D` squash-landed) →
+`/iflow-status`.
 
 See `{{ issueflows_dir }}/{{ designs_folder }}/drive-mode.md`.
 
@@ -16,7 +17,11 @@ See `{{ issueflows_dir }}/{{ designs_folder }}/drive-mode.md`.
 - **`<N>`** — existing issue that becomes the epic anchor (required).
 - **`grill` / `grill-me`** — interview the epic goal before draft-accept.
 - **`loops:<n>`** — forwarded to `/iflow-auto`.
-- **`dry-run`** — report only; no confirm / no writes.
+- **`nonyolo:merge|pr-only|stop`** — how `yolo: no` issues land
+  (forwarded to `/iflow-auto` → `/iflow-cycle`; default from config
+  **`{{ cycle_nonyolo }}`**). A `yolo: no` judgment is not a stop by itself.
+- **`dry-run`** — report only (stages, queue, non-yolo issues, cleanup
+  plan); no confirm / no writes.
 - Mid-run **`abort` / `stop` / `cancel` / `halt`** — stop at the next
   stage or issue boundary (`drive_status.md` → `aborted`).
 
@@ -27,9 +32,16 @@ Follow `{{ agent_dir }}/skills/iflow-drive/SKILL.md` verbatim.
 ## Constraints
 
 - Off-path; never auto-dispatched by `/iflow`.
-- One confirm covers draft-accept, publish-all, auto-all, final-review
-  creates, and reachable-only cleanup. Do not re-ask those.
+- One confirm covers draft-accept, publish-all, auto-all (both lanes),
+  final-review creates, and the local cleanup (`-d` **and** `-D`). Do not
+  re-ask those.
 - Auto's budget ask (accept / grant N more loops / abort) stays a
   planned pause.
-- Cleanup is `local only` and **skips Phase A2** (`git branch -d` on reachable only; no Phase B).
+- Never rebase / force-push / push the **default branch**. Issue branches
+  may be rebased by `agent sync-branch` (optionally `--base <parent>`)
+  and pushed `--force-with-lease` — that is normal PR-queue sync.
+- Cleanup is `local only`: `-d` on reachable, `-D` on squash-landed (and
+  merged-PR-divergent with nothing newer than the merge), never
+  `unique_work`, never Phase B. Report tip SHAs of `-D` deletions.
+- "Already merged" on a merge attempt is a success, not a stop.
 - Commit `Published:` lines off default (#303).

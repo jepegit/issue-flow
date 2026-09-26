@@ -9,7 +9,10 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+## [0.5.14] - 2026-09-26
+
 - `on_bleeding_edge` lets `/iflow-cleanup` upgrade the installed CLI (`uv tool install issue-flow@latest`) and refresh the scaffold via `issue-flow agent self-update`. (#382)
+- Drive / auto / cycle carry through under the overnight confirm: `yolo: no` issues run on a non-yolo lane (`cycle_nonyolo` = `merge` | `pr-only` | `stop`, token `nonyolo:<policy>`), `agent sync-branch` keeps both sides of additive design-guide / status-file conflicts and skips a squash-landed stacked parent (`--base`, auto-detected), "already merged" counts as success, drive cleanup may `-D` squash-landed branches, `agent state` / `preflight` report CLI-vs-skills `version_drift`, and `issue_flow.__version__` now comes from package metadata (the hard-coded `0.4.2a4` stamped every rendered skill stale). (#386)
 
 ## [0.5.13] - 2026-09-25
 

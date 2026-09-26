@@ -305,19 +305,43 @@ def gh_account(cwd: Path) -> str | None:
     return out or None
 
 
-def rebase_onto(cwd: Path, ref: str) -> tuple[bool, str | None]:
-    """Run ``git rebase <ref>``. Returns ``(ok, error_message)``.
+def rebase_onto(
+    cwd: Path, ref: str, *, base: str | None = None
+) -> tuple[bool, str | None]:
+    """Run ``git rebase <ref>`` (or ``git rebase --onto <ref> <base>``).
+
+    With ``base`` only the commits *after* ``base`` are replayed onto ``ref``
+    — the stacked-PR case (issue #386): a child branch that still carries its
+    parent's commits after the parent was squash-merged. Returns
+    ``(ok, error_message)``.
 
     A non-zero exit is normally a conflict, not a broken repo: the caller
     inspects :func:`unmerged_paths` and decides whether to resolve or abort.
     """
-    result = _run([GIT, "rebase", ref], cwd)
+    argv = [GIT, "rebase", "--onto", ref, base] if base else [GIT, "rebase", ref]
+    result = _run(argv, cwd)
     if result is None:
         return False, "git is not on PATH"
     if result.returncode != 0:
         message = _stream_text(result.stderr) or _stream_text(result.stdout)
         return False, message or f"git rebase {ref} failed"
     return True, None
+
+
+def rev_list_count(cwd: Path, base_ref: str, target_ref: str) -> int | None:
+    """Number of commits in ``base_ref..target_ref`` (``None`` when unknown)."""
+    text = _stdout([GIT, "rev-list", "--count", f"{base_ref}..{target_ref}"], cwd)
+    if text is None:
+        return None
+    try:
+        return int(text.strip())
+    except ValueError:
+        return None
+
+
+def rev_parse_verify(cwd: Path, ref: str) -> str | None:
+    """Full SHA for ``ref`` when it resolves to a commit, else ``None``."""
+    return _stdout([GIT, "rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}"], cwd)
 
 
 def rebase_continue(cwd: Path) -> tuple[bool, str | None]:
@@ -430,12 +454,49 @@ DEFAULT_SYNC_NEVER = (
 )
 
 
-def diff_name_only(cwd: Path, a: str, b: str) -> list[str] | None:
-    """Paths that differ between ``a`` and ``b``, or ``None`` on failure."""
-    out = _stdout([GIT, "diff", "--name-only", a, b], cwd)
+def diff_name_only(
+    cwd: Path, a: str, b: str, paths: list[str] | None = None
+) -> list[str] | None:
+    """Paths that differ between ``a`` and ``b``, or ``None`` on failure.
+
+    ``paths`` limits the comparison to those pathspecs.
+    """
+    argv = [GIT, "diff", "--name-only", a, b]
+    if paths:
+        argv.extend(["--", *paths])
+    out = _stdout(argv, cwd)
     if out is None:
         return None
     return [line.strip() for line in out.splitlines() if line.strip()]
+
+
+def merge_base(cwd: Path, a: str, b: str) -> str | None:
+    """Best common ancestor of ``a`` and ``b`` (``None`` when unrelated)."""
+    return _stdout([GIT, "merge-base", a, b], cwd) or None
+
+
+def content_landed(cwd: Path, ref: str, base_ref: str) -> bool | None:
+    """True when every file ``ref`` changed since forking off ``base_ref`` is
+    byte-identical on ``base_ref`` now.
+
+    This is the squash-merge signature: the branch's commits have different
+    patch-ids from the single squash commit, but the *end state* of the files
+    it touched is exactly what landed. A file later edited upstream makes this
+    ``False`` (a safe false negative — callers fall back to PR evidence).
+    Returns ``None`` when the comparison cannot be made.
+    """
+    fork = merge_base(cwd, ref, base_ref)
+    if fork is None:
+        return None
+    touched = diff_name_only(cwd, fork, ref)
+    if touched is None:
+        return None
+    if not touched:
+        return False
+    remaining = diff_name_only(cwd, ref, base_ref, touched)
+    if remaining is None:
+        return None
+    return not remaining
 
 
 def unique_commit_details(

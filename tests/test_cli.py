@@ -352,6 +352,58 @@ def test_agent_state_json_reports_stage(
     assert payload["next_command"] == "/iflow-build"
     assert payload["epic_hint"] is None
     assert payload["epic_session"] is None
+    # #386: no rendered skills -> nothing to compare, no drift.
+    assert payload["skills_version"] is None
+    assert payload["version_drift"] is False
+
+
+def _stamp_iflow_skill(root: Path, version: str) -> None:
+    skill = root / ".cursor" / "skills" / "iflow" / "SKILL.md"
+    skill.parent.mkdir(parents=True)
+    skill.write_text(
+        f"---\nname: iflow\nissue-flow-version: {version}\n---\n# iflow\n",
+        encoding="utf-8",
+    )
+
+
+def test_agent_state_reports_version_drift(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """#386: skills stamped by an older CLI are flagged so /iflow can warn."""
+    from issue_flow import __version__
+    from issue_flow import gitutils as gitutils_module
+
+    monkeypatch.setattr(gitutils_module, "current_branch", lambda _cwd: None)
+    _seed_issue(tmp_path, 5, plan=True)
+    _stamp_iflow_skill(tmp_path, "0.4.2a4")
+
+    result = runner.invoke(app, ["agent", "state", "-C", str(tmp_path), "--json"])
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["cli_version"] == __version__
+    assert payload["skills_version"] == "0.4.2a4"
+    assert payload["version_drift"] is True
+
+    text = runner.invoke(app, ["agent", "state", "-C", str(tmp_path)])
+    assert "issue-flow update" in text.output
+
+
+def test_agent_state_no_drift_when_stamps_match(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from issue_flow import __version__
+    from issue_flow import gitutils as gitutils_module
+
+    monkeypatch.setattr(gitutils_module, "current_branch", lambda _cwd: None)
+    _seed_issue(tmp_path, 5, plan=True)
+    _stamp_iflow_skill(tmp_path, __version__)
+
+    result = runner.invoke(app, ["agent", "state", "-C", str(tmp_path), "--json"])
+
+    payload = _json(result.stdout)
+    assert payload["skills_version"] == __version__
+    assert payload["version_drift"] is False
 
 
 def test_agent_state_epic_hint_when_no_focus(
@@ -737,6 +789,31 @@ def test_agent_preflight_json_reports_issueflows_only_dirty(
     assert payload["clean"] is False
     assert payload["dirty_paths"] == [".issueflows/03-solved-issues/issue1_original.md"]
     assert payload["issueflows_only"] is True
+    assert payload["version_drift"] is False
+
+
+def test_agent_preflight_warns_on_version_drift(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """#386: preflight carries the same drift fields + a note as agent state."""
+    from issue_flow import gitutils as gitutils_module
+
+    monkeypatch.setattr(gitutils_module, "git_available", lambda: True)
+    monkeypatch.setattr(gitutils_module, "fetch_prune", lambda _cwd: True)
+    monkeypatch.setattr(gitutils_module, "current_branch", lambda _cwd: "main")
+    monkeypatch.setattr(gitutils_module, "default_branch", lambda _cwd: "main")
+    monkeypatch.setattr(gitutils_module, "working_tree_clean", lambda _cwd: True)
+    monkeypatch.setattr(gitutils_module, "dirty_paths", lambda _cwd: [])
+    monkeypatch.setattr(gitutils_module, "ahead_behind", lambda _cwd, _d: (0, 0))
+    _stamp_iflow_skill(tmp_path, "0.4.2a4")
+
+    result = runner.invoke(app, ["agent", "preflight", "-C", str(tmp_path), "--json"])
+
+    assert result.exit_code == 0, result.output
+    payload = _json(result.stdout)
+    assert payload["skills_version"] == "0.4.2a4"
+    assert payload["version_drift"] is True
+    assert any("issue-flow update" in note for note in payload["notes"])
 
 
 def test_agent_preflight_json_issueflows_only_false_when_mixed(
@@ -2130,6 +2207,9 @@ def test_agent_queue_honours_configured_yolo_label(
     by_number = {entry["number"]: entry for entry in payload["queue"]}
     assert by_number[1]["yolo"] is True
     assert by_number[2]["yolo"] is False
+    # #386: hands-off drivers read the non-yolo lane summary from the payload.
+    assert payload["nonyolo"] == [2]
+    assert payload["nonyolo_count"] == 1
 
 
 # ---------------------------------------------------------------------------

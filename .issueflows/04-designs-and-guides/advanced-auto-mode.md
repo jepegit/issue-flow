@@ -47,7 +47,11 @@ Off-path skill/command **`/iflow-auto`** (Stage 1 skeleton; Stage 2 adds the
 adversarial gate). Composes:
 
 1. Select earliest unfinished published stage of epic `<N>`
-2. Run `/iflow-cycle epic <N>` for that stage (yolo per issue)
+2. Run `/iflow-cycle epic <N>` for that stage — yolo lane for `yolo: yes`
+   issues, **non-yolo lane** for `yolo: no` ones (same chain and safeguards;
+   landed per `cycle_nonyolo`: `merge` default / `pr-only` / `stop`; per-run
+   `nonyolo:<policy>` forwarded from auto / drive). A `yolo: no` judgment is
+   not a stop by itself (issue #386).
 3. Adversarial review (Stage 2)
 4. Advance or stop per loop budget
 
@@ -142,8 +146,11 @@ If every published stage is done: `last_outcome: complete`.
 ### Stop conditions (unattended)
 
 Same floor as `/iflow-cycle` / `/iflow-yolo`: unfixable test/lint failure,
-refused merge / non-ff pull, spec not actually small, action outside the
-confirmed queue. Never weaken a yolo safeguard to keep moving.
+refused merge / non-ff pull that `agent sync-branch` cannot resolve (it takes
+additive `HISTORY.md` / design-guide / status-file conflicts and squash-landed
+stacked parents), ambiguous or contradictory spec (not-small is advisory on
+the non-yolo lane), action outside the confirmed queue. "Already merged" is a
+success. Never weaken a yolo safeguard to keep moving.
 
 ## Non-goals
 

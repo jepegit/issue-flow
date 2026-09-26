@@ -30,7 +30,8 @@ Do **not** use this skill for `/iflow-setup`, `/iflow-pick`, `/iflow-init`, `/if
 > `uv tool install issue-flow`.)
 
 1. **Resolve the focus issue number `N`.**
-   - Prefer `issue-flow agent state --json` when the CLI is on `PATH` (fields `focus`, `next_command`, `epic_hint`, `epic_session`).
+   - Prefer `issue-flow agent state --json` when the CLI is on `PATH` (fields `focus`, `next_command`, `epic_hint`, `epic_session`, `cli_version`, `skills_version`, `version_drift`).
+   - **Version drift.** If the payload reports `version_drift: true`, print one warning line before anything else — `skills stamped <skills_version>, CLI <cli_version> — run `issue-flow update`` — and keep going with the dispatch. Stale skill text is how a newer CLI ends up driven by old instructions; the warning is the fix, not a stop. Never run `issue-flow update` yourself from here.
    - Manual fallback: `git branch --show-current`. If it matches `^(\d+)-.+`, the leading digits are the **authoritative** `N`.
    - List `issue<n>_*` groups in `{{ issueflows_dir }}/{{ current_issues_folder }}/`, and also check `{{ issueflows_dir }}/{{ partly_solved_folder }}/` and `{{ issueflows_dir }}/{{ solved_folder }}/` for archived groups matching `N`.
    - Pick `N` by precedence:

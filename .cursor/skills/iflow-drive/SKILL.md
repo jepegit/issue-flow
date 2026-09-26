@@ -2,10 +2,11 @@
 name: iflow-drive
 description: >-
   Compose-only orchestrator: draft an epic from an existing issue, publish
-  every stage, run /iflow-auto each epoch, final review, then local -d
-  cleanup and /iflow-status.
+  every stage, run /iflow-auto each epoch (yolo and non-yolo lanes), final
+  review, then local cleanup (-d reachable, -D squash-landed) and
+  /iflow-status.
 disable-model-invocation: true
-issue-flow-version: 0.4.2a4
+issue-flow-version: 0.5.14
 ---
 
 # issue-flow — drive (`/iflow-drive`)
@@ -13,7 +14,7 @@ issue-flow-version: 0.4.2a4
 Follow this skill to run a **compose-only** path from an existing GitHub
 issue `<N>`: draft epic (auto-accept unless grill-me) → publish every
 stage → `/iflow-auto` each epoch → final review (create leftover findings)
-→ local cleanup **`-d` only** → `/iflow-status`.
+→ local cleanup (`-d` reachable + `-D` squash-landed) → `/iflow-status`.
 
 
 Contract: `.issueflows/04-designs-and-guides/drive-mode.md`.
@@ -30,8 +31,13 @@ those skills; this one only sequences them and records `drive_status.md`.
   confirming the draft. Else auto-set `Status: confirmed` after draft
   (also honour project `grill_me_default`).
 - **`loops:<n>`** — forwarded to `/iflow-auto`.
-- **`dry-run`** — resolve planned stages / queue, show what would run,
-  **stop** (no confirm, no writes).
+- **`nonyolo:merge|pr-only|stop`** — forwarded to `/iflow-auto` →
+  `/iflow-cycle`: how the epic's `yolo: no` issues land (default from
+  config **`merge`**). Drive is a carry-through path; a
+  `yolo: no` judgment is **not** a stop by itself.
+- **`dry-run`** — resolve planned stages / queue, show what would run
+  (including the non-yolo issues per stage), **stop** (no confirm, no
+  writes).
 - **`abort` / `stop` / `cancel` / `halt` mid-run** — not start tokens.
   Any user message that *is* (or starts with) `abort` / `stop` /
   `cancel` / `halt` (case-insensitive, optional leading `/`) **stops**
@@ -90,9 +96,12 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
    `.issueflows/05-epics/epic<N>_plan.md` exists and
    its `Status`; list unpublished vs published specs; run
    `issue-flow agent epic-status <N> --json` when a plan exists; show
-   the queue `issue-flow agent queue --epic <N> --json` would return;
-   note that cleanup would be `local only` + skip A2 (`-d` / reachable
-   only). **Stop** without confirm or writes.
+   the queue `issue-flow agent queue --epic <N> --json` would return,
+   with its `nonyolo` list and the `nonyolo` policy that would apply
+   (from the plan's per-issue `yolo:` judgments when nothing is
+   published yet); note that cleanup would be `local only`, `-d` on
+   reachable branches plus `-D` on squash-landed ones (step 10). **Stop**
+   without confirm or writes.
 
 3. **Drive confirm** (only planned interruption besides auto's budget
    ask and cycle/yolo stop conditions). Present in normal prose: issue
@@ -100,11 +109,15 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
    grill-me / `grill_me_default`), **publish every unpublished stage**,
    run **`/iflow-auto` for each unfinished published stage**, run a
    **final adversarial review** that may create/reopen GitHub issues,
-   then **local cleanup `-d` only** (no Phase B, no `-D`), then
-   `/iflow-status`. Require explicit yes. This confirm **covers**
-   epic's plan-accept, per-stage publish confirms, auto's overnight
-   confirm, final-review creates, and reachable-only cleanup — do not
-   re-ask those mid-run.
+   then **local cleanup** (`-d` on reachable branches, `-D` on
+   squash-landed ones; no Phase B), then `/iflow-status`. List the
+   **non-yolo issues** (from the plan's `yolo: no` judgments / the queue
+   payload's `nonyolo`) and the `nonyolo` policy — with `merge` say
+   plainly that their PRs are auto-merged like the yolo ones. Require
+   explicit yes. This confirm **covers** epic's plan-accept, per-stage
+   publish confirms, auto's overnight confirm, the non-yolo lane,
+   final-review creates, and the local cleanup (both `-d` and `-D`) —
+   do not re-ask those mid-run.
 
 4. **Write / update `drive_status.md`** at
    `.issueflows/01-current-issues/drive_status.md`:
@@ -141,12 +154,16 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 8. **Auto each part.** While `issue-flow agent epic-status <N> --json`
    reports an unfinished published stage: follow
    `.cursor/skills/iflow-auto/SKILL.md` for `/iflow-auto <N>`
-   (forward `loops:<n>` when given). The drive confirm covers auto's
-   overnight authorization — do not re-ask. Honour `epoch_gated`,
-   cycle/yolo stop conditions, and auto's **budget ask** (accept /
-   grant N more loops / abort) as a **planned pause**, not a drive
-   failure. Append created/reopened numbers to `drive_status.md`
-   `findings:`. Abort-check at each stage / issue boundary.
+   (forward `loops:<n>` and `nonyolo:<policy>` when given). The drive
+   confirm covers auto's overnight authorization and the non-yolo lane
+   — do not re-ask, and do not stop at a `yolo: no` issue (cycle runs it
+   on the non-yolo lane; only `nonyolo:stop` halts there). Honour
+   `epoch_gated`, cycle/yolo stop conditions, and auto's **budget ask**
+   (accept / grant N more loops / abort) as a **planned pause**, not a
+   drive failure. A merge that reports the PR is **already merged** is a
+   success, not a stop. Append created/reopened numbers to
+   `drive_status.md` `findings:`. Abort-check at each stage / issue
+   boundary.
 
 9. **Final review.** When every published stage is `done` (or the user
    **accepted** a budget ask): run `/iflow-auto <N> review` (same
@@ -158,19 +175,27 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
    runs `/iflow-auto` themselves. Mark `final_review` done.
 
 10. **Cleanup.** Follow `.cursor/skills/iflow-cleanup/SKILL.md`
-    with trailing `local only` **and skip Phase A2**:
+    with trailing `local only`, running **both** Phase A1 and A2 under
+    the drive confirm (pass the `drive` token so cleanup does not
+    re-ask):
     - switch to default, `git pull --ff-only`, `git fetch --prune`;
-    - `issue-flow agent worktree-remove` for **`reachable`** worktrees
-      only;
-    - `git branch -d` on **`reachable`** branches only.
-    Leave `squash_landed`, `merged_pr_divergent`, and `unique_work`.
-    Never `git branch -D`. Never Phase B (no remote deletes, no
-    findings issue). The drive confirm covers this reachable-only
-    pass — do not re-ask. Mark `cleanup` done.
+    - `issue-flow agent worktree-remove` for **`reachable`** and
+      **`squash_landed`** worktrees;
+    - `git branch -d` on **`reachable`** branches;
+    - `git branch -D` on **`squash_landed`** branches, and on
+      `merged_pr_divergent` ones whose only divergence is commits
+      **older** than the PR's `mergedAt` (nothing newer than the merge
+      — `issue-flow agent local-branches --json` shows the tip SHA and
+      merge time; leave any branch with a commit after it).
+    Leave `unique_work` untouched, always. Never Phase B (no remote
+    deletes, no findings issue). Print the tip SHAs of everything
+    deleted with `-D` in the report so the user can `git branch <name>
+    <sha>` to recover. This is the carry-through the drive confirm
+    authorized — do not re-ask. Mark `cleanup` done.
 
 11. **Report + status.** Summarize stages published, PRs merged,
     findings issues (created/reopened numbers), cleanup counts
-    (`-d` deletions / worktrees removed / squash-landed left). Set
+    (`-d` / `-D` deletions with tip SHAs, worktrees removed). Set
     `last_outcome: done` in `drive_status.md`. Then follow
     `.cursor/skills/iflow-status/SKILL.md` (`/iflow-status`).
     Mark `status` done.
@@ -180,8 +205,18 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 - **Off-path:** `/iflow` never auto-dispatches here.
 - Compose `/iflow-epic` + `/iflow-auto` + `/iflow-cycle` +
   `/iflow-yolo` + `/iflow-cleanup` + `/iflow-status`; do not fork them.
-- Never rebase / force-push / push default.
-- Cleanup never `git branch -D`, never Phase B.
+- Never rebase / force-push / push the **default branch**. Issue
+  branches are different: close / pr-sync may rebase them onto
+  `origin/<default>` (`issue-flow agent sync-branch`, optionally
+  `--base <parent>` for a child stacked on a squash-landed parent) and
+  `git push --force-with-lease` them — that is the normal PR-queue
+  sync, not a violation.
+- A `yolo: no` issue is not a stop: it runs on cycle's non-yolo lane
+  under the `nonyolo` policy (`merge` unless a token
+  overrides). Only `nonyolo:stop` halts there.
+- Cleanup: `-d` on reachable, `-D` on squash-landed (and
+  merged-PR-divergent with nothing newer than the merge) — both under
+  the drive confirm; never `unique_work`, never Phase B.
 - Do not leave `Published: #<M>` unpushed on home default (#303).
 - Auto's budget ask remains a planned pause (accept / grant / abort).
 - User abort tokens stop only at the next stage / issue boundary.

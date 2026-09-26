@@ -388,3 +388,71 @@ def resolve_changelog_conflict(
     if text.endswith(("\n", "\r")):
         resolved += newline
     return ResolveResult(resolved, RESOLVED, count)
+
+
+_TABLE_ROW_RE = re.compile(r"^\s*\|.*\|\s*$")
+
+
+def _is_additive_line(line: str) -> bool:
+    """True for a list item, a markdown table row, a continuation, or a blank.
+
+    This is the widened predicate behind :func:`resolve_additive_conflict`
+    (issue #386): design guides and the test registry append **table rows**
+    as well as bullets, and both are pure bookkeeping. Headings, prose, and
+    code fences stay real content and refuse the resolve.
+    """
+    if _is_bullet_or_blank(line):
+        return True
+    return bool(_TABLE_ROW_RE.match(line))
+
+
+def resolve_additive_conflict(
+    text: str,
+    *,
+    in_flight_side: Side,
+) -> ResolveResult:
+    """Resolve a conflict whose every side only *appends* bullets or table rows.
+
+    Same keep-both rule as :func:`resolve_changelog_conflict` — landed lines
+    first, the in-flight side last, byte-identical lines collapse — but with
+    two differences: the block may sit **anywhere** in the file (not only under
+    ``[Unreleased]``) and markdown **table rows** count as additive content.
+
+    Intended for files whose whole content is bookkeeping: design guides under
+    ``04-designs-and-guides/`` (registry tables, appended bullets) and
+    ``issue<N>_status.md``. A side containing a heading, prose, or a code
+    fence refuses — a duplicated ``## Link`` section or an edited paragraph is
+    a human decision (issue #386).
+    """
+    blocks = parse_conflicts(text)
+    if blocks is None:
+        return ResolveResult(None, UNTERMINATED_CONFLICT, 0)
+    if not blocks:
+        return ResolveResult(None, NO_CONFLICTS, 0)
+
+    count = len(blocks)
+    for block in blocks:
+        for side in (block.ours, block.theirs):
+            if any(_HEADING_RE.match(line) for line in side):
+                return ResolveResult(None, HEADING_CONFLICT, count)
+            if not all(_is_additive_line(line) for line in side):
+                return ResolveResult(None, NON_BULLET_CONTENT, count)
+        if not _trim_blank_edges(block.ours) or not _trim_blank_edges(block.theirs):
+            return ResolveResult(None, EMPTY_SIDE, count)
+
+    lines = text.splitlines()
+    out: list[str] = []
+    cursor = 0
+    for block in blocks:
+        out.extend(lines[cursor : block.start])
+        landed = block.theirs if in_flight_side == "ours" else block.ours
+        in_flight = block.ours if in_flight_side == "ours" else block.theirs
+        out.extend(_merge_sides(landed, in_flight))
+        cursor = block.end + 1
+    out.extend(lines[cursor:])
+
+    newline = detect_newline(text)
+    resolved = newline.join(out)
+    if text.endswith(("\n", "\r")):
+        resolved += newline
+    return ResolveResult(resolved, RESOLVED, count)

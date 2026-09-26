@@ -16,6 +16,9 @@ See `{{ issueflows_dir }}/{{ designs_folder }}/advanced-auto-mode.md`.
 - **`stage <k>`** — optional; else earliest unfinished published stage.
 - **`loops:<n>`** — override adversarial loop budget (baked default
   **{{ auto_adversarial_loops }}**).
+- **`nonyolo:merge|pr-only|stop`** — how `yolo: no` issues land (forwarded
+  to `/iflow-cycle`; baked default **`{{ cycle_nonyolo }}`**). Not a stop by
+  itself.
 - **`review`** — adversarial procedure only (`/iflow-auto <N> review`).
 - **`status`** / **`dry-run`** — report only; no confirm / no writes beyond reads.
 
@@ -27,4 +30,5 @@ Follow `{{ agent_dir }}/skills/iflow-auto/SKILL.md` verbatim.
 
 - Off-path; never auto-dispatched by `/iflow`.
 - Budget ask options: accept / grant N more loops / abort.
+- A `yolo: no` issue runs on cycle's non-yolo lane; only `nonyolo:stop` halts there.
 - Never start stage `k+1` while stage `k` is not clear (`epoch_gated`).

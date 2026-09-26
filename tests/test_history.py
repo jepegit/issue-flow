@@ -184,6 +184,54 @@ def test_refuses_file_without_conflicts() -> None:
     assert result.reason == history.NO_CONFLICTS
 
 
+def test_additive_resolver_keeps_table_rows_anywhere() -> None:
+    """Design-guide tables (issue #386): both sides appended rows, not bullets."""
+    text = (
+        "# Test registry\n"
+        "\n"
+        "## Registry\n"
+        "\n"
+        "| Test | Why |\n"
+        "|---|---|\n"
+        "| test_a | landed |\n"
+        "<<<<<<< HEAD\n"
+        "| test_b | landed later |\n"
+        "=======\n"
+        "| test_c | in flight |\n"
+        ">>>>>>> 1a2b3c4 (feat: ours)\n"
+    )
+    result = history.resolve_additive_conflict(text, in_flight_side="theirs")
+    assert result.ok, result.reason
+    assert result.text is not None
+    assert "<<<<<<<" not in result.text
+    b = result.text.index("| test_b |")
+    c = result.text.index("| test_c |")
+    assert b < c
+
+
+def test_additive_resolver_accepts_bullets_outside_unreleased() -> None:
+    """Bullets under any heading resolve; the changelog rule is not required."""
+    text = _conflicted(heading="## Decisions")
+    strict = history.resolve_changelog_conflict(text, in_flight_side="theirs")
+    assert not strict.ok and strict.reason == history.NOT_UNRELEASED_SECTION
+    loose = history.resolve_additive_conflict(text, in_flight_side="theirs")
+    assert loose.ok, loose.reason
+    assert loose.text is not None
+    assert loose.text.index(_LANDED) < loose.text.index(_IN_FLIGHT)
+
+
+def test_additive_resolver_refuses_heading_and_prose() -> None:
+    """A duplicated `## Link` section or an edited paragraph stays a human call."""
+    with_heading = _conflicted(theirs="## Link\n\nAuto: x.md", heading="## Notes")
+    refused = history.resolve_additive_conflict(with_heading, in_flight_side="theirs")
+    assert not refused.ok and refused.reason == history.HEADING_CONFLICT
+
+    with_prose = _conflicted(theirs="Plain prose edit.", heading="## Notes")
+    refused = history.resolve_additive_conflict(with_prose, in_flight_side="theirs")
+    assert not refused.ok and refused.reason == history.NON_BULLET_CONTENT
+    assert refused.text is None
+
+
 @pytest.mark.parametrize("side", ["ours", "theirs"])
 def test_refusal_never_returns_text(side: str) -> None:
     result = history.resolve_changelog_conflict(
