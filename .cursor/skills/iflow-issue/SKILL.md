@@ -81,6 +81,23 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
    Refine with the user until they confirm the text. If the draft is clearly over-large for one PR, **offer** `/iflow-split` (flat parent/child) or `/iflow-epic` (staged) — do **not** auto-create sub-issues.
 4. **Create (confirm first).** Show the final title and body (and, in epic-anchor mode, the planned `epic` label when present). On yes: `gh issue create --repo <owner/repo>` (add `--label epic` only when epic-anchor mode is on **and** `gh label list` shows `epic`). Capture number `N`. Set the chat tab title to `Issue <N> <short title>`. Optional labels/milestones other than the epic-anchor label: only if the user asked for them in this turn — do not invent them.
 
+**Multi-line GitHub text (PowerShell-safe).** Bash `<<'EOF'` heredocs fail in Windows PowerShell (`Missing file specification after redirection operator`). Write the text to a file and pass that file:
+
+- `gh issue create`, `gh issue edit`, and `gh pr create` take `--body-file <path>`.
+- `git commit` takes `-F <path>`.
+
+```powershell
+@'
+line one
+
+line two
+'@ | Set-Content -Encoding utf8 body.md
+gh issue create --repo owner/repo --title "title" --body-file body.md
+```
+
+Bash accepts the same `--body-file` / `-F` flags. Use that pattern for every multi-line body.
+
+
 ### Phase 2 — optional lifecycle setup
 
 5. **Offer branch + init (default path).** Ask whether to start work now. On yes (require a clean tree; if dirty, stop and ask to commit/stash):

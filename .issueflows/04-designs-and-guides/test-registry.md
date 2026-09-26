@@ -40,6 +40,7 @@ current issue**. `/iflow-doctor` may audit the whole suite against this table.
 | `tests/test_cleanup_yes_warning.py` (module) | no | no | `init._warn_cleanup_yes_a2` | #388 | Warning when `cleanup_yes_a2` is on; leave unmarked |
 | `tests/test_templating.py::test_cleanup_bakes_yes_knobs` | no | no | cleanup/close skill bake of `cleanup_yes_*` / `auto_cleanup` | #388 | Config default bake; leave unmarked |
 | `tests/test_doc_configuration.py::test_all_settings_table_lists_every_config_key_once` | yes | yes | `docs/configuration.md` vs `CONFIG_KEYS` | #388 | Already essential; digit keys (`cleanup_yes_a1`) must match |
+| `tests/test_templating.py::test_issue_create_skills_use_body_file_not_bash_heredoc` | no | no | `_gh_body_file.md.j2` included from issue/fix/close | #380 | Docs/skill contract; leave unmarked |
 
 **Columns**
 

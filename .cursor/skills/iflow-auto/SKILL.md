@@ -138,6 +138,23 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
       <owner/repo>` with Spec, Goal, **`Model: deep`**, `Depends on`, and
       `Part of epic #<N>.` — no new label in v1. Record numbers + notes in
       `auto_status.md` with `last_outcome: adversarial_findings`.
+
+**Multi-line GitHub text (PowerShell-safe).** Bash `<<'EOF'` heredocs fail in Windows PowerShell (`Missing file specification after redirection operator`). Write the text to a file and pass that file:
+
+- `gh issue create`, `gh issue edit`, and `gh pr create` take `--body-file <path>`.
+- `git commit` takes `-F <path>`.
+
+```powershell
+@'
+line one
+
+line two
+'@ | Set-Content -Encoding utf8 body.md
+gh issue create --repo owner/repo --title "title" --body-file body.md
+```
+
+Bash accepts the same `--body-file` / `-F` flags. Use that pattern for every multi-line body.
+
    e. No extra user prompts while acting under overnight / review confirm
       (except the budget ask in step 10).
 

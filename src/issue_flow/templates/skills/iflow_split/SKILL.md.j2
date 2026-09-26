@@ -47,6 +47,8 @@ Do **not** use this skill from `/iflow`, `/iflow-build`, or `/iflow-close`. `/if
 5. **Consolidated confirm** (normal prose, never shortened). One prompt covering: parent `#N` stays **open** as the tracker; each listed child title will be created; each will be linked as a GitHub native sub-issue; a `- [ ] #<M>` task-list block will be appended on the parent under `## Sub-issues`. No yes → stop.
 6. **Create + link (idempotent).** For each unpublished child:
    1. `gh issue create --repo <owner/repo>` (labels/milestones only if the user asked this turn). Capture number `M`.
+
+{% include "skills/_gh_body_file.md.j2" %}
    2. Link as a native sub-issue. Prefer the CLI fast path:
       `issue-flow agent sub-issue-add <N> <M> -C <project_root> [--repo owner/repo] --json`
       Fields: `linked`, `skipped` (already a child), `error`. On CLI missing or `error` set, fall back to the REST recipe below — then if that also fails (404 / permission / plan), **keep the created issue** and rely on the parent task list.

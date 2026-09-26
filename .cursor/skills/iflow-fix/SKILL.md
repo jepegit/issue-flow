@@ -69,6 +69,23 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 1. **Preflight.** Detect the default branch (`gh repo view --json defaultBranchRef -q .defaultBranchRef.name`; fall back to `git symbolic-ref --quiet --short refs/remotes/origin/HEAD`, else `main`). Run `git fetch --prune`. Report current branch + clean/dirty tree (`git status --porcelain`); if dirty with unrelated changes, ask to commit/stash first.
 2. **Resolve the session name.** Baked `fix_auto_name = true`: pick the kebab slug yourself from an explicit invoke name, else invent a short descriptive slug from the user's intent/context (fallback `iterative-small-fixes`). Do **not** ask the user to approve or rename the title/slug — show it only inside the create confirm below. Configurable via `fix_auto_name` under `[issueflow]` in `.issueflows/config.toml` (re-run `issue-flow update` after changing).
 3. **Create the GitHub issue (always, with confirmation).** Show the chosen title (e.g. `Iterative fixes: <name>`, or `Iterative small fixes`) and a body noting it is an interactive `/iflow-fix` session whose individual fixes are recorded in the status markdown and landed together via `/iflow-close`. Create it with `gh issue create` (add `--repo owner/repo` if ambiguous). Capture the returned number `N`. A fresh issue is created each time. Set the chat tab title to `Issue <N> <session name>`.
+
+**Multi-line GitHub text (PowerShell-safe).** Bash `<<'EOF'` heredocs fail in Windows PowerShell (`Missing file specification after redirection operator`). Write the text to a file and pass that file:
+
+- `gh issue create`, `gh issue edit`, and `gh pr create` take `--body-file <path>`.
+- `git commit` takes `-F <path>`.
+
+```powershell
+@'
+line one
+
+line two
+'@ | Set-Content -Encoding utf8 body.md
+gh issue create --repo owner/repo --title "title" --body-file body.md
+```
+
+Bash accepts the same `--body-file` / `-F` flags. Use that pattern for every multi-line body.
+
 4. **Create the worktree (with confirmation).** Slug from the resolved name (kebab-case; default `iterative-small-fixes`); branch name `<N>-<slug>`. Require a clean tree.
 
 **Worktree-first start (default, issue #255 / #303 / #329).** After the dirty-tree gate and slug confirm — unless the user passed `inplace` / `no worktree`, or ops chose stay-on-current/default:

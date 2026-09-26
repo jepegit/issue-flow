@@ -85,6 +85,8 @@ Other optional notes still apply: branch name, PR title, skip issue doc update, 
 7. **Pull request**
    - Always pass `--repo <owner/repo>`.
    - **List before create.** `gh pr list --repo <owner/repo> --head <branch> --state open --json number,url,title,isDraft`. If an open PR already exists for this head (including a draft from `/iflow-build` early PR), **update** it instead of opening a second one; otherwise `gh pr create` — add `--draft` when the user passed the `draft` token.
+
+{% include "skills/_gh_body_file.md.j2" %}
    - Describe the change, how to test it, and link the GitHub issue (prefer `Closes #123` when shipping; `Refs #123` is fine for WIP).
 {% if "pstack_unslop" in included_skills %}   - **Unslop (pstack, optional).** The `unslop` skill (`{{ agent_dir }}/skills/unslop/SKILL.md`) is installed — *offer* to pass the PR body and the `{{ history_file }}` bullet through it before posting; apply it only when the user says so (skip the offer under `yolo`).
 {% endif %}   - **Ready from draft (when not `draft`).** If the open PR is still a draft and the user did **not** pass `draft`, mark it ready for review (`gh pr ready <number> --repo <owner/repo>`) before the checks snapshot / yolo merge.

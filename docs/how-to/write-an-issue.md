@@ -17,8 +17,9 @@ acceptance criteria), and optionally start working on it straight away.
 2. The agent drafts a title and a body with **Problem / context**, **Spec**,
    **Acceptance criteria**, and (optionally) **Out of scope**. Edit it together
    until it says what you mean.
-3. Confirm the final text. The agent runs `gh issue create` and reports the
-   new number `N`.
+3. Confirm the final text. The agent writes the body to a file and runs
+   `gh issue create --body-file`. A bash `<<'EOF'` heredoc fails in Windows
+   PowerShell. The agent reports the new number `N`.
 4. The agent asks whether to start now. On yes it creates the branch
    `<N>-<slug>` (in a sibling worktree by default), captures the issue, and
    asks before continuing to `iflow plan`. On no, pick it up later with

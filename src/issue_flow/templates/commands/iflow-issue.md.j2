@@ -41,6 +41,8 @@ Optional free-form text after the command — a seed for the title and/or short 
 
 4. **Create (confirm first).** Show the final title and body (and, in epic-anchor mode, the planned `epic` label when present). On yes: create with `gh issue create` (add `--repo owner/repo` if ambiguous; add `--label epic` only when epic-anchor mode is on **and** `gh label list` shows `epic`). Capture the returned issue number `N`. Change the chat/agent tab title to `Issue <N> <short title>`. Other labels/milestones: only if the user asked for them in this turn — do not invent them.
 
+{% include "skills/_gh_body_file.md.j2" %}
+
 ## Phase 2 — optional lifecycle setup
 
 5. **Offer branch + init (default path).** Ask whether to start work now. On yes (require a clean tree; if dirty, stop and ask to commit/stash):

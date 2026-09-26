@@ -36,6 +36,8 @@ The full playbook lives in `{{ agent_dir }}/skills/iflow-epic/SKILL.md` — foll
 
 **Publish action** (`publish [stage <k>]`, confirmed plans only): dry-run listing → one consolidated confirm → `gh issue create` per unpublished spec in dependency order (yolo label only when the judgment says yes and the label exists; `Part of epic #<N>.` in each body; `stage <j> issue <k>` placeholders resolved to real numbers where published) → record `- Published: #<M>` back into the plan → append `- [ ] #<M>` task-list lines to the anchor issue (append/patch only). Skipping specs that already carry `Published:` makes re-runs idempotent.
 
+{% include "skills/_gh_body_file.md.j2" %}
+
 ## Constraints
 
 - Drafting writes nothing on GitHub: no `gh issue create`, no label/milestone writes, no anchor-issue edits (reading via `gh` is fine). `publish` is the single exception and never runs without its consolidated confirm.

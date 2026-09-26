@@ -10,6 +10,7 @@ than the GitHub release notes they link to.
 ## [Unreleased]
 
 - Epic #269 is complete: user-global config, per-repo lock, the project registry, and `update --all` shipped in stages #281–#298. (#269)
+- Skills that create multi-line GitHub text now say to use `--body-file` or `git commit -F`. Bash `<<'EOF'` heredocs fail in Windows PowerShell. (#380)
 
 ## [0.5.15] - 2026-09-26
 

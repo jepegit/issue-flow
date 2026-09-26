@@ -75,6 +75,23 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
    - **Else GitHub** — `gh issue list --state open --json number,title,labels,milestone,updatedAt` (add `--repo owner/repo` if ambiguous). When `label:<L>` is active, add `--label <L>` (hard filter). Drop issues already captured under `01-current-issues/`, `02-partly-solved-issues/`, or `03-solved-issues/`. If the filtered set is empty, **stop** with “no open issues with label `<L>`.”
 4. **Rank and present.** Rank by **epic membership** (an active epic's current-stage `next_candidates` first) + **milestone** (nearest/active, honour any hint) + **labels** (match recent work / soft hint when no `label:` filter) + **topical similarity** to recently solved issues (skim `.issueflows/03-solved-issues/` and recent branch names). Show a numbered shortlist (~3–7) with number, title, labels, milestone, and (for epic issues) the epic + stage, and **ask the user to confirm** the pick or override. Never pick silently — even when the filtered shortlist has a single entry.
 5. **Create a `fix` issue (only when requested).** Use `gh issue create` (e.g. `chore: general fixes`), confirm title/body first, capture the new number. A fresh issue is created each time — never reuse an existing open general-fixes issue.
+
+**Multi-line GitHub text (PowerShell-safe).** Bash `<<'EOF'` heredocs fail in Windows PowerShell (`Missing file specification after redirection operator`). Write the text to a file and pass that file:
+
+- `gh issue create`, `gh issue edit`, and `gh pr create` take `--body-file <path>`.
+- `git commit` takes `-F <path>`.
+
+```powershell
+@'
+line one
+
+line two
+'@ | Set-Content -Encoding utf8 body.md
+gh issue create --repo owner/repo --title "title" --body-file body.md
+```
+
+Bash accepts the same `--body-file` / `-F` flags. Use that pattern for every multi-line body.
+
 6. **Over-large issue (offer only).** If the chosen issue is too big for one PR, **mention** `/iflow-split` (flat parent/child) or `/iflow-epic` (staged) and ask. Default is proceed with the whole issue. Do **not** create children here.
 
 7. **Label-driven ops flow.** If the chosen issue carries the **`ops`** label (case-insensitive), announce it and fold `/iflow-ops` into the pick confirmation (one prompt: optional branch vs stay on default + ops work + `close ops`). On yes, run Phase 2 (ask whether to create `<N>-<slug>` or stay on current/default — default branch is allowed for ops) then follow the `iflow-ops` skill **instead of** Phase 3 / yolo. If the issue also carries **`yolo`**, **ops wins** — announce the conflict. Configurable via `label_flows` / `ops_label` under `[issueflow]` in `.issueflows/config.toml` (re-run `issue-flow update` after changing).

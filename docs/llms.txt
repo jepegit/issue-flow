@@ -20,3 +20,4 @@
 - Do not treat `issue-flow update` as a package upgrade.
 - Do not `issue-flow init` a folder that only contains sibling git repos.
 - Do not let `git` / `gh` infer the repo from cwd in a multi-root workspace — resolve first (`root:` / `repo:` / `issue-flow agent resolve`).
+- Do not pass multi-line `gh` or `git commit` text with a bash `<<'EOF'` heredoc. PowerShell rejects it. Use `--body-file` or `git commit -F`. See [for agents](https://issue-flow.readthedocs.io/en/latest/how-to/for-agents/).

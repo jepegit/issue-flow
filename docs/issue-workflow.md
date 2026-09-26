@@ -270,7 +270,7 @@ Every command below is described the same way: **When to use**, **Arguments**, *
 
 1. **Preflight** — default branch, `git fetch --prune`, clean/dirty tree.
 2. **Draft** — title + body with **Problem / context**, **Spec**, **Acceptance criteria**, and optional **Out of scope**. If clearly over-large for one PR, offers `/iflow-split` (flat) or `/iflow-epic` (staged) — does not auto-split.
-3. **Create** — `gh issue create` and capture `N`.
+3. **Create** — `gh issue create --body-file` (bash `<<'EOF'` heredocs fail in Windows PowerShell) and capture `N`.
 4. **Optional setup** — branch `<N>-<slug>` + `/iflow-capture`, then offers `/iflow-plan` (never auto-runs plan). Decline → create-only; pick up later via `/iflow-pick` / `/iflow-capture`.
 
 **What it asks you:** To refine and confirm the draft; to confirm the final title/body (and epic label) before creating; whether to start work now. GitHub only (`gh`); GitLab is not supported.
