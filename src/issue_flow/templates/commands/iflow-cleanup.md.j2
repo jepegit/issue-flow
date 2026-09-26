@@ -20,6 +20,7 @@ Optional free-form text after the command. Examples:
 - **GitHub audit opt-out tokens** (case-insensitive): `no github`, `local only`, `local-only` — skip Phase B even when `cleanup_include_github` is baked true.
 - **Self-update opt-in tokens** (case-insensitive): `bleeding edge`, `bleeding-edge`, `self-update` — upgrade the CLI after a successful FF pull.{% if on_bleeding_edge %} This project bakes `on_bleeding_edge = true`, so that step also runs by default.{% endif %}
 - **Self-update opt-out tokens** (case-insensitive): `no bleeding`, `no bleeding-edge`, `skip self-update` — skip the upgrade even when `on_bleeding_edge` is baked true.
+- **Orchestrator token** `drive` / `landed` — the caller (`/iflow-drive`) already confirmed `-D` on squash-landed branches: run A1 + A2 without re-asking, A2 narrowed to `squash_landed` plus `merged_pr_divergent` with nothing newer than the PR merge; tip SHAs still printed. Never passed by a human.
 - **Workspace walk** (case-insensitive): `workspace`, `all`, `include workspace` — one up-front confirm, then this cleanup **per member**. Not a mute CLI. Ignore these tokens when parsing a named branch. When self-update is enabled, upgrade the tool **once** at the start of the walk.
 
 **Phase B enable rule:** (`cleanup_include_github` baked true **or** opt-in token) **and** no opt-out token.
@@ -61,7 +62,7 @@ Optional free-form text after the command. Examples:
    - **Planned release tag (tag-derived projects only).** When `/iflow-close` planned a tag it did not create — check the focus issue's status file and the newest `{{ history_file }}` release section for a version whose tag is missing from `git tag -l` — include creating it in the same confirm: `git tag <planned>` then `git push origin <planned>` (or `gh release create <planned> --generate-notes`). Run it **after** the pull so the tag lands on the merged {{ pr_merge_method }} commit.
    - If `-d` still refuses a branch, report it and leave it alone — do not escalate to `-D` here.
 
-6. **Dedicated force-delete confirm (Phase A2).** Only when `squash_landed` or `merged_pr_divergent` is non-empty; skip the step silently otherwise.
+6. **Dedicated force-delete confirm (Phase A2).** Only when `squash_landed` or `merged_pr_divergent` is non-empty; skip the step silently otherwise. With the `drive` / `landed` token the orchestrator's confirm stands in for this prompt (narrowed scope, SHAs still printed).
    - Explain that these branches need `git branch -D` because the {{ pr_merge_method }} merge left no reachable tip, and that `-D` bypasses git's safety check.
    - List `squash_landed` as `<name>  <tip>`, and list `merged_pr_divergent` **separately** with each branch's merged PR link and unique-commit subjects so the user can see what differs.
    - Include the recovery line: `git branch <name> <tip>` restores anything deleted.
@@ -101,7 +102,7 @@ Report:
 ## Constraints
 
 - Never use `git push --force`.
-- `git branch -D` only for `squash_landed` / `merged_pr_divergent` branches, only after the Phase A2 confirm, and only with tip SHAs reported. Never `-D` unique work, an unclassifiable branch, or the current branch. A `-d` refusal in Phase A1 is reported, never force-retried.
+- `git branch -D` only for `squash_landed` / `merged_pr_divergent` branches, only after the Phase A2 confirm (or an orchestrator confirm that named `-D`, via the `drive` / `landed` token), and only with tip SHAs reported. Never `-D` unique work, an unclassifiable branch, or the current branch. A `-d` refusal in Phase A1 is reported, never force-retried.
 - Never delete the default branch (local or remote).
 - Remote deletes and findings-issue creation require the Phase B confirm. None of the three confirms implies another.
 - If anything is ambiguous (detached HEAD, multiple remotes, missing tracking info), report and stop rather than guessing.

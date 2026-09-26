@@ -30,7 +30,8 @@ Optional free-form text after the command. `/iflow` forwards the raw trailing te
 > when the user installed it, e.g. `uv tool install issue-flow`.)
 
 0. **Resolve the focus issue number `N`.**
-   - Prefer `issue-flow agent state --json` (`focus`, `next_command`, `epic_hint`, `epic_session`).
+   - Prefer `issue-flow agent state --json` (`focus`, `next_command`, `epic_hint`, `epic_session`, `cli_version`, `skills_version`, `version_drift`).
+   - If `version_drift` is true, print one warning line (`skills stamped <skills_version>, CLI <cli_version> — run `issue-flow update``) and continue; do not run the update yourself.
    - Manual fallback: run `git branch --show-current`. If it matches `^(\d+)-.+`, the leading digits are the **authoritative** `N`.
    - List `issue<n>_*` groups in `{{ issueflows_dir }}/{{ current_issues_folder }}/`, and also check `{{ issueflows_dir }}/{{ partly_solved_folder }}/` and `{{ issueflows_dir }}/{{ solved_folder }}/` for archived groups matching `N`.
    - Pick `N` using this precedence:

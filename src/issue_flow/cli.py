@@ -580,22 +580,37 @@ def agent_sync_branch(
             "`merge` (no force-push needed)."
         ),
     ),
+    base: str | None = typer.Option(
+        None,
+        "--base",
+        help=(
+            "Stacked-PR parent tip (branch or SHA): rebase `--onto "
+            "origin/<default>` from here so a squash-merged parent's commits "
+            "are dropped. Without it a landed parent is auto-detected."
+        ),
+    ),
     json_output: bool = typer.Option(
         False, "--json", help="Emit a machine-readable JSON object."
     ),
 ) -> None:
     """Sync the current issue branch with `origin/<default>` before merging.
 
-    Replays the branch onto the default branch and auto-resolves the one
-    conflict shape that is pure bookkeeping — both sides appending bullets to
-    the changelog's `[Unreleased]` section, kept in full with the in-flight
-    bullet last. Any other conflict aborts the operation, leaves the branch
-    untouched, and exits 1. Never pushes: a rebase rewrites the branch, so the
-    `--force-with-lease` push stays in `/iflow-close`.
+    Replays the branch onto the default branch and auto-resolves the conflict
+    shapes that are pure bookkeeping — both sides appending bullets to the
+    changelog's `[Unreleased]` section, or bullets / table rows to a design
+    guide under `04-designs-and-guides/` or an `issue<N>_status.md` — kept in
+    full with the in-flight side last. Any other conflict aborts the
+    operation, leaves the branch untouched, and exits 1. A squash-merged
+    parent branch this branch was stacked on is detected (or named with
+    `--base`) and its commits are not replayed. Never pushes: a rebase
+    rewrites the branch, so the `--force-with-lease` push stays in
+    `/iflow-close`.
     """
     from issue_flow.agent import run_sync_branch
 
-    raise typer.Exit(code=run_sync_branch(project_dir, _console, strategy, json_output))
+    raise typer.Exit(
+        code=run_sync_branch(project_dir, _console, strategy, json_output, base=base)
+    )
 
 
 @agent_app.command("apply-changelog")
@@ -1376,7 +1391,7 @@ def config_add(
     ``auto_graphify_on_plan``, ``auto_switchback``, ``auto_remove_worktree``,
     ``worktree_first``,
     ``pr_merge_method``, ``cycle_max_issues``, ``cycle_onfail``,
-    ``auto_adversarial_loops``,
+    ``cycle_nonyolo``, ``auto_adversarial_loops``,
     ``confirm_version_bump``,
     ``ruff_autofix``, ``auto_close``, ``auto_plan``, ``auto_build``,
     ``early_pr``, ``fix_auto_name``, ``confirm_changelog_update``,

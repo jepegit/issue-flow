@@ -4,7 +4,7 @@ description: >-
   Refresh open PR heads onto the default branch after another merge left them
   DIRTY (usually HISTORY.md). Uses sync-branch keep-both + force-with-lease.
 disable-model-invocation: true
-issue-flow-version: 0.4.2a4
+issue-flow-version: 0.5.14
 ---
 
 # issue-flow — PR queue sync (`/iflow-pr-sync`)
@@ -87,10 +87,18 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
    issue-flow agent pr-sync [numbers…] --json -C <project_root>
    ```
    Honour trailing `nopush` / `dry-run` / `all` as flags (`--no-push`,
-   `--dry-run`, `--all-open`). Default is `--fail-fast`: first non-HISTORY /
-   non-keep-both conflict stops the batch and leaves later PRs untouched.
-5. **Report.** Per PR: synced / pushed / changelog_resolved / failure notes.
-   Remind that CI must re-run on rewritten heads. Do **not** auto-merge.
+   `--dry-run`, `--all-open`). Default is `--fail-fast`: the first conflict the
+   keep-both resolvers cannot take (product code, headings, prose — anything
+   outside additive `HISTORY.md` bullets, `04-designs-and-guides/*.md`
+   bullets / table rows and `issue<N>_status.md`) stops the batch and leaves
+   later PRs untouched. A head stacked on a **squash-landed** sibling is
+   handled by the same `sync-branch` auto-detect (`base_detected`); for a
+   single head you can run `issue-flow agent sync-branch --base <parent> --json`
+   in its worktree yourself.
+5. **Report.** Per PR: synced / pushed / `resolvers` (which file took which
+   keep-both) / `base_detected` / failure notes. Remind that CI must re-run on
+   rewritten heads. Do **not** auto-merge. A PR that GitHub reports as
+   **already merged** is dropped from the batch as success, not a failure.
 6. **When to offer.** After `/iflow-cleanup` when other open PRs remain dirty;
    after `/iflow-yolo` / `/iflow-close` merge when siblings are open; whenever
    the user says a PR “needs update” and the only conflict is changelog-shaped.

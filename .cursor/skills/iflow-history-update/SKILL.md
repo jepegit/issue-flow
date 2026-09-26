@@ -4,7 +4,7 @@ description: >-
   Update the changelog when landing an issue: append a bullet to
   [Unreleased], or promote it to a release section after a version bump.
 disable-model-invocation: true
-issue-flow-version: 0.4.2a4
+issue-flow-version: 0.5.14
 ---
 
 # issue-flow — history update
@@ -94,6 +94,8 @@ When an unrelated PR lands on the default branch while this issue is in flight, 
 **Refuse and stop** (a human decides) when the conflict touches any other file, an existing bullet was edited or deleted, a heading was renamed, or a `## [Unreleased]` section was promoted to a release section on either side.
 
 **Fast path:** `issue-flow agent sync-branch --json` applies exactly this rule during the rebase in `/iflow-close` step 6 and aborts on anything else. Prefer it over hand-editing conflict markers.
+
+**Same rule, other bookkeeping files.** The keep-both resolver also covers `.issueflows/04-designs-and-guides/*.md` (e.g. a shared registry table both branches appended a row to) and `issue<N>_status.md` files — additive **bullets and table rows** only, anywhere in the file, in-flight side last. Headings, prose, or an edited existing line still refuse. `sync-branch` picks the resolver per path (payload `resolvers`); product code is never touched.
 
 ## Staging
 

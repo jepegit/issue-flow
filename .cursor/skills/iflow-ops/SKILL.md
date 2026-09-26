@@ -4,7 +4,7 @@ description: >-
   Run ops / no-PR work for the focus issue (staging→prod, flag flips, external
   deploys), then finish via /iflow-close ops.
 disable-model-invocation: true
-issue-flow-version: 0.4.2a4
+issue-flow-version: 0.5.14
 ---
 
 # issue-flow — ops / no-PR (`/iflow-ops`)

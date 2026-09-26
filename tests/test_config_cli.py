@@ -47,6 +47,9 @@ def test_parse_config_value_list_and_enum() -> None:
     assert config_ops.parse_config_value("cycle_onfail", "skip") == "skip"
     with pytest.raises(ValueError, match="one of"):
         config_ops.parse_config_value("cycle_onfail", "continue")
+    assert config_ops.parse_config_value("cycle_nonyolo", "pr_only") == "pr-only"
+    with pytest.raises(ValueError, match="one of"):
+        config_ops.parse_config_value("cycle_nonyolo", "yolo")
 
 
 def test_upsert_and_read_persisted(tmp_path: Path) -> None:

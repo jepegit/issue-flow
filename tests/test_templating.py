@@ -56,6 +56,7 @@ _MODE_CONTEXT = {
     "pr_merge_method": "squash",
     "cycle_max_issues": 10,
     "cycle_onfail": "stop",
+    "cycle_nonyolo": "merge",
     "auto_adversarial_loops": 2,
     "confirm_version_bump": False,
     "ruff_autofix": True,
@@ -716,6 +717,96 @@ def test_cycle_bakes_onfail_default() -> None:
     assert "cycle_onfail` = **`skip`**" in cmd
 
 
+def test_cycle_non_yolo_lane_bakes_policy() -> None:
+    """#386: yolo:no issues run on a non-yolo lane; the merge policy is baked."""
+    skill = render_template(
+        "skills/iflow_cycle/SKILL.md.j2",
+        {**_default_context(), "cycle_nonyolo": "pr-only"},
+    )
+    assert "## Lanes — yolo vs non-yolo" in skill
+    assert "**`nonyolo:merge`** / **`nonyolo:pr-only`** / **`nonyolo:stop`**" in skill
+    assert "Default from config **`pr-only`**" in skill
+    assert (
+        "**not** a stop condition by itself unless the policy is `nonyolo:stop`"
+        in skill
+    )
+    assert "**already merged**" in skill
+    assert "`nonyolo` policy" in skill  # cycle_status.md records it
+    cmd = render_template(
+        "commands/iflow-cycle.md.j2",
+        {**_default_context(), "cycle_nonyolo": "pr-only"},
+    )
+    assert "non-yolo lane" in cmd
+    assert "Default from config **`pr-only`**" in cmd
+
+
+def test_drive_and_auto_forward_nonyolo_and_never_stop_on_yolo_no() -> None:
+    ctx = {**_default_context(), "cycle_nonyolo": "merge"}
+    for template in (
+        "skills/iflow_drive/SKILL.md.j2",
+        "commands/iflow-drive.md.j2",
+        "skills/iflow_auto/SKILL.md.j2",
+        "commands/iflow-auto.md.j2",
+    ):
+        rendered = render_template(template, ctx)
+        assert "nonyolo:" in rendered, template
+        assert "`yolo: no`" in rendered, template
+        assert "not a stop" in rendered.lower(), template
+    drive = render_template("skills/iflow_drive/SKILL.md.j2", ctx)
+    # Constraint is scoped to the default branch; issue branches may be
+    # rebased + force-with-lease pushed by sync-branch.
+    assert "Never rebase / force-push / push the **default branch**" in drive
+    assert "--force-with-lease" in drive
+    assert "**already merged**" in drive
+    assert "`--base <parent>`" in drive
+
+
+def test_close_and_yolo_describe_widened_sync_resolver() -> None:
+    ctx = _default_context()
+    close = render_template("skills/iflow_close/SKILL.md.j2", ctx)
+    assert "issue<N>_status.md" in close
+    assert "Stacked on a squash-landed parent" in close
+    assert "`--base <ref>`" in close
+    assert "base_detected: true" in close
+    assert "**Already merged.**" in close
+    close_cmd = render_template("commands/iflow-close.md.j2", ctx)
+    assert "issue<N>_status.md" in close_cmd
+    assert "`--base <ref>`" in close_cmd
+    assert "**Already merged**" in close_cmd
+    yolo = render_template("skills/iflow_yolo/SKILL.md.j2", ctx)
+    assert "issue<N>_status.md" in yolo
+    assert "base_detected" in yolo
+    history = render_template("skills/iflow_history_update/SKILL.md.j2", ctx)
+    assert "Same rule, other bookkeeping files" in history
+    pr_sync = render_template("skills/iflow_pr_sync/SKILL.md.j2", ctx)
+    assert "sync-branch --base <parent>" in pr_sync
+
+
+def test_cleanup_documents_orchestrator_token() -> None:
+    ctx = _default_context()
+    skill = render_template("skills/iflow_cleanup/SKILL.md.j2", ctx)
+    assert "Pre-authorized force-delete (orchestrator token)" in skill
+    assert "never `unique_work` / `skipped`" in skill
+    cmd = render_template("commands/iflow-cleanup.md.j2", ctx)
+    assert "`drive` / `landed`" in cmd
+
+
+def test_iflow_dispatcher_warns_on_version_drift() -> None:
+    ctx = _default_context()
+    skill = render_template("skills/iflow_iflow/SKILL.md.j2", ctx)
+    assert "`version_drift`" in skill
+    assert "**Version drift.**" in skill
+    assert "Never run `issue-flow update` yourself" in skill
+    cmd = render_template("commands/iflow.md.j2", ctx)
+    assert "`version_drift`" in cmd
+
+
+def test_rules_body_checks_graph_json_before_graphify_query() -> None:
+    body = render_template("rules/_body.md.j2", _default_context())
+    assert "graphify-out/graph.json" in body
+    assert "`graphify query`" in body
+
+
 def test_workflow_doc_bakes_auto_adversarial_loops() -> None:
     rendered = render_template(
         "docs/issue-workflow.md.j2",
@@ -778,12 +869,11 @@ def test_iflow_drive_skill_skeleton_renders() -> None:
     assert "final review" in skill.lower() or "final_review" in skill
     assert "local only" in skill
     assert "git branch -d" in skill
-    assert (
-        "Never `-D`" in skill
-        or "never `-D`" in skill
-        or "Never `git branch -D`" in skill
-    )
-    assert "Phase A2" in skill or "skip Phase A2" in skill
+    # #386: drive carries through — squash-landed locals go via -D under the
+    # drive confirm; unique work is never touched.
+    assert "`git branch -D` on **`squash_landed`**" in skill
+    assert "Leave `unique_work` untouched, always" in skill
+    assert "Phase A1 and A2" in skill
     assert (
         "abort" in skill and "stop" in skill and "cancel" in skill and "halt" in skill
     )
@@ -794,7 +884,7 @@ def test_iflow_drive_skill_skeleton_renders() -> None:
     cmd = render_template("commands/iflow-drive.md.j2", _default_context())
     assert "iflow-drive/SKILL.md" in cmd
     assert "local only" in cmd or "`-d`" in cmd
-    assert "Phase A2" in cmd
+    assert "`-D` on squash-landed" in cmd
     assert "abort" in cmd
     assert "stub" not in cmd.lower()
     workflow = render_template("docs/issue-workflow.md.j2", _default_context())

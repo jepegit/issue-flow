@@ -31,6 +31,12 @@ current issue**. `/iflow-doctor` may audit the whole suite against this table.
 | `tests/test_self_update.py` (module) | no | no | `self_update.run_self_update`, receipt inspect | #382 | Mocked uv/CLI; leave unmarked |
 | `tests/test_templating.py::test_cleanup_bakes_on_bleeding_edge` | no | no | cleanup skill/command bake of `on_bleeding_edge` | #382 | Config default bake |
 | `tests/test_doc_configuration.py::test_all_settings_table_lists_every_config_key_once` | yes | yes | `docs/configuration.md` vs `CONFIG_KEYS` | #382 | Already essential; covers new knob |
+| `tests/test_agent_sync_branch.py::test_stacked_child_auto_detects_squash_landed_parent` | no | no | `agent._detect_stacked_base`, `gitutils.content_landed`, `rebase_onto(base=)` | #386 | Real git repos; the drive stopper (stacked child on squash-landed parent) |
+| `tests/test_agent_sync_branch.py::test_design_guide_and_status_conflicts_resolve_keep_both` | no | no | `agent._resolve_sync_conflicts`, `history.resolve_additive_conflict` | #386 | Registry-table + status-file keep-both |
+| `tests/test_history.py::test_additive_resolver_refuses_heading_and_prose` | no | no | `history.resolve_additive_conflict` | #386 | Refusal floor for the widened resolver |
+| `tests/test_config.py::test_cycle_nonyolo_default_and_precedence` | no | no | `Settings.resolve_cycle_nonyolo`, `modes.normalize_cycle_nonyolo` | #386 | toml > env > default; invalid ignored |
+| `tests/test_cli.py::test_agent_state_reports_version_drift` | no | no | `agent.version_drift_fields`, `rendered_skills_version` | #386 | Stale-skills warning surface |
+| `tests/test_version.py::test_version_comes_from_package_metadata` | yes | yes | `issue_flow.__version__` | #386 | Root cause of every stale `issue-flow-version` stamp; cheap |
 
 **Columns**
 

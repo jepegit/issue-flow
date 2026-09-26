@@ -4,7 +4,7 @@ description: >-
   Unattended large-change orchestrator over a confirmed epic: cycle a stage,
   adversarial review, loop budget, next-epoch gate when the queue is clear.
 disable-model-invocation: true
-issue-flow-version: 0.4.2a4
+issue-flow-version: 0.5.14
 ---
 
 # issue-flow — advanced auto (`/iflow-auto`)
@@ -26,6 +26,10 @@ Contract: `.issueflows/04-designs-and-guides/advanced-auto-mode.md`
   stage (`issue-flow agent epic-status <N> --json` → `current_stage`).
 - **`loops:<n>`** — override adversarial loop budget for this run (baked default
   **2** from `[issueflow].auto_adversarial_loops`).
+- **`nonyolo:merge|pr-only|stop`** — forwarded to `/iflow-cycle`: how the
+  stage's `yolo: no` issues land (baked default **`merge`** from
+  `[issueflow].cycle_nonyolo`). A `yolo: no` judgment is **not** a stop by
+  itself — cycle runs it on the non-yolo lane.
 - **`review`** — run only the adversarial procedure for epic `<N>` (and optional
   `stage <k>`); skip cycle unless a full auto run is also intended.
 - **`status`** — print `auto_status.md` / epic-status and stop (no confirm).
@@ -95,8 +99,10 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 
 6. **Overnight confirm** (full auto; only planned interruption before the
    budget ask). Present in normal prose: epic `#<N>`, stage index + title,
-   ordered queue (numbers + titles), that each issue runs full yolo +
-   auto-merge via `/iflow-cycle`, **loop budget**, and that adversarial review
+   ordered queue (numbers + titles), that each issue runs the full chain +
+   auto-merge via `/iflow-cycle`, the **non-yolo issues** in the stage (queue
+   payload `nonyolo`, or the plan's `yolo: no` judgments) and the `nonyolo`
+   policy that applies to them, **loop budget**, and that adversarial review
    may **reopen or create** GitHub issues under that confirm. Require explicit
    yes.
 
@@ -108,9 +114,12 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 
 8. **Run the stage via `/iflow-cycle`.** Follow
    `.cursor/skills/iflow-cycle/SKILL.md` for `epic <N>` (the CLI queues
-   the current stage). The overnight confirm above covers cycle's consolidated
-   confirm — do not re-ask. Honour cycle stop conditions and `onfail:stop`.
-   Update `auto_status.md` with the cycle outcome.
+   the current stage; forward `nonyolo:<policy>` when given). The overnight
+   confirm above covers cycle's consolidated confirm and the non-yolo lane —
+   do not re-ask, and do not stop at a `yolo: no` issue (only `nonyolo:stop`
+   halts there). Honour cycle stop conditions and `onfail:stop`. A merge that
+   reports the PR is **already merged** is a success. Update `auto_status.md`
+   with the cycle outcome.
 
 9. **Adversarial procedure** (after cycle, or via `review`):
 
@@ -175,7 +184,9 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 ## Constraints
 
 - **Off-path:** `/iflow` never auto-dispatches here.
-- Do not weaken yolo/cycle safeguards.
+- Do not weaken yolo/cycle safeguards. The non-yolo lane changes how a PR
+  lands, never which safeguards run.
+- A `yolo: no` issue is not a stop unless `nonyolo:stop`.
 - Do not run `/iflow-cleanup` from this skill.
 - Never start stage `k+1` while stage `k` is not clear (`epoch_gated`).
 - Compose `/iflow-epic` + `/iflow-cycle` + `/iflow-yolo`; do not fork them.

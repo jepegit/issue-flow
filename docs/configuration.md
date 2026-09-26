@@ -67,6 +67,7 @@ an environment-variable fallback, `ISSUEFLOW_<KEY>` (for example
 | `pr_merge_method` | text | `"squash"` | How hands-off closes merge: `squash`, `merge`, or `rebase`. |
 | `cycle_max_issues` | int | `10` | Safety cap on `/iflow-cycle` queue length (raise per run with `max:<n>`). |
 | `cycle_onfail` | text | `"stop"` | Default `/iflow-cycle` failure policy: `stop` (halt) or `skip` (park and continue). Per-run `onfail:stop\|skip` overrides. |
+| `cycle_nonyolo` | text | `"merge"` | Merge policy for `yolo: no` issues run hands-off by `/iflow-cycle`, `/iflow-auto` and `/iflow-drive`: `merge` (land the PR like yolo), `pr-only` (open the PR and continue; the next issue stacks on the branch), or `stop` (halt at the first one — the old behaviour). Per-run `nonyolo:merge\|pr-only\|stop` overrides. Env: `ISSUEFLOW_CYCLE_NONYOLO`. |
 | `auto_adversarial_loops` | int | `2` | `/iflow-auto` review-and-fix loops per stage before it stops to ask (override per run with `loops:<n>`). |
 | `confirm_version_bump` | bool | `false` | Non-yolo close asks once about a version bump when none was requested. |
 | `ruff_autofix` | bool | `true` | When the project uses ruff, run `ruff check --fix` + `ruff format` during build and close. |

@@ -3,7 +3,7 @@ name: iflow-doctor
 description: >-
   Audit .issueflows/ for dirty conditions and optionally apply safe repairs.
 disable-model-invocation: true
-issue-flow-version: 0.4.2a4
+issue-flow-version: 0.5.14
 ---
 
 # issue-flow — doctor (`.issueflows/` health) (`/iflow-doctor`)

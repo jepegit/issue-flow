@@ -185,7 +185,7 @@ Every command below is described the same way: **When to use**, **Arguments**, *
 {% else %}3. **Update `{{ history_file }}`** — unless `nohistory` was passed, follow `{{ agent_dir }}/skills/iflow-history-update/SKILL.md`. Append a bullet to `## [Unreleased]` (no bump) or promote `## [Unreleased]` to `## [<new_version>] - <YYYY-MM-DD>` and open a fresh empty `## [Unreleased]` above it (with bump). The bullet is staged in the **same commit** that feeds (or updates) the PR — including when a draft was opened earlier via `/iflow-build` early PR. Never offered after close finishes or after merge.{% if confirm_changelog_update %} The assistant shows the diff and asks for a single confirm before writing; if declined, close **stops** until you choose write / revise / `nohistory` / abort.{% else %} With `confirm_changelog_update = false` (the default), the assistant writes without asking (same as the `yolo` token's history behaviour).{% endif %} If `{{ history_file }}` is missing at the project root, the step is skipped with a note — never auto-created.
 {% endif %}4. **Issue folders** — update status markdown; use `- [x] Done` only when fully resolved. Move completed issue files from `{{ issueflows_dir }}/{{ current_issues_folder }}/` to `{{ issueflows_dir }}/{{ solved_folder }}/`, or partly done work to `{{ issueflows_dir }}/{{ partly_solved_folder }}/`.
 5. **Commit** — focused staging and a clear message (include `pyproject.toml` / `uv.lock` if the bump changed them, and `{{ history_file }}` when step 3 updated it).
-6. **Sync with the default branch** — `issue-flow agent sync-branch --json` replays the issue branch onto `origin/<default>` so commits that landed while the issue was in flight are included instead of surfacing as a conflicted PR at merge time. A conflict confined to `{{ history_file }}`, where both sides only added `## [Unreleased]` bullets, is resolved by keeping them all (the in-flight issue's bullet last); any other conflict aborts the rebase and stops close.
+6. **Sync with the default branch** — `issue-flow agent sync-branch --json` replays the issue branch onto `origin/<default>` so commits that landed while the issue was in flight are included instead of surfacing as a conflicted PR at merge time. Bookkeeping conflicts are resolved keep-both — `{{ history_file }}` where both sides only added `## [Unreleased]` bullets (the in-flight issue's bullet last), and additive bullets / table rows in `{{ issueflows_dir }}/{{ designs_folder }}/*.md` or `issue<N>_status.md`; a branch stacked on a squash-landed parent is detected (`base_detected`, or `--base <ref>` explicitly) so only its own commits replay. Any other conflict aborts the rebase and stops close.
 7. **Push** — to your usual remote (e.g. `origin`); `--force-with-lease` when the sync rebased the branch.
 8. **Pull request** — `gh pr list --head <branch>` first (reuse an open PR, including an early draft); else `gh pr create` (with `--draft` when the `draft` token was passed). Mark ready from draft when not keeping `draft`. Afterward, snapshot CI with `gh pr checks` (see the `gh-ci` skill for `gh run list` / `gh run watch` fallback). Link the GitHub issue (`Closes #n` / `Refs #n`).
 9. **Switch back when safe** — unless `stay` / `don't switch` was passed, run `git status --porcelain`; if clean, `git switch <default>` and `git pull --ff-only`; if dirty, stay put and report why switching is unsafe.
@@ -412,16 +412,17 @@ issue-flow agent epic-status 144 --json
 - `label:<L>` — every open issue with that label
 - explicit numbers — e.g. `12 15 18`
 - `epic <N> [stage <k>]` — current (or named) stage of an epic
-- optional: `onfail:stop|skip`, `max:<n>`, `resume`, `parallel:<n>` (experimental)
+- optional: `onfail:stop|skip`, `nonyolo:merge|pr-only|stop`, `max:<n>`, `resume`, `parallel:<n>` (experimental)
 
 **What it does:**
 
-1. Expands aliases, then resolves the queue with `issue-flow agent queue … --json` (dependency order; closed issues skipped; blocked ones set aside).
+1. Expands aliases, then resolves the queue with `issue-flow agent queue … --json` (dependency order; closed issues skipped; blocked ones set aside; `yolo: true|false` per item plus a `nonyolo` summary).
 2. Cap check (default max 10 without `max:<n>`).
-3. Writes `cycle_status.md`, then for each issue runs the full yolo chain from a clean default branch (merge → pull → next).
+3. Writes `cycle_status.md`, then for each issue runs the full chain from a clean default branch. **Yolo lane** (`yolo: true`): `/iflow-yolo` verbatim, PR auto-merged. **Non-yolo lane** (`yolo: false`): same chain and safeguards, landed per the `nonyolo` policy — `merge` (default `{{ cycle_nonyolo }}`; auto-merge like yolo), `pr-only` (open the PR, continue), or `stop` (halt before the issue). A `yolo: no` judgment is not a stop by itself.
 4. `onfail:stop` (default) halts on the first failure and leaves the tree clean on default; `onfail:skip` parks the failed issue and continues.
+5. Merge refusals from bookkeeping conflicts (`{{ history_file }}` bullets, `{{ designs_folder }}/*.md` bullets / table rows, `issue<N>_status.md`) and stacked-on-a-squash-landed-parent branches are resolved by `issue-flow agent sync-branch` (keep-both, `--base` auto-detect) and retried once; "already merged" is success.
 
-**What it asks you:** **One consolidated confirm** (ordered queue, skipped/blocked, auto-merge). Afterwards it stops only when input is strictly necessary: an unfixable failure, a refused merge, a spec that is ambiguous or not actually small, or anything outside the confirmed queue.
+**What it asks you:** **One consolidated confirm** (ordered queue, skipped/blocked, the non-yolo issues + their policy, auto-merge). Afterwards it stops only when input is strictly necessary: an unfixable failure, a refused merge the sync cannot fix, a spec that is ambiguous or contradictory (or not actually small, on the yolo lane), or anything outside the confirmed queue.
 
 **Example — all yolo-labelled issues:**
 
@@ -446,13 +447,13 @@ iflow cycle yolo
 
 **When to use:** You have a **confirmed** epic plan and want overnight hands-off progress through a stage, then an adversarial inter-epoch review.
 
-**Arguments:** Epic `<N>`, optional `stage <k>`, optional `loops:<n>`, `review` (adversarial only), or `status` / `dry-run`.
+**Arguments:** Epic `<N>`, optional `stage <k>`, optional `loops:<n>`, optional `nonyolo:merge|pr-only|stop`, `review` (adversarial only), or `status` / `dry-run`.
 
 **What it does:**
 
 1. Requires `epic<N>_plan.md` with `Status: confirmed`; resolves the stage via `epic-status`.
 2. Resolves the loop budget (`loops:<n>` > baked `[issueflow].auto_adversarial_loops`, currently **{{ auto_adversarial_loops }}** > 2).
-3. Writes `auto_status.md` and runs `/iflow-cycle` for that stage.
+3. Writes `auto_status.md` and runs `/iflow-cycle` for that stage — `yolo: no` issues take cycle's non-yolo lane (default policy `{{ cycle_nonyolo }}`) rather than stopping the run.
 4. Runs an adversarial review against the epic and stage goals (criteria in `{{ issueflows_dir }}/{{ designs_folder }}/advanced-auto-mode.md`); records `adversarial_clear` or `adversarial_findings`. Findings reopen issues or create blocker issues. Standalone: `/iflow-auto <N> review`.
 5. **Loop control:** on findings, re-queues the open work via `/iflow-cycle` and re-reviews while `loop_count` < budget.
 6. **Next-epoch gate:** starts stage `k+1` only when `epic-status` marks stage `k` `done` and no open blockers remain; otherwise `epoch_gated`.
@@ -465,7 +466,7 @@ iflow cycle yolo
 
 ### `/iflow-drive` — compose epic → publish → auto-all
 
-**When to use:** You have an **existing** GitHub issue `<N>` that should become an epic and you want the whole path hands-off: draft, publish every stage, `/iflow-auto` each epoch, a final review, then local `-d` cleanup and `/iflow-status`.
+**When to use:** You have an **existing** GitHub issue `<N>` that should become an epic and you want the whole path hands-off: draft, publish every stage, `/iflow-auto` each epoch (yolo and non-yolo issues alike), a final review, then local cleanup (`-d` reachable, `-D` squash-landed) and `/iflow-status`.
 
 **Arguments:** Issue `<N>` (required), optional `grill` / `grill-me`, optional `loops:<n>`, or `dry-run`. Mid-run `abort` / `stop` / `cancel` / `halt` stops at the next stage or issue boundary.
 
@@ -474,13 +475,13 @@ iflow cycle yolo
 1. Writes `drive_status.md`.
 2. Drafts `epic<N>_plan.md` via `/iflow-epic <N>` (auto-confirmed unless grill-me / `grill_me_default`). Skips draft/publish when the plan is already `Status: confirmed`.
 3. Publishes every unpublished stage (the `Published: #<M>` lines are committed off the default branch).
-4. Runs `/iflow-auto <N>` for each unfinished published stage, honouring `epoch_gated`.
+4. Runs `/iflow-auto <N>` for each unfinished published stage, honouring `epoch_gated`. Issues the plan judged `yolo: no` run on cycle's **non-yolo lane** (policy `nonyolo:merge|pr-only|stop`, default `{{ cycle_nonyolo }}`) instead of stopping the drive. Pass `nonyolo:<policy>` to override for the run.
 5. Final `/iflow-auto <N> review`; creates/reopens leftover findings. Does not start another epoch.
-6. `/iflow-cleanup` `local only` **and skip Phase A2**: `git branch -d` on reachable branches only (squash-landed locals stay). Then `/iflow-status`.
+6. `/iflow-cleanup` `local only` with the `drive` token: `git branch -d` on reachable branches **and** `git branch -D` on squash-landed ones (tip SHAs printed; `unique_work` never touched; no Phase B). Then `/iflow-status`.
 
-**What it asks you:** **One drive confirm** covering draft-accept, publish-all, auto-all, final-review creates, and reachable-only cleanup. It still pauses for auto's budget ask and for cycle/yolo stop conditions. See `{{ issueflows_dir }}/{{ designs_folder }}/drive-mode.md`.
+**What it asks you:** **One drive confirm** covering draft-accept, publish-all, auto-all (both lanes), final-review creates, and the local cleanup (`-d` and `-D`). It still pauses for auto's budget ask and for cycle/yolo stop conditions. "Never rebase / force-push" applies to the **default branch** only — issue branches are synced with `agent sync-branch` (+ `--force-with-lease`) as usual. See `{{ issueflows_dir }}/{{ designs_folder }}/drive-mode.md`.
 
-**Result:** Epic published and driven through auto; findings issues recorded; reachable local branches pruned; status report.
+**Result:** Epic published and driven through auto; findings issues recorded; landed local branches pruned; status report.
 
 **Related:** [Drive an epic hands-off]({{ site }}/how-to/drive/) · [Use auto mode]({{ site }}/how-to/auto-mode/)
 

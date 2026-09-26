@@ -4,7 +4,7 @@ description: >-
   Smart dispatcher: detect where the focus issue stands and dispatch to
   /iflow-capture, /iflow-plan, /iflow-build, or /iflow-close.
 disable-model-invocation: true
-issue-flow-version: 0.4.2a4
+issue-flow-version: 0.5.14
 ---
 
 # issue-flow — iflow smart dispatcher (`/iflow`)
@@ -66,7 +66,8 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 > `uv tool install issue-flow`.)
 
 1. **Resolve the focus issue number `N`.**
-   - Prefer `issue-flow agent state --json` when the CLI is on `PATH` (fields `focus`, `next_command`, `epic_hint`, `epic_session`).
+   - Prefer `issue-flow agent state --json` when the CLI is on `PATH` (fields `focus`, `next_command`, `epic_hint`, `epic_session`, `cli_version`, `skills_version`, `version_drift`).
+   - **Version drift.** If the payload reports `version_drift: true`, print one warning line before anything else — `skills stamped <skills_version>, CLI <cli_version> — run `issue-flow update`` — and keep going with the dispatch. Stale skill text is how a newer CLI ends up driven by old instructions; the warning is the fix, not a stop. Never run `issue-flow update` yourself from here.
    - Manual fallback: `git branch --show-current`. If it matches `^(\d+)-.+`, the leading digits are the **authoritative** `N`.
    - List `issue<n>_*` groups in `.issueflows/01-current-issues/`, and also check `.issueflows/02-partly-solved-issues/` and `.issueflows/03-solved-issues/` for archived groups matching `N`.
    - Pick `N` by precedence:

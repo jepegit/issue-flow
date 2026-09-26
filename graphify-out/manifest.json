@@ -1529,1583 +1529,1623 @@
     "ast_hash": "5059485e01cdbd9e4254a7626d202ff8",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_config.py": {
-    "mtime": 1790365702.1635299,
-    "ast_hash": "db04a72bcf7993179a948fb1d6999034",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_config.py": {
+    "mtime": 1790412860.2888756,
+    "ast_hash": "2b5d219e4795cf21fe759f635114714e",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_init_skill_level.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_init_skill_level.py": {
+    "mtime": 1790412199.205597,
     "ast_hash": "242b0c4f46d7a31545f2b2902c4d778d",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_agent_local_branches.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_agent_local_branches.py": {
+    "mtime": 1790412199.205597,
     "ast_hash": "dc9f6e2d51a0a520eee21887f740416f",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_agent_apply_changelog.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_agent_apply_changelog.py": {
+    "mtime": 1790412199.205597,
     "ast_hash": "c2ceb7b4c15e9b39c2cc9df996915b30",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_readiness.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_readiness.py": {
+    "mtime": 1790412199.205597,
     "ast_hash": "c4941c70f8863563dc22b245094a6b3c",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_self_update.py": {
-    "mtime": 1790365751.4955263,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_self_update.py": {
+    "mtime": 1790412199.205597,
     "ast_hash": "7f15153678dddc368db8e176ad4806f4",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_workspace_actions.py": {
-    "mtime": 1790364940.619919,
-    "ast_hash": "fcaeeb3dcd2fcefb4184dfbb3ed8adb4",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_workspace_actions.py": {
+    "mtime": 1790412199.2089608,
+    "ast_hash": "e685d9ad9401e84080c89057e4a0c734",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_worktree_location.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_worktree_location.py": {
+    "mtime": 1790412199.2089608,
     "ast_hash": "01780a1b53644e764e53a2f0bccbc409",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_gitutils.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_gitutils.py": {
+    "mtime": 1790412199.205597,
     "ast_hash": "0cb9fe4718b0ca9cb8fa8386e7187132",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_agent_sync_branch.py": {
-    "mtime": 1790364940.619919,
-    "ast_hash": "3dccccbf1940430dc46e6cb77f5f52dd",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_agent_sync_branch.py": {
+    "mtime": 1790412712.4208922,
+    "ast_hash": "6c6ab306554c7c4c5a93b68507ce483a",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_user_global_win32.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_user_global_win32.py": {
+    "mtime": 1790412199.2089608,
     "ast_hash": "e87756bd443835e939444815abd79da7",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_doc_quickstart.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_doc_quickstart.py": {
+    "mtime": 1790412199.205597,
     "ast_hash": "4b02cad6c8770b1a0739aa28a041f11f",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_cli.py": {
-    "mtime": 1790365716.0435283,
-    "ast_hash": "8df00ce7a949147c396812ec658db821",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_cli.py": {
+    "mtime": 1790413012.80485,
+    "ast_hash": "dcce838248014c6d64064730eb9eea23",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/__init__.py": {
-    "mtime": 1790364940.6156254,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/__init__.py": {
+    "mtime": 1790412199.2009606,
     "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_project.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_project.py": {
+    "mtime": 1790412199.205597,
     "ast_hash": "dd81e9c62e216207c2fc728784acca76",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_registry.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_registry.py": {
+    "mtime": 1790412199.205597,
     "ast_hash": "f53c88c41740f1ac03a58402ceb7f465",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_epicplan.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_epicplan.py": {
+    "mtime": 1790412199.205597,
     "ast_hash": "5a3bab9b606d0ee766e053f8afdb60a4",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_versionplan.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_versionplan.py": {
+    "mtime": 1790412199.2089608,
     "ast_hash": "6c5bded0366387764b8037ad19790dae",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_doc_links.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_doc_links.py": {
+    "mtime": 1790412199.205597,
     "ast_hash": "57d65b9929478b80594b1e2819073e84",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_tracking.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_version.py": {
+    "mtime": 1790413636.1840367,
+    "ast_hash": "0b923be0821698d0f662881782cd166d",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_tracking.py": {
+    "mtime": 1790412199.2089608,
     "ast_hash": "29f74c65106b03bab0472882c5f43dc6",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/conftest.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/conftest.py": {
+    "mtime": 1790412199.205597,
     "ast_hash": "fb7389a31d745bf92222ea64a85e84db",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_sync.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_sync.py": {
+    "mtime": 1790412199.2089608,
     "ast_hash": "6c8755a2bb42048998baa05e89a8b643",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_step_profiles.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_step_profiles.py": {
+    "mtime": 1790412199.205597,
     "ast_hash": "91d8c0b7d2d997fd3f525766ac7aaf91",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_publishintent.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_publishintent.py": {
+    "mtime": 1790412199.205597,
     "ast_hash": "06affd816a8272fee7d7bd364904e6ba",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_workflow_doc.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_workflow_doc.py": {
+    "mtime": 1790412199.2089608,
     "ast_hash": "bbf57c721a1cf1be1c7b1d703053ea37",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_update.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_update.py": {
+    "mtime": 1790412199.2089608,
     "ast_hash": "5712525eb35ef3509388c401865d5f69",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_global_both_skills.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_global_both_skills.py": {
+    "mtime": 1790412199.205597,
     "ast_hash": "1ed81bc548df1048becda7bc88fb640e",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_queueplan.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_queueplan.py": {
+    "mtime": 1790412199.205597,
     "ast_hash": "7cc462a8c77c88c8cc9b40a5eae3fb69",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_init.py": {
-    "mtime": 1790364940.619919,
-    "ast_hash": "a305d9e438425301a9383db82d4734ac",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_init.py": {
+    "mtime": 1790413741.7887583,
+    "ast_hash": "9b8e3d4cc445f890b1cf7f813627523e",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_modes.py": {
-    "mtime": 1790365704.0595298,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_modes.py": {
+    "mtime": 1790412199.205597,
     "ast_hash": "399bd446fce97138a66dbaf0cb5cd650",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_graphify.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_graphify.py": {
+    "mtime": 1790412199.205597,
     "ast_hash": "ca354d0810f6dd6a9af44b1f17f8844e",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_pr_sync.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_pr_sync.py": {
+    "mtime": 1790412199.205597,
     "ast_hash": "a126a6083af365f65a1769a549636452",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_template_cli_consistency.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_template_cli_consistency.py": {
+    "mtime": 1790412199.2089608,
     "ast_hash": "46cefcaf60aac3ce46543da93ac7cc30",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_convert.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_convert.py": {
+    "mtime": 1790412199.205597,
     "ast_hash": "636dc4c11eb0ef73718ab99c0476bf5a",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_templating.py": {
-    "mtime": 1790365718.787528,
-    "ast_hash": "99fead6bbd54c47a831329077b0b6db3",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_templating.py": {
+    "mtime": 1790413830.1847484,
+    "ast_hash": "ae3a70c0882c5ff0df39ae22798d13a8",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_editors.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_editors.py": {
+    "mtime": 1790412199.205597,
     "ast_hash": "b64ca9936a2414425b00decad51cc67f",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_pr_ready.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_pr_ready.py": {
+    "mtime": 1790412199.205597,
     "ast_hash": "ae5f4ec15850286bfd694c9fdf02593c",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_epic_session.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_epic_session.py": {
+    "mtime": 1790412199.205597,
     "ast_hash": "fdcda19b11baf443cf4c77f42aab73c4",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_novice_mode.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_novice_mode.py": {
+    "mtime": 1790412199.205597,
     "ast_hash": "c5cbdb95fec7f19c29667999aa76cbc5",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_dependencies.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_dependencies.py": {
+    "mtime": 1790412199.205597,
     "ast_hash": "56da29ab283a055101da60b94095c885",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_linguist_attributes.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_linguist_attributes.py": {
+    "mtime": 1790412199.205597,
     "ast_hash": "eee25ee94e3b917fe1f9e1ad28832221",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_history.py": {
-    "mtime": 1790364940.619919,
-    "ast_hash": "58bd81fcfa18e86bac02d76810cf1149",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_history.py": {
+    "mtime": 1790412545.9209137,
+    "ast_hash": "b981d2844cae91208de78ee389b0ab44",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_config_cli.py": {
-    "mtime": 1790364940.619919,
-    "ast_hash": "7bd23fa76bdab2d927b5131d0ca095cf",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_config_cli.py": {
+    "mtime": 1790412867.828874,
+    "ast_hash": "3473bae60a567ea41a92fe4d69b6a946",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/tests/test_doc_configuration.py": {
-    "mtime": 1790364940.619919,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/tests/test_doc_configuration.py": {
+    "mtime": 1790412199.205597,
     "ast_hash": "6880d228743f7e914001f530b6ed1006",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/scripts/check_doc_links.sh": {
-    "mtime": 1790364940.6075046,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/scripts/check_doc_links.sh": {
+    "mtime": 1790412199.172935,
     "ast_hash": "16f81c484b64fe399787392afdce5f38",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/scripts/update_issueflow_setup.py": {
-    "mtime": 1790364940.608483,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/scripts/update_issueflow_setup.py": {
+    "mtime": 1790412199.1747162,
     "ast_hash": "65b275d1fd794d39de5c0c541a4c5861",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/modes.py": {
-    "mtime": 1790365619.7235394,
-    "ast_hash": "7884d3f1ba4eec357053d918aec37b5f",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/modes.py": {
+    "mtime": 1790412804.5368764,
+    "ast_hash": "5ca1140e73ee0df0ed05109ba6defc57",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/dependencies.py": {
-    "mtime": 1790364940.6086607,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/dependencies.py": {
+    "mtime": 1790412199.1751175,
     "ast_hash": "d61bd3e17f0e71f4cc5be19fac00dca9",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/config.py": {
-    "mtime": 1790365649.4395363,
-    "ast_hash": "cbece08bbdd10c9a12551dc9b812eccd",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/config.py": {
+    "mtime": 1790412827.376874,
+    "ast_hash": "c14285978aac87a842391d958a3d6a0c",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/project.py": {
-    "mtime": 1790364940.6086607,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/project.py": {
+    "mtime": 1790412199.1751175,
     "ast_hash": "719cd35f1c991324e2b85a9aa55ff4d3",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/history.py": {
-    "mtime": 1790364940.6086607,
-    "ast_hash": "3c11913a59ec2ec4a703f9065515907d",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/history.py": {
+    "mtime": 1790412513.464918,
+    "ast_hash": "1e9908b57c60718dd4e452d13e34a087",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/step_profiles.py": {
-    "mtime": 1790364940.6086607,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/step_profiles.py": {
+    "mtime": 1790412199.1769607,
     "ast_hash": "cf4e79e063c4786cfcbf71cbc7c8467d",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/cli.py": {
-    "mtime": 1790365654.5435355,
-    "ast_hash": "e577b1cbdf9c312d5943e22560f6f54a",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/cli.py": {
+    "mtime": 1790412852.7728753,
+    "ast_hash": "b4712be49fda778b156e733bf901657d",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/user_global.py": {
-    "mtime": 1790364940.6156254,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/user_global.py": {
+    "mtime": 1790412199.2009606,
     "ast_hash": "8acd60b3bd20ee891b4f4cc98f518519",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/init.py": {
-    "mtime": 1790364940.6086607,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/init.py": {
+    "mtime": 1790412199.1751175,
     "ast_hash": "d248ded3faaae44241f4bf669b673569",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/__init__.py": {
-    "mtime": 1790364940.6086357,
-    "ast_hash": "20e4b11940849ab1e599d367c1b16932",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/__init__.py": {
+    "mtime": 1790412474.9769216,
+    "ast_hash": "8cfb75d6d3d633873574ef6c95ad1f0d",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/epic_session.py": {
-    "mtime": 1790364940.6086607,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/epic_session.py": {
+    "mtime": 1790412199.1751175,
     "ast_hash": "6ff75152145827c592e500d6bbc04677",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/agent.py": {
-    "mtime": 1790365751.5075264,
-    "ast_hash": "c6b13fad55aa7ed3044928c34095a2c6",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/agent.py": {
+    "mtime": 1790412976.2128513,
+    "ast_hash": "465cc0cd48e5c051530e1663c5a1146a",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/editors.py": {
-    "mtime": 1790364940.6086607,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/editors.py": {
+    "mtime": 1790412199.1751175,
     "ast_hash": "918bed8b4aa784ee987f281d71124931",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/skill_ownership.py": {
-    "mtime": 1790364940.6086607,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/skill_ownership.py": {
+    "mtime": 1790412199.1751175,
     "ast_hash": "77ca8c4c0d4648c9bdf9508dc8a75125",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/publishintent.py": {
-    "mtime": 1790364940.6086607,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/publishintent.py": {
+    "mtime": 1790412199.1751175,
     "ast_hash": "9eb2f09ee1b051a61f7ce4f7c9716462",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/self_update.py": {
-    "mtime": 1790365751.4955263,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/self_update.py": {
+    "mtime": 1790412199.1751175,
     "ast_hash": "b478b826d9d9920878859c95b114ff65",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/readiness.py": {
-    "mtime": 1790364940.6086607,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/readiness.py": {
+    "mtime": 1790412199.1751175,
     "ast_hash": "abbb5be172cb51baeda2c46b0e241748",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/console_io.py": {
-    "mtime": 1790364940.6086607,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/console_io.py": {
+    "mtime": 1790412199.1751175,
     "ast_hash": "1879e8a720d98fc9ad909ce66a24ee1a",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/templating.py": {
-    "mtime": 1790364940.6156254,
-    "ast_hash": "a1fd1e8ab3d261bdfe53959fab02d2e5",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/templating.py": {
+    "mtime": 1790412199.2009606,
+    "ast_hash": "e872789fcf166a2a3071828404093d29",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/graphify.py": {
-    "mtime": 1790364940.6086607,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/graphify.py": {
+    "mtime": 1790412199.1751175,
     "ast_hash": "ac34a5b06175c3e69d3f6cb465277e98",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/epicplan.py": {
-    "mtime": 1790364940.6086607,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/epicplan.py": {
+    "mtime": 1790412199.1751175,
     "ast_hash": "6059545349052f17df2fdc702410321c",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/convert.py": {
-    "mtime": 1790364940.6086607,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/convert.py": {
+    "mtime": 1790412199.1751175,
     "ast_hash": "99d57bd9e5d2e0718b7a8bd0f6f8c2a4",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/config_ops.py": {
-    "mtime": 1790365620.7875392,
-    "ast_hash": "62e1a28d8a704b429406cf4bb47251af",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/config_ops.py": {
+    "mtime": 1790412851.0048747,
+    "ast_hash": "ac3486c84620c073e019431c79f5aef4",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/surfaces.py": {
-    "mtime": 1790364940.6086607,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/surfaces.py": {
+    "mtime": 1790412199.1769607,
     "ast_hash": "f98c8522a688c472c238f9bd83735698",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/gitutils.py": {
-    "mtime": 1790364940.6086607,
-    "ast_hash": "038c12843537e81409ac4b674644b513",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/gitutils.py": {
+    "mtime": 1790412743.8448882,
+    "ast_hash": "53707ddedbf50905c062b1db0df54618",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/versionplan.py": {
-    "mtime": 1790364940.6156254,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/versionplan.py": {
+    "mtime": 1790412199.2009606,
     "ast_hash": "37a6df91bb55a8538ec3062a76edf48d",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/tracking.py": {
-    "mtime": 1790364940.6156254,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/tracking.py": {
+    "mtime": 1790412199.2009606,
     "ast_hash": "897ca6d318a4d5b23b4f2dae5cd8276d",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/queueplan.py": {
-    "mtime": 1790364940.6086607,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/queueplan.py": {
+    "mtime": 1790412199.1751175,
     "ast_hash": "0e720648c2d0c2c5d51392f548a30897",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/sync.py": {
-    "mtime": 1790364940.6086607,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/sync.py": {
+    "mtime": 1790412199.1769607,
     "ast_hash": "d7a699120b7ec6dbdebe5e57f058aab8",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/templates/__init__.py": {
-    "mtime": 1790364940.6086607,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/templates/__init__.py": {
+    "mtime": 1790412199.1769607,
     "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/templates/commands/__init__.py": {
-    "mtime": 1790364940.61145,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/templates/commands/__init__.py": {
+    "mtime": 1790412199.1816468,
     "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/templates/docs/__init__.py": {
-    "mtime": 1790364940.6128638,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/templates/docs/__init__.py": {
+    "mtime": 1790412199.1866515,
     "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/templates/rules/__init__.py": {
-    "mtime": 1790364940.6134546,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/templates/rules/__init__.py": {
+    "mtime": 1790412199.1880946,
     "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/00-tools/verify_scaffold.py": {
-    "mtime": 1790364940.598058,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/00-tools/verify_scaffold.py": {
+    "mtime": 1790412199.1319697,
     "ast_hash": "8839f26e4bbd4bbba619d136727fffd9",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/00-tools/vendor_pstack.py": {
-    "mtime": 1790364940.598058,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/00-tools/vendor_pstack.py": {
+    "mtime": 1790412199.1319697,
     "ast_hash": "1d303896f4547b0221fab397317cf207",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/agent/skill-stamps.json": {
-    "mtime": 1790364940.6041265,
-    "ast_hash": "1535e4c47c2f3bc7ed772e95433b5b4c",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/agent/skill-stamps.json": {
+    "mtime": 1790413678.5734277,
+    "ast_hash": "d1a31146ba17df4a1ec87439d41dd75b",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/AGENTS.md": {
-    "mtime": 1790364940.6041265,
-    "ast_hash": "58ca65452d9ddf153f6960c8cd3948b9",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/AGENTS.md": {
+    "mtime": 1790413678.6143222,
+    "ast_hash": "b9b4fdf4cf8fcd119e010d3d32805dd9",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/README.md": {
-    "mtime": 1790364940.6041265,
-    "ast_hash": "39e2e5ff74fd546baaab6832071190df",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/README.md": {
+    "mtime": 1790412199.160862,
+    "ast_hash": "86cbe08115cee5803c29c394be66a425",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/HISTORY.md": {
-    "mtime": 1790364940.6041265,
-    "ast_hash": "94912ffeb0440f2b4c3a00964c4b7d22",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/HISTORY.md": {
+    "mtime": 1790412199.160862,
+    "ast_hash": "77d8b3c20ffc066055109354c8ab2b4e",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.readthedocs.yaml": {
-    "mtime": 1790364940.6041265,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.readthedocs.yaml": {
+    "mtime": 1790412199.160862,
     "ast_hash": "148d4b7ea90de22ad70078e8446123c7",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/iflow-drive/SKILL.md": {
-    "mtime": 1790364940.5931652,
-    "ast_hash": "d6c95ca4b94d8415164d94c70bd2ebb0",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/iflow-drive/SKILL.md": {
+    "mtime": 1790413678.5590303,
+    "ast_hash": "1544c25ac6c9a5791ce509b873a26aab",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/iflow-build/SKILL.md": {
-    "mtime": 1790364940.5931652,
-    "ast_hash": "c64f0e2b11b68a7c600bf394b3fd3ade",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/iflow-build/SKILL.md": {
+    "mtime": 1790413678.464177,
+    "ast_hash": "27bdb7c4944b0e1b7d4e9bf8be3fd0c4",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/grill-me/SKILL.md": {
-    "mtime": 1790364940.5931652,
-    "ast_hash": "8fc81c58b723cd178a5896c34c90436f",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/grill-me/SKILL.md": {
+    "mtime": 1790413678.5721412,
+    "ast_hash": "2a2aa179b6918773d0bc44eb303e261f",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/iflow-graphify/SKILL.md": {
-    "mtime": 1790364940.5931652,
-    "ast_hash": "f8df8ad36b3dcf0600ff8cba0e5304a3",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/iflow-graphify/SKILL.md": {
+    "mtime": 1790413678.569728,
+    "ast_hash": "51cf35350430b48a1066402ef3aa9873",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/iflow-pr-sync/SKILL.md": {
-    "mtime": 1790364940.5931652,
-    "ast_hash": "e531caa915183442fff24d002ebe77c1",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/iflow-pr-sync/SKILL.md": {
+    "mtime": 1790413678.4933732,
+    "ast_hash": "56bcb6b431f853a769313572c6cf6fae",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/gh-ci/SKILL.md": {
-    "mtime": 1790364940.5931652,
-    "ast_hash": "e94f6f72617778d8a9a29e4dfad12555",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/gh-ci/SKILL.md": {
+    "mtime": 1790413678.5733094,
+    "ast_hash": "441a98fc69b1a1ba0e27136f223f6a2a",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/iflow-pause/SKILL.md": {
-    "mtime": 1790364940.5931652,
-    "ast_hash": "eaa02332be03ae71593dfb6346588e1e",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/iflow-pause/SKILL.md": {
+    "mtime": 1790413678.4693577,
+    "ast_hash": "36a056156c407a83e089913587fc3b5b",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/caveman/SKILL.md": {
-    "mtime": 1790364940.5931652,
-    "ast_hash": "b29d3ab53153f833b0564b3e5ea10bf5",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/caveman/SKILL.md": {
+    "mtime": 1790413678.5707297,
+    "ast_hash": "6b42704e110a79bd3f65595232d1f4bb",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/iflow-history-update/SKILL.md": {
-    "mtime": 1790364940.5931652,
-    "ast_hash": "a69ed594a977cac38217ccf1f96c3560",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/iflow-history-update/SKILL.md": {
+    "mtime": 1790413678.566292,
+    "ast_hash": "4d296d899864f1498f367809620c1dd0",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/iflow-capture/SKILL.md": {
-    "mtime": 1790364940.5931652,
-    "ast_hash": "b166ab943cdf4f2edd50f30811f5baf5",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/iflow-capture/SKILL.md": {
+    "mtime": 1790413678.4499056,
+    "ast_hash": "0ac3149bc6ededbe4ded36828e063b70",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/iflow-split/SKILL.md": {
-    "mtime": 1790364940.5931652,
-    "ast_hash": "6705a77d70c8650ce780c9c58353b582",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/iflow-split/SKILL.md": {
+    "mtime": 1790413678.5178528,
+    "ast_hash": "1eed2a87cec720045b0023952552c451",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/iflow-epic/SKILL.md": {
-    "mtime": 1790364940.5931652,
-    "ast_hash": "c8a0faad0b015887800fe778d43935dc",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/iflow-workspace-git/SKILL.md": {
+    "mtime": 1790413678.5256057,
+    "ast_hash": "fbe5b5ecf6aa6e7d17bdc261a1814801",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/iflow-cleanup/SKILL.md": {
-    "mtime": 1790364940.5931652,
-    "ast_hash": "e433b80e554499fd2e0f92378e9863c0",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/iflow-epic/SKILL.md": {
+    "mtime": 1790413678.5433185,
+    "ast_hash": "b37aa5c49f6c37d05855408d4a05d474",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/iflow-issue/SKILL.md": {
-    "mtime": 1790364940.5931652,
-    "ast_hash": "329d884969ca2af3217d850f06f56bc0",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/iflow-cleanup/SKILL.md": {
+    "mtime": 1790413678.4890308,
+    "ast_hash": "0cfae03ced69e66276f7d5229d885df9",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/iflow-ops/SKILL.md": {
-    "mtime": 1790364940.5931652,
-    "ast_hash": "9cfc7f6ac90c23c240ecfb7a5b055020",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/iflow-issue/SKILL.md": {
+    "mtime": 1790413678.5131693,
+    "ast_hash": "d4ca5099408a77bc0e60cbbcd1c35555",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/iflow-close/SKILL.md": {
-    "mtime": 1790364940.5931652,
-    "ast_hash": "f1efe63cabcd9faa12713444288b52bd",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/iflow-ops/SKILL.md": {
+    "mtime": 1790413678.502524,
+    "ast_hash": "96b9b07d0ec4776d0702554f0fa9c590",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/iflow-doctor/SKILL.md": {
-    "mtime": 1790364940.5931652,
-    "ast_hash": "e16714e5ecc36fed3fefd6074173e015",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/iflow-close/SKILL.md": {
+    "mtime": 1790413678.482284,
+    "ast_hash": "a1b29a6a8d649ab4d1e25654fdda235f",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/iflow-status/SKILL.md": {
-    "mtime": 1790364940.5931652,
-    "ast_hash": "3bdcf4734026abc6974acae6862ec406",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/iflow-doctor/SKILL.md": {
+    "mtime": 1790413678.530698,
+    "ast_hash": "4441f1612e9573d1ee2452b53e8f46cf",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/iflow/SKILL.md": {
-    "mtime": 1790364940.5956254,
-    "ast_hash": "f0c709321466d8ac4f75b31e2900932b",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/iflow-status/SKILL.md": {
+    "mtime": 1790413678.522449,
+    "ast_hash": "44d2be8267a6f89b3198a8ed9c3e6cd3",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/iflow-cycle/SKILL.md": {
-    "mtime": 1790364940.5931652,
-    "ast_hash": "d34bcf178944a77be070eb0c31c159ea",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/iflow/SKILL.md": {
+    "mtime": 1790413678.4279444,
+    "ast_hash": "c78ca8c18bdc4f1e03bd0ebbd133871f",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/iflow-comments/SKILL.md": {
-    "mtime": 1790364940.5931652,
-    "ast_hash": "45a0f65789a3ef16eb05bb57976df95f",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/iflow-cycle/SKILL.md": {
+    "mtime": 1790413678.5495698,
+    "ast_hash": "ad9977e5833672b5d00b953d537990d4",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/iflow-pick/SKILL.md": {
-    "mtime": 1790364940.5931652,
-    "ast_hash": "c2928df3e1c34bd3c1377401474d6d0a",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/iflow-comments/SKILL.md": {
+    "mtime": 1790413678.4523172,
+    "ast_hash": "7e10cc7e4eec13eeb82c51ada1103864",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/iflow-archive/SKILL.md": {
-    "mtime": 1790364940.5931652,
-    "ast_hash": "408a8f1d845e5a6586041d9e5a3f93f7",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/iflow-pick/SKILL.md": {
+    "mtime": 1790413678.4400764,
+    "ast_hash": "c732d83b1f92314955cf89777167971d",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/iflow-fix/SKILL.md": {
-    "mtime": 1790364940.5931652,
-    "ast_hash": "70e2a6a18d793f590b862f94ae07e144",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/iflow-archive/SKILL.md": {
+    "mtime": 1790413678.5384386,
+    "ast_hash": "413dea53410f8a958b241a8ccc6cec84",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/iflow-plan/SKILL.md": {
-    "mtime": 1790364940.5931652,
-    "ast_hash": "5a7ea4414d662482ab46964a78746169",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/iflow-fix/SKILL.md": {
+    "mtime": 1790413678.50821,
+    "ast_hash": "157292a8ac9dc59a4a061af1097942be",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/iflow-review/SKILL.md": {
-    "mtime": 1790364940.5931652,
-    "ast_hash": "a52ee50e5d9d0ba212165c2fe2d2524b",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/iflow-plan/SKILL.md": {
+    "mtime": 1790413678.4579074,
+    "ast_hash": "9a44fb277d25909a9d240ef4adc19e53",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/iflow-yolo/SKILL.md": {
-    "mtime": 1790364940.5956254,
-    "ast_hash": "d7fcd4b22b380365eda73fd5be92aa6c",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/iflow-review/SKILL.md": {
+    "mtime": 1790413678.5347118,
+    "ast_hash": "d5c853095f531011047c7821c28f1ea5",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/writing-great-skills/GLOSSARY.md": {
-    "mtime": 1790364940.5956254,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/iflow-yolo/SKILL.md": {
+    "mtime": 1790413678.498278,
+    "ast_hash": "1e26847503ccf216a4d6c7bc5235f6a1",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/writing-great-skills/GLOSSARY.md": {
+    "mtime": 1790412199.1249607,
     "ast_hash": "4ab5c10f20150e2e7e8e19fae3f382ab",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/writing-great-skills/SKILL.md": {
-    "mtime": 1790364940.5974817,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/writing-great-skills/SKILL.md": {
+    "mtime": 1790412199.1301851,
     "ast_hash": "c87d1c96d79482af720451a573ebe57b",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/iflow-version-bump/SKILL.md": {
-    "mtime": 1790364940.5931652,
-    "ast_hash": "70e6ee2b8077624e598337410c8d78b6",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/iflow-version-bump/SKILL.md": {
+    "mtime": 1790413678.5614974,
+    "ast_hash": "a5fb1d70b6a6d510c3cb77bd7e53be59",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/iflow-auto/SKILL.md": {
-    "mtime": 1790364940.5931652,
-    "ast_hash": "4862319e5f711c0c8c8d7e1d0e9fb652",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/iflow-auto/SKILL.md": {
+    "mtime": 1790413678.5544233,
+    "ast_hash": "284ea7a3b1d191cd48647df089dbd189",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/iflow-setup/SKILL.md": {
-    "mtime": 1790364940.5931652,
-    "ast_hash": "b0554151cf8e601f964c4ca7b1c00f13",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/iflow-setup/SKILL.md": {
+    "mtime": 1790413678.432557,
+    "ast_hash": "0fceb2b62cd7905746cd6e8ade805349",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.cursor/skills/iflow-init/SKILL.md": {
-    "mtime": 1790364940.5931652,
-    "ast_hash": "92da5c7c1f86ae012b81875922989c29",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.cursor/skills/iflow-init/SKILL.md": {
+    "mtime": 1790413678.4447124,
+    "ast_hash": "03d34824e10ae2534dbcac6603b8ddbd",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/acknowledgements.md": {
-    "mtime": 1790364940.6041265,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/acknowledgements.md": {
+    "mtime": 1790412199.160862,
     "ast_hash": "c7a33c86fd43f59bc00c8c42bdb0a0b3",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/editors.md": {
-    "mtime": 1790364940.6053205,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/editors.md": {
+    "mtime": 1790412199.16404,
     "ast_hash": "584532a6ace2ac663f14fe8527d75b41",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/index.md": {
-    "mtime": 1790364940.606019,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/index.md": {
+    "mtime": 1790412199.1666186,
     "ast_hash": "ba49aa4707a4a53c9c98ed5dd2108fb3",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/concepts.md": {
-    "mtime": 1790364940.6053205,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/concepts.md": {
+    "mtime": 1790412199.16404,
     "ast_hash": "0c4a351082878715f00e2bfb296766d6",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/developing.md": {
-    "mtime": 1790364940.6053205,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/developing.md": {
+    "mtime": 1790412199.16404,
     "ast_hash": "4317fd079fa6cfb9209e9c4d106e02b7",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/graphify.md": {
-    "mtime": 1790364940.6053205,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/graphify.md": {
+    "mtime": 1790412199.16404,
     "ast_hash": "4130244d8afb2708220b527a5e577418",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/cli.md": {
-    "mtime": 1790365685.6235309,
-    "ast_hash": "001631bb39243c05999eee9021f587f7",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/cli.md": {
+    "mtime": 1790413506.7967868,
+    "ast_hash": "3f526b5b4ce10172c5f3036a3fb72f5d",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/issue-workflow.md": {
-    "mtime": 1790365683.663531,
-    "ast_hash": "c6403d1fda107e1e5fe2a136352b6158",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/issue-workflow.md": {
+    "mtime": 1790413678.6021154,
+    "ast_hash": "dcc7c5ee25d9dab2783da1bee84fd04f",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/changelog.md": {
-    "mtime": 1790364940.6053205,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/changelog.md": {
+    "mtime": 1790412199.16404,
     "ast_hash": "a51118e4fc38ef948a4960416514155a",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/llms.txt": {
-    "mtime": 1790364940.606019,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/llms.txt": {
+    "mtime": 1790412199.1666186,
     "ast_hash": "3e378c5f7c06c7d2f37408c0c0f20e4e",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/getting-started.md": {
-    "mtime": 1790364940.6053205,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/getting-started.md": {
+    "mtime": 1790412199.16404,
     "ast_hash": "2cd2e405d01ce8320736e900b817b155",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/configuration.md": {
-    "mtime": 1790365680.3955314,
-    "ast_hash": "b1c4f1f7a3a90a31711939a145cdfc43",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/configuration.md": {
+    "mtime": 1790412886.5048716,
+    "ast_hash": "7b2908e10c58989a777ad0118d4b70b2",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/how-to/troubleshooting.md": {
-    "mtime": 1790364940.606019,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/how-to/troubleshooting.md": {
+    "mtime": 1790412199.1666186,
     "ast_hash": "9b55b119dace00ab1edd38d169da3dbe",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/how-to/fix-session.md": {
-    "mtime": 1790364940.606019,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/how-to/fix-session.md": {
+    "mtime": 1790412199.1666186,
     "ast_hash": "f2e4267771cfd487f822736e8d8aca7a",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/how-to/workspaces.md": {
-    "mtime": 1790364940.606019,
-    "ast_hash": "6665dbebdb56435e3a200f3ebd54c0b5",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/how-to/workspaces.md": {
+    "mtime": 1790412199.1666186,
+    "ast_hash": "88bfccbfddd68755918599821e723ac2",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/how-to/index.md": {
-    "mtime": 1790364940.606019,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/how-to/index.md": {
+    "mtime": 1790412199.1666186,
     "ast_hash": "0163393969e88ab7732f893f31058680",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/how-to/drive.md": {
-    "mtime": 1790364940.606019,
-    "ast_hash": "854d69621ca5b5210b5293ecab3a8efc",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/how-to/drive.md": {
+    "mtime": 1790413517.840785,
+    "ast_hash": "24d8a57adb0144e0afcbfa405458ff73",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/how-to/park-and-resume.md": {
-    "mtime": 1790364940.606019,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/how-to/park-and-resume.md": {
+    "mtime": 1790412199.1666186,
     "ast_hash": "77ff7d5ebdf263b31c26f020ad741f03",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/how-to/after-squash-merge.md": {
-    "mtime": 1790364940.6053205,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/how-to/after-squash-merge.md": {
+    "mtime": 1790412199.16404,
     "ast_hash": "05cf73882f299017f29388e9d9762806",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/how-to/pstack-skills.md": {
-    "mtime": 1790364940.606019,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/how-to/pstack-skills.md": {
+    "mtime": 1790412199.1666186,
     "ast_hash": "4bde3a8698ff4312d7853bfe04813993",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/how-to/pr-sync.md": {
-    "mtime": 1790364940.606019,
-    "ast_hash": "db7a4e28b305c077f56661db1b9307f3",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/how-to/pr-sync.md": {
+    "mtime": 1790413523.4207838,
+    "ast_hash": "5259030360b0672b15bc7365c227d863",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/how-to/worktrees.md": {
-    "mtime": 1790364940.606019,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/how-to/worktrees.md": {
+    "mtime": 1790412199.1666186,
     "ast_hash": "f58eed617c455a8ae4a172d1dd8e9f46",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/how-to/yolo.md": {
-    "mtime": 1790364940.606019,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/how-to/yolo.md": {
+    "mtime": 1790412199.1666186,
     "ast_hash": "0860ff56090bd2770cc75217dac80593",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/how-to/sample-session.md": {
-    "mtime": 1790364940.606019,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/how-to/sample-session.md": {
+    "mtime": 1790412199.1666186,
     "ast_hash": "8d80c8939a72c6d3d277ae2b1997e483",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/how-to/cycle.md": {
-    "mtime": 1790364940.606019,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/how-to/cycle.md": {
+    "mtime": 1790412199.1666186,
     "ast_hash": "639ccf228cfb1525ca6a554b5084ef69",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/how-to/choose-a-mode.md": {
-    "mtime": 1790364940.606019,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/how-to/choose-a-mode.md": {
+    "mtime": 1790412199.1666186,
     "ast_hash": "ceff77e5b43284f7fea8e0b8ae101060",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/how-to/write-an-issue.md": {
-    "mtime": 1790364940.606019,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/how-to/write-an-issue.md": {
+    "mtime": 1790412199.1666186,
     "ast_hash": "ccfbca92f1ff3fc52bf4c043fcf66b2d",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/how-to/for-agents.md": {
-    "mtime": 1790365683.663531,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/how-to/for-agents.md": {
+    "mtime": 1790412199.1666186,
     "ast_hash": "61865e0cfaa3477e7e016d3875d43612",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/how-to/ops.md": {
-    "mtime": 1790364940.606019,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/how-to/ops.md": {
+    "mtime": 1790412199.1666186,
     "ast_hash": "20c09d353395597421568afcd0fc2a39",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/how-to/epics.md": {
-    "mtime": 1790364940.606019,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/how-to/epics.md": {
+    "mtime": 1790412199.1666186,
     "ast_hash": "0bd57ef47b64082f72305948cb57d17c",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/how-to/auto-mode.md": {
-    "mtime": 1790364940.606019,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/how-to/auto-mode.md": {
+    "mtime": 1790412199.1666186,
     "ast_hash": "eb8335571335549bed80ff67617f9dd4",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/how-to/split-an-issue.md": {
-    "mtime": 1790364940.606019,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/how-to/split-an-issue.md": {
+    "mtime": 1790412199.1666186,
     "ast_hash": "c8b1defcbf94a0d7da30fe648d0a3cd0",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/how-to/work-one-issue.md": {
-    "mtime": 1790364940.606019,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/how-to/work-one-issue.md": {
+    "mtime": 1790412199.1666186,
     "ast_hash": "e714f69a615aebee9a2295b3792ea208",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/src/issue_flow/templates/skills/_pstack_LICENSE.txt": {
-    "mtime": 1790364940.6137981,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/src/issue_flow/templates/skills/_pstack_LICENSE.txt": {
+    "mtime": 1790412199.189236,
     "ast_hash": "412b041a710035691d79d9d5c7c4c6aa",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/default-branch-diverge.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/default-branch-diverge.md": {
+    "mtime": 1790412199.1519277,
     "ast_hash": "1e9a4f680a815bf8cb4035a420a5155a",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/editor-profiles.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/editor-profiles.md": {
+    "mtime": 1790412199.1519277,
     "ast_hash": "9477a01c7e6fc479d377c09c235c490e",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/rename-start-to-build.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/rename-start-to-build.md": {
+    "mtime": 1790412199.1529608,
     "ast_hash": "f22cff1dec4e50398ed4a1ea0c59f1c7",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/slash-less-invocation.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/slash-less-invocation.md": {
+    "mtime": 1790412199.1529608,
     "ast_hash": "ff399816ec5e93746cd5fc8317b94265",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/separate-workspaces.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/separate-workspaces.md": {
+    "mtime": 1790412199.1529608,
     "ast_hash": "b7057b1664ded9e108977cb3fd3b3184",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/gh-repo-view-positional.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/gh-repo-view-positional.md": {
+    "mtime": 1790412199.1519277,
     "ast_hash": "7d39b7b78567ae61aec3130240d90fde",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/project-brief-scaffold.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/project-brief-scaffold.md": {
+    "mtime": 1790412199.1529608,
     "ast_hash": "4887428f48593fc42ae72eacdd159864",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/multi-editor-conversion.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/multi-editor-conversion.md": {
+    "mtime": 1790412199.1529608,
     "ast_hash": "42d6d761b1b3247aad51a882e4eb22be",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/gh-list-and-watch.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/gh-list-and-watch.md": {
+    "mtime": 1790412199.1519277,
     "ast_hash": "cd17fde4aef86ba207ad86f18bd1c258",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/issue-fix-interactive.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/issue-fix-interactive.md": {
+    "mtime": 1790412199.1519277,
     "ast_hash": "0a12809a9367e782cb078139335de90b",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/multi-repo-workspaces.md": {
-    "mtime": 1790364940.6019764,
-    "ast_hash": "be10f547ed19d727e0228e3210c38a1d",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/multi-repo-workspaces.md": {
+    "mtime": 1790412199.1529608,
+    "ast_hash": "07546cf0d2b2d5953dd5c2a57d96ef8f",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/grill-me-skill.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/grill-me-skill.md": {
+    "mtime": 1790412199.1519277,
     "ast_hash": "3f4caec9e2f2c86452e454bcdd504b9c",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/create-non-epic-issue.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/create-non-epic-issue.md": {
+    "mtime": 1790412199.1519277,
     "ast_hash": "cdc45744210e43a9d609718bcd6559c9",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/pr-queue-sync.md": {
-    "mtime": 1790364940.6019764,
-    "ast_hash": "4fad2e994ff3798f9aa6ad4080d36892",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/pr-queue-sync.md": {
+    "mtime": 1790413594.6647737,
+    "ast_hash": "3f12d111ff05c3c32be1d1ba903b373a",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/label-driven-flows.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/label-driven-flows.md": {
+    "mtime": 1790412199.1529608,
     "ast_hash": "6c19d14361f6ca58e594b0b965dcb17a",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/skill-authoring.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/skill-authoring.md": {
+    "mtime": 1790412199.1529608,
     "ast_hash": "5f5d00f38dcc8dcefb7e8c02642eca66",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/linked-sub-issues.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/linked-sub-issues.md": {
+    "mtime": 1790412199.1529608,
     "ast_hash": "e2aa4667bf97bdc155a9cb39aa195e6e",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/linguist-gitattributes.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/linguist-gitattributes.md": {
+    "mtime": 1790412199.1529608,
     "ast_hash": "adf6545b284f5381a91563e50eb3e6a8",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/step-model-directives.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/step-model-directives.md": {
+    "mtime": 1790412199.1529608,
     "ast_hash": "5d028f8d6b581d2de7c298541f06a626",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/skillbook-lessons.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/skillbook-lessons.md": {
+    "mtime": 1790412199.1529608,
     "ast_hash": "37fa1bf294fd27988d8be2e76890b4e0",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/modes.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/modes.md": {
+    "mtime": 1790412199.1529608,
     "ast_hash": "32fa5b17d682bb03b46a7ce00f1392ac",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/pstack-skills.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/pstack-skills.md": {
+    "mtime": 1790412199.1529608,
     "ast_hash": "7ab5e1d2c3cf2e87854bd93ac396a298",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/novice-onboarding.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/novice-onboarding.md": {
+    "mtime": 1790412199.1529608,
     "ast_hash": "c1d98724df004100d0b8a07c51d1be20",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/user-global-config.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/user-global-config.md": {
+    "mtime": 1790412199.1529608,
     "ast_hash": "3a0f3944e2f1dc6d04a3c61e918f05af",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/issue-review-labelling.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/issue-review-labelling.md": {
+    "mtime": 1790412199.1519277,
     "ast_hash": "f0a8032efe6682b30851d9252eb859ca",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/early-pr.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/early-pr.md": {
+    "mtime": 1790412199.1519277,
     "ast_hash": "9951d32962a72b186dacec9a3a56e7d3",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/ops-no-pr.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/ops-no-pr.md": {
+    "mtime": 1790412199.1529608,
     "ast_hash": "401ca582532e7277e64c8e61db573af0",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/release-strategies.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/release-strategies.md": {
+    "mtime": 1790412199.1529608,
     "ast_hash": "b4808e3bdb92a68250630b3927dc5a7f",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/docs-usability-review.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/docs-usability-review.md": {
+    "mtime": 1790412199.1519277,
     "ast_hash": "cf24155daf19446f741d19ac81bc6551",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/local-branch-cleanup.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/local-branch-cleanup.md": {
+    "mtime": 1790412199.1529608,
     "ast_hash": "ac18b815b3461262e52bf428d06c95ff",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/parallel-cycle.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/parallel-cycle.md": {
+    "mtime": 1790412199.1529608,
     "ast_hash": "69e8c1f3d27c1f926f72b0e8601c3aff",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/agentic-cli.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/agentic-cli.md": {
+    "mtime": 1790412199.1519277,
     "ast_hash": "aad5a45af492bdb26b641bb0b18457fe",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/advanced-auto-mode.md": {
-    "mtime": 1790364940.6019764,
-    "ast_hash": "41d0134a5911722fa1b5b7e027c8e55f",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/advanced-auto-mode.md": {
+    "mtime": 1790413589.716774,
+    "ast_hash": "21a84292affbd93f9797225f392d1755",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/global-vs-local-skills.md": {
-    "mtime": 1790364940.6019764,
-    "ast_hash": "a67515f98d6f89d9c57d4ccf169d514e",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/global-vs-local-skills.md": {
+    "mtime": 1790412199.1519277,
+    "ast_hash": "bbfb6d571de7e956a8e630731115bad9",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/essential-tests.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/essential-tests.md": {
+    "mtime": 1790412199.1519277,
     "ast_hash": "94dd62bdc3dac6f55e244e85e2280e05",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/skill-behaviour-knobs.md": {
-    "mtime": 1790365687.9635305,
-    "ast_hash": "981f853fc1b7eafdcbd97ee66ef1691a",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/skill-behaviour-knobs.md": {
+    "mtime": 1790413599.9767733,
+    "ast_hash": "670ee248e24be3f08d658146cc61a5f5",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/epic-start.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/epic-start.md": {
+    "mtime": 1790412199.1519277,
     "ast_hash": "d5c19dba77d54a5ce579cdd60a0f7cd2",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/github-branch-audit.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/github-branch-audit.md": {
+    "mtime": 1790412199.1519277,
     "ast_hash": "b484b5d1b0a8c62ce386ea6e571e6ba2",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/iflow-epic-awareness.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/iflow-epic-awareness.md": {
+    "mtime": 1790412199.1519277,
     "ast_hash": "38cf311036efd033325ce56aa0242afb",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/docs-diagrams.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/docs-diagrams.md": {
+    "mtime": 1790412199.1519277,
     "ast_hash": "ec4aa2a2f0f7306bb70c651a7edebbd6",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/changelog-timing.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/changelog-timing.md": {
+    "mtime": 1790412199.1519277,
     "ast_hash": "73245da606ec4e0a5a51cca1acca1d0e",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/dirty-issueflows.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/dirty-issueflows.md": {
+    "mtime": 1790412199.1519277,
     "ast_hash": "820e0fe354bde81a5f0560b495dd33f6",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/caveman-skill.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/caveman-skill.md": {
+    "mtime": 1790412199.1519277,
     "ast_hash": "7f5211acf3a692a8b3f3a74a88b61dd5",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/this-project.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/this-project.md": {
+    "mtime": 1790412199.1529608,
     "ast_hash": "2876f62f16dcc4f5df2532a24204b81b",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/changelog-conflicts.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/changelog-conflicts.md": {
+    "mtime": 1790412199.1519277,
     "ast_hash": "0da07d9a0fd4693247ee78cc3ebbcd50",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/drive-mode.md": {
-    "mtime": 1790364940.6019764,
-    "ast_hash": "4c89fe13c5ea442cdc988c83c93016d9",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/drive-mode.md": {
+    "mtime": 1790413567.6767766,
+    "ast_hash": "59a8d1c22ef44f4e1202576b35d7a430",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/graphify-integration.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/graphify-integration.md": {
+    "mtime": 1790412199.1519277,
     "ast_hash": "e0bb3f931ba5571a614f55ddd9c0d3b3",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/python-toolchain-deference.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/python-toolchain-deference.md": {
+    "mtime": 1790412199.1529608,
     "ast_hash": "29cde754ec81915af403b8f97560fabf",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/test-registry.md": {
-    "mtime": 1790364940.6019764,
-    "ast_hash": "e6f16e83505cc986929c5deff9d2b184",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/test-registry.md": {
+    "mtime": 1790413614.4887714,
+    "ast_hash": "fb0a97112bb803e84c3f92bb8fa73848",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/docs-link-check.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/docs-link-check.md": {
+    "mtime": 1790412199.1519277,
     "ast_hash": "46a81f736507660ed4ee5d274f46ce7d",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/04-designs-and-guides/iflow-init-vs-capture.md": {
-    "mtime": 1790364940.6019764,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/04-designs-and-guides/iflow-init-vs-capture.md": {
+    "mtime": 1790412199.1519277,
     "ast_hash": "468db7faf2d3ce9c5934bad3037df56e",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue363_status.md": {
-    "mtime": 1790364940.5996256,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue363_status.md": {
+    "mtime": 1790412199.1449606,
     "ast_hash": "63084c2edc55e1055ce671c9b7e56756",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue322_plan.md": {
-    "mtime": 1790364940.598584,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue322_plan.md": {
+    "mtime": 1790412199.13385,
     "ast_hash": "9f05b031ff97dfa65459e153cdc40ab8",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue337_status.md": {
-    "mtime": 1790364940.598584,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue337_status.md": {
+    "mtime": 1790412199.1369607,
     "ast_hash": "57b9fc4dae213bdfd9bb94b8edf4f4b8",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue337_plan.md": {
-    "mtime": 1790364940.598584,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue337_plan.md": {
+    "mtime": 1790412199.1369607,
     "ast_hash": "5c602e96d967d0369fd25d2d776d3dde",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue323_plan.md": {
-    "mtime": 1790364940.598584,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue323_plan.md": {
+    "mtime": 1790412199.13385,
     "ast_hash": "f152bfe0f9ec8a0031a5433811888ff2",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue328_status.md": {
-    "mtime": 1790364940.598584,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue328_status.md": {
+    "mtime": 1790412199.13385,
     "ast_hash": "85b28dba58c0d8bbbb5d62f532a62872",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue323_original.md": {
-    "mtime": 1790364940.598584,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue323_original.md": {
+    "mtime": 1790412199.13385,
     "ast_hash": "478d0472fc62a32362595bf27589302e",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue363_plan.md": {
-    "mtime": 1790364940.5996256,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue363_plan.md": {
+    "mtime": 1790412199.1449606,
     "ast_hash": "918bc7acb0a7845bbe3c14449693a2e6",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue364_original.md": {
-    "mtime": 1790364940.5996256,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue364_original.md": {
+    "mtime": 1790412199.1449606,
     "ast_hash": "a75268b80d3b91aae668013984ee74c6",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue324_plan.md": {
-    "mtime": 1790364940.598584,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue324_plan.md": {
+    "mtime": 1790412199.13385,
     "ast_hash": "b6050ce3d5fd6ebdfa1fd247961af11f",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue361_original.md": {
-    "mtime": 1790364940.5996256,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue361_original.md": {
+    "mtime": 1790412199.1409607,
     "ast_hash": "ed6f460e46ea2adfcb94b2d6358580a7",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/cycle_status_2026-07-23.md": {
-    "mtime": 1790364940.598584,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/cycle_status_2026-07-23.md": {
+    "mtime": 1790412199.13385,
     "ast_hash": "a774c41d4536e75718f7ecd7f970a903",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue329_original.md": {
-    "mtime": 1790364940.598584,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue329_original.md": {
+    "mtime": 1790412199.13385,
     "ast_hash": "07de1669e3c8be312e3be4e19c859630",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue363_session_log.md": {
-    "mtime": 1790364940.5996256,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue363_session_log.md": {
+    "mtime": 1790412199.1449606,
     "ast_hash": "60a4ff591a9190b07c012373049d956e",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue344_plan.md": {
-    "mtime": 1790364940.598584,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue344_plan.md": {
+    "mtime": 1790412199.1369607,
     "ast_hash": "977c89029c138bd8449e66eaa8d0587f",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue343_plan.md": {
-    "mtime": 1790364940.598584,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue381_status.md": {
+    "mtime": 1790412199.1449606,
+    "ast_hash": "e3514b935051f3bcdb54bb1e26ad90ac",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue343_plan.md": {
+    "mtime": 1790412199.1369607,
     "ast_hash": "dc3f731043b4e42b2ef59c3a50bff7ad",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/2026-07-12_archived_issues.md": {
-    "mtime": 1790364940.598584,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/2026-07-12_archived_issues.md": {
+    "mtime": 1790412199.13385,
     "ast_hash": "c0eeb6b4fd9edfcb886d7316f6245991",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue364_plan.md": {
-    "mtime": 1790364940.5996256,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue364_plan.md": {
+    "mtime": 1790412199.1449606,
     "ast_hash": "6866ada4c4ce9942de6c3734f192559a",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/cycle_status_2026-09-17-stage3.md": {
-    "mtime": 1790364940.598584,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/cycle_status_2026-09-17-stage3.md": {
+    "mtime": 1790412199.13385,
     "ast_hash": "868c0f0703380454486d221fd1f48d74",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue333_status.md": {
-    "mtime": 1790364940.598584,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue333_status.md": {
+    "mtime": 1790412199.1369607,
     "ast_hash": "db4aaf198563a766eb0959eb9b7bc075",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue347_plan.md": {
-    "mtime": 1790364940.598584,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue347_plan.md": {
+    "mtime": 1790412199.1409607,
     "ast_hash": "e7ba0c8637ade8a476af9dc66ba89c4e",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue358_original.md": {
-    "mtime": 1790364940.598584,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue358_original.md": {
+    "mtime": 1790412199.1409607,
     "ast_hash": "b11bf19bb657c172b1d6fc304743a87e",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue324_original.md": {
-    "mtime": 1790364940.598584,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue324_original.md": {
+    "mtime": 1790412199.13385,
     "ast_hash": "b80abb65c810b68c9e51be0aaef2d1e2",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue346_status.md": {
-    "mtime": 1790364940.598584,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue346_status.md": {
+    "mtime": 1790412199.1409607,
     "ast_hash": "bb48b57ebb9fb9d72f2770188d2f789f",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue321_plan.md": {
-    "mtime": 1790364940.598584,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue321_plan.md": {
+    "mtime": 1790412199.13385,
     "ast_hash": "7c6603f77f1b33f95d207f7a14aaefcb",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue318_original.md": {
-    "mtime": 1790364940.598584,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue318_original.md": {
+    "mtime": 1790412199.13385,
     "ast_hash": "aa9c6fb415a9bbc530decbad642c259d",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue324_status.md": {
-    "mtime": 1790364940.598584,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue324_status.md": {
+    "mtime": 1790412199.13385,
     "ast_hash": "233abeb5bb0ce4869a1742b570af61f8",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue328_original.md": {
-    "mtime": 1790364940.598584,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue328_original.md": {
+    "mtime": 1790412199.13385,
     "ast_hash": "18e81038fa8741338525c4d9d11ea62b",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/cycle_status_2026-09-24_epic341-stage1.md": {
-    "mtime": 1790364940.598584,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/cycle_status_2026-09-24_epic341-stage1.md": {
+    "mtime": 1790412199.13385,
     "ast_hash": "bf7bf6f7b1c2a354d114596e5fdbe098",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue342_original.md": {
-    "mtime": 1790364940.598584,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue342_original.md": {
+    "mtime": 1790412199.1369607,
     "ast_hash": "f38a6b18e772d2fc9d3dd435f553128e",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/drive_status_2026-09-24_epic341.md": {
-    "mtime": 1790364940.598584,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/drive_status_2026-09-24_epic341.md": {
+    "mtime": 1790412199.13385,
     "ast_hash": "7342f7e6b794c25df477f564deb13e5f",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue358_status.md": {
-    "mtime": 1790364940.5996256,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue358_status.md": {
+    "mtime": 1790412199.1409607,
     "ast_hash": "0b6130aabeda5a64fc3b1a81d832ab40",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue343_status.md": {
-    "mtime": 1790364940.598584,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue343_status.md": {
+    "mtime": 1790412199.1369607,
     "ast_hash": "9819572cd10ba9300bb227f9e746a875",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/cycle_status_2026-09-21.md": {
-    "mtime": 1790364940.598584,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/cycle_status_2026-09-21.md": {
+    "mtime": 1790412199.13385,
     "ast_hash": "4d035bd1aac1bbeccb9d6d8281e12211",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue362_original.md": {
-    "mtime": 1790364940.5996256,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue362_original.md": {
+    "mtime": 1790412199.1449606,
     "ast_hash": "f3b1993c2cf178eafa745fd989bc2ddc",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue360_status.md": {
-    "mtime": 1790364940.5996256,
-    "ast_hash": "12779bc758831791921b8da7307b207e",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue248_status.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "82a37038521edb9f3b00bd525aa3acf6",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue342_status.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "0f6d99f8ae879bf514b44c56fff73c8c",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/cycle_status_2026-09-24_epic341-stage4.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "e6dd8eeaa543d81db282b41c21fefa1d",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue344_status.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "0969b2b5a4d1f34be9962b5bf3632a58",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue347_status.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "2e0f032343b9893b768b023fc4c2101f",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue321_original.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "cc89585abbda087e2f0aeab731ad151e",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue353_status.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "fbcd48ee475ded88739e3b2bc01667e8",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue339_status.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "f04410f476a3a3fc5f0bee73fb907b0e",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue333_plan.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "7d209b08fc4196850219cd29a0592a44",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue348_status.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "76c22f4057e8f8f921b680f35c26c7ab",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue322_status.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "d88ac8396195128731ff080c156c8413",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue323_status.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "10807e4b53595eee6f44ef0f71e1bd03",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/cycle_status_2026-07-23_stage2.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "65900bae7899b90ba6a9faa6f0c47f67",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/auto_status_2026-09-17.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "2655690c117376c6d697a15b8c937c67",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue321_status.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "050b9f7d45d560cce110b0f1b8d0e424",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/2026-09-13_archived_issues.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "a57cf4f314e30b8017a1a3faf3a56373",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue348_plan.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "370519c788906d6f9c46caa270589f83",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue333_original.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "74ee22b9f00acaf051c82d394006fd2b",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue359_plan.md": {
-    "mtime": 1790364940.5996256,
-    "ast_hash": "368f7c8e4827bdc0f711a16c07fccb97",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue248_original.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "df247f1ecef80101a5cb1cb407e523fa",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue353_original.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "3dbb584608e256471851743e8052ae60",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue329_status.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "027383b58278b092cc2da56f2bdc3915",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue248_plan.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "f108a9fc7e8272cb045dcba843e40b5f",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue342_plan.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "a0e2a75196273f7e26f6d9a1c7755328",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue363_original.md": {
-    "mtime": 1790364940.5996256,
-    "ast_hash": "a1d43035d43606bf9463f389db2ebf3c",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue348_original.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "1425c81747ad2bbf7ad33c98a0610d44",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue329_plan.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "518083a0f78343c91b962ceb3c59bb32",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/2026-09-23_archived_issues.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "853a9f9364ab68e86a280eb1b5136c64",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/cycle_status_2026-09-24_epic341-stage3.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "4bf4e16eae40567d707d8c2c33559df5",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue328_plan.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "d3c21dfcaaf5feec5fb69fe3e2b05aae",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue339_plan.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "ca4baf1cda93a244620ad8b8b9d12b42",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue337_original.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "3d518633d1fccbb369237f71764b0041",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue322_original.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "a325474537ae94f7f2fa4c2e302adfb7",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue359_original.md": {
-    "mtime": 1790364940.5996256,
-    "ast_hash": "bd55636e0b0513f6edfb3facc695e96c",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue346_plan.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "c343265acf5876c28e7d57aefcbec1a9",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue364_status.md": {
-    "mtime": 1790364940.5996256,
-    "ast_hash": "908d09c12025a82cc52685b0935c5636",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue347_original.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "fb0823dbe82fa18cd0631cf31fb0b535",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue346_original.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "5b66372823ae7157a5c542973d684884",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue353_plan.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "0ab8a881d3f9da38158f59fd49960ac2",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue343_original.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "4983955b33b0aae3654962445f55ce52",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue339_original.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "9d95218b15b0dda956e679cbb9e7c4b7",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue361_plan.md": {
-    "mtime": 1790364940.5996256,
-    "ast_hash": "67242edbeaea174914fa2f5fe140cd25",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue360_plan.md": {
-    "mtime": 1790364940.5996256,
-    "ast_hash": "7296a2cbc5c24988ee7c2efb21137a69",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue360_original.md": {
-    "mtime": 1790364940.5996256,
-    "ast_hash": "de1af3da510cf195e8f175acecd6c7dd",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue318_plan.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "e424b1ae005515471c9f7dc2fdae6d2a",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/cycle_status_2026-09-24_epic341-stage1-loop1.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "0f01a7b0fa8425a165853c8c41789fbf",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue361_status.md": {
-    "mtime": 1790364940.5996256,
-    "ast_hash": "d3389d25496c52ca5bb8a5473fae726b",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/cycle_status_2026-09-17.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "98ac7662f72a0286a332f038a8802411",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/cycle_status_2026-09-18.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "6dcf6094b961d552a24bf08f7b5246fc",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue362_plan.md": {
-    "mtime": 1790364940.5996256,
-    "ast_hash": "a4c06c14d34a3a4febc39b78d0c3ef3f",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/cycle_status_2026-09-24_epic341-stage2.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "cb50ffa0c6b1dd0ac186b8955eed6477",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue362_status.md": {
-    "mtime": 1790364940.5996256,
-    "ast_hash": "47c12e454f46f4b8c94edeb8966e0b29",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue318_status.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "72c150b90282f2bfdabc892da092d91d",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue344_original.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "bd26c8ca2e114ac1ce076f3c716ec66a",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/drive_status_2026-09-24_epic341-run2.md": {
-    "mtime": 1790364940.598584,
-    "ast_hash": "454222a96d184178236018ee836a9318",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue358_plan.md": {
-    "mtime": 1790364940.5996256,
-    "ast_hash": "012c5660760ed4a52b1d57bad6095a4b",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/03-solved-issues/issue359_status.md": {
-    "mtime": 1790364940.5996256,
-    "ast_hash": "8bc96d0eeaf002a15ff977c96026eef3",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/00-tools/README.md": {
-    "mtime": 1790364940.598058,
-    "ast_hash": "9036f004146297b45a793081c15b156e",
-    "semantic_hash": ""
-  },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/01-current-issues/issue382_original.md": {
-    "mtime": 1790364944.4377804,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue382_original.md": {
+    "mtime": 1790412199.1449606,
     "ast_hash": "c644d0dc491f961068928b609516191d",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/01-current-issues/issue382_plan.md": {
-    "mtime": 1790365010.9156253,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue360_status.md": {
+    "mtime": 1790412199.1409607,
+    "ast_hash": "12779bc758831791921b8da7307b207e",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue248_status.md": {
+    "mtime": 1790412199.13385,
+    "ast_hash": "82a37038521edb9f3b00bd525aa3acf6",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue342_status.md": {
+    "mtime": 1790412199.1369607,
+    "ast_hash": "0f6d99f8ae879bf514b44c56fff73c8c",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue382_plan.md": {
+    "mtime": 1790412199.1449606,
     "ast_hash": "4e7043234d990f9e343230d8b2cb6bac",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/01-current-issues/issue382_status.md": {
-    "mtime": 1790365973.8435044,
-    "ast_hash": "6f9133bc9fa462e26bd8fbc4587b2560",
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/cycle_status_2026-09-24_epic341-stage4.md": {
+    "mtime": 1790412199.13385,
+    "ast_hash": "e6dd8eeaa543d81db282b41c21fefa1d",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/01-current-issues/auto_status.md": {
-    "mtime": 1790364940.5982676,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue344_status.md": {
+    "mtime": 1790412199.1369607,
+    "ast_hash": "0969b2b5a4d1f34be9962b5bf3632a58",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue382_status.md": {
+    "mtime": 1790412199.1449606,
+    "ast_hash": "d1b4698e6d1ee18361b13ca8ff6df3f6",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue347_status.md": {
+    "mtime": 1790412199.1409607,
+    "ast_hash": "2e0f032343b9893b768b023fc4c2101f",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue321_original.md": {
+    "mtime": 1790412199.13385,
+    "ast_hash": "cc89585abbda087e2f0aeab731ad151e",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue353_status.md": {
+    "mtime": 1790412199.1409607,
+    "ast_hash": "fbcd48ee475ded88739e3b2bc01667e8",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue339_status.md": {
+    "mtime": 1790412199.1369607,
+    "ast_hash": "f04410f476a3a3fc5f0bee73fb907b0e",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue333_plan.md": {
+    "mtime": 1790412199.1369607,
+    "ast_hash": "7d209b08fc4196850219cd29a0592a44",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue348_status.md": {
+    "mtime": 1790412199.1409607,
+    "ast_hash": "76c22f4057e8f8f921b680f35c26c7ab",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue322_status.md": {
+    "mtime": 1790412199.13385,
+    "ast_hash": "d88ac8396195128731ff080c156c8413",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue323_status.md": {
+    "mtime": 1790412199.13385,
+    "ast_hash": "10807e4b53595eee6f44ef0f71e1bd03",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/cycle_status_2026-07-23_stage2.md": {
+    "mtime": 1790412199.13385,
+    "ast_hash": "65900bae7899b90ba6a9faa6f0c47f67",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/auto_status_2026-09-17.md": {
+    "mtime": 1790412199.13385,
+    "ast_hash": "2655690c117376c6d697a15b8c937c67",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue321_status.md": {
+    "mtime": 1790412199.13385,
+    "ast_hash": "050b9f7d45d560cce110b0f1b8d0e424",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/2026-09-13_archived_issues.md": {
+    "mtime": 1790412199.13385,
+    "ast_hash": "a57cf4f314e30b8017a1a3faf3a56373",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue348_plan.md": {
+    "mtime": 1790412199.1409607,
+    "ast_hash": "370519c788906d6f9c46caa270589f83",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue333_original.md": {
+    "mtime": 1790412199.1369607,
+    "ast_hash": "74ee22b9f00acaf051c82d394006fd2b",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue381_plan.md": {
+    "mtime": 1790412199.1449606,
+    "ast_hash": "daf35c8dbd5666379a36bd68c95e7b0c",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue359_plan.md": {
+    "mtime": 1790412199.1409607,
+    "ast_hash": "368f7c8e4827bdc0f711a16c07fccb97",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue248_original.md": {
+    "mtime": 1790412199.13385,
+    "ast_hash": "df247f1ecef80101a5cb1cb407e523fa",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue353_original.md": {
+    "mtime": 1790412199.1409607,
+    "ast_hash": "3dbb584608e256471851743e8052ae60",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue329_status.md": {
+    "mtime": 1790412199.1369607,
+    "ast_hash": "027383b58278b092cc2da56f2bdc3915",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue248_plan.md": {
+    "mtime": 1790412199.13385,
+    "ast_hash": "f108a9fc7e8272cb045dcba843e40b5f",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue342_plan.md": {
+    "mtime": 1790412199.1369607,
+    "ast_hash": "a0e2a75196273f7e26f6d9a1c7755328",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue363_original.md": {
+    "mtime": 1790412199.1449606,
+    "ast_hash": "a1d43035d43606bf9463f389db2ebf3c",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue348_original.md": {
+    "mtime": 1790412199.1409607,
+    "ast_hash": "1425c81747ad2bbf7ad33c98a0610d44",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue329_plan.md": {
+    "mtime": 1790412199.1369607,
+    "ast_hash": "518083a0f78343c91b962ceb3c59bb32",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/2026-09-23_archived_issues.md": {
+    "mtime": 1790412199.13385,
+    "ast_hash": "853a9f9364ab68e86a280eb1b5136c64",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/cycle_status_2026-09-24_epic341-stage3.md": {
+    "mtime": 1790412199.13385,
+    "ast_hash": "4bf4e16eae40567d707d8c2c33559df5",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue328_plan.md": {
+    "mtime": 1790412199.13385,
+    "ast_hash": "d3c21dfcaaf5feec5fb69fe3e2b05aae",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue339_plan.md": {
+    "mtime": 1790412199.1369607,
+    "ast_hash": "ca4baf1cda93a244620ad8b8b9d12b42",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue337_original.md": {
+    "mtime": 1790412199.1369607,
+    "ast_hash": "3d518633d1fccbb369237f71764b0041",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue322_original.md": {
+    "mtime": 1790412199.13385,
+    "ast_hash": "a325474537ae94f7f2fa4c2e302adfb7",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue359_original.md": {
+    "mtime": 1790412199.1409607,
+    "ast_hash": "bd55636e0b0513f6edfb3facc695e96c",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue346_plan.md": {
+    "mtime": 1790412199.1409607,
+    "ast_hash": "c343265acf5876c28e7d57aefcbec1a9",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue364_status.md": {
+    "mtime": 1790412199.1449606,
+    "ast_hash": "908d09c12025a82cc52685b0935c5636",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue347_original.md": {
+    "mtime": 1790412199.1409607,
+    "ast_hash": "fb0823dbe82fa18cd0631cf31fb0b535",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue346_original.md": {
+    "mtime": 1790412199.1369607,
+    "ast_hash": "5b66372823ae7157a5c542973d684884",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue353_plan.md": {
+    "mtime": 1790412199.1409607,
+    "ast_hash": "0ab8a881d3f9da38158f59fd49960ac2",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue343_original.md": {
+    "mtime": 1790412199.1369607,
+    "ast_hash": "4983955b33b0aae3654962445f55ce52",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue339_original.md": {
+    "mtime": 1790412199.1369607,
+    "ast_hash": "9d95218b15b0dda956e679cbb9e7c4b7",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue361_plan.md": {
+    "mtime": 1790412199.1409607,
+    "ast_hash": "67242edbeaea174914fa2f5fe140cd25",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue360_plan.md": {
+    "mtime": 1790412199.1409607,
+    "ast_hash": "7296a2cbc5c24988ee7c2efb21137a69",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue381_original.md": {
+    "mtime": 1790412199.1449606,
+    "ast_hash": "5f5972667cceef219aecf9fcfee75be4",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue360_original.md": {
+    "mtime": 1790412199.1409607,
+    "ast_hash": "de1af3da510cf195e8f175acecd6c7dd",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue318_plan.md": {
+    "mtime": 1790412199.13385,
+    "ast_hash": "e424b1ae005515471c9f7dc2fdae6d2a",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/cycle_status_2026-09-24_epic341-stage1-loop1.md": {
+    "mtime": 1790412199.13385,
+    "ast_hash": "0f01a7b0fa8425a165853c8c41789fbf",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue361_status.md": {
+    "mtime": 1790412199.1409607,
+    "ast_hash": "d3389d25496c52ca5bb8a5473fae726b",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/cycle_status_2026-09-17.md": {
+    "mtime": 1790412199.13385,
+    "ast_hash": "98ac7662f72a0286a332f038a8802411",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/cycle_status_2026-09-18.md": {
+    "mtime": 1790412199.13385,
+    "ast_hash": "6dcf6094b961d552a24bf08f7b5246fc",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue362_plan.md": {
+    "mtime": 1790412199.1449606,
+    "ast_hash": "a4c06c14d34a3a4febc39b78d0c3ef3f",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/cycle_status_2026-09-24_epic341-stage2.md": {
+    "mtime": 1790412199.13385,
+    "ast_hash": "cb50ffa0c6b1dd0ac186b8955eed6477",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue362_status.md": {
+    "mtime": 1790412199.1449606,
+    "ast_hash": "47c12e454f46f4b8c94edeb8966e0b29",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue318_status.md": {
+    "mtime": 1790412199.13385,
+    "ast_hash": "72c150b90282f2bfdabc892da092d91d",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue344_original.md": {
+    "mtime": 1790412199.1369607,
+    "ast_hash": "bd26c8ca2e114ac1ce076f3c716ec66a",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/drive_status_2026-09-24_epic341-run2.md": {
+    "mtime": 1790412199.13385,
+    "ast_hash": "454222a96d184178236018ee836a9318",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue358_plan.md": {
+    "mtime": 1790412199.1409607,
+    "ast_hash": "012c5660760ed4a52b1d57bad6095a4b",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/03-solved-issues/issue359_status.md": {
+    "mtime": 1790412199.1409607,
+    "ast_hash": "8bc96d0eeaf002a15ff977c96026eef3",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/00-tools/README.md": {
+    "mtime": 1790412199.1319697,
+    "ast_hash": "9036f004146297b45a793081c15b156e",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/01-current-issues/issue386_original.md": {
+    "mtime": 1790412205.3938591,
+    "ast_hash": "5b19a1a90334dcd0fba0d4fb61b2d3b9",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/01-current-issues/issue386_plan.md": {
+    "mtime": 1790412390.2194824,
+    "ast_hash": "08df61566f93789c8a89db6ce8852289",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/01-current-issues/auto_status.md": {
+    "mtime": 1790412199.1327667,
     "ast_hash": "ecaa1ace9aa1ecb0ba3918c101d39409",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/02-partly-solved-issues/issue308_original.md": {
-    "mtime": 1790364940.598414,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/01-current-issues/issue386_status.md": {
+    "mtime": 1790413885.0647397,
+    "ast_hash": "3f5c14d4a4da45845a4bb473cdc6a283",
+    "semantic_hash": ""
+  },
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/02-partly-solved-issues/issue308_original.md": {
+    "mtime": 1790412199.1333485,
     "ast_hash": "eb9f2ad0c6b3ceff42eb7fcb8f2f4137",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/02-partly-solved-issues/issue308_status.md": {
-    "mtime": 1790364940.598414,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/02-partly-solved-issues/issue308_status.md": {
+    "mtime": 1790412199.1333485,
     "ast_hash": "5b0e665983601d47c385570f369551c1",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/02-partly-solved-issues/issue308_plan.md": {
-    "mtime": 1790364940.598414,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/02-partly-solved-issues/issue308_plan.md": {
+    "mtime": 1790412199.1333485,
     "ast_hash": "454e540b754387d664405588780733c8",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/05-epics/epic341_plan.md": {
-    "mtime": 1790364940.6041265,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/05-epics/epic341_plan.md": {
+    "mtime": 1790412199.160862,
     "ast_hash": "710a2fd6ba74d17c081ece0e8cfb228e",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/05-epics/epic169_plan.md": {
-    "mtime": 1790364940.6041265,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/05-epics/epic169_plan.md": {
+    "mtime": 1790412199.160862,
     "ast_hash": "4f1c66fec08d2e43268a3696a91856d6",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.issueflows/05-epics/epic269_plan.md": {
-    "mtime": 1790364940.6041265,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.issueflows/05-epics/epic269_plan.md": {
+    "mtime": 1790412199.160862,
     "ast_hash": "c1f6faad2a647b8363aa027b0bf18b2d",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.github/workflows/issueflow-sync.yml": {
-    "mtime": 1790364940.5977666,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.github/workflows/issueflow-sync.yml": {
+    "mtime": 1790412199.1309445,
     "ast_hash": "4989980d7fa252dfc263dcbb674ef4a5",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.github/workflows/publish.yml": {
-    "mtime": 1790364940.5977666,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.github/workflows/publish.yml": {
+    "mtime": 1790412199.1309445,
     "ast_hash": "76be774868acef003fdae22954e44591",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.github/workflows/issue-flow-sync.yml": {
-    "mtime": 1790364940.5977666,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.github/workflows/issue-flow-sync.yml": {
+    "mtime": 1790412199.1309445,
     "ast_hash": "58d91db2062632101d1f22b650c95c24",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/.github/workflows/ci.yml": {
-    "mtime": 1790364940.5977175,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/.github/workflows/ci.yml": {
+    "mtime": 1790412199.1306324,
     "ast_hash": "49669ccba2fbb4cd18328be7b556bad9",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/static/images/logo-white.svg": {
-    "mtime": 1790364940.6072307,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/static/images/logo-white.svg": {
+    "mtime": 1790412199.172161,
     "ast_hash": "5059485e01cdbd9e4254a7626d202ff8",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/static/images/logo-black.svg": {
-    "mtime": 1790364940.6071885,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/static/images/logo-black.svg": {
+    "mtime": 1790412199.171914,
     "ast_hash": "fe59521e8e2cc954cba37d29301e91b2",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/static/images/logo-light-right-color.svg": {
-    "mtime": 1790364940.6072307,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/static/images/logo-light-right-color.svg": {
+    "mtime": 1790412199.172161,
     "ast_hash": "d440801d6915d96fa5b7c3244e4dea20",
     "semantic_hash": ""
   },
-  "/home/jepe/scripting/issue-flow-workspace/issue-flow-382/docs/static/images/logo-light-top-color.svg": {
-    "mtime": 1790364940.6072307,
+  "/home/jepe/scripting/issue-flow-workspace/issue-flow-386/docs/static/images/logo-light-top-color.svg": {
+    "mtime": 1790412199.172161,
     "ast_hash": "5f7ae66edf4e06dfad0511b1fe11e92c",
     "semantic_hash": ""
   }

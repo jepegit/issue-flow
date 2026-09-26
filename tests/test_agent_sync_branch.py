@@ -222,3 +222,182 @@ def test_rejects_an_unknown_strategy(work: Path) -> None:
 
     assert exit_code == 1
     assert any("unknown strategy" in note for note in payload["notes"])
+
+
+# ---------------------------------------------------------------------------
+# issue #386 — bookkeeping files beyond HISTORY.md, stacked / squash parents
+# ---------------------------------------------------------------------------
+
+_REGISTRY = ".issueflows/04-designs-and-guides/test-registry.md"
+_STATUS = ".issueflows/01-current-issues/issue961_status.md"
+
+
+def _append(root: Path, rel: str, line: str) -> None:
+    path = root / rel
+    path.parent.mkdir(parents=True, exist_ok=True)
+    text = path.read_text(encoding="utf-8") if path.exists() else ""
+    path.write_text(text + line + "\n", encoding="utf-8")
+
+
+@pytest.fixture
+def bookkeeping(tmp_path: Path) -> Path:
+    """Upstream and branch both append rows / bullets to tracking files only."""
+    upstream = tmp_path / "upstream"
+    upstream.mkdir()
+    _git(upstream, "init", "--initial-branch=main")
+    _git(upstream, "config", "user.name", "Test")
+    _git(upstream, "config", "user.email", "test@example.com")
+    (upstream / "HISTORY.md").write_text(_HISTORY, encoding="utf-8")
+    (upstream / _REGISTRY).parent.mkdir(parents=True)
+    (upstream / _REGISTRY).write_text(
+        "# Test registry\n\n| Test | Why |\n|---|---|\n| test_a | base |\n",
+        encoding="utf-8",
+    )
+    (upstream / _STATUS).parent.mkdir(parents=True)
+    (upstream / _STATUS).write_text(
+        "# Status\n\n- [ ] Done\n\n## Log\n\n- started\n", encoding="utf-8"
+    )
+    _git(upstream, "add", ".")
+    _git(upstream, "commit", "-m", "Initial commit")
+
+    clone = tmp_path / "work"
+    _git(tmp_path, "clone", str(upstream), str(clone))
+    _git(clone, "config", "user.name", "Test")
+    _git(clone, "config", "user.email", "test@example.com")
+    _git(clone, "switch", "-c", "961-child")
+    _append(clone, _REGISTRY, "| test_c | in flight |")
+    _append(clone, _STATUS, "- in-flight note")
+    _git(clone, "commit", "-am", "In-flight bookkeeping")
+
+    _append(upstream, _REGISTRY, "| test_b | landed |")
+    _append(upstream, _STATUS, "- landed note")
+    _git(upstream, "commit", "-am", "Landed bookkeeping")
+    return clone
+
+
+def test_design_guide_and_status_conflicts_resolve_keep_both(
+    bookkeeping: Path,
+) -> None:
+    exit_code, payload = _run(bookkeeping)
+
+    assert exit_code == 0, payload
+    assert sorted(payload["resolved_paths"]) == sorted([_REGISTRY, _STATUS])
+    assert payload["resolvers"][_REGISTRY] == "additive"
+    assert payload["changelog_resolved"] is False
+    registry = (bookkeeping / _REGISTRY).read_text(encoding="utf-8")
+    assert "<<<<<<<" not in registry
+    assert registry.index("| test_b |") < registry.index("| test_c |")
+    status = (bookkeeping / _STATUS).read_text(encoding="utf-8")
+    assert status.index("- landed note") < status.index("- in-flight note")
+    assert gitutils.unmerged_paths(bookkeeping) == []
+
+
+def test_design_guide_heading_conflict_still_aborts(bookkeeping: Path) -> None:
+    """A duplicated `## Link` section is not additive — stop, branch untouched."""
+    _append(bookkeeping, _REGISTRY, "\n## Link\n\nIssue #961.")
+    _git(bookkeeping, "commit", "-am", "Add link section")
+    upstream = bookkeeping.parent / "upstream"
+    _append(upstream, _REGISTRY, "\n## Link\n\nIssue #952.")
+    _git(upstream, "commit", "-am", "Add link section upstream")
+    before = gitutils.head_sha(bookkeeping)
+
+    exit_code, payload = _run(bookkeeping)
+
+    assert exit_code == 1
+    assert payload["resolved_paths"] == []
+    assert gitutils.head_sha(bookkeeping) == before
+    assert not gitutils.rebase_in_progress(bookkeeping)
+
+
+def test_product_conflict_next_to_bookkeeping_aborts(bookkeeping: Path) -> None:
+    upstream = bookkeeping.parent / "upstream"
+    (upstream / "module.py").write_text("VALUE = 2\n", encoding="utf-8")
+    _git(upstream, "add", "module.py")
+    _git(upstream, "commit", "-m", "Upstream module")
+    (bookkeeping / "module.py").write_text("VALUE = 3\n", encoding="utf-8")
+    _git(bookkeeping, "add", "module.py")
+    _git(bookkeeping, "commit", "-m", "Branch module")
+    before = gitutils.head_sha(bookkeeping)
+
+    exit_code, payload = _run(bookkeeping)
+
+    assert exit_code == 1
+    assert any("bookkeeping set" in note for note in payload["notes"])
+    assert gitutils.head_sha(bookkeeping) == before
+
+
+@pytest.fixture
+def stacked(tmp_path: Path) -> Path:
+    """A child branch stacked on a parent that was then squash-merged.
+
+    ``parent`` adds two commits; upstream ``main`` receives them as **one**
+    squash commit (different patch-id, so ``git rebase`` alone cannot skip
+    them). ``child`` sits on top of the unsquashed parent tip.
+    """
+    upstream = tmp_path / "upstream"
+    upstream.mkdir()
+    _git(upstream, "init", "--initial-branch=main")
+    _git(upstream, "config", "user.name", "Test")
+    _git(upstream, "config", "user.email", "test@example.com")
+    (upstream / "HISTORY.md").write_text(_HISTORY, encoding="utf-8")
+    (upstream / "module.py").write_text("VALUE = 1\n", encoding="utf-8")
+    _git(upstream, "add", ".")
+    _git(upstream, "commit", "-m", "Initial commit")
+
+    clone = tmp_path / "work"
+    _git(tmp_path, "clone", str(upstream), str(clone))
+    _git(clone, "config", "user.name", "Test")
+    _git(clone, "config", "user.email", "test@example.com")
+
+    _git(clone, "switch", "-c", "100-parent")
+    (clone / "module.py").write_text("VALUE = 1\nPARENT_A = True\n", encoding="utf-8")
+    _git(clone, "commit", "-am", "parent a")
+    (clone / "module.py").write_text(
+        "VALUE = 1\nPARENT_A = True\nPARENT_B = True\n", encoding="utf-8"
+    )
+    _git(clone, "commit", "-am", "parent b")
+
+    _git(clone, "switch", "-c", "101-child")
+    (clone / "child.py").write_text("CHILD = True\n", encoding="utf-8")
+    _git(clone, "add", "child.py")
+    _git(clone, "commit", "-m", "child work")
+
+    # Squash-merge the parent upstream: one commit with the parent's final tree.
+    (upstream / "module.py").write_text(
+        "VALUE = 1\nPARENT_A = True\nPARENT_B = True\n", encoding="utf-8"
+    )
+    _git(upstream, "commit", "-am", "parent squash (#100)")
+    return clone
+
+
+def test_stacked_child_auto_detects_squash_landed_parent(stacked: Path) -> None:
+    exit_code, payload = _run(stacked)
+
+    assert exit_code == 0, payload
+    assert payload["base_detected"] is True
+    assert payload["base"] == "100-parent"
+    assert payload["dropped_commits"] == 2
+    assert payload["action"] == "rebased"
+    assert gitutils.rev_list_count(stacked, "origin/main", "HEAD") == 1
+    assert (stacked / "child.py").exists()
+    assert "PARENT_B" in (stacked / "module.py").read_text(encoding="utf-8")
+
+
+def test_stacked_child_honours_explicit_base(stacked: Path) -> None:
+    parent_tip = gitutils.branch_tip(stacked, "100-parent")
+    assert parent_tip is not None
+    _git(stacked, "branch", "-D", "100-parent")
+
+    exit_code, payload = _run(stacked, "--base", parent_tip)
+
+    assert exit_code == 0, payload
+    assert payload["base_detected"] is False
+    assert payload["dropped_commits"] == 2
+    assert gitutils.rev_list_count(stacked, "origin/main", "HEAD") == 1
+
+
+def test_explicit_base_must_be_an_ancestor(stacked: Path) -> None:
+    exit_code, payload = _run(stacked, "--base", "origin/main")
+
+    assert exit_code == 1
+    assert any("not an ancestor" in note for note in payload["notes"])

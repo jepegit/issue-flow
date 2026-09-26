@@ -78,6 +78,7 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "pr_merge_method",
         "cycle_max_issues",
         "cycle_onfail",
+        "cycle_nonyolo",
         "auto_adversarial_loops",
         "confirm_version_bump",
         "ruff_autofix",
@@ -612,6 +613,27 @@ def test_cycle_onfail_from_env(
     settings = Settings()
     assert settings.resolve_cycle_onfail(tmp_path) == "skip"
     assert settings.effective_config(tmp_path)["cycle_onfail"] == "skip"
+
+
+def test_cycle_nonyolo_default_and_precedence(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    """#386: non-yolo lane policy defaults to merge; toml > env; invalid ignored."""
+    monkeypatch.delenv("ISSUEFLOW_CYCLE_NONYOLO", raising=False)
+    settings = Settings()
+    assert settings.resolve_cycle_nonyolo(tmp_path) == "merge"
+    assert settings.effective_config(tmp_path)["cycle_nonyolo"] == "merge"
+
+    monkeypatch.setenv("ISSUEFLOW_CYCLE_NONYOLO", "PR_ONLY")
+    assert Settings().resolve_cycle_nonyolo(tmp_path) == "pr-only"
+
+    _write_config(tmp_path, '[issueflow]\ncycle_nonyolo = "stop"\n')
+    assert Settings().resolve_cycle_nonyolo(tmp_path) == "stop"
+
+    _write_config(tmp_path, '[issueflow]\ncycle_nonyolo = "yolo"\n')
+    monkeypatch.setenv("ISSUEFLOW_CYCLE_NONYOLO", "nope")
+    assert Settings().resolve_cycle_nonyolo(tmp_path) == "merge"
 
 
 def test_locked_env_overrides_project(

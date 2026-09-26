@@ -2,7 +2,7 @@
 
 Run this to **process a queue of issues hands-off** with a single up-front confirmation — the batch equivalent of `/iflow-yolo`. Each issue runs the full yolo chain (`capture → plan → build → close yolo`, PR auto-merged); the cycle interrupts you only when input is **strictly necessary**.
 
-Use only when every queued issue is genuinely yolo-fit (small, low-risk, well-specified, test-guarded).
+Best when every queued issue is yolo-fit (small, low-risk, well-specified, test-guarded). Issues the queue tags `yolo: false` still run, on the **non-yolo lane** (same chain, same safeguards; merge per `nonyolo:` policy, default **`{{ cycle_nonyolo }}`**).
 
 {% include "skills/_model_directive.md.j2" %}
 
@@ -13,6 +13,7 @@ Use only when every queued issue is genuinely yolo-fit (small, low-risk, well-sp
 - **explicit numbers** (`12 15 18`), **`yolo`** (alias for `label:{{ yolo_label }}` — all open issues with the configured yolo trigger label), **`label:<L>`**, or **`epic <N> [stage <k>]`**.
 - **`resume`** — pick up an interrupted cycle from `cycle_status.md`.
 - **`onfail:stop`** / **`onfail:skip`** — failure policy. Default from config **`{{ cycle_onfail }}`**; explicit token wins for this run.
+- **`nonyolo:merge`** / **`nonyolo:pr-only`** / **`nonyolo:stop`** — how `yolo: false` issues land (`merge` = auto-merge like yolo; `pr-only` = open the PR and continue; `stop` = halt at the first one). Default from config **`{{ cycle_nonyolo }}`**; explicit token wins for this run.
 - **`parallel:<n>`** — experimental, opt-in: run provably **independent** issues concurrently when the harness supports it (see the skill's *Parallel dispatch* section and `{{ issueflows_dir }}/{{ designs_folder }}/parallel-cycle.md`). Print each worktree path via `issue-flow agent open-workspace` (print-only) — see `{{ issueflows_dir }}/{{ designs_folder }}/separate-workspaces.md`. Sequential is the default; refused when the harness can't confirm background execution.
 - **`max:<n>`** — raise the safety cap (default {{ cycle_max_issues }}) for this run.
 - **`stay`** — forward `stay` to each close (rarely wanted in a cycle).
@@ -28,10 +29,10 @@ The full playbook lives in `{{ agent_dir }}/skills/iflow-cycle/SKILL.md` — fol
 
 1. **Expand `yolo` → `label:{{ yolo_label }}`**, then **resolve the queue** with `issue-flow agent queue --label {{ yolo_label }} --json` (or `agent queue <spec> --json` for other specs). Ordered queue + blocked + skipped_closed; a reported dependency `cycle` stops the run. Empty queue → stop with “nothing to queue.”
 2. **Cap check**: refuse a queue longer than {{ cycle_max_issues }} without `max:<n>`.
-3. **One consolidated confirm**: the ordered queue, skipped/blocked issues, that each PR is auto-merged, and the `onfail` policy. Explicit yes required.
-4. **Write `cycle_status.md`** under `{{ issueflows_dir }}/{{ current_issues_folder }}/`: queue spec, `onfail` policy, timestamp, and the ordered queue as a checklist. Update it as the loop progresses (it makes the run resumable and visible to `/iflow-status`; the folder sweep ignores it).
-5. **Per-issue loop**: from a clean default branch, follow `{{ agent_dir }}/skills/iflow-yolo/SKILL.md` verbatim for each issue (safeguards stay in force; the batch confirm satisfies its per-issue confirm), recording each outcome in `cycle_status.md`.
-6. **Strictly-necessary-input rule**: stop and ask only for unfixable failures, refused merges / non-fast-forward pulls, ambiguous or not-actually-small specs, or anything outside the confirmed queue. Everything else proceeds.
+3. **One consolidated confirm**: the ordered queue, skipped/blocked issues, the **non-yolo** issues (`nonyolo` in the queue payload) and their `nonyolo` policy, that each yolo-lane PR is auto-merged (and non-yolo ones too under `merge`), and the `onfail` policy. Explicit yes required.
+4. **Write `cycle_status.md`** under `{{ issueflows_dir }}/{{ current_issues_folder }}/`: queue spec, `onfail` + `nonyolo` policies, timestamp, and the ordered queue as a checklist (`(non-yolo)` marked). Update it as the loop progresses (it makes the run resumable and visible to `/iflow-status`; the folder sweep ignores it).
+5. **Per-issue loop**: from a clean default branch, **yolo lane** → follow `{{ agent_dir }}/skills/iflow-yolo/SKILL.md` verbatim; **non-yolo lane** → same chain and safeguards, then `close yolo` (`merge`) or plain `close` (`pr-only`), or halt before the issue (`stop`). The batch confirm satisfies each per-issue confirm. Record each outcome in `cycle_status.md`. “Already merged” on the merge step is a success.
+6. **Strictly-necessary-input rule**: stop and ask only for unfixable failures, refused merges / non-fast-forward pulls that `agent sync-branch` cannot resolve (it handles additive `{{ history_file }}` / design-guide / status-file conflicts and squash-landed stacked parents), ambiguous or contradictory specs (or not-actually-small ones on the yolo lane), or anything outside the confirmed queue. Everything else proceeds.
 7. **Failure policy**: `onfail:stop` or `onfail:skip` (default from config `cycle_onfail` = **`{{ cycle_onfail }}`**; token overrides). `stop` halts the cycle clean on the default branch; `skip` parks the failed issue (pause conventions) and continues.
 8. **Finish**: mark `cycle_status.md` done and move it to `{{ solved_folder }}/cycle_status_<date>.md`.
 9. **Batch report**: per-issue outcome, skipped/blocked, stop reason + not-reached{% if remind_cleanup %}; remind the user to run `/iflow-cleanup` once{% endif %}.
@@ -41,5 +42,6 @@ The full playbook lives in `{{ agent_dir }}/skills/iflow-cycle/SKILL.md` — fol
 ## Constraints
 
 - Off-path: `/iflow` never auto-dispatches to `/iflow-cycle`.
-- Never weaken a yolo safeguard to keep moving — safeguards are stop conditions.
+- Never weaken a yolo safeguard to keep moving — safeguards are stop conditions. The non-yolo lane changes how a PR lands, never which safeguards run.
+- A `yolo: false` issue is not a stop by itself unless `nonyolo:stop`.
 - Never run `/iflow-cleanup` from this skill.

@@ -33,6 +33,7 @@ from issue_flow.modes import (
     DEFAULT_WORKTREES_IN_WORKSPACE,
     DEFAULT_AUTO_ADVERSARIAL_LOOPS,
     DEFAULT_CYCLE_MAX_ISSUES,
+    DEFAULT_CYCLE_NONYOLO,
     DEFAULT_CYCLE_ONFAIL,
     DEFAULT_DEEP_MODEL_LABEL,
     DEFAULT_FAST_MODEL_LABEL,
@@ -57,6 +58,7 @@ from issue_flow.modes import (
     Mode,
     normalize_essential_review,
     normalize_pr_merge_method,
+    normalize_cycle_nonyolo,
     normalize_cycle_onfail,
     normalize_test_runner,
 )
@@ -576,6 +578,21 @@ class Settings:
             return normalized
         return DEFAULT_CYCLE_ONFAIL
 
+    def resolve_cycle_nonyolo(self, project_root: Path) -> str:
+        """Resolve the non-yolo lane merge policy (merge / pr-only / stop)."""
+        persisted = modes_module.read_cycle_nonyolo(self.config_path(project_root))
+        if persisted:
+            return persisted
+        user = self.user_global_or("cycle_nonyolo", None)
+        if user:
+            normalized_user = normalize_cycle_nonyolo(str(user))
+            if normalized_user:
+                return normalized_user
+        normalized = normalize_cycle_nonyolo(os.getenv("ISSUEFLOW_CYCLE_NONYOLO"))
+        if normalized:
+            return normalized
+        return DEFAULT_CYCLE_NONYOLO
+
     def resolve_cycle_max_issues(self, project_root: Path) -> int:
         """Resolve the default ``/iflow-cycle`` queue safety cap.
 
@@ -855,6 +872,7 @@ class Settings:
                 auto_adversarial_loops = parsed_loops
         pr_merge = normalize_pr_merge_method(os.getenv("ISSUEFLOW_PR_MERGE_METHOD"))
         cycle_onfail = normalize_cycle_onfail(os.getenv("ISSUEFLOW_CYCLE_ONFAIL"))
+        cycle_nonyolo = normalize_cycle_nonyolo(os.getenv("ISSUEFLOW_CYCLE_NONYOLO"))
         test_runner = normalize_test_runner(os.getenv("ISSUEFLOW_TEST_RUNNER"))
         essential_marker_env = os.getenv("ISSUEFLOW_ESSENTIAL_MARKER")
         essential_review = normalize_essential_review(
@@ -950,6 +968,7 @@ class Settings:
             "pr_merge_method": pr_merge or DEFAULT_PR_MERGE_METHOD,
             "cycle_max_issues": cycle_max_issues,
             "cycle_onfail": cycle_onfail or DEFAULT_CYCLE_ONFAIL,
+            "cycle_nonyolo": cycle_nonyolo or DEFAULT_CYCLE_NONYOLO,
             "auto_adversarial_loops": auto_adversarial_loops,
             "confirm_version_bump": _env_flag(
                 "ISSUEFLOW_CONFIRM_VERSION_BUMP", default=DEFAULT_CONFIRM_VERSION_BUMP
@@ -1021,6 +1040,7 @@ class Settings:
             "pr_merge_method": self.resolve_pr_merge_method(project_root),
             "cycle_max_issues": self.resolve_cycle_max_issues(project_root),
             "cycle_onfail": self.resolve_cycle_onfail(project_root),
+            "cycle_nonyolo": self.resolve_cycle_nonyolo(project_root),
             "auto_adversarial_loops": self.resolve_auto_adversarial_loops(project_root),
             "confirm_version_bump": self.resolve_confirm_version_bump(project_root),
             "ruff_autofix": self.resolve_ruff_autofix(project_root),
@@ -1121,6 +1141,7 @@ class Settings:
             "pr_merge_method": self.resolve_pr_merge_method(project_root),
             "cycle_max_issues": self.resolve_cycle_max_issues(project_root),
             "cycle_onfail": self.resolve_cycle_onfail(project_root),
+            "cycle_nonyolo": self.resolve_cycle_nonyolo(project_root),
             "auto_adversarial_loops": self.resolve_auto_adversarial_loops(project_root),
             "confirm_version_bump": self.resolve_confirm_version_bump(project_root),
             "ruff_autofix": self.resolve_ruff_autofix(project_root),
