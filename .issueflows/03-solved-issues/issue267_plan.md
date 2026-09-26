@@ -2,32 +2,20 @@
 
 ## Goal
 
-Re-check the 2026-09-12 remote-branch findings and only delete a remote
-when its tip work is already on `main`.
-
-## Scope check — abort yolo
-
-Not a small hands-off change. `issue-flow agent branches` on 2026-09-26
-still puts three remotes in `unique_work`, and the issue says not to
-delete those without a review:
-
-- `140-agent-queue-cli` — 3 commits, no merged PR (`111c6fb`)
-- `cursor/163-github-branches-e2ca` — merged PR #188, tip still differs (`6302079`)
-- `cursor/gha-sync-issueflows-08d1` — merged PR #160, tip still differs (`d765ca5`)
-
-Deleting them is a destructive remote op. Deciding that the tips are
-discarded or already recovered is a human call. Yolo stops here. No
-build, no push, no remote delete.
+Record that the three audited remotes were deleted after review, and
+close the findings issue. No new product code.
 
 ## Approach
 
-None in this cycle. Inspect the three tips, then delete by hand only
-the ones whose work is already on `main`.
+The 2026-09-26 re-audit found the same three remotes. Their tips were
+already-landed work (rebased or squash-merged). The user deleted them.
+This close records that in `HISTORY.md`.
 
 ## Files to touch
 
-None.
+- `HISTORY.md`
+- Issue tracking files, moved to `03-solved-issues/`
 
 ## Test strategy
 
-None. No product change.
+No new tests. Full `uv run pytest` before close.
