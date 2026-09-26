@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- Epic #269 is complete: user-global config, per-repo lock, the project registry, and `update --all` shipped in stages #281–#298. (#269)
+
 ## [0.5.15] - 2026-09-26
 
 - A `publish` label (`publish_label`, default `publish`; payloads `publish:<level>` or `publish:<version>`) bumps the version at close (default patch) and creates a GitHub release after merge. An illogical explicit version stops and asks. (#308)

@@ -2,6 +2,7 @@
 
 Anchor: https://github.com/jepegit/issue-flow/issues/269
 Status: confirmed
+Completed: 2026-09-26
 
 ## Goal
 
