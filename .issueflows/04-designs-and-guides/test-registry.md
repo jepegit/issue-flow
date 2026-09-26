@@ -38,6 +38,8 @@ current issue**. `/iflow-doctor` may audit the whole suite against this table.
 | `tests/test_cli.py::test_agent_state_reports_version_drift` | no | no | `agent.version_drift_fields`, `rendered_skills_version` | #386 | Stale-skills warning surface |
 | `tests/test_version.py::test_version_comes_from_package_metadata` | yes | yes | `issue_flow.__version__` | #386 | Root cause of every stale `issue-flow-version` stamp; cheap |
 | `tests/test_cleanup_yes_warning.py` (module) | no | no | `init._warn_cleanup_yes_a2` | #388 | Warning when `cleanup_yes_a2` is on; leave unmarked |
+| `tests/test_workspace_cleanup.py` (module) | no | no | `agent.run_workspace_cleanup`, `classify_local_branches`, `--apply` / `--yes-delete-squash-landed` | #392 | Real temp git repos (~12 s); AC1 bucket parity, refusals, non-ff skip, `unique_work` never deleted |
+| `tests/test_templating.py::test_cleanup_documents_workspace_mode` | no | no | cleanup skill/command workspace-mode text | #392 | Text contract; leave unmarked |
 | `tests/test_templating.py::test_cleanup_bakes_yes_knobs` | no | no | cleanup/close skill bake of `cleanup_yes_*` / `auto_cleanup` | #388 | Config default bake; leave unmarked |
 | `tests/test_doc_configuration.py::test_all_settings_table_lists_every_config_key_once` | yes | yes | `docs/configuration.md` vs `CONFIG_KEYS` | #388 | Already essential; digit keys (`cleanup_yes_a1`) must match |
 | `tests/test_templating.py::test_issue_create_skills_use_body_file_not_bash_heredoc` | no | no | `_gh_body_file.md.j2` included from issue/fix/close | #380 | Docs/skill contract; leave unmarked |

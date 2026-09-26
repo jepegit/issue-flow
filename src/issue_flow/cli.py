@@ -1810,6 +1810,71 @@ def workspace_dirty(
     raise typer.Exit(code=run_workspace_dirty(workspace_dir, _console, json_output))
 
 
+@workspace_app.command("cleanup")
+def workspace_cleanup(
+    workspace_dir: Path = _WORKSPACE_DIR_ARGUMENT,
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Classify only, even when --apply is given.",
+    ),
+    apply: bool = typer.Option(
+        False,
+        "--apply",
+        help=(
+            "Run Phase A1 per member: switch to default, pull --ff-only when "
+            "fast-forwardable, remove reachable worktrees, `git branch -d` "
+            "reachable branches. Non-interactive callers only — the skill "
+            "asks first."
+        ),
+    ),
+    yes_delete_squash_landed: bool = typer.Option(
+        False,
+        "--yes-delete-squash-landed",
+        help=(
+            "With --apply: also `git branch -D` squash_landed / "
+            "merged_pr_divergent branches (Phase A2). Tip SHAs are reported "
+            "for recovery. Never touches unique_work."
+        ),
+    ),
+    no_fetch: bool = typer.Option(
+        False, "--no-fetch", help="Skip `git fetch --prune` in each member."
+    ),
+    extra_root: list[Path] = typer.Option(
+        [],
+        "--extra-root",
+        help=(
+            "Additional scaffolded repo outside the registry to include (repeatable)."
+        ),
+    ),
+) -> None:
+    """Post-merge branch cleanup across every scaffolded workspace member.
+
+    Classify-only by default: fetch, ``default-sync`` classification, the
+    ``agent local-branches`` buckets, linked worktrees, and a computed
+    A1 / A2 plan per member. Members with a dirty product-code tree,
+    detached HEAD, or no ``origin`` are skipped and reported. Never
+    rebases, force-pushes, or deletes ``unique_work``.
+    """
+    from issue_flow.agent import run_workspace_cleanup
+
+    raise typer.Exit(
+        code=run_workspace_cleanup(
+            workspace_dir,
+            _console,
+            json_output,
+            fetch=not no_fetch,
+            dry_run=dry_run,
+            apply=apply,
+            yes_delete_squash_landed=yes_delete_squash_landed,
+            extra_roots=list(extra_root),
+        )
+    )
+
+
 @workspace_git_app.callback(invoke_without_command=True)
 def workspace_git_default(ctx: typer.Context) -> None:
     """Default verb is ``status`` when no subcommand is given."""

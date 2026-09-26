@@ -5,7 +5,7 @@ description: >-
   through the yolo chain under one up-front confirm. Stops only when input is
   strictly necessary.
 disable-model-invocation: true
-issue-flow-version: 0.5.15
+issue-flow-version: 0.5.17
 ---
 
 # issue-flow — issue cycle (`/iflow-cycle`)

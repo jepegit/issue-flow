@@ -27,6 +27,7 @@ one repo.
 | Toml exists; refresh skills/rules in every member | `issue-flow workspace update` |
 | Status / doctor / dirty-tree for every member | `issue-flow workspace status` / `doctor` / `dirty` |
 | Git status / fetch for every member | `issue-flow workspace git status` / `fetch` |
+| Which landed branches every member could delete (read-only) | `issue-flow workspace cleanup` |
 | Peek before writing (no `init`, no toml) | `issue-flow workspace bootstrap --json` |
 
 `--default` is the member folder name lifecycle commands use when you are
@@ -118,7 +119,8 @@ issue-flow workspace doctor
 issue-flow workspace dirty          # after workspace update
 issue-flow workspace git status     # branch / dirty / ahead-behind
 issue-flow workspace git fetch      # git fetch --prune only
-iflow cleanup workspace             # opt-in sequential per-repo cleanup
+issue-flow workspace cleanup        # landed-branch plan per member (read-only)
+iflow cleanup all                   # agent path: one A1 + one A2 confirm for all
 iflow git                           # agent path for workspace git
 ```
 
@@ -126,6 +128,16 @@ iflow git                           # agent path for workspace git
 `issue-flow doctor --fix -C batbase`. After `workspace update`,
 `workspace dirty` lists members whose tree changed; land those commits
 per repo (chore branch if you are on default). There is no auto-push.
+
+**After a day of merges** across several members, `iflow cleanup all`
+runs the post-merge branch cleanup for the whole workspace: it surveys
+with `issue-flow workspace cleanup --json`, then asks once for the
+`-d` phase and once, separately, for the `-D` phase (squash-landed
+branches, tip SHAs printed). Members with a dirty product-code tree,
+detached HEAD, or no `origin` are skipped and reported; a member whose
+default branch cannot fast-forward is never pulled. Branches with unique
+work are never offered. Details:
+[CLI: `workspace cleanup`](../cli.md#issue-flow-workspace-cleanup).
 
 ## Related
 

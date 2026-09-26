@@ -6,7 +6,7 @@ description: >-
   caveman mode, token-greedy / terse answers, or says "be brief" / "stop
   wasting tokens". Stays active across the session once on; off via "stop
   caveman" / "normal mode".
-issue-flow-version: 0.5.15
+issue-flow-version: 0.5.17
 ---
 
 # Be token greedy - as a caveman

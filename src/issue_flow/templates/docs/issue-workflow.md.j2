@@ -201,7 +201,7 @@ Every command below is described the same way: **When to use**, **Arguments**, *
 
 **When to use:** The PR opened by `/iflow-close` has merged on GitHub. (The optional GitHub remote audit can also run when you only want a remote-branch report.)
 
-**Arguments:** Nothing (acts on the current branch), an explicit branch name, and/or a GitHub-audit token such as `include GitHub` / `with github` / `github`. Opt out of a baked-on Phase B with `no github` / `local only`. With `cleanup_include_github = true` in `config.toml`, Phase B runs by default without a token. Self-update tokens (`bleeding edge` / `no bleeding`) gate `issue-flow agent self-update` after a successful FF pull; with `on_bleeding_edge = true` that step runs by default.
+**Arguments:** Nothing (acts on the current branch), an explicit branch name, and/or a GitHub-audit token such as `include GitHub` / `with github` / `github`. Opt out of a baked-on Phase B with `no github` / `local only`. With `cleanup_include_github = true` in `config.toml`, Phase B runs by default without a token. Self-update tokens (`bleeding edge` / `no bleeding`) gate `issue-flow agent self-update` after a successful FF pull; with `on_bleeding_edge = true` that step runs by default. Trailing `all` (or `workspace`) runs cleanup for **every scaffolded workspace member** in one pass — surveyed by `issue-flow workspace cleanup --json`, with one Phase A1 confirm and one Phase A2 confirm for the whole workspace; members with a dirty product-code tree, detached HEAD, or no `origin` are skipped and reported.
 
 **What it does:**
 

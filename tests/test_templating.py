@@ -818,6 +818,30 @@ def test_cleanup_documents_orchestrator_token() -> None:
     assert "`drive` / `landed`" in cmd
 
 
+def test_cleanup_documents_workspace_mode() -> None:
+    """Issue #392: `/iflow-cleanup all` — consolidated confirms, CLI half."""
+    ctx = _default_context()
+    skill = render_template("skills/iflow_cleanup/SKILL.md.j2", ctx)
+    assert "issue-flow workspace cleanup --json" in skill
+    assert "issue-flow workspace cleanup --apply --json" in skill
+    assert (
+        "issue-flow workspace cleanup --apply --yes-delete-squash-landed --json"
+        in skill
+    )
+    assert "never more than three" in skill
+    assert "unless invoked with `all`" in skill
+    assert "There is no mute `workspace cleanup` CLI" not in skill
+    # A1 never implies A2; unique work stays out of every confirm.
+    assert "A1 never authorises A2" in skill
+    assert "**Never** list `unique_work` or `skipped` branches" in skill
+    # Non-ff members are listed with their default-sync action and skipped.
+    assert "not `even` / `ff_only`" in skill
+    cmd = render_template("commands/iflow-cleanup.md.j2", ctx)
+    assert "issue-flow workspace cleanup --json" in cmd
+    assert "--yes-delete-squash-landed" in cmd
+    assert "unless invoked with `all`" in cmd
+
+
 def test_iflow_dispatcher_warns_on_version_drift() -> None:
     ctx = _default_context()
     skill = render_template("skills/iflow_iflow/SKILL.md.j2", ctx)

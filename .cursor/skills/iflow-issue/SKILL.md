@@ -4,7 +4,7 @@ description: >-
   Create one well-specified normal GitHub issue, then optionally branch and
   run /iflow-capture into the standard lifecycle.
 disable-model-invocation: true
-issue-flow-version: 0.5.15
+issue-flow-version: 0.5.17
 ---
 
 # issue-flow — create a normal issue (`/iflow-issue`)

@@ -4,7 +4,7 @@ description: >-
   Bump the project version following the project's release strategy: static
   pyproject versions via uv, or tag-derived versions via a planned git tag.
 disable-model-invocation: true
-issue-flow-version: 0.5.15
+issue-flow-version: 0.5.17
 ---
 
 # issue-flow — version bump

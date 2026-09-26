@@ -6,7 +6,7 @@ description: >-
   review, then local cleanup (-d reachable, -D squash-landed) and
   /iflow-status.
 disable-model-invocation: true
-issue-flow-version: 0.5.15
+issue-flow-version: 0.5.17
 ---
 
 # issue-flow — drive (`/iflow-drive`)
