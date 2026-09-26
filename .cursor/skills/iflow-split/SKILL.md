@@ -83,6 +83,23 @@ When `.issueflows/04-designs-and-guides/multi-repo-workspaces.md` exists, read i
 5. **Consolidated confirm** (normal prose, never shortened). One prompt covering: parent `#N` stays **open** as the tracker; each listed child title will be created; each will be linked as a GitHub native sub-issue; a `- [ ] #<M>` task-list block will be appended on the parent under `## Sub-issues`. No yes → stop.
 6. **Create + link (idempotent).** For each unpublished child:
    1. `gh issue create --repo <owner/repo>` (labels/milestones only if the user asked this turn). Capture number `M`.
+
+**Multi-line GitHub text (PowerShell-safe).** Bash `<<'EOF'` heredocs fail in Windows PowerShell (`Missing file specification after redirection operator`). Write the text to a file and pass that file:
+
+- `gh issue create`, `gh issue edit`, and `gh pr create` take `--body-file <path>`.
+- `git commit` takes `-F <path>`.
+
+```powershell
+@'
+line one
+
+line two
+'@ | Set-Content -Encoding utf8 body.md
+gh issue create --repo owner/repo --title "title" --body-file body.md
+```
+
+Bash accepts the same `--body-file` / `-F` flags. Use that pattern for every multi-line body.
+
    2. Link as a native sub-issue. Prefer the CLI fast path:
       `issue-flow agent sub-issue-add <N> <M> -C <project_root> [--repo owner/repo] --json`
       Fields: `linked`, `skipped` (already a child), `error`. On CLI missing or `error` set, fall back to the REST recipe below — then if that also fails (404 / permission / plan), **keep the created issue** and rely on the parent task list.

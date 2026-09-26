@@ -61,6 +61,24 @@ re-resolve that venv.
 
 Confirm before running upgrade/update unless the human already said to do it.
 
+## Multi-line GitHub text on PowerShell
+
+Bash `<<'EOF'` heredocs fail in Windows PowerShell (`Missing file
+specification after redirection operator`). Write the body to a file.
+
+```powershell
+@'
+line one
+
+line two
+'@ | Set-Content -Encoding utf8 body.md
+gh issue create --repo owner/repo --title "title" --body-file body.md
+```
+
+Use `--body-file` for `gh issue create`, `gh issue edit`, and `gh pr create`.
+Use `git commit -F <path>` for a multi-line commit message. Bash accepts the
+same flags. Do not offer a bash heredoc as the only example.
+
 ## Initialize issue-flow globally
 
 User-global `iflow-init` is written on the first successful `issue-flow init`

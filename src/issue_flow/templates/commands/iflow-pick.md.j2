@@ -44,6 +44,8 @@ Optional free-form text after the command:
 
 4. **Create a `fix` issue (only when requested).** When the user passed `fix` (or explicitly asks for a general-fixes bucket): create a **new** GitHub issue with `gh issue create` (e.g. title `chore: general fixes`, body noting it is a catch-all for small fixes/typos/chores). Confirm the title/body with the user first. Record the returned issue number and use it as the chosen issue. A fresh issue is created each time — existing open general-fixes issues are **not** reused.
 
+{% include "skills/_gh_body_file.md.j2" %}
+
 5. **Over-large issue (offer only).** If the chosen issue looks too involved to land in one PR, **mention** `/iflow-split` (flat parent/child) or `/iflow-epic` (staged) and ask. Default is proceed with the whole issue. Do **not** create children here.
 {% if label_flows and "iflow-ops" in included_commands %}
 6. **Label-driven ops flow.** If the chosen issue carries the **`{{ ops_label }}`** label (case-insensitive; check `labels` from `gh issue list` / `gh issue view`), mark it for `/iflow-ops`:

@@ -37,6 +37,8 @@ This is an **off-path** command — the lifecycle dispatcher (`/iflow`) never au
 
 6. **Create + link (idempotent).** For each unpublished child:
    1. `gh issue create --repo owner/repo` (labels/milestones only if the user asked this turn). Capture `M`.
+
+{% include "skills/_gh_body_file.md.j2" %}
    2. Link: prefer `issue-flow agent sub-issue-add <N> <M> -C <project_root> [--repo owner/repo] --json` (`linked` / `skipped` / `error`). CLI missing or error → REST fallback. REST also failing (404 / permission / plan) → keep the created issue and rely on the parent task list.
    3. **REST recipe** (do not use `gh api -f` — it stringifies and 422s). `sub_issue_id` is the child's numeric **database id**, not the issue number:
 

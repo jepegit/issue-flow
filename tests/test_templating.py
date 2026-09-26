@@ -1324,6 +1324,20 @@ def test_iflow_issue_skill_mirrors_command() -> None:
     assert "Acceptance criteria" in rendered
 
 
+def test_issue_create_skills_use_body_file_not_bash_heredoc() -> None:
+    """Multi-line gh bodies must name --body-file and the PowerShell failure."""
+    for name in (
+        "skills/iflow_issue/SKILL.md.j2",
+        "commands/iflow-issue.md.j2",
+        "skills/iflow_fix/SKILL.md.j2",
+        "skills/iflow_close/SKILL.md.j2",
+    ):
+        rendered = render_template(name, _default_context())
+        assert "--body-file" in rendered, name
+        assert "PowerShell" in rendered, name
+        assert "<<'EOF'" in rendered, name
+
+
 def test_iflow_lists_issue_as_off_path() -> None:
     """/iflow and its skill must list /iflow-issue among the explicit-only commands."""
     cmd = render_template("commands/iflow.md.j2", _default_context())
