@@ -11,6 +11,7 @@ than the GitHub release notes they link to.
 
 - Epic #269 is complete: user-global config, per-repo lock, the project registry, and `update --all` shipped in stages #281–#298. (#269)
 - Skills that create multi-line GitHub text now say to use `--body-file` or `git commit -F`. Bash `<<'EOF'` heredocs fail in Windows PowerShell. (#380)
+- The 2026-09-12 remote-branch audit's three stale remotes were deleted after review: `140-agent-queue-cli`, `cursor/163-github-branches-e2ca`, and `cursor/gha-sync-issueflows-08d1`. Their work had already landed. (#267)
 
 ## [0.5.15] - 2026-09-26
 
