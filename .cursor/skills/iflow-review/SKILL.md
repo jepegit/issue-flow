@@ -3,7 +3,7 @@ name: iflow-review
 description: >-
   Review open GitHub issues and apply labels (extendable kinds; v1: yolo).
 disable-model-invocation: true
-issue-flow-version: 0.5.14
+issue-flow-version: 0.5.15
 ---
 
 # issue-flow — review and label issues (`/iflow-review`)

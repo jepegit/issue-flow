@@ -704,6 +704,16 @@ def run_update(
         "(foreign packaged skill dirs were skipped unless --force). "
         "Issue files under [bold].issueflows/[/bold] were not modified by this command.[/dim]\n"
     )
+    _warn_cleanup_yes_a2(project_root)
+
+
+def _warn_cleanup_yes_a2(project_root: Path) -> None:
+    """Print a one-line warning when Phase A2 will skip its confirm (issue #388)."""
+    if Settings().resolve_cleanup_yes_a2(project_root):
+        console_io.console.print(
+            "[yellow]warning[/yellow]  cleanup_yes_a2 is on: "
+            "/iflow-cleanup will git branch -D squash-landed branches without asking."
+        )
 
 
 def _register_project_root(project_root: Path) -> None:
@@ -801,6 +811,7 @@ def run_update_all(
             _run_member_update(root)
             entry["ok"] = True
             entry["skipped"] = False
+            entry["cleanup_yes_a2"] = settings.resolve_cleanup_yes_a2(root)
             ok_count += 1
         except typer.Exit as exc:
             entry["ok"] = False

@@ -4,7 +4,7 @@ description: >-
   Finish and land the focus issue: tests, optional version bump, status
   update, commit, push, and PR.
 disable-model-invocation: true
-issue-flow-version: 0.5.14
+issue-flow-version: 0.5.15
 ---
 
 # issue-flow — issue close (`/iflow-close`)

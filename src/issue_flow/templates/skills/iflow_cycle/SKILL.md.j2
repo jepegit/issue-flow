@@ -87,7 +87,7 @@ The lane never changes a **stop condition** (step 6): tests failing, a scope che
 
 8. **Finish.** When the queue is exhausted (or halted), finalize `cycle_status.md` (mark it `- [x] Done`) and move it to `{{ issueflows_dir }}/{{ solved_folder }}/cycle_status_<YYYY-MM-DD>.md` so it is archived, not re-detected as in-flight.
 
-9. **Batch report.** Summarize the whole run: per issue — number, title, PR URL, merge result (merged / queued via `--auto` / failed-and-skipped / not reached), and duration if tracked; then the queue items **skipped** (closed), **blocked** (with blockers), and — on a halt — the **stop reason** and which issues were **not reached**.{% if remind_cleanup %} End by reminding the user to run `/iflow-cleanup` once to prune the merged local branches.{% endif %}
+9. **Batch report.** Summarize the whole run: per issue — number, title, PR URL, merge result (merged / queued via `--auto` / failed-and-skipped / not reached), and duration if tracked; then the queue items **skipped** (closed), **blocked** (with blockers), and — on a halt — the **stop reason** and which issues were **not reached**.{% if auto_cleanup %} When every reached issue merged and the tree is clean on the default branch, follow `/iflow-cleanup` once (`auto_cleanup = true`; it does not merge). If any merge is only queued, stop and report instead of cleaning up.{% elif remind_cleanup %} End by reminding the user to run `/iflow-cleanup` once to prune the merged local branches.{% endif %}
 
 ## Resuming
 
@@ -142,6 +142,8 @@ landed). Everything else still trips step 6b. For experimental concurrent work, 
 - **Sequential is the default and floor.** Parallelism (`parallel:<n>`) is opt-in and experimental; refusing it must always leave a working sequential run.
 - Never weaken a yolo safeguard to keep the cycle moving — safeguards are stop conditions, not obstacles. The non-yolo lane changes *how a PR lands*, never which safeguards run.
 - A `yolo: false` issue is **not** a stop condition by itself unless the policy is `nonyolo:stop`; list the non-yolo issues in the confirm so the operator sees the lane before the run starts.
-- Never run `/iflow-cleanup` from this skill; batch branch deletion still needs the user to see the merged PRs first.
+{% if auto_cleanup %}- When the batch finished with every reached PR merged, run `/iflow-cleanup` once (`auto_cleanup = true`). A queued merge is not merged: stop and report.
+{% else %}- Never run `/iflow-cleanup` from this skill; batch branch deletion still needs the user to see the merged PRs first.
+{% endif %}
 - One consolidated confirm covers the batch; never silently expand the queue beyond what was confirmed.
 - `cycle_status.md` is the single source of truth for an in-flight cycle: keep it current so `resume` and `/iflow-status` stay accurate. It is not an `issue<N>_*` group, so the folder sweep leaves it alone; archive it (step 8) when the run ends.

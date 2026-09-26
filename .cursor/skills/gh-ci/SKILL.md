@@ -7,7 +7,7 @@ description: >-
   gh run list and gh run watch when PR checks are empty or unavailable. Use
   when waiting for CI, merge-ready, Actions pending/failed, or the user
   mentions gh run watch / gh pr checks / "CI green".
-issue-flow-version: 0.5.14
+issue-flow-version: 0.5.15
 ---
 
 # gh-ci — wait on GitHub CI with `gh`

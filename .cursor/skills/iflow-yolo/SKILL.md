@@ -4,7 +4,7 @@ description: >-
   Chain capture → plan → build → close yolo for a small, low-risk issue under
   one consolidated confirm. Stops on any ambiguity.
 disable-model-invocation: true
-issue-flow-version: 0.5.14
+issue-flow-version: 0.5.15
 ---
 
 # issue-flow — issue yolo (`/iflow-yolo`)
@@ -83,3 +83,4 @@ Report the PR URL, the merge result (merged, or queued via `--auto`), and the fi
 - Do not override downstream commands' own constraints (never `git branch -D` — the squash-landed force-delete confirm belongs to an interactive `/iflow-cleanup`, no force-push beyond close's own `--force-with-lease` after a sync, etc.). `/iflow-yolo` is a chain, not a free pass.
 - If **any** downstream step requires a human decision (unrelated changes in `git status`, ambiguous version bump, merge conflict, failed test), **stop** and hand back to the user.
 - Never run `/iflow-cleanup` from this skill. Branch deletion always needs the user to see the merged PR first.
+

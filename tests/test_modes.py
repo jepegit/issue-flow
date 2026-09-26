@@ -345,6 +345,7 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
         DEFAULT_CONFIRM_VERSION_BUMP,
         DEFAULT_AUTO_BUILD,
         DEFAULT_AUTO_CLOSE,
+        DEFAULT_AUTO_CLEANUP,
         DEFAULT_AUTO_PLAN,
         DEFAULT_EARLY_PR,
         DEFAULT_FIX_AUTO_NAME,
@@ -358,6 +359,8 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
         DEFAULT_AUTO_ADVERSARIAL_LOOPS,
         DEFAULT_PR_MERGE_METHOD,
         DEFAULT_CLEANUP_INCLUDE_GITHUB,
+        DEFAULT_CLEANUP_YES_A1,
+        DEFAULT_CLEANUP_YES_A2,
         DEFAULT_ON_BLEEDING_EDGE,
         DEFAULT_NOOB,
         DEFAULT_REMIND_CLEANUP,
@@ -367,6 +370,7 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
         read_confirm_version_bump,
         read_auto_build,
         read_auto_close,
+        read_auto_cleanup,
         read_auto_plan,
         read_early_pr,
         read_fix_auto_name,
@@ -381,6 +385,8 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
         read_auto_adversarial_loops,
         read_pr_merge_method,
         read_cleanup_include_github,
+        read_cleanup_yes_a1,
+        read_cleanup_yes_a2,
         read_on_bleeding_edge,
         read_noob,
         read_remind_cleanup,
@@ -401,6 +407,8 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
     assert read_remind_cleanup(cfg) is DEFAULT_REMIND_CLEANUP
     assert read_noob(cfg) is DEFAULT_NOOB
     assert read_cleanup_include_github(cfg) is DEFAULT_CLEANUP_INCLUDE_GITHUB
+    assert read_cleanup_yes_a1(cfg) is DEFAULT_CLEANUP_YES_A1
+    assert read_cleanup_yes_a2(cfg) is DEFAULT_CLEANUP_YES_A2
     assert read_on_bleeding_edge(cfg) is DEFAULT_ON_BLEEDING_EDGE
     assert read_suggest_graphify(cfg) is DEFAULT_SUGGEST_GRAPHIFY
     assert read_auto_graphify_on_plan(cfg) is DEFAULT_AUTO_GRAPHIFY_ON_PLAN
@@ -414,6 +422,7 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
     assert read_confirm_version_bump(cfg) is DEFAULT_CONFIRM_VERSION_BUMP
     assert read_ruff_autofix(cfg) is DEFAULT_RUFF_AUTOFIX
     assert read_auto_close(cfg) is DEFAULT_AUTO_CLOSE
+    assert read_auto_cleanup(cfg) is DEFAULT_AUTO_CLEANUP
     assert read_auto_plan(cfg) is DEFAULT_AUTO_PLAN
     assert read_auto_build(cfg) is DEFAULT_AUTO_BUILD
     assert read_early_pr(cfg) is DEFAULT_EARLY_PR

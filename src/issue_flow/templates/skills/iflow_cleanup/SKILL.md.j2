@@ -28,12 +28,17 @@ Optional free-form text after the command:
 - **GitHub remote audit (opt-out tokens)** — trailing `no github`, `local only`, or `local-only` (case-insensitive) **skips Phase B** even when `cleanup_include_github` is baked true.
 - **Self-update (opt-in tokens)** — trailing `bleeding edge`, `bleeding-edge`, or `self-update` (case-insensitive) enables the package upgrade after a successful FF pull.{% if on_bleeding_edge %} This project bakes `on_bleeding_edge = true`, so self-update **also runs by default** unless an opt-out token is present.{% endif %}
 - **Self-update (opt-out tokens)** — trailing `no bleeding`, `no bleeding-edge`, or `skip self-update` (case-insensitive) **skips** the upgrade even when `on_bleeding_edge` is baked true.
+- **Phase A ask tokens** — trailing `ask a1` or `ask a2` (case-insensitive) forces that phase's yes/no prompt even when `cleanup_yes_a1` / `cleanup_yes_a2` is baked true.
 - **Pre-authorized force-delete (orchestrator token)** — trailing `drive` (or `landed`) means the caller (`/iflow-drive`) already obtained one confirm that **explicitly covered** `-D` on squash-landed branches. Phase A1 and A2 then run **without re-asking**, but A2's scope narrows: `squash_landed` always; `merged_pr_divergent` only when none of its unique commits is newer than the PR's `mergedAt`; never `unique_work` / `skipped`. Tip SHAs are still printed. A human typing `/iflow-cleanup` never passes this token.
 - **Workspace walk (opt-in tokens)** — trailing `workspace`, `all`, or `include workspace` (case-insensitive) runs this skill **sequentially for every scaffolded workspace member**. One up-front confirm listing member names. Then existing Phase A1/A2 (and optional B) **per member**. A declined A2 in one repo continues to the next; user `abort` / `stop` ends the walk. Ignore these tokens when parsing a named branch. There is no mute `workspace cleanup` CLI. When self-update is enabled, upgrade the tool **once** at the start of the walk, then `issue-flow update` per member (do not reinstall PyPI on every member).
 
 **Phase B enable rule:** run Phase B when (`cleanup_include_github` is baked true **or** an opt-in GitHub token is present) **and** no opt-out token is present.
 
 **Self-update enable rule:** run `issue-flow agent self-update` when (`on_bleeding_edge` is baked true **or** a self-update opt-in token is present) **and** no self-update opt-out token is present.
+
+**Phase A1 ask rule:** {% if cleanup_yes_a1 %}this project bakes `cleanup_yes_a1 = true`, so print the A1 action list and **run it without a yes/no** unless the input contains `ask a1`. A1 still does **not** authorize Phase A2.{% else %}ask yes/no before running Phase A1. `cleanup_yes_a1` is off.{% endif %}
+
+**Phase A2 ask rule:** {% if cleanup_yes_a2 %}this project bakes `cleanup_yes_a2 = true`, so print every name and tip SHA and **run the deletes without a yes/no** unless the input contains `ask a2`. `-D` skips git's safety check. Never include `unique_work` or `skipped`.{% else %}ask a **separate** yes/no before any `git branch -D`. Phase A1's yes never implies A2. `cleanup_yes_a2` is off.{% endif %}
 
 ## Instructions
 
@@ -58,7 +63,7 @@ Optional free-form text after the command:
 {% else %}
    > **Why the extra buckets:** `git branch -d` only accepts branches *reachable* from the default branch. Any squash-merged branch (this project's `pr_merge_method` is **{{ pr_merge_method }}**, but GitHub's merge button can still squash) keeps a tip that is not an ancestor, so `-d` refuses it forever.
 {% endif %}
-5. **Consolidated confirm (Phase A1 — local)** — one yes/no prompt listing every action:
+5. **Consolidated confirm (Phase A1 — local)** — {% if cleanup_yes_a1 %}`cleanup_yes_a1 = true`: print every action below, then run them. No yes/no unless the input contains `ask a1`. Running A1 does **not** authorize Phase A2.{% else %}one yes/no prompt listing every action:{% endif %}
    - `git switch <default>` (home only; skip if already on default)
    - `git pull --ff-only` — if it fails, **stop** A1 steps that assume default is current (apply-changelog, release tag, self-update) and recover via `default-sync` (see below).
    - **Self-update (when enabled).** After a **successful** FF pull, on the **home** repo (default branch), run `issue-flow agent self-update --json -C <home>`. Never run it inside a leftover issue worktree. A skipped editable install or a failed upgrade is reported; do **not** roll back branch deletes. Skip this line when FF failed.
@@ -70,12 +75,12 @@ Optional free-form text after the command:
 
 {% include "skills/_default_sync_recover.md.j2" %}
 
-6. **Force-delete confirm (Phase A2 — only when `squash_landed` or `merged_pr_divergent` is non-empty).** A **separate** yes/no prompt; Phase A1's yes never implies it. Skip this step entirely when both buckets are empty. With the `drive` / `landed` token (see Input) the prompt is replaced by the orchestrator's earlier confirm — apply the narrowed scope, still print every `<name> <tip>`.
+6. **Force-delete confirm (Phase A2 — only when `squash_landed` or `merged_pr_divergent` is non-empty).** {% if cleanup_yes_a2 %}`cleanup_yes_a2 = true`: print the lists below, then delete. No yes/no unless the input contains `ask a2`.{% else %}A **separate** yes/no prompt; Phase A1's yes never implies it.{% endif %} Skip this step entirely when both buckets are empty. With the `drive` / `landed` token (see Input) the prompt is replaced by the orchestrator's earlier confirm — apply the narrowed scope, still print every `<name> <tip>`.
    - State plainly that these branches need `git branch -D` because a {{ pr_merge_method }} merge leaves no reachable tip, and that `-D` skips git's own safety check.
    - List **`squash_landed`** as `<name>  <tip>` with the evidence (every commit patch-equivalent to the default; merged PR number when known).
    - List **`merged_pr_divergent`** *separately*, each with its `<tip>`, merged PR link, and unique-commit subjects — these are landed per GitHub but their tips differ, so the user should eyeball the subjects before agreeing.
    - Show the recovery line: any deletion is undone with `git branch <name> <tip>`.
-   - On yes, `worktree-remove` each linked worktree whose branch is in these buckets (clean trees only; never `unique_work`), **then** try `git branch -d <name>` first and only fall back to `git branch -D <name>` when it refuses — `-d` also accepts a branch merged into its own upstream, so it sometimes still works while the remote-tracking ref survives. Report each `<name> <tip>` and which flag was used, so the SHAs stay in the transcript. On no, leave every branch and worktree in place.
+   - On yes{% if cleanup_yes_a2 %} (or when `cleanup_yes_a2` skipped the prompt){% endif %}, `worktree-remove` each linked worktree whose branch is in these buckets (clean trees only; never `unique_work`), **then** try `git branch -d <name>` first and only fall back to `git branch -D <name>` when it refuses — `-d` also accepts a branch merged into its own upstream, so it sometimes still works while the remote-tracking ref survives. Report each `<name> <tip>` and which flag was used, so the SHAs stay in the transcript. On no, leave every branch and worktree in place.
    - **Never** include a `unique_work` or `skipped` branch in this prompt, even if the user asks to "delete them all" — point at the branch's unique commits instead and let them delete it by hand.
 
 7. **Optional folder sweep** (safe; no destructive git). In `{{ issueflows_dir }}/{{ current_issues_folder }}/`, for each `issue<N>_*` group whose status file contains `- [x] Done` (case-insensitive on `done`), move the group to `{{ issueflows_dir }}/{{ solved_folder }}/`. Leave groups without a checked `Done` in place — routing them to `{{ issueflows_dir }}/{{ partly_solved_folder }}/` is `/iflow-pause`'s job.
@@ -96,7 +101,7 @@ Optional free-form text after the command:
 ## Constraints
 
 - Never use `git push --force`. Never rebase default, force-push default, or push default to skip CI.
-- `git branch -D` is allowed **only** for `squash_landed` / `merged_pr_divergent` branches, **only** after the Phase A2 confirm (or an orchestrator confirm that explicitly named `-D`, signalled by the `drive` / `landed` token), and **only** with their tip SHAs reported. Never `-D` a branch holding unique work, a branch you could not classify, or the current branch. In Phase A1, a `-d` refusal is reported and left alone — it is never a licence to force-delete.
+- `git branch -D` is allowed **only** for `squash_landed` / `merged_pr_divergent` branches, **only** after the Phase A2 confirm{% if cleanup_yes_a2 %} (or without a prompt because `cleanup_yes_a2 = true` and the input does not contain `ask a2`){% endif %} (or an orchestrator confirm that explicitly named `-D`, signalled by the `drive` / `landed` token), and **only** with their tip SHAs reported. Never `-D` a branch holding unique work, a branch you could not classify, or the current branch. In Phase A1, a `-d` refusal is reported and left alone — it is never a licence to force-delete.
 - Never delete the default branch (local or remote).
 - Remote deletes and findings-issue creation require the **Phase B** confirm; the Phase A1 and A2 yeses must not imply them (nor each other).
 - If anything is ambiguous (detached HEAD, multiple remotes, missing tracking info), report and stop rather than guess.

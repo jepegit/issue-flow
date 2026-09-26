@@ -9,7 +9,10 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+## [0.5.15] - 2026-09-26
+
 - A `publish` label (`publish_label`, default `publish`; payloads `publish:<level>` or `publish:<version>`) bumps the version at close (default patch) and creates a GitHub release after merge. An illogical explicit version stops and asks. (#308)
+- Opt-in knobs `cleanup_yes_a1` and `cleanup_yes_a2` skip the `/iflow-cleanup` Phase A confirms (A2 prints a warning on `issue-flow update`; tokens `ask a1` / `ask a2` force the prompt). `auto_cleanup` watches until the PR is merged, then runs cleanup, and does not merge. All three default off. (#388)
 
 ## [0.5.14] - 2026-09-26
 

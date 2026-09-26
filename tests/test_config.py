@@ -69,6 +69,8 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "remind_cleanup",
         "noob",
         "cleanup_include_github",
+        "cleanup_yes_a1",
+        "cleanup_yes_a2",
         "on_bleeding_edge",
         "suggest_graphify",
         "auto_graphify_on_plan",
@@ -83,6 +85,7 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "confirm_version_bump",
         "ruff_autofix",
         "auto_close",
+        "auto_cleanup",
         "auto_plan",
         "auto_build",
         "early_pr",
@@ -460,6 +463,8 @@ def test_skill_behaviour_knob_defaults(
         "ISSUEFLOW_DEFER_CHANGELOG",
         "ISSUEFLOW_AUTO_GRAPHIFY_ON_PLAN",
         "ISSUEFLOW_CLEANUP_INCLUDE_GITHUB",
+        "ISSUEFLOW_CLEANUP_YES_A1",
+        "ISSUEFLOW_CLEANUP_YES_A2",
         "ISSUEFLOW_ON_BLEEDING_EDGE",
         "ISSUEFLOW_ESSENTIAL_TESTS",
         "ISSUEFLOW_TEST_RUNNER",
@@ -471,6 +476,8 @@ def test_skill_behaviour_knob_defaults(
     assert settings.resolve_remind_cleanup(tmp_path) is True
     assert settings.resolve_noob(tmp_path) is False
     assert settings.resolve_cleanup_include_github(tmp_path) is False
+    assert settings.resolve_cleanup_yes_a1(tmp_path) is False
+    assert settings.resolve_cleanup_yes_a2(tmp_path) is False
     assert settings.resolve_on_bleeding_edge(tmp_path) is False
     assert settings.resolve_suggest_graphify(tmp_path) is True
     assert settings.resolve_auto_graphify_on_plan(tmp_path) is False
@@ -484,6 +491,7 @@ def test_skill_behaviour_knob_defaults(
     assert settings.resolve_confirm_version_bump(tmp_path) is False
     assert settings.resolve_ruff_autofix(tmp_path) is True
     assert settings.resolve_auto_close(tmp_path) is False
+    assert settings.resolve_auto_cleanup(tmp_path) is False
     assert settings.resolve_auto_plan(tmp_path) is True
     assert settings.resolve_auto_build(tmp_path) is True
     assert settings.resolve_early_pr(tmp_path) is False
@@ -504,6 +512,8 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
         "remind_cleanup = false\n"
         "noob = true\n"
         "cleanup_include_github = true\n"
+        "cleanup_yes_a1 = true\n"
+        "cleanup_yes_a2 = true\n"
         "on_bleeding_edge = true\n"
         "suggest_graphify = false\n"
         "auto_graphify_on_plan = true\n"
@@ -517,6 +527,7 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
         "confirm_version_bump = true\n"
         "ruff_autofix = false\n"
         "auto_close = true\n"
+        "auto_cleanup = true\n"
         "auto_plan = false\n"
         "auto_build = false\n"
         "early_pr = true\n"
@@ -533,6 +544,8 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
     assert settings.resolve_remind_cleanup(tmp_path) is False
     assert settings.resolve_noob(tmp_path) is True
     assert settings.resolve_cleanup_include_github(tmp_path) is True
+    assert settings.resolve_cleanup_yes_a1(tmp_path) is True
+    assert settings.resolve_cleanup_yes_a2(tmp_path) is True
     assert settings.resolve_on_bleeding_edge(tmp_path) is True
     assert settings.resolve_suggest_graphify(tmp_path) is False
     assert settings.resolve_auto_graphify_on_plan(tmp_path) is True
@@ -546,6 +559,7 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
     assert settings.resolve_confirm_version_bump(tmp_path) is True
     assert settings.resolve_ruff_autofix(tmp_path) is False
     assert settings.resolve_auto_close(tmp_path) is True
+    assert settings.resolve_auto_cleanup(tmp_path) is True
     assert settings.resolve_auto_plan(tmp_path) is False
     assert settings.resolve_auto_build(tmp_path) is False
     assert settings.resolve_early_pr(tmp_path) is True
