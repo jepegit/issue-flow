@@ -3108,6 +3108,8 @@ def test_config_add_creates_defaults(
     assert payload["remind_cleanup"] is True
     assert payload["noob"] is False
     assert payload["cleanup_include_github"] is False
+    assert payload["cleanup_yes_a1"] is False
+    assert payload["cleanup_yes_a2"] is False
     assert payload["on_bleeding_edge"] is False
     assert payload["suggest_graphify"] is True
     assert payload["auto_graphify_on_plan"] is False
@@ -3121,6 +3123,7 @@ def test_config_add_creates_defaults(
     assert payload["confirm_version_bump"] is False
     assert payload["ruff_autofix"] is True
     assert payload["auto_close"] is False
+    assert payload["auto_cleanup"] is False
     assert payload["early_pr"] is False
     assert payload["fix_auto_name"] is False
     assert payload["confirm_changelog_update"] is False
@@ -3145,6 +3148,8 @@ def test_config_add_creates_defaults(
     assert data["issueflow"]["remind_cleanup"] is True
     assert data["issueflow"]["noob"] is False
     assert data["issueflow"]["cleanup_include_github"] is False
+    assert data["issueflow"]["cleanup_yes_a1"] is False
+    assert data["issueflow"]["cleanup_yes_a2"] is False
     assert data["issueflow"]["on_bleeding_edge"] is False
     assert data["issueflow"]["auto_remove_worktree"] is True
     assert data["issueflow"]["worktree_first"] is True

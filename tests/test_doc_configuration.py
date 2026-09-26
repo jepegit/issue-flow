@@ -21,7 +21,7 @@ def _section(text: str, heading: str) -> str:
 @pytest.mark.essential
 def test_all_settings_table_lists_every_config_key_once() -> None:
     table = _section(DOC.read_text(encoding="utf-8"), "All settings")
-    rows = re.findall(r"^\| `([a-z_]+)` \|", table, flags=re.MULTILINE)
+    rows = re.findall(r"^\| `([a-z0-9_]+)` \|", table, flags=re.MULTILINE)
     assert sorted(rows) == sorted(CONFIG_KEYS), (
         f"missing: {sorted(set(CONFIG_KEYS) - set(rows))}, "
         f"unknown: {sorted(set(rows) - set(CONFIG_KEYS))}"

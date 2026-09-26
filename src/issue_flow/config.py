@@ -14,6 +14,7 @@ from issue_flow.editors import DEFAULT_EDITOR, EditorProfile, get_profile
 from issue_flow.modes import (
     DEFAULT_CONFIRM_VERSION_BUMP,
     DEFAULT_AUTO_BUILD,
+    DEFAULT_AUTO_CLEANUP,
     DEFAULT_AUTO_CLOSE,
     DEFAULT_AUTO_PLAN,
     DEFAULT_CHECKS_WATCH_MINUTES,
@@ -44,6 +45,8 @@ from issue_flow.modes import (
     DEFAULT_MODEL_LABEL_FLOWS,
     DEFAULT_PR_MERGE_METHOD,
     DEFAULT_CLEANUP_INCLUDE_GITHUB,
+    DEFAULT_CLEANUP_YES_A1,
+    DEFAULT_CLEANUP_YES_A2,
     DEFAULT_ON_BLEEDING_EDGE,
     DEFAULT_NOOB,
     DEFAULT_REMIND_CLEANUP,
@@ -443,6 +446,26 @@ class Settings:
             ),
         )
 
+    def resolve_cleanup_yes_a1(self, project_root: Path) -> bool:
+        """Resolve whether ``/iflow-cleanup`` skips the Phase A1 yes/no prompt."""
+        persisted = modes_module.read_cleanup_yes_a1(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        return self.user_global_or(
+            "cleanup_yes_a1",
+            _env_flag("ISSUEFLOW_CLEANUP_YES_A1", default=DEFAULT_CLEANUP_YES_A1),
+        )
+
+    def resolve_cleanup_yes_a2(self, project_root: Path) -> bool:
+        """Resolve whether ``/iflow-cleanup`` skips the Phase A2 yes/no prompt."""
+        persisted = modes_module.read_cleanup_yes_a2(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        return self.user_global_or(
+            "cleanup_yes_a2",
+            _env_flag("ISSUEFLOW_CLEANUP_YES_A2", default=DEFAULT_CLEANUP_YES_A2),
+        )
+
     def resolve_on_bleeding_edge(self, project_root: Path) -> bool:
         """Resolve whether ``/iflow-cleanup`` self-upgrades the CLI."""
         persisted = modes_module.read_on_bleeding_edge(self.config_path(project_root))
@@ -672,6 +695,16 @@ class Settings:
             return persisted
         return self.user_global_or(
             "auto_close", _env_flag("ISSUEFLOW_AUTO_CLOSE", default=DEFAULT_AUTO_CLOSE)
+        )
+
+    def resolve_auto_cleanup(self, project_root: Path) -> bool:
+        """Resolve whether close watches for merge and then runs ``/iflow-cleanup``."""
+        persisted = modes_module.read_auto_cleanup(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        return self.user_global_or(
+            "auto_cleanup",
+            _env_flag("ISSUEFLOW_AUTO_CLEANUP", default=DEFAULT_AUTO_CLEANUP),
         )
 
     def resolve_auto_plan(self, project_root: Path) -> bool:
@@ -937,6 +970,12 @@ class Settings:
                 "ISSUEFLOW_CLEANUP_INCLUDE_GITHUB",
                 default=DEFAULT_CLEANUP_INCLUDE_GITHUB,
             ),
+            "cleanup_yes_a1": _env_flag(
+                "ISSUEFLOW_CLEANUP_YES_A1", default=DEFAULT_CLEANUP_YES_A1
+            ),
+            "cleanup_yes_a2": _env_flag(
+                "ISSUEFLOW_CLEANUP_YES_A2", default=DEFAULT_CLEANUP_YES_A2
+            ),
             "on_bleeding_edge": _env_flag(
                 "ISSUEFLOW_ON_BLEEDING_EDGE",
                 default=DEFAULT_ON_BLEEDING_EDGE,
@@ -977,6 +1016,9 @@ class Settings:
                 "ISSUEFLOW_RUFF_AUTOFIX", default=DEFAULT_RUFF_AUTOFIX
             ),
             "auto_close": _env_flag("ISSUEFLOW_AUTO_CLOSE", default=DEFAULT_AUTO_CLOSE),
+            "auto_cleanup": _env_flag(
+                "ISSUEFLOW_AUTO_CLEANUP", default=DEFAULT_AUTO_CLEANUP
+            ),
             "auto_plan": _env_flag("ISSUEFLOW_AUTO_PLAN", default=DEFAULT_AUTO_PLAN),
             "auto_build": _env_flag("ISSUEFLOW_AUTO_BUILD", default=DEFAULT_AUTO_BUILD),
             "early_pr": _env_flag("ISSUEFLOW_EARLY_PR", default=DEFAULT_EARLY_PR),
@@ -1029,6 +1071,8 @@ class Settings:
             "remind_cleanup": self.resolve_remind_cleanup(project_root),
             "noob": self.resolve_noob(project_root),
             "cleanup_include_github": self.resolve_cleanup_include_github(project_root),
+            "cleanup_yes_a1": self.resolve_cleanup_yes_a1(project_root),
+            "cleanup_yes_a2": self.resolve_cleanup_yes_a2(project_root),
             "on_bleeding_edge": self.resolve_on_bleeding_edge(project_root),
             "suggest_graphify": self.resolve_suggest_graphify(project_root),
             "auto_graphify_on_plan": self.resolve_auto_graphify_on_plan(project_root),
@@ -1045,6 +1089,7 @@ class Settings:
             "confirm_version_bump": self.resolve_confirm_version_bump(project_root),
             "ruff_autofix": self.resolve_ruff_autofix(project_root),
             "auto_close": self.resolve_auto_close(project_root),
+            "auto_cleanup": self.resolve_auto_cleanup(project_root),
             "auto_plan": self.resolve_auto_plan(project_root),
             "auto_build": self.resolve_auto_build(project_root),
             "early_pr": self.resolve_early_pr(project_root),
@@ -1132,6 +1177,8 @@ class Settings:
             "remind_cleanup": self.resolve_remind_cleanup(project_root),
             "noob": self.resolve_noob(project_root),
             "cleanup_include_github": self.resolve_cleanup_include_github(project_root),
+            "cleanup_yes_a1": self.resolve_cleanup_yes_a1(project_root),
+            "cleanup_yes_a2": self.resolve_cleanup_yes_a2(project_root),
             "on_bleeding_edge": self.resolve_on_bleeding_edge(project_root),
             "suggest_graphify": self.resolve_suggest_graphify(project_root),
             "auto_graphify_on_plan": self.resolve_auto_graphify_on_plan(project_root),
@@ -1146,6 +1193,7 @@ class Settings:
             "confirm_version_bump": self.resolve_confirm_version_bump(project_root),
             "ruff_autofix": self.resolve_ruff_autofix(project_root),
             "auto_close": self.resolve_auto_close(project_root),
+            "auto_cleanup": self.resolve_auto_cleanup(project_root),
             "auto_plan": self.resolve_auto_plan(project_root),
             "auto_build": self.resolve_auto_build(project_root),
             "early_pr": self.resolve_early_pr(project_root),

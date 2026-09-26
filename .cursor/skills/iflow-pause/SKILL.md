@@ -4,7 +4,7 @@ description: >-
   Park work on the current issue without closing it: update status, move
   the group to 02-partly-solved-issues/, optional WIP commit.
 disable-model-invocation: true
-issue-flow-version: 0.5.14
+issue-flow-version: 0.5.15
 ---
 
 # issue-flow — issue pause (`/iflow-pause`)

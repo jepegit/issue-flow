@@ -47,6 +47,8 @@ _MODE_CONTEXT = {
     "remind_cleanup": True,
     "noob": False,
     "cleanup_include_github": False,
+    "cleanup_yes_a1": False,
+    "cleanup_yes_a2": False,
     "on_bleeding_edge": False,
     "suggest_graphify": True,
     "auto_graphify_on_plan": False,
@@ -61,6 +63,7 @@ _MODE_CONTEXT = {
     "confirm_version_bump": False,
     "ruff_autofix": True,
     "auto_close": False,
+    "auto_cleanup": False,
     "auto_plan": True,
     "auto_build": True,
     "early_pr": False,
@@ -650,6 +653,30 @@ def test_cleanup_bakes_on_bleeding_edge() -> None:
     )
     assert "on_bleeding_edge = true" in cmd_on
     assert "issue-flow agent self-update" in cmd_on
+
+
+def test_cleanup_bakes_yes_knobs() -> None:
+    """cleanup_yes_a1 / cleanup_yes_a2 skip the matching confirm."""
+    off = render_template(
+        "skills/iflow_cleanup/SKILL.md.j2",
+        {**_default_context(), "cleanup_yes_a1": False, "cleanup_yes_a2": False},
+    )
+    assert "cleanup_yes_a1 = true" not in off
+    assert "cleanup_yes_a2 = true" not in off
+    assert "ask a1" in off
+    on = render_template(
+        "skills/iflow_cleanup/SKILL.md.j2",
+        {**_default_context(), "cleanup_yes_a1": True, "cleanup_yes_a2": True},
+    )
+    assert "cleanup_yes_a1 = true" in on
+    assert "cleanup_yes_a2 = true" in on
+    assert "does **not** authorize Phase A2" in on
+    close_on = render_template(
+        "skills/iflow_close/SKILL.md.j2",
+        {**_default_context(), "auto_cleanup": True},
+    )
+    assert "auto_cleanup = true" in close_on
+    assert "do **not** merge from this knob" in close_on
 
 
 def test_rules_soften_remind_cleanup_wording() -> None:

@@ -5,7 +5,7 @@ description: >-
   through the yolo chain under one up-front confirm. Stops only when input is
   strictly necessary.
 disable-model-invocation: true
-issue-flow-version: 0.5.14
+issue-flow-version: 0.5.15
 ---
 
 # issue-flow — issue cycle (`/iflow-cycle`)
@@ -179,5 +179,6 @@ landed). Everything else still trips step 6b. For experimental concurrent work, 
 - Never weaken a yolo safeguard to keep the cycle moving — safeguards are stop conditions, not obstacles. The non-yolo lane changes *how a PR lands*, never which safeguards run.
 - A `yolo: false` issue is **not** a stop condition by itself unless the policy is `nonyolo:stop`; list the non-yolo issues in the confirm so the operator sees the lane before the run starts.
 - Never run `/iflow-cleanup` from this skill; batch branch deletion still needs the user to see the merged PRs first.
+
 - One consolidated confirm covers the batch; never silently expand the queue beyond what was confirmed.
 - `cycle_status.md` is the single source of truth for an in-flight cycle: keep it current so `resume` and `/iflow-status` stay accurate. It is not an `issue<N>_*` group, so the folder sweep leaves it alone; archive it (step 8) when the run ends.

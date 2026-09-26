@@ -17,9 +17,9 @@ epic #269). Until Stage 2 ships, only the project file and env exist.
 |---------|------|
 | Soft nudges (`verb_object`) | `remind_cleanup`, `suggest_graphify` |
 | Named help mode | `noob` (issue #307; distinct from scaffolding `--mode novice`) |
-| Cleanup defaults (`cleanup_*`) | `cleanup_include_github` |
+| Cleanup defaults (`cleanup_*`) | `cleanup_include_github`, `cleanup_yes_a1`, `cleanup_yes_a2` |
 | Tool upgrade (event-hook name) | `on_bleeding_edge` |
-| Auto behaviours (`auto_*`) | `auto_switchback`, `auto_remove_worktree`, `auto_close`, `auto_plan`, `auto_build`, `auto_graphify_on_plan` |
+| Auto behaviours (`auto_*`) | `auto_switchback`, `auto_remove_worktree`, `auto_close`, `auto_cleanup`, `auto_plan`, `auto_build`, `auto_graphify_on_plan` |
 | Start layout | `worktree_first` (issue #329; distinct from `auto_remove_worktree` and from worktree location #328) |
 | Timing / PR | `early_pr` |
 | Fix-session | `fix_auto_name` |
@@ -35,6 +35,8 @@ epic #269). Until Stage 2 ships, only the project file and env exist.
 | `remind_cleanup` | `true` | Soft reminders to run `/iflow-cleanup` after close / cycle / iflow-D (never auto-run). `false` = no in-flow nudges; cleanup only via explicit `/iflow-cleanup` (issue #233) |
 | `noob` | `false` | After each lifecycle step, print recommended next from `issue-flow agent state` (focus → `next_command`; no-focus epic gap → `epic_session` + `epic_hint`, not raw `next_command`) plus a short relevant `/iflow-*` list. Never auto-dispatch. Seeded `true` on first-time `--mode novice` only (issues #307, #337) |
 | `cleanup_include_github` | `false` | When `true`, `/iflow-cleanup` runs Phase B (GitHub remote audit) by default; trailing `no github` / `local only` opts out (issue #233) |
+| `cleanup_yes_a1` | `false` | When `true`, Phase A1 runs without a yes/no (the action list is still printed). Trailing `ask a1` forces the prompt. Does not authorize A2 (issue #388) |
+| `cleanup_yes_a2` | `false` | When `true`, Phase A2 `git branch -D` runs without a yes/no (names and tip SHAs still printed). Trailing `ask a2` forces the prompt. `issue-flow update` warns while this is on. Never deletes `unique_work` (issue #388) |
 | `on_bleeding_edge` | `false` | When `true`, `/iflow-cleanup` runs `issue-flow agent self-update` after a successful FF pull (`uv tool install issue-flow@latest` then `issue-flow update`). Trailing `bleeding edge` / `no bleeding` override. Skips editable installs (issue #382) |
 | `suggest_graphify` | `true` | Soft GRAPH_REPORT / rebuild suggestions (never auto-run) |
 | `auto_graphify_on_plan` | `false` | `/iflow-plan` runs `issue-flow graphify` (AST `update`) before prior-art; missing/fail → note + continue (issue #214) |
@@ -42,6 +44,7 @@ epic #269). Until Stage 2 ships, only the project file and env exist.
 | `auto_remove_worktree` | `true` | After `/iflow-close` opens or merges a PR, remove the sibling issue worktree when clean (`false` = YES/NO). Skip `stay` / draft / failed merge. Never deletes the branch (issue #273) |
 | `worktree_first` | `true` | `/iflow-pick` / `/iflow-issue` / `/iflow-fix` start in a sibling worktree. `false` → `git switch -c` on home. Tokens `inplace` / `no worktree` / `worktree` override (issue #329) |
 | `auto_close` | `false` | `/iflow-build` / `/iflow-fix` end chain into `/iflow-close` when ready |
+| `auto_cleanup` | `false` | After a PR exists, watch until it merges (`checks_watch_minutes`) and then run `/iflow-cleanup`. Does not merge. Independent of `auto_close` (issue #388) |
 | `auto_plan` | `true` | `/iflow-pick` chains into `/iflow-plan` after pick confirm + branch/init; trailing `noplan` skips once (issue #219) |
 | `auto_build` | `true` | `/iflow-plan` chains into `/iflow-build` on plan Accept; trailing `nobuild` skips once (issue #219) |
 | `early_pr` | `false` | `/iflow-build` opens a draft PR after the first push; trailing `early`/`pr` / `noearly` override per run |
@@ -61,7 +64,7 @@ epic #269). Until Stage 2 ships, only the project file and env exist.
 | `essential_review` | `"close"` | When to triage issue-touched tests: `close` \| `build` \| `both` \| `never` |
 | `locked` | `false` | Per-repo skip for `issue-flow update --all`. Project `.issueflows/config.toml` only; user-global must not set it. Missing key = unlocked. Single-repo `update` still runs. Optional process override: `ISSUEFLOW_LOCKED`. See [user-global-config.md](./user-global-config.md) (issue #281) |
 
-**Consistency.** `auto_plan` / `auto_build` / `auto_close` are **independent** —
+**Consistency.** `auto_plan` / `auto_build` / `auto_close` / `auto_cleanup` are **independent** —
 each only skips its own next-step pause (pick confirm, plan Accept, and
 build-ready still gate). Mode-gated on `iflow_plan` / `iflow_build` /
 `iflow_close`. Do **not** imply yolo / auto-merge. One-shot skips: `noplan`,
@@ -75,6 +78,22 @@ HISTORY/CHANGELOG update after the PR is open or merged (see
 [changelog-timing.md](./changelog-timing.md)).
 `defer_changelog = true` moves only the **file write** to the default branch
 after merge; the close-step *decision* (and the confirm gate) still runs.
+
+**Continue to next step** (issue #388). Each knob only skips its own pause.
+Cleanup cannot run until the PR is merged, so `auto_cleanup` watches and
+does not merge.
+
+| Step | Knob | Default |
+| --- | --- | --- |
+| Pick confirm | (always ask) | — |
+| Capture | part of pick; no separate knob | — |
+| Plan | `auto_plan` | `true` |
+| Build | `auto_build` | `true` |
+| Close | `auto_close` | `false` |
+| Cleanup | `auto_cleanup` | `false` |
+
+`cleanup_yes_a1` / `cleanup_yes_a2` are accept-knobs inside cleanup, not
+continue-knobs. A1 does not authorize A2.
 
 **Alternatives considered.**
 

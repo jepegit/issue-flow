@@ -4,7 +4,7 @@ description: >-
   Plan a larger change as a staged epic: draft epic<N>_plan.md with stages of
   manageable issue specs, then publish confirmed stages as GitHub issues.
 disable-model-invocation: true
-issue-flow-version: 0.5.14
+issue-flow-version: 0.5.15
 ---
 
 # issue-flow — epic planning (`/iflow-epic`)

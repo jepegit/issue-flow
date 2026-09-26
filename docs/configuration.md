@@ -56,6 +56,8 @@ an environment-variable fallback, `ISSUEFLOW_<KEY>` (for example
 | `remind_cleanup` | bool | `true` | Remind you to run `/iflow-cleanup` after close / cycle (never runs it). `false` = no reminders. |
 | `noob` | bool | `false` | End every lifecycle step with a recommended next command and a short list of relevant commands. Separate from `--mode novice`. |
 | `cleanup_include_github` | bool | `false` | `/iflow-cleanup` also audits remote branches (Phase B) by default; opt out per run with `local only`. |
+| `cleanup_yes_a1` | bool | `false` | `/iflow-cleanup` Phase A1 runs without asking (the action list is still printed). `ask a1` forces the prompt once. Does not authorize Phase A2. |
+| `cleanup_yes_a2` | bool | `false` | `/iflow-cleanup` Phase A2 force-deletes squash-landed branches without asking (names and tip SHAs are still printed). `ask a2` forces the prompt once. `issue-flow update` warns while this is on. |
 | `on_bleeding_edge` | bool | `false` | `/iflow-cleanup` upgrades the `uv tool` install to `issue-flow@latest` and runs `issue-flow update` after a successful fast-forward pull. Opt in per run with `bleeding edge`; opt out with `no bleeding`. Skips editable installs. |
 | `suggest_graphify` | bool | `true` | Suggest reading `GRAPH_REPORT.md` / rebuilding graphify (never runs it). |
 | `auto_graphify_on_plan` | bool | `false` | `/iflow-plan` rebuilds the graphify graph (AST only) before prior-art discovery. |
@@ -72,6 +74,7 @@ an environment-variable fallback, `ISSUEFLOW_<KEY>` (for example
 | `confirm_version_bump` | bool | `false` | Non-yolo close asks once about a version bump when none was requested. |
 | `ruff_autofix` | bool | `true` | When the project uses ruff, run `ruff check --fix` + `ruff format` during build and close. |
 | `auto_close` | bool | `false` | `/iflow-build` (and the end of `/iflow-fix`) chain into `/iflow-close` when the work is ready; close keeps its own confirms. |
+| `auto_cleanup` | bool | `false` | After a PR exists, watch until it merges (budget `checks_watch_minutes`) and then run `/iflow-cleanup`. Does not merge. Independent of `auto_close`. |
 | `auto_plan` | bool | `true` | `/iflow-pick` chains into `/iflow-plan` after the pick and branch; trailing `noplan` skips once. |
 | `auto_build` | bool | `true` | `/iflow-plan` chains into `/iflow-build` when you accept the plan; trailing `nobuild` skips once. |
 | `early_pr` | bool | `false` | `/iflow-build` opens a draft PR after the first push; trailing `early` / `pr` / `noearly` override per run. |

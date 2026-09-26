@@ -4,7 +4,7 @@ description: >-
   Guide a new user from an empty folder or an unprepared existing project to
   a working issue-flow setup: uv project, git repo, GitHub remote, and scaffold.
 disable-model-invocation: true
-issue-flow-version: 0.5.14
+issue-flow-version: 0.5.15
 ---
 
 # issue-flow — guided project setup (`/iflow-setup`)

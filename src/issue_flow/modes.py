@@ -74,6 +74,8 @@ PSTACK_ALL = "all"
 DEFAULT_REMIND_CLEANUP = True
 DEFAULT_NOOB = False
 DEFAULT_CLEANUP_INCLUDE_GITHUB = False
+DEFAULT_CLEANUP_YES_A1 = False
+DEFAULT_CLEANUP_YES_A2 = False
 DEFAULT_ON_BLEEDING_EDGE = False
 DEFAULT_SUGGEST_GRAPHIFY = True
 DEFAULT_AUTO_GRAPHIFY_ON_PLAN = False
@@ -98,6 +100,7 @@ DEFAULT_AUTO_ADVERSARIAL_LOOPS = 2
 DEFAULT_CONFIRM_VERSION_BUMP = False
 DEFAULT_RUFF_AUTOFIX = True
 DEFAULT_AUTO_CLOSE = False
+DEFAULT_AUTO_CLEANUP = False
 DEFAULT_AUTO_PLAN = True
 DEFAULT_AUTO_BUILD = True
 DEFAULT_EARLY_PR = False
@@ -727,6 +730,28 @@ def read_cleanup_include_github(cfg_path: Path) -> bool | None:
     return None
 
 
+def read_cleanup_yes_a1(cfg_path: Path) -> bool | None:
+    """Return the persisted ``[issueflow].cleanup_yes_a1`` flag."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "cleanup_yes_a1" in section:
+        return bool(section.get("cleanup_yes_a1"))
+    return None
+
+
+def read_cleanup_yes_a2(cfg_path: Path) -> bool | None:
+    """Return the persisted ``[issueflow].cleanup_yes_a2`` flag."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "cleanup_yes_a2" in section:
+        return bool(section.get("cleanup_yes_a2"))
+    return None
+
+
 def read_on_bleeding_edge(cfg_path: Path) -> bool | None:
     """Return the persisted ``[issueflow].on_bleeding_edge`` flag."""
     if not cfg_path.is_file():
@@ -932,6 +957,17 @@ def read_auto_close(cfg_path: Path) -> bool | None:
     section = data.get("issueflow")
     if isinstance(section, dict) and "auto_close" in section:
         return bool(section.get("auto_close"))
+    return None
+
+
+def read_auto_cleanup(cfg_path: Path) -> bool | None:
+    """Return the persisted ``[issueflow].auto_cleanup`` flag."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "auto_cleanup" in section:
+        return bool(section.get("auto_cleanup"))
     return None
 
 
@@ -1225,6 +1261,8 @@ def write_default_config(
     remind_cleanup: bool = DEFAULT_REMIND_CLEANUP,
     noob: bool = DEFAULT_NOOB,
     cleanup_include_github: bool = DEFAULT_CLEANUP_INCLUDE_GITHUB,
+    cleanup_yes_a1: bool = DEFAULT_CLEANUP_YES_A1,
+    cleanup_yes_a2: bool = DEFAULT_CLEANUP_YES_A2,
     on_bleeding_edge: bool = DEFAULT_ON_BLEEDING_EDGE,
     suggest_graphify: bool = DEFAULT_SUGGEST_GRAPHIFY,
     auto_graphify_on_plan: bool = DEFAULT_AUTO_GRAPHIFY_ON_PLAN,
@@ -1239,6 +1277,7 @@ def write_default_config(
     confirm_version_bump: bool = DEFAULT_CONFIRM_VERSION_BUMP,
     ruff_autofix: bool = DEFAULT_RUFF_AUTOFIX,
     auto_close: bool = DEFAULT_AUTO_CLOSE,
+    auto_cleanup: bool = DEFAULT_AUTO_CLEANUP,
     auto_plan: bool = DEFAULT_AUTO_PLAN,
     auto_build: bool = DEFAULT_AUTO_BUILD,
     early_pr: bool = DEFAULT_EARLY_PR,
@@ -1300,6 +1339,8 @@ def write_default_config(
         section["remind_cleanup"] = remind_cleanup
         section["noob"] = noob
         section["cleanup_include_github"] = cleanup_include_github
+        section["cleanup_yes_a1"] = cleanup_yes_a1
+        section["cleanup_yes_a2"] = cleanup_yes_a2
         section["on_bleeding_edge"] = on_bleeding_edge
         section["suggest_graphify"] = suggest_graphify
         section["auto_graphify_on_plan"] = auto_graphify_on_plan
@@ -1314,6 +1355,7 @@ def write_default_config(
         section["confirm_version_bump"] = confirm_version_bump
         section["ruff_autofix"] = ruff_autofix
         section["auto_close"] = auto_close
+        section["auto_cleanup"] = auto_cleanup
         section["auto_plan"] = auto_plan
         section["auto_build"] = auto_build
         section["early_pr"] = early_pr
@@ -1359,6 +1401,8 @@ def write_default_config(
             remind_cleanup,
             noob,
             cleanup_include_github,
+            cleanup_yes_a1,
+            cleanup_yes_a2,
             on_bleeding_edge,
             suggest_graphify,
             auto_graphify_on_plan,
@@ -1373,6 +1417,7 @@ def write_default_config(
             confirm_version_bump,
             ruff_autofix,
             auto_close,
+            auto_cleanup,
             auto_plan,
             auto_build,
             early_pr,
@@ -1426,6 +1471,8 @@ def _commented_issueflow_table(
     remind_cleanup: bool,
     noob: bool,
     cleanup_include_github: bool,
+    cleanup_yes_a1: bool,
+    cleanup_yes_a2: bool,
     on_bleeding_edge: bool,
     suggest_graphify: bool,
     auto_graphify_on_plan: bool,
@@ -1440,6 +1487,7 @@ def _commented_issueflow_table(
     confirm_version_bump: bool,
     ruff_autofix: bool,
     auto_close: bool,
+    auto_cleanup: bool,
     auto_plan: bool,
     auto_build: bool,
     early_pr: bool,
@@ -1584,6 +1632,23 @@ def _commented_issueflow_table(
     table["cleanup_include_github"] = cleanup_include_github
     table.add(
         tomlkit.comment(
+            "When true, /iflow-cleanup Phase A1 runs without a yes/no prompt "
+            "(the action list is still printed). Trailing 'ask a1' forces the "
+            "prompt once. Does not authorize Phase A2. Re-run 'issue-flow update'."
+        )
+    )
+    table["cleanup_yes_a1"] = cleanup_yes_a1
+    table.add(
+        tomlkit.comment(
+            "When true, /iflow-cleanup Phase A2 force-deletes squash-landed "
+            "branches without a yes/no prompt (names and tip SHAs are still "
+            "printed). Trailing 'ask a2' forces the prompt once. "
+            "issue-flow update warns while this is on. Re-run update after changing."
+        )
+    )
+    table["cleanup_yes_a2"] = cleanup_yes_a2
+    table.add(
+        tomlkit.comment(
             "When true, /iflow-cleanup upgrades the uv-tool install to "
             "issue-flow@latest and runs issue-flow update after a successful "
             "FF pull. Override per run with 'no bleeding' / 'skip self-update'. "
@@ -1675,6 +1740,15 @@ def _commented_issueflow_table(
         )
     )
     table["auto_close"] = auto_close
+    table.add(
+        tomlkit.comment(
+            "When true, after a PR exists /iflow-close watches until it merges "
+            "(budget: checks_watch_minutes) and then runs /iflow-cleanup. "
+            "Does not merge. Independent of auto_close. Default false. "
+            "Re-run 'issue-flow update' after changing."
+        )
+    )
+    table["auto_cleanup"] = auto_cleanup
     table.add(
         tomlkit.comment(
             "When true, /iflow-pick chains into /iflow-plan after pick confirm "

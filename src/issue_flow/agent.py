@@ -5231,12 +5231,13 @@ def _print_config_guide(console: Console, cfg_path: Path) -> None:
     )
     console.print(
         "  [dim]- [bold]remind_cleanup[/bold] / [bold]noob[/bold] / "
-        "[bold]cleanup_include_github[/bold] / [bold]on_bleeding_edge[/bold] / "
+        "[bold]cleanup_include_github[/bold] / [bold]cleanup_yes_a1[/bold] / "
+        "[bold]cleanup_yes_a2[/bold] / [bold]on_bleeding_edge[/bold] / "
         "[bold]suggest_graphify[/bold] / "
         "[bold]auto_graphify_on_plan[/bold]; "
         "[bold]auto_switchback[/bold] / [bold]auto_remove_worktree[/bold] / "
         "[bold]worktree_first[/bold] / "
-        "[bold]auto_close[/bold] / "
+        "[bold]auto_close[/bold] / [bold]auto_cleanup[/bold] / "
         "[bold]auto_plan[/bold] / [bold]auto_build[/bold] / "
         "[bold]early_pr[/bold] / [bold]fix_auto_name[/bold]; "
         "[bold]confirm_version_bump[/bold] / [bold]confirm_changelog_update[/bold] / "

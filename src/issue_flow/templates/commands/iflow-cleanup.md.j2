@@ -20,12 +20,17 @@ Optional free-form text after the command. Examples:
 - **GitHub audit opt-out tokens** (case-insensitive): `no github`, `local only`, `local-only` — skip Phase B even when `cleanup_include_github` is baked true.
 - **Self-update opt-in tokens** (case-insensitive): `bleeding edge`, `bleeding-edge`, `self-update` — upgrade the CLI after a successful FF pull.{% if on_bleeding_edge %} This project bakes `on_bleeding_edge = true`, so that step also runs by default.{% endif %}
 - **Self-update opt-out tokens** (case-insensitive): `no bleeding`, `no bleeding-edge`, `skip self-update` — skip the upgrade even when `on_bleeding_edge` is baked true.
+- **Phase A ask tokens** (case-insensitive): `ask a1`, `ask a2` — force that phase's yes/no even when `cleanup_yes_a1` / `cleanup_yes_a2` is baked true.
 - **Orchestrator token** `drive` / `landed` — the caller (`/iflow-drive`) already confirmed `-D` on squash-landed branches: run A1 + A2 without re-asking, A2 narrowed to `squash_landed` plus `merged_pr_divergent` with nothing newer than the PR merge; tip SHAs still printed. Never passed by a human.
 - **Workspace walk** (case-insensitive): `workspace`, `all`, `include workspace` — one up-front confirm, then this cleanup **per member**. Not a mute CLI. Ignore these tokens when parsing a named branch. When self-update is enabled, upgrade the tool **once** at the start of the walk.
 
 **Phase B enable rule:** (`cleanup_include_github` baked true **or** opt-in token) **and** no opt-out token.
 
 **Self-update enable rule:** (`on_bleeding_edge` baked true **or** opt-in token) **and** no self-update opt-out token.
+
+**Phase A1:** {% if cleanup_yes_a1 %}`cleanup_yes_a1 = true` — print the list and run it unless `ask a1`. Does not authorize A2.{% else %}yes/no before running. `cleanup_yes_a1` is off.{% endif %}
+
+**Phase A2:** {% if cleanup_yes_a2 %}`cleanup_yes_a2 = true` — print names and tip SHAs, then `-d` / `-D`, unless `ask a2`. Never `unique_work`.{% else %}separate yes/no. A1 never implies A2. `cleanup_yes_a2` is off.{% endif %}
 
 ## Steps
 

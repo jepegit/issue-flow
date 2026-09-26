@@ -6,7 +6,7 @@ description: >-
   confirm). Optional GitHub remote audit via trailing "include GitHub" or
   baked cleanup_include_github. Never --force, never deletes unique work.
 disable-model-invocation: true
-issue-flow-version: 0.5.14
+issue-flow-version: 0.5.15
 ---
 
 # issue-flow — issue cleanup (`/iflow-cleanup`)
@@ -64,12 +64,17 @@ Optional free-form text after the command:
 - **GitHub remote audit (opt-out tokens)** — trailing `no github`, `local only`, or `local-only` (case-insensitive) **skips Phase B** even when `cleanup_include_github` is baked true.
 - **Self-update (opt-in tokens)** — trailing `bleeding edge`, `bleeding-edge`, or `self-update` (case-insensitive) enables the package upgrade after a successful FF pull.
 - **Self-update (opt-out tokens)** — trailing `no bleeding`, `no bleeding-edge`, or `skip self-update` (case-insensitive) **skips** the upgrade even when `on_bleeding_edge` is baked true.
+- **Phase A ask tokens** — trailing `ask a1` or `ask a2` (case-insensitive) forces that phase's yes/no prompt even when `cleanup_yes_a1` / `cleanup_yes_a2` is baked true.
 - **Pre-authorized force-delete (orchestrator token)** — trailing `drive` (or `landed`) means the caller (`/iflow-drive`) already obtained one confirm that **explicitly covered** `-D` on squash-landed branches. Phase A1 and A2 then run **without re-asking**, but A2's scope narrows: `squash_landed` always; `merged_pr_divergent` only when none of its unique commits is newer than the PR's `mergedAt`; never `unique_work` / `skipped`. Tip SHAs are still printed. A human typing `/iflow-cleanup` never passes this token.
 - **Workspace walk (opt-in tokens)** — trailing `workspace`, `all`, or `include workspace` (case-insensitive) runs this skill **sequentially for every scaffolded workspace member**. One up-front confirm listing member names. Then existing Phase A1/A2 (and optional B) **per member**. A declined A2 in one repo continues to the next; user `abort` / `stop` ends the walk. Ignore these tokens when parsing a named branch. There is no mute `workspace cleanup` CLI. When self-update is enabled, upgrade the tool **once** at the start of the walk, then `issue-flow update` per member (do not reinstall PyPI on every member).
 
 **Phase B enable rule:** run Phase B when (`cleanup_include_github` is baked true **or** an opt-in GitHub token is present) **and** no opt-out token is present.
 
 **Self-update enable rule:** run `issue-flow agent self-update` when (`on_bleeding_edge` is baked true **or** a self-update opt-in token is present) **and** no self-update opt-out token is present.
+
+**Phase A1 ask rule:** ask yes/no before running Phase A1. `cleanup_yes_a1` is off.
+
+**Phase A2 ask rule:** ask a **separate** yes/no before any `git branch -D`. Phase A1's yes never implies A2. `cleanup_yes_a2` is off.
 
 ## Instructions
 
