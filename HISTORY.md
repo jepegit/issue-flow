@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- A `publish` label (`publish_label`, default `publish`; payloads `publish:<level>` or `publish:<version>`) bumps the version at close (default patch) and creates a GitHub release after merge. An illogical explicit version stops and asks. (#308)
+
 ## [0.5.14] - 2026-09-26
 
 - `on_bleeding_edge` lets `/iflow-cleanup` upgrade the installed CLI (`uv tool install issue-flow@latest`) and refresh the scaffold via `issue-flow agent self-update`. (#382)
