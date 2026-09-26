@@ -8,6 +8,7 @@ plumbing, and both live or die on what git actually does.
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -22,6 +23,13 @@ from issue_flow.project import WORKSPACE_FILENAME
 pytestmark = pytest.mark.skipif(
     not gitutils.git_available(), reason="git is not on PATH"
 )
+
+_ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
+
+
+def _plain(text: str) -> str:
+    """Strip ANSI styling; CI renders Rich help with colour, splitting ``--flag``."""
+    return _ANSI_RE.sub("", text)
 
 
 def _git(cwd: Path, *args: str) -> None:
@@ -394,12 +402,13 @@ def test_apply_never_pulls_non_ff_member(workspace: Path) -> None:
 def test_cli_help_lists_cleanup_and_flags() -> None:
     result = CliRunner().invoke(app, ["workspace", "--help"])
     assert result.exit_code == 0
-    assert "cleanup" in result.stdout
+    assert "cleanup" in _plain(result.stdout)
     result = CliRunner().invoke(app, ["workspace", "cleanup", "--help"])
     assert result.exit_code == 0
-    assert "--apply" in result.stdout
-    assert "--yes-delete-squash-landed" in result.stdout
-    assert "--extra-root" in result.stdout
+    plain = _plain(result.stdout)
+    assert "--apply" in plain
+    assert "--yes-delete-squash-landed" in plain
+    assert "--extra-root" in plain
 
 
 def test_text_output_groups_by_member(workspace: Path) -> None:
