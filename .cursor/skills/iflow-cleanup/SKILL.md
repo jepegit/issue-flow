@@ -6,7 +6,7 @@ description: >-
   confirm). Optional GitHub remote audit via trailing "include GitHub" or
   baked cleanup_include_github. Never --force, never deletes unique work.
 disable-model-invocation: true
-issue-flow-version: 0.5.15
+issue-flow-version: 0.5.17
 ---
 
 # issue-flow — issue cleanup (`/iflow-cleanup`)
@@ -66,7 +66,7 @@ Optional free-form text after the command:
 - **Self-update (opt-out tokens)** — trailing `no bleeding`, `no bleeding-edge`, or `skip self-update` (case-insensitive) **skips** the upgrade even when `on_bleeding_edge` is baked true.
 - **Phase A ask tokens** — trailing `ask a1` or `ask a2` (case-insensitive) forces that phase's yes/no prompt even when `cleanup_yes_a1` / `cleanup_yes_a2` is baked true.
 - **Pre-authorized force-delete (orchestrator token)** — trailing `drive` (or `landed`) means the caller (`/iflow-drive`) already obtained one confirm that **explicitly covered** `-D` on squash-landed branches. Phase A1 and A2 then run **without re-asking**, but A2's scope narrows: `squash_landed` always; `merged_pr_divergent` only when none of its unique commits is newer than the PR's `mergedAt`; never `unique_work` / `skipped`. Tip SHAs are still printed. A human typing `/iflow-cleanup` never passes this token.
-- **Workspace walk (opt-in tokens)** — trailing `workspace`, `all`, or `include workspace` (case-insensitive) runs this skill **sequentially for every scaffolded workspace member**. One up-front confirm listing member names. Then existing Phase A1/A2 (and optional B) **per member**. A declined A2 in one repo continues to the next; user `abort` / `stop` ends the walk. Ignore these tokens when parsing a named branch. There is no mute `workspace cleanup` CLI. When self-update is enabled, upgrade the tool **once** at the start of the walk, then `issue-flow update` per member (do not reinstall PyPI on every member).
+- **Workspace mode (opt-in tokens)** — trailing `all`, `workspace`, or `include workspace` (case-insensitive) runs cleanup for **every scaffolded workspace member** in one pass (see step 4b). Confirms are **consolidated across members but still split by phase**: one A1 confirm, one A2 confirm, and (when Phase B is enabled) one Phase B confirm — never more than three for the whole workspace. Extra `root:<path>` hints include a scaffolded repo outside the registry (`--extra-root`). Ignore these tokens when parsing a named branch. When self-update is enabled, upgrade the tool **once** at the start, then `issue-flow update` per member (do not reinstall PyPI on every member). The CLI half is `issue-flow workspace cleanup` — classify-only unless told otherwise.
 
 **Phase B enable rule:** run Phase B when (`cleanup_include_github` is baked true **or** an opt-in GitHub token is present) **and** no opt-out token is present.
 
@@ -96,6 +96,13 @@ Optional free-form text after the command:
      5. Record `git rev-parse --short <branch>` for every branch you might delete.
 
    > **Why the extra buckets:** this project merges PRs with **squash**, which lands a *new* commit on the default branch. A squash-merged branch tip is therefore never an ancestor of the default, so `git branch -d` refuses it forever — `-d` alone can never prune landed branches here.
+
+4b. **Workspace mode** (only with an `all` / `workspace` token — replaces steps 2–6 for the whole workspace; steps 7–8 then run per member).
+   1. **Survey.** Resolve the workspace root (`issue-flow agent resolve --json` → `workspace_root`). Run `issue-flow workspace cleanup --json` from there (add `--extra-root <path>` per `root:` hint). It fetches, classifies `default-sync`, buckets local branches with the same code as `agent local-branches`, lists linked worktrees, and computes an A1 / A2 plan per member — **read-only**. Print the grouped table. Members it **refused** (`skipped: true` — dirty product-code tree, detached HEAD, missing `origin`, locked) are reported with their reason and left out of every confirm; the loop continues with the rest.
+   2. **Phase A1 (one confirm for all members).** List per member: `switch <default>` (or why it is blocked), `pull --ff-only`, worktree removes, and `branch -d <reachable…>` by name. Members whose `default_sync.action` is not `even` / `ff_only` are listed **with that action** and their pull is **skipped** — never pulled, rebased, or pushed; their `-d` deletes still run. Ask once. On yes: `issue-flow workspace cleanup --apply --json` (same `--extra-root` hints). Without the CLI, run the listed `git -C <member>` commands yourself. A1 never authorises A2.
+   3. **Phase A2 (second confirm, never implied by A1).** Only when any member's `plan.a2.branch_D` is non-empty. List per member every `<name>  <tip>` with its bucket (`squash_landed` / `merged_pr_divergent`) and merged PR; show `merged_pr_divergent` unique-commit subjects; print the recovery line `git branch <name> <tip>`. **Never** list `unique_work` or `skipped` branches — the CLI never plans them either. Ask once, separately. On yes: `issue-flow workspace cleanup --apply --yes-delete-squash-landed --json`; report every `applied.a2.deleted` entry as `<name> <tip> <flag>` so the SHAs stay in the transcript. The `drive` / `landed` token replaces this prompt with the orchestrator's earlier confirm (same narrowed scope as step 6).
+   4. **Phase B (third confirm, only when enabled per the Input rule).** Run step 9 per member and present **one** confirm grouped by member.
+   5. Steps 7 (folder sweep) and 8 (epic gate offer) run per member. Step 10 reports each member.
 
 5. **Consolidated confirm (Phase A1 — local)** — one yes/no prompt listing every action:
    - `git switch <default>` (home only; skip if already on default)
@@ -158,13 +165,14 @@ Bash accepts the same `--body-file` / `-F` flags. Use that pattern for every mul
 
    - Phase B is **read-only until that second confirm**. Declining leaves remotes untouched.
 
-10. **Report.** Summarize: default branch, PR/merge status, Phase A1 commands and `-d` deletions, Phase A2 `-D` deletions with their tip SHAs (or "declined" / "none offered"), branches left alone as unique work, folder sweep, epic stage-gate offer, self-update action (`upgraded` / `skipped` / `failed` / "not enabled"), and (when run) Phase B bucket counts, remote deletes, findings issue URL or "skipped". If this run used a workspace token, report each member. Else if `issue-flow agent resolve --json` reports `sibling_roots`, list them and remind the user that **each scaffolded repo needs its own `/iflow-cleanup`** (or `/iflow-cleanup workspace`) — do not loop automatically without the token. If other open PRs still show `DIRTY` / CONFLICTING (often `HISTORY.md`), **offer** `/iflow-pr-sync` — do not auto-run it.
+10. **Report.** Summarize: default branch, PR/merge status, Phase A1 commands and `-d` deletions, Phase A2 `-D` deletions with their tip SHAs (or "declined" / "none offered"), branches left alone as unique work, folder sweep, epic stage-gate offer, self-update action (`upgraded` / `skipped` / `failed` / "not enabled"), and (when run) Phase B bucket counts, remote deletes, findings issue URL or "skipped". In workspace mode, report each member (including refused ones with their reason). Else if `issue-flow agent resolve --json` reports `sibling_roots`, list them and remind the user that **each scaffolded repo needs its own `/iflow-cleanup`** — do not loop automatically unless invoked with `all` (or `workspace`). If other open PRs still show `DIRTY` / CONFLICTING (often `HISTORY.md`), **offer** `/iflow-pr-sync` — do not auto-run it.
 
 ## Constraints
 
 - Never use `git push --force`. Never rebase default, force-push default, or push default to skip CI.
 - `git branch -D` is allowed **only** for `squash_landed` / `merged_pr_divergent` branches, **only** after the Phase A2 confirm (or an orchestrator confirm that explicitly named `-D`, signalled by the `drive` / `landed` token), and **only** with their tip SHAs reported. Never `-D` a branch holding unique work, a branch you could not classify, or the current branch. In Phase A1, a `-d` refusal is reported and left alone — it is never a licence to force-delete.
 - Never delete the default branch (local or remote).
+- `issue-flow workspace cleanup` is classify-only by default. Pass `--apply` only after the workspace A1 yes, and `--apply --yes-delete-squash-landed` only after the workspace A2 yes (or the orchestrator token). Never pass either flag to "just see what happens".
 - Remote deletes and findings-issue creation require the **Phase B** confirm; the Phase A1 and A2 yeses must not imply them (nor each other).
 - If anything is ambiguous (detached HEAD, multiple remotes, missing tracking info), report and stop rather than guess.
 - Do not open or update PRs. Do not bump version fields — pyproject bumps belong to `/iflow-close`. The only version action allowed here is creating a release tag / GitHub release that `/iflow-close` **planned** (tag-derived strategy or publish-on-success label), inside the Phase A consolidated confirm.

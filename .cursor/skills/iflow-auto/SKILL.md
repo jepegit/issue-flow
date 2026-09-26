@@ -4,7 +4,7 @@ description: >-
   Unattended large-change orchestrator over a confirmed epic: cycle a stage,
   adversarial review, loop budget, next-epoch gate when the queue is clear.
 disable-model-invocation: true
-issue-flow-version: 0.5.15
+issue-flow-version: 0.5.17
 ---
 
 # issue-flow — advanced auto (`/iflow-auto`)

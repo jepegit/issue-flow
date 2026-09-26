@@ -4,7 +4,7 @@ description: >-
   Git status (and optional fetch --prune) across every workspace member.
   Not the issue-flow lifecycle status command.
 disable-model-invocation: true
-issue-flow-version: 0.5.15
+issue-flow-version: 0.5.17
 ---
 
 # issue-flow — workspace git (`/iflow-workspace-git`)

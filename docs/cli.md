@@ -28,6 +28,7 @@ synopsis of every command is in the collapsible block below the tables.
 | [`workspace doctor`](#issue-flow-workspace-doctor) | Audit every member (no `--fix`) |
 | [`workspace dirty`](#issue-flow-workspace-dirty) | Classify each member's working tree |
 | [`workspace git`](#issue-flow-workspace-git) | Git snapshot / fetch --prune for every member |
+| [`workspace cleanup`](#issue-flow-workspace-cleanup) | Post-merge branch cleanup plan (and optional apply) for every member |
 
 ### Inspect and repair
 
@@ -100,6 +101,8 @@ synopsis of every command is in the collapsible block below the tables.
     issue-flow workspace git
     issue-flow workspace git status [WORKSPACE_DIR] [--json]
     issue-flow workspace git fetch [WORKSPACE_DIR] [--json]
+    issue-flow workspace cleanup [WORKSPACE_DIR] [--json] [--dry-run] [--no-fetch]
+      [--apply] [--yes-delete-squash-landed] [--extra-root PATH ...]
     ```
 
 ## Shell completion
@@ -131,6 +134,7 @@ pages do not repeat these flags.
 | Parent folder already has `issueflow-workspace.toml`; refresh members | `issue-flow workspace update` |
 | Status / doctor / dirty-tree for every workspace member | `issue-flow workspace status` / `doctor` / `dirty` |
 | Git status / fetch for every workspace member | `issue-flow workspace git status` / `fetch` |
+| Which landed branches each workspace member could delete | `issue-flow workspace cleanup` (classify-only; agent path `/iflow-cleanup all`) |
 | Write `issueflow-workspace.toml` only (members already scaffolded) | `issue-flow workspace init --default NAME` |
 | Refresh every unlocked registered repo | `issue-flow update --all` |
 | Add / remove a root in the user-global registry | `issue-flow register` / `unregister` |
@@ -425,3 +429,35 @@ Distinct from `workspace status` (issue-flow lifecycle) and
 | `--json`          | Emit `{workspace_root, members:[…]}`. |
 
 `/iflow-workspace-git` (chat: `iflow git`) is the agent path.
+
+## `issue-flow workspace cleanup` { #issue-flow-workspace-cleanup }
+
+Post-merge branch cleanup across every scaffolded member — the workspace
+loop behind `/iflow-cleanup all`. **Classify-only by default.** For each
+member it runs `git fetch --prune`, classifies the default branch
+(`default-sync`), buckets local branches exactly like
+[`agent local-branches`](#issue-flow-agent) (`reachable` /
+`squash_landed` / `merged_pr_divergent` / `unique_work` / `skipped`, tip
+SHA on every entry), lists linked worktrees, and computes a Phase A1 /
+A2 plan. Output is one table grouped by member.
+
+Members are **refused and skipped** (reported, loop continues) when the
+tree has product-code changes, HEAD is detached, there is no `origin`
+remote, or the member is locked. `.issueflows/`-only dirt only blocks the
+`switch` / `pull` step for that member. A member whose default cannot
+fast-forward is listed with its `default-sync` action and is never
+pulled, rebased, or pushed.
+
+| Argument / Option | Description |
+| ----------------- | ----------- |
+| `WORKSPACE_DIR`   | Start directory. Defaults to `.`. Walks up for `issueflow-workspace.toml`. |
+| `--json`          | Emit `{workspace_root, apply, members:[{name, path, skipped, reason, default_sync, buckets, worktrees, plan:{a1,a2}, applied}], totals}`. |
+| `--dry-run`       | Classify only, even when `--apply` is given. |
+| `--no-fetch`      | Skip `git fetch --prune` in each member. |
+| `--apply`         | Run Phase A1 per member: `switch <default>`, `pull --ff-only` (only when `default-sync` says `even` / `ff_only`), remove reachable worktrees, `git branch -d` on `reachable`. For non-interactive callers; the skill asks first. |
+| `--yes-delete-squash-landed` | With `--apply`: also Phase A2 — `git branch -d`, then `-D` on refusal, for `squash_landed` / `merged_pr_divergent`. Every deletion is reported as `<name> <tip> <flag>`; recover with `git branch <name> <tip>`. Never touches `unique_work`. |
+| `--extra-root PATH` | Include a scaffolded repo outside the registry (repeatable). |
+
+Exit `0` when no member failed (refused members are not failures), `1`
+otherwise. `/iflow-cleanup all` is the agent path: one A1 confirm, one A2
+confirm, and an optional Phase B confirm for the whole workspace.

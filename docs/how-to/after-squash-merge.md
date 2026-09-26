@@ -23,8 +23,13 @@ local issue branches safely.
 
 Close / yolo / cycle **remind** you to run cleanup; they do not run it for you.
 
+Several repos in one workspace folder? `iflow cleanup all` does the same for
+every member with one `-d` confirm and one `-D` confirm in total (backed by
+`issue-flow workspace cleanup`). See
+[Use issue-flow in a folder of repos](workspaces.md#after-the-toml-exists).
+
 ## Related
 
 - [Command reference](../issue-workflow.md) — `/iflow-cleanup`
-- [CLI](../cli.md) — `agent local-branches` / `agent branches` (read-only audits)
+- [CLI](../cli.md) — `agent local-branches` / `agent branches` (read-only audits), `workspace cleanup`
 - [Refresh dirty open PRs](pr-sync.md) — when other open PRs went dirty

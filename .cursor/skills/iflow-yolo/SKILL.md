@@ -4,7 +4,7 @@ description: >-
   Chain capture → plan → build → close yolo for a small, low-risk issue under
   one consolidated confirm. Stops on any ambiguity.
 disable-model-invocation: true
-issue-flow-version: 0.5.15
+issue-flow-version: 0.5.17
 ---
 
 # issue-flow — issue yolo (`/iflow-yolo`)

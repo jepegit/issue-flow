@@ -9,6 +9,9 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+## [0.5.17] - 2026-09-26
+
+- Workspace-wide cleanup: `issue-flow workspace cleanup` classifies every member's local branches with the same code as `agent local-branches` (read-only by default; `--apply` runs Phase A1, `--apply --yes-delete-squash-landed` adds the `-D` phase with tip SHAs), skipping members with a dirty product-code tree, detached HEAD, or no `origin`, and never pulling a member whose default cannot fast-forward. `/iflow-cleanup all` consumes it with one A1 confirm and one A2 confirm for the whole workspace instead of one pair per repo. (#392)
 - Epic #269 is complete: user-global config, per-repo lock, the project registry, and `update --all` shipped in stages #281–#298. (#269)
 - Skills that create multi-line GitHub text now say to use `--body-file` or `git commit -F`. Bash `<<'EOF'` heredocs fail in Windows PowerShell. (#380)
 - The 2026-09-12 remote-branch audit's three stale remotes were deleted after review: `140-agent-queue-cli`, `cursor/163-github-branches-e2ca`, and `cursor/gha-sync-issueflows-08d1`. Their work had already landed. (#267)

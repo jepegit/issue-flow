@@ -4,7 +4,7 @@ description: >-
   Draft a structured plan in issue<N>_plan.md and get explicit user
   confirmation before any implementation starts.
 disable-model-invocation: true
-issue-flow-version: 0.5.15
+issue-flow-version: 0.5.17
 ---
 
 # issue-flow — issue plan (`/iflow-plan`)

@@ -3,7 +3,7 @@ name: iflow-status
 description: >-
   Read-only snapshot of where every issue stands, locally and on GitHub.
 disable-model-invocation: true
-issue-flow-version: 0.5.15
+issue-flow-version: 0.5.17
 ---
 
 # issue-flow — issue status overview (`/iflow-status`)

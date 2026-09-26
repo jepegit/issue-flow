@@ -4,7 +4,7 @@ description: >-
   Refresh open PR heads onto the default branch after another merge left them
   DIRTY (usually HISTORY.md). Uses sync-branch keep-both + force-with-lease.
 disable-model-invocation: true
-issue-flow-version: 0.5.15
+issue-flow-version: 0.5.17
 ---
 
 # issue-flow — PR queue sync (`/iflow-pr-sync`)

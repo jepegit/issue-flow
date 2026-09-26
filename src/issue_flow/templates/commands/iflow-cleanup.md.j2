@@ -22,7 +22,7 @@ Optional free-form text after the command. Examples:
 - **Self-update opt-out tokens** (case-insensitive): `no bleeding`, `no bleeding-edge`, `skip self-update` — skip the upgrade even when `on_bleeding_edge` is baked true.
 - **Phase A ask tokens** (case-insensitive): `ask a1`, `ask a2` — force that phase's yes/no even when `cleanup_yes_a1` / `cleanup_yes_a2` is baked true.
 - **Orchestrator token** `drive` / `landed` — the caller (`/iflow-drive`) already confirmed `-D` on squash-landed branches: run A1 + A2 without re-asking, A2 narrowed to `squash_landed` plus `merged_pr_divergent` with nothing newer than the PR merge; tip SHAs still printed. Never passed by a human.
-- **Workspace walk** (case-insensitive): `workspace`, `all`, `include workspace` — one up-front confirm, then this cleanup **per member**. Not a mute CLI. Ignore these tokens when parsing a named branch. When self-update is enabled, upgrade the tool **once** at the start of the walk.
+- **Workspace mode** (case-insensitive): `all`, `workspace`, `include workspace` — cleanup for every scaffolded member in one pass (step 4b): survey with `issue-flow workspace cleanup --json` (classify-only), then **one** A1 confirm, **one** A2 confirm, optional **one** Phase B confirm for the whole workspace. Extra `root:<path>` hints → `--extra-root`. Ignore these tokens when parsing a named branch. When self-update is enabled, upgrade the tool **once** at the start.
 
 **Phase B enable rule:** (`cleanup_include_github` baked true **or** opt-in token) **and** no opt-out token.
 
@@ -55,6 +55,12 @@ Optional free-form text after the command. Examples:
    - Prefer `issue-flow agent local-branches --json` — read-only, buckets each local branch as `reachable` / `squash_landed` / `merged_pr_divergent` / `unique_work` / `skipped`, with a `tip` short SHA on every entry.
    - Manual fallback per branch (skip the current and default branches): `git merge-base --is-ancestor <branch> origin/<default>` (exit 0 → `reachable`); else `git cherry origin/<default> <branch>` with no `+` lines → `squash_landed`; else check `gh pr list --state all --head <branch> --json number,state,mergedAt,url` and compare `git log --no-merges --format=%cI origin/<default>..<branch>` to `mergedAt` — a merged PR with nothing newer → `merged_pr_divergent`, otherwise `unique_work`.
    - `git branch -d` applies git's **reachability** test, while `git cherry` proves **patch equivalence**. A {% if pr_merge_method == "squash" %}squash merge (this project's `pr_merge_method`){% else %}squash merge{% endif %} rewrites commits onto a new commit, so the branch tip stays unreachable and `-d` refuses it no matter how thoroughly the work landed.
+
+4b. **Workspace mode** (`all` / `workspace` token — replaces steps 2–6 for every member; 7–8 then run per member).
+   - Survey: `issue-flow workspace cleanup --json` from the workspace root (`agent resolve` → `workspace_root`; `--extra-root <path>` per `root:` hint). Read-only: fetch, `default-sync`, the `agent local-branches` buckets, linked worktrees, and an A1 / A2 plan per member. Refused members (dirty product-code tree, detached HEAD, missing `origin`, locked) are reported and skipped; the rest proceed.
+   - **A1 (one confirm, all members):** per member `switch <default>`, `pull --ff-only`, worktree removes, `branch -d <reachable…>`. Members whose `default_sync.action` is not `even` / `ff_only` are listed **with that action** and never pulled or pushed (their `-d` still runs). On yes: `issue-flow workspace cleanup --apply --json`. A1 never authorises A2.
+   - **A2 (second confirm, never implied by A1):** only when some `plan.a2.branch_D` is non-empty. Per member `<name>  <tip>` + bucket + merged PR; recovery line `git branch <name> <tip>`. Never `unique_work` / `skipped`. On yes: `issue-flow workspace cleanup --apply --yes-delete-squash-landed --json`; report every deleted `<name> <tip> <flag>`.
+   - **Phase B (third confirm, when enabled):** step 9 per member, one confirm grouped by member.
 
 5. **Consolidated confirm for post-merge cleanup (Phase A1).** Gather the full action list into a single yes/no prompt:
    - `git switch <default>` (home only)
@@ -105,10 +111,12 @@ Report:
 - list of branches left alone, with a one-line reason (unique work, `-d` refused, unclassifiable)
 - folder sweep summary (`issue<N>` → `{{ solved_folder }}/`, or "nothing to sweep")
 - when Phase B ran: deletable / unique-work / skipped counts, remote deletes, findings issue URL or "skipped"
+- in workspace mode: the above per member, plus refused members with their reason. Otherwise, if `agent resolve` reports `sibling_roots`, remind that each scaffolded repo needs its own `/iflow-cleanup` — do not loop automatically unless invoked with `all`.
 
 ## Constraints
 
 - Never use `git push --force`.
+- `issue-flow workspace cleanup` is classify-only by default; `--apply` only after the workspace A1 yes, `--apply --yes-delete-squash-landed` only after the workspace A2 yes.
 - `git branch -D` only for `squash_landed` / `merged_pr_divergent` branches, only after the Phase A2 confirm (or an orchestrator confirm that named `-D`, via the `drive` / `landed` token), and only with tip SHAs reported. Never `-D` unique work, an unclassifiable branch, or the current branch. A `-d` refusal in Phase A1 is reported, never force-retried.
 - Never delete the default branch (local or remote).
 - Remote deletes and findings-issue creation require the Phase B confirm. None of the three confirms implies another.

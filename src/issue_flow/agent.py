@@ -610,6 +610,27 @@ def run_local_branches(
     Read-only: never deletes a branch. The confirm-gated deletes live in
     ``/iflow-cleanup``.
     """
+    payload, exit_code = classify_local_branches(
+        project_root, fetch=fetch, commit_limit=commit_limit
+    )
+    if as_json:
+        _emit_json(console, payload)
+        return exit_code
+    return _render_local_branches_text(console, payload, exit_code)
+
+
+def classify_local_branches(
+    project_root: Path,
+    *,
+    fetch: bool = True,
+    commit_limit: int = 20,
+) -> tuple[dict[str, Any], int]:
+    """Console-free five-bucket classifier behind ``agent local-branches``.
+
+    Shared with ``workspace cleanup`` (issue #392) so the per-member buckets
+    are, by construction, identical to running ``agent local-branches`` in
+    each member. Returns ``(payload, exit_code)``; never mutates the repo.
+    """
     notes: list[str] = []
     remote = gitutils.remote_owner_repo(project_root)
     repo = f"{remote[0]}/{remote[1]}" if remote else None
@@ -629,11 +650,8 @@ def run_local_branches(
         "notes": notes,
     }
 
-    def emit(exit_code: int) -> int:
-        if as_json:
-            _emit_json(console, payload)
-            return exit_code
-        return _render_local_branches_text(console, payload, exit_code)
+    def emit(exit_code: int) -> tuple[dict[str, Any], int]:
+        return payload, exit_code
 
     if not gitutils.git_available():
         notes.append("git is not on PATH")
@@ -4369,6 +4387,487 @@ def run_workspace_git_fetch(
     if as_json:
         _emit_json(console, payload)
     return 0 if fail_count == 0 else 1
+
+
+# ---------------------------------------------------------------------------
+# workspace cleanup (issue #392)
+# ---------------------------------------------------------------------------
+
+_CLEANUP_FF_ACTIONS = frozenset({"even", "ff_only"})
+_CLEANUP_BUCKETS = (
+    "reachable",
+    "squash_landed",
+    "merged_pr_divergent",
+    "unique_work",
+    "skipped",
+)
+_CLEANUP_FORCE_BUCKETS = ("squash_landed", "merged_pr_divergent")
+
+
+def _cleanup_gate(root: Path, settings: Settings) -> tuple[str | None, list[str]]:
+    """Refuse-to-loop check for one member.
+
+    Returns ``(reason, dirty_paths)``: ``reason`` is ``None`` when the member
+    may be processed. ``issueflows_only`` dirt is *not* a refusal — the
+    caller only blocks ``switch`` / ``pull`` for it.
+    """
+    if gitutils.head_sha(root) is None:
+        return "not a git repo (or no commits yet)", []
+    if not gitutils.has_remote(root, "origin"):
+        return "missing origin remote", []
+    if gitutils.is_detached_head(root):
+        return "detached HEAD", []
+    dirty = gitutils.dirty_paths(root)
+    klass = _dirty_class(dirty, settings.issueflows_dir)
+    if klass == "unknown":
+        return "could not read the working tree state", []
+    if klass == "mixed":
+        return "dirty product-code tree", dirty or []
+    return None, dirty or []
+
+
+def _cleanup_member(
+    name: str,
+    root: Path,
+    settings: Settings,
+    *,
+    fetch: bool,
+    apply: bool,
+    force_delete: bool,
+) -> dict[str, Any]:
+    """Classify (and optionally apply) cleanup for one workspace member."""
+    entry: dict[str, Any] = {
+        "name": name,
+        "path": str(root),
+        "ok": True,
+        "skipped": False,
+        "reason": None,
+        "branch": None,
+        "default_branch": None,
+        "dirty_class": None,
+        "dirty_paths": [],
+        "fetched": False,
+        "default_sync": None,
+        "buckets": {bucket: [] for bucket in _CLEANUP_BUCKETS},
+        "worktrees": [],
+        "refusals": [],
+        "plan": {"a1": None, "a2": None},
+        "applied": None,
+        "notes": [],
+    }
+    notes: list[str] = entry["notes"]
+
+    reason, dirty = _cleanup_gate(root, settings)
+    entry["dirty_paths"] = dirty
+    entry["dirty_class"] = _dirty_class(dirty, settings.issueflows_dir)
+    entry["branch"] = gitutils.current_branch(root)
+    if reason is not None:
+        entry["skipped"] = True
+        entry["reason"] = reason
+        return entry
+
+    if fetch:
+        entry["fetched"] = gitutils.fetch_prune(root)
+        if not entry["fetched"]:
+            notes.append("git fetch --prune failed")
+
+    default = gitutils.default_branch(root)
+    entry["default_branch"] = default
+    sync = gitutils.classify_default_sync(
+        root, issueflows_dir=settings.issueflows_dir, default=default, fetch=False
+    )
+    entry["default_sync"] = {
+        key: sync.get(key)
+        for key in ("action", "class", "ahead", "behind", "ff_possible")
+    }
+
+    buckets, code = classify_local_branches(root, fetch=False)
+    if code != 0:
+        entry["ok"] = False
+        entry["reason"] = "; ".join(buckets.get("notes") or []) or "classify failed"
+        return entry
+    for bucket in _CLEANUP_BUCKETS:
+        entry["buckets"][bucket] = list(buckets.get(bucket) or [])
+    notes.extend(buckets.get("notes") or [])
+
+    bucket_of: dict[str, str] = {}
+    for bucket in _CLEANUP_BUCKETS:
+        for item in entry["buckets"][bucket]:
+            bucket_of[str(item.get("name"))] = bucket
+
+    worktrees: list[dict[str, Any]] = []
+    for info in gitutils.list_worktrees(root):
+        if info.is_main:
+            continue
+        wt_bucket = bucket_of.get(info.branch or "")
+        worktrees.append(
+            {
+                "path": str(info.path),
+                "branch": info.branch,
+                "bucket": wt_bucket,
+                "clean": gitutils.working_tree_clean(info.path),
+            }
+        )
+        if wt_bucket == "unique_work":
+            entry["refusals"].append(
+                f"linked worktree {info.path} holds unique work on "
+                f"{info.branch}; branch and worktree left alone"
+            )
+    entry["worktrees"] = worktrees
+
+    on_default = entry["branch"] == default
+    issueflows_dirt = entry["dirty_class"] == "issueflows_only"
+    switch_blocked = (
+        None
+        if on_default
+        else ("issueflows-only dirt in the working tree" if issueflows_dirt else None)
+    )
+    action = sync.get("action")
+    pull_ok = action in _CLEANUP_FF_ACTIONS
+    a1: dict[str, Any] = {
+        "switch_default": (not on_default) and switch_blocked is None,
+        "switch_blocked_reason": switch_blocked,
+        "pull_ff_only": pull_ok and (on_default or switch_blocked is None),
+        "pull_skipped_reason": None if pull_ok else str(action),
+        "worktree_remove": [
+            wt["path"] for wt in worktrees if wt["bucket"] == "reachable"
+        ],
+        "branch_d": [str(item.get("name")) for item in entry["buckets"]["reachable"]],
+    }
+    a2_items: list[dict[str, Any]] = []
+    for bucket in _CLEANUP_FORCE_BUCKETS:
+        for item in entry["buckets"][bucket]:
+            a2_items.append(
+                {
+                    "name": item.get("name"),
+                    "tip": item.get("tip"),
+                    "bucket": bucket,
+                    "merged_prs": item.get("merged_prs") or [],
+                    "commits": item.get("commits") or [],
+                    "recover": f"git branch {item.get('name')} {item.get('tip')}",
+                }
+            )
+    a2: dict[str, Any] = {
+        "branch_D": a2_items,
+        "worktree_remove": [
+            wt["path"] for wt in worktrees if wt["bucket"] in _CLEANUP_FORCE_BUCKETS
+        ],
+    }
+    entry["plan"] = {"a1": a1, "a2": a2}
+
+    if not apply:
+        return entry
+
+    entry["applied"] = _apply_cleanup_member(
+        root, default, entry, a1, a2, force_delete=force_delete
+    )
+    return entry
+
+
+def _apply_cleanup_member(
+    root: Path,
+    default: str,
+    entry: dict[str, Any],
+    a1: dict[str, Any],
+    a2: dict[str, Any],
+    *,
+    force_delete: bool,
+) -> dict[str, Any]:
+    """Run the planned A1 (and, when authorised, A2) actions for one member."""
+    notes: list[str] = entry["notes"]
+    home = gitutils.worktree_home_path(root) or root
+    applied: dict[str, Any] = {
+        "a1": {
+            "switched": False,
+            "pulled": False,
+            "worktrees_removed": [],
+            "deleted": [],
+            "refused": [],
+        },
+        "a2": {
+            "authorised": force_delete,
+            "worktrees_removed": [],
+            "deleted": [],
+            "refused": [],
+        },
+    }
+    a1_out = applied["a1"]
+    if a1["switch_default"]:
+        ok, error = gitutils.switch_branch(root, default)
+        if ok:
+            a1_out["switched"] = True
+            entry["branch"] = default
+        else:
+            notes.append(f"git switch {default} failed: {error}")
+    if a1["pull_ff_only"] and (a1_out["switched"] or entry["branch"] == default):
+        ok, error = gitutils.pull_ff_only(root)
+        a1_out["pulled"] = ok
+        if not ok:
+            notes.append(f"git pull --ff-only refused: {error}")
+    for wt_path in a1["worktree_remove"]:
+        ok, error = gitutils.remove_worktree(home, Path(wt_path))
+        if ok:
+            a1_out["worktrees_removed"].append(wt_path)
+        else:
+            notes.append(f"worktree remove {wt_path} refused: {error}")
+    tips = {
+        str(item.get("name")): item.get("tip")
+        for bucket in _CLEANUP_BUCKETS
+        for item in entry["buckets"][bucket]
+    }
+    for name in a1["branch_d"]:
+        ok, error = gitutils.delete_branch(root, name)
+        if ok:
+            a1_out["deleted"].append(
+                {"name": name, "tip": tips.get(name), "flag": "-d"}
+            )
+        else:
+            a1_out["refused"].append(
+                {"name": name, "tip": tips.get(name), "error": error}
+            )
+
+    a2_out = applied["a2"]
+    if not force_delete:
+        if a2["branch_D"]:
+            notes.append(
+                f"{len(a2['branch_D'])} squash-landed / merged-PR divergent "
+                "branch(es) left in place — pass --yes-delete-squash-landed "
+                "after the Phase A2 confirm"
+            )
+        return applied
+    for wt_path in a2["worktree_remove"]:
+        ok, error = gitutils.remove_worktree(home, Path(wt_path))
+        if ok:
+            a2_out["worktrees_removed"].append(wt_path)
+        else:
+            notes.append(f"worktree remove {wt_path} refused: {error}")
+    for item in a2["branch_D"]:
+        name = str(item["name"])
+        ok, _error = gitutils.delete_branch(root, name)
+        flag = "-d"
+        if not ok:
+            ok, error = gitutils.delete_branch(root, name, force=True)
+            flag = "-D"
+            if not ok:
+                a2_out["refused"].append(
+                    {"name": name, "tip": item.get("tip"), "error": error}
+                )
+                continue
+        a2_out["deleted"].append({"name": name, "tip": item.get("tip"), "flag": flag})
+    return applied
+
+
+def run_workspace_cleanup(
+    workspace_dir: Path,
+    console: Console,
+    as_json: bool,
+    *,
+    fetch: bool = True,
+    dry_run: bool = False,
+    apply: bool = False,
+    yes_delete_squash_landed: bool = False,
+    extra_roots: list[Path] | None = None,
+) -> int:
+    """Classify (and optionally apply) post-merge branch cleanup per member.
+
+    Read-only by default: every member gets ``git fetch --prune``, a
+    ``default-sync`` classification, the ``agent local-branches`` buckets, and
+    its linked worktrees, plus a computed A1 / A2 plan. ``--apply`` runs A1
+    (``switch`` / ``pull --ff-only`` when fast-forwardable, ``-d`` on
+    ``reachable``); ``-D`` on ``squash_landed`` / ``merged_pr_divergent``
+    needs ``--yes-delete-squash-landed`` as well. ``--dry-run`` forces
+    classify-only. ``unique_work`` is never planned or deleted.
+    """
+    start = workspace_dir.resolve()
+    prepared = _prepare_workspace_members(start, console, as_json)
+    if prepared is None:
+        return 1
+    workspace, member_pairs = prepared
+    settings = Settings()
+    notes: list[str] = []
+
+    pairs = list(member_pairs)
+    seen = {root for _name, root in pairs}
+    for extra in extra_roots or []:
+        resolved = extra.resolve()
+        if resolved in seen:
+            continue
+        if not (resolved / settings.issueflows_dir).is_dir():
+            notes.append(
+                f"extra root {resolved} has no {settings.issueflows_dir}/; ignored"
+            )
+            continue
+        seen.add(resolved)
+        pairs.append((resolved.name, resolved))
+
+    effective_apply = apply and not dry_run
+    if apply and dry_run:
+        notes.append("--dry-run given: --apply ignored, classify-only")
+    if yes_delete_squash_landed and not apply:
+        notes.append("--yes-delete-squash-landed has no effect without --apply")
+
+    results: list[dict[str, Any]] = []
+    ok_count = skip_count = fail_count = 0
+    totals = {bucket: 0 for bucket in _CLEANUP_BUCKETS}
+    for name, root in pairs:
+        if settings.resolve_locked(root):
+            results.append(
+                {
+                    "name": name,
+                    "path": str(root),
+                    "ok": True,
+                    "skipped": True,
+                    "reason": "locked",
+                }
+            )
+            skip_count += 1
+            continue
+        try:
+            entry = _cleanup_member(
+                name,
+                root,
+                settings,
+                fetch=fetch,
+                apply=effective_apply,
+                force_delete=effective_apply and yes_delete_squash_landed,
+            )
+        except Exception as exc:  # noqa: BLE001 — continue-on-fail fan-out
+            entry = {
+                "name": name,
+                "path": str(root),
+                "ok": False,
+                "skipped": False,
+                "reason": str(exc),
+            }
+        results.append(entry)
+        if not entry.get("ok", False):
+            fail_count += 1
+        elif entry.get("skipped"):
+            skip_count += 1
+        else:
+            ok_count += 1
+            for bucket in _CLEANUP_BUCKETS:
+                totals[bucket] += len((entry.get("buckets") or {}).get(bucket) or [])
+
+    payload = {
+        "ok": fail_count == 0,
+        "workspace_root": str(workspace.root),
+        "apply": effective_apply,
+        "dry_run": dry_run,
+        "yes_delete_squash_landed": effective_apply and yes_delete_squash_landed,
+        "members": results,
+        "ok_count": ok_count,
+        "fail_count": fail_count,
+        "skip_count": skip_count,
+        "totals": totals,
+        "notes": notes,
+    }
+    if as_json:
+        _emit_json(console, payload)
+    else:
+        _render_workspace_cleanup_text(console, payload)
+    return 0 if fail_count == 0 else 1
+
+
+def _render_workspace_cleanup_text(console: Console, payload: dict[str, Any]) -> None:
+    mode = (
+        "apply + -D"
+        if payload["yes_delete_squash_landed"]
+        else "apply (A1 only)"
+        if payload["apply"]
+        else "classify-only"
+    )
+    console.print(
+        f"\n[bold]Workspace cleanup[/bold]  [cyan]{payload['workspace_root']}[/cyan]"
+        f"  [dim]{mode}[/dim]"
+    )
+    console.print(f"[dim]{len(payload['members'])} member(s)[/dim]\n")
+    for entry in payload["members"]:
+        name = escape(str(entry.get("name")))
+        if entry.get("skipped"):
+            console.print(
+                f"[yellow]skip[/yellow]  {name}  ({escape(str(entry.get('reason')))})"
+            )
+            for path in entry.get("dirty_paths") or []:
+                console.print(f"    {escape(str(path))}")
+            continue
+        if not entry.get("ok"):
+            console.print(
+                f"[red]fail[/red]  {name}: {escape(str(entry.get('reason')))}"
+            )
+            continue
+        sync = entry.get("default_sync") or {}
+        buckets = entry.get("buckets") or {}
+        counts = "  ·  ".join(
+            f"{bucket.replace('_', '-')} {len(buckets.get(bucket) or [])}"
+            for bucket in _CLEANUP_BUCKETS[:4]
+        )
+        console.print(
+            f"  [bold]{name}[/bold]  {escape(str(entry.get('branch') or '(detached)'))}"
+            f"  default-sync={escape(str(sync.get('action')))}  {counts}"
+        )
+        plan = entry.get("plan") or {}
+        a1 = plan.get("a1") or {}
+        if a1.get("switch_blocked_reason"):
+            console.print(
+                f"    switch skipped: {escape(str(a1['switch_blocked_reason']))}"
+            )
+        if a1.get("pull_skipped_reason"):
+            console.print(
+                f"    pull --ff-only skipped: default-sync action "
+                f"{escape(str(a1['pull_skipped_reason']))}"
+            )
+        a2 = plan.get("a2") or {}
+        for wt_path in list(a1.get("worktree_remove") or []) + list(
+            a2.get("worktree_remove") or []
+        ):
+            console.print(f"    [dim]worktree remove[/dim]  {escape(str(wt_path))}")
+        for item in buckets.get("reachable") or []:
+            console.print(
+                f"    [green]-d[/green]  {escape(str(item.get('name')))} "
+                f"{escape(str(item.get('tip') or '?'))}"
+            )
+        for item in a2.get("branch_D") or []:
+            console.print(
+                f"    [yellow]-D[/yellow]  {escape(str(item.get('name')))} "
+                f"{escape(str(item.get('tip') or '?'))}  "
+                f"[dim]{escape(str(item.get('bucket')))}[/dim]"
+            )
+        for item in buckets.get("unique_work") or []:
+            console.print(
+                f"    [cyan]keep[/cyan]  {escape(str(item.get('name')))} "
+                f"{escape(str(item.get('tip') or '?'))} — {escape(str(item.get('reason')))}"
+            )
+        for line in entry.get("refusals") or []:
+            console.print(f"    [yellow]refused[/yellow]  {escape(str(line))}")
+        applied = entry.get("applied")
+        if applied:
+            for phase in ("a1", "a2"):
+                for item in applied[phase].get("deleted") or []:
+                    console.print(
+                        f"    [green]deleted[/green]  {escape(str(item['name']))} "
+                        f"{escape(str(item.get('tip') or '?'))}  ({item['flag']})"
+                    )
+                for item in applied[phase].get("refused") or []:
+                    console.print(
+                        f"    [red]refused[/red]  {escape(str(item['name']))}: "
+                        f"{escape(str(item.get('error')))}"
+                    )
+        for note in entry.get("notes") or []:
+            console.print(f"    [dim]note[/dim]  {escape(str(note))}")
+    totals = payload["totals"]
+    console.print(
+        f"\n[dim]totals: reachable {totals['reachable']} · squash-landed "
+        f"{totals['squash_landed']} · merged-PR divergent "
+        f"{totals['merged_pr_divergent']} · unique work {totals['unique_work']}[/dim]"
+    )
+    if not payload["apply"]:
+        console.print(
+            "[dim]classify-only — nothing changed. `--apply` runs Phase A1; add "
+            "`--yes-delete-squash-landed` for Phase A2 (-D) after its own confirm.[/dim]"
+        )
+    for note in payload.get("notes") or []:
+        console.print(f"[yellow]note[/yellow]  {escape(str(note))}")
 
 
 # ---------------------------------------------------------------------------

@@ -605,6 +605,18 @@ def classify_default_sync(
     }
 
 
+def has_remote(cwd: Path, name: str = "origin") -> bool:
+    """True when the repo at ``cwd`` has a remote called ``name``."""
+    return bool(_stdout([GIT, "remote", "get-url", name], cwd))
+
+
+def is_detached_head(cwd: Path) -> bool:
+    """True when ``cwd`` is a repo with commits whose HEAD is detached."""
+    if head_sha(cwd) is None:
+        return False
+    return current_branch(cwd) is None
+
+
 def remote_owner_repo(cwd: Path) -> tuple[str, str] | None:
     """Parse ``owner``/``repo`` from the ``origin`` remote URL."""
     url = _stdout([GIT, "remote", "get-url", "origin"], cwd)

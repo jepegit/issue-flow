@@ -4,7 +4,7 @@ description: >-
   Split one over-large GitHub issue into linked child issues (native
   sub-issues), then optionally start the first child.
 disable-model-invocation: true
-issue-flow-version: 0.5.15
+issue-flow-version: 0.5.17
 ---
 
 # issue-flow — split an over-large issue (`/iflow-split`)
