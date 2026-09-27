@@ -30,7 +30,8 @@ In your editor's chat window:
 
 Forgot where you are? Type `iflow` and it runs the next step. For small issues,
 larger changes split into stages, and batch runs, see the
-[How-to guides](how-to/index.md).
+[How-to guides](how-to/index.md). A map of every flow and the knobs that steer
+them is in [Flows map](concepts.md#flows-map).
 
 ## Start here
 
