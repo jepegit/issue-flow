@@ -18,14 +18,15 @@ when the reader switches between light and dark mode.
 
 Current diagrams:
 
-- `docs/concepts.md`: the lifecycle (pick → cleanup), what `iflow` dispatches from which file state (with off-path commands dotted), and folder moves between `01-` / `02-` / `03-`.
+- `docs/concepts.md`: the lifecycle (pick → cleanup), what `iflow` dispatches from which file state (with off-path commands dotted), folder moves between `01-` / `02-` / `03-`, and the Flows map (role colours and stroke width).
 - `docs/how-to/epics.md`: the epic flow (anchor → plan → publish → stages). The old text tree stays underneath.
 
 Conventions:
 
 - Use `flowchart` with short labels. `<br/>` for line breaks.
 - Solid arrows for what issue-flow does on its own; dotted (`-.->`) for off-path commands the user runs.
-- No custom colours, so the theme's palette applies in both modes.
+- Leave colour to the theme, so light and dark mode both stay readable.
+- Exception (issue #397): the Flows map sets role colours with fill and text together on each node, and sets stroke width on edges (thick on-path chain, medium usual path, thin dotted knobs). A text key under the diagram repeats the encoding. Other diagrams stay on the theme palette.
 
 ## Alternatives considered
 
