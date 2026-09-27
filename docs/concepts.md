@@ -130,9 +130,10 @@ after the PR merges"), but it never runs one.
 
 ## Flows map
 
-How the main entry points relate, and which **knobs** steer them. Solid arrows
-are the usual path; dotted ones are opt-in or label-driven. Full knob list:
-[Configuration](configuration.md).
+How the main entry points relate, and which **knobs** steer them. Thick arrows
+are the on-path chain, medium arrows are the usual path, and thin dotted arrows
+are opt-in or label-driven. Color marks the role; the key sits under the
+diagram. Full knob list: [Configuration](configuration.md).
 
 ```mermaid
 flowchart TB
@@ -148,7 +149,7 @@ flowchart TB
         plan["plan"]
         build["build"]
         close["close"]
-        capture --> plan --> build --> close
+        capture ==> plan ==> build ==> close
     end
 
     subgraph hands [Hands-off / batch]
@@ -164,32 +165,62 @@ flowchart TB
         split(["split"])
     end
 
-    setup -.->|harness ready| pick
     pick -->|worktree_first| capture
-    pick -.->|label_flows + yolo_label| yolo
-    pick -.->|label_flows + ops_label<br/>ops wins over yolo| ops
     issueCmd -->|worktree_first| capture
     fix -->|worktree_first| capture
-    fix -.->|auto_close| close
-
-    pick -.->|auto_plan| plan
-    plan -.->|auto_build| build
-    build -.->|early_pr| close
-    build -.->|auto_close| close
     close -->|PR merged| cleanup(["cleanup"])
-    close -.->|publish_label| release["gh release"]
-    close -.->|auto_cleanup| cleanup
-    close -.->|auto_switchback / auto_remove_worktree| home["default branch"]
-
     yolo -->|"one confirm → full on-path chain"| capture
     cycle -->|"each queued issue"| yolo
     epic -->|"publish stages"| cycle
     auto -->|"per stage"| cycle
     drive --> epic
     drive --> auto
-    split -.->|"2–5 children"| pick
     ops --> close
+
+    setup -.->|harness ready| pick
+    pick -.->|label_flows + yolo_label| yolo
+    pick -.->|label_flows + ops_label<br/>ops wins over yolo| ops
+    fix -.->|auto_close| close
+    pick -.->|auto_plan| plan
+    plan -.->|auto_build| build
+    build -.->|early_pr| close
+    build -.->|auto_close| close
+    close -.->|publish_label| release["gh release"]
+    close -.->|auto_cleanup| cleanup
+    close -.->|auto_switchback / auto_remove_worktree| home["default branch"]
+    split -.->|"2–5 children"| pick
+
+    classDef startNode fill:#e0f2fe,stroke:#0369a1,stroke-width:2px,color:#0c4a6e
+    classDef onpathNode fill:#dbeafe,stroke:#1d4ed8,stroke-width:2.5px,color:#1e3a8a
+    classDef handsNode fill:#ffedd5,stroke:#c2410c,stroke-width:2px,color:#7c2d12
+    classDef bigNode fill:#ede9fe,stroke:#6d28d9,stroke-width:2px,color:#4c1d95
+    classDef exitNode fill:#dcfce7,stroke:#15803d,stroke-width:2px,color:#14532d
+
+    class setup,pick,issueCmd,fix startNode
+    class capture,plan,build,close onpathNode
+    class yolo,cycle,auto,drive,ops handsNode
+    class epic,split bigNode
+    class cleanup,release,home exitNode
+
+    %% Link order is the stroke key. Keep new edges in the matching group.
+    linkStyle 0,1,2 stroke:#1d4ed8,stroke-width:4px
+    linkStyle 3,4,5 stroke:#0369a1,stroke-width:2.5px
+    linkStyle 6 stroke:#15803d,stroke-width:3px
+    linkStyle 7 stroke:#1d4ed8,stroke-width:2.5px
+    linkStyle 8,9,10 stroke:#c2410c,stroke-width:2.5px
+    linkStyle 11 stroke:#6d28d9,stroke-width:2.5px
+    linkStyle 12 stroke:#c2410c,stroke-width:2.5px
+    linkStyle 13 stroke:#1d4ed8,stroke-width:2.5px
+    linkStyle 14 stroke:#0369a1,stroke-width:1px
+    linkStyle 15,16 stroke:#c2410c,stroke-width:1px
+    linkStyle 17,18,19,20,21 stroke:#1d4ed8,stroke-width:1px
+    linkStyle 22,23,24 stroke:#15803d,stroke-width:1px
+    linkStyle 25 stroke:#0369a1,stroke-width:1px
 ```
+
+**Key.** Blue nodes start work. Deeper blue is the on-path chain (thick arrows).
+Orange is hands-off. Purple is bigger than one issue. Green is the exit.
+Medium solid arrows are the usual path; thin dotted arrows are opt-in knobs.
 
 | Knob | Steers | Default |
 | --- | --- | --- |

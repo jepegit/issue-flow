@@ -9,6 +9,8 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+- Iterative fixes: docs-flow-diagram. (#397)
+
 ## [0.5.17] - 2026-09-26
 
 - Workspace-wide cleanup: `issue-flow workspace cleanup` classifies every member's local branches with the same code as `agent local-branches` (read-only by default; `--apply` runs Phase A1, `--apply --yes-delete-squash-landed` adds the `-D` phase with tip SHAs), skipping members with a dirty product-code tree, detached HEAD, or no `origin`, and never pulling a member whose default cannot fast-forward. `/iflow-cleanup all` consumes it with one A1 confirm and one A2 confirm for the whole workspace instead of one pair per repo. (#392)
