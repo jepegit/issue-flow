@@ -128,6 +128,91 @@ starts it for you. That includes:
 `iflow` may *mention* an off-path command (for example "run `iflow cleanup`
 after the PR merges"), but it never runs one.
 
+## Flows map
+
+How the main entry points relate, and which **knobs** steer them. Solid arrows
+are the usual path; dotted ones are opt-in or label-driven. Full knob list:
+[Configuration](configuration.md).
+
+```mermaid
+flowchart TB
+    subgraph start [Start work]
+        setup(["setup"])
+        pick(["pick"])
+        issueCmd(["issue"])
+        fix(["fix"])
+    end
+
+    subgraph onpath [On-path — dispatcher iflow]
+        capture["capture"]
+        plan["plan"]
+        build["build"]
+        close["close"]
+        capture --> plan --> build --> close
+    end
+
+    subgraph hands [Hands-off / batch]
+        yolo(["yolo"])
+        cycle(["cycle"])
+        auto(["auto"])
+        drive(["drive"])
+        ops(["ops"])
+    end
+
+    subgraph big [Bigger than one issue]
+        epic(["epic"])
+        split(["split"])
+    end
+
+    setup -.->|harness ready| pick
+    pick -->|worktree_first| capture
+    pick -.->|label_flows + yolo_label| yolo
+    pick -.->|label_flows + ops_label<br/>ops wins over yolo| ops
+    issueCmd -->|worktree_first| capture
+    fix -->|worktree_first| capture
+    fix -.->|auto_close| close
+
+    pick -.->|auto_plan| plan
+    plan -.->|auto_build| build
+    build -.->|early_pr| close
+    build -.->|auto_close| close
+    close -->|PR merged| cleanup(["cleanup"])
+    close -.->|publish_label| release["gh release"]
+    close -.->|auto_cleanup| cleanup
+    close -.->|auto_switchback / auto_remove_worktree| home["default branch"]
+
+    yolo -->|"one confirm → full on-path chain"| capture
+    cycle -->|"each queued issue"| yolo
+    epic -->|"publish stages"| cycle
+    auto -->|"per stage"| cycle
+    drive --> epic
+    drive --> auto
+    split -.->|"2–5 children"| pick
+    ops --> close
+```
+
+| Knob | Steers | Default |
+| --- | --- | --- |
+| `mode` | Which commands exist at all (`standard` / `novice` / `simple`) | `standard` |
+| `worktree_first` | `pick` / `issue` / `fix` start in a sibling worktree vs `inplace` | `true` |
+| `auto_plan` | After pick, chain into plan | `true` |
+| `auto_build` | After plan approval, chain into build | `true` |
+| `auto_close` | After build (or end of fix), chain into close | `false` |
+| `early_pr` | Build opens a draft PR after the first push | `false` |
+| `label_flows` | Pick routes by issue label (`yolo_label` → yolo, `ops_label` → ops) | `true` |
+| `publish_label` | Close bumps + creates a GitHub release after merge | `"publish"` |
+| `auto_cleanup` | After a PR exists, watch merge then run cleanup | `false` |
+| `auto_switchback` | After close opens a PR, switch home to the default branch | `true` |
+| `auto_remove_worktree` | Close removes the issue worktree when the tree is clean | `true` |
+| `pr_merge_method` | How hands-off closes merge (`squash` / `merge` / `rebase`) | `squash` |
+| `cycle_max_issues` / `cycle_onfail` / `cycle_nonyolo` | Cycle queue size, failure policy, non-yolo merge policy | `10` / `stop` / `merge` |
+| `auto_adversarial_loops` | Auto review-and-fix loops per stage before it asks | `2` |
+| `model_label_flows` | Pick announces deep/fast model from labels | `false` |
+
+Per-run tokens (`inplace`, `worktree`, `noplan`, `nobuild`, `noearly`, …) override
+the matching knob for that run only. See [Configuration](configuration.md) and
+[Work in a sibling worktree](how-to/worktrees.md).
+
 ## Where the agent always stops to ask
 
 The workflow is built so that nothing surprising happens without you seeing it
