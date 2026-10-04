@@ -90,6 +90,18 @@ gitignore `graphify-out/` can set `auto_graphify_on_plan = true` under
 prior-art discovery. Default remains `false`. Missing or failing graphify does
 not block planning.
 
+## Whole-tree gitignore (issue #400)
+
+`graphify_gitignored` (default false) makes `init` / `update` write a managed
+`.gitignore` block for `graphify-out/`. It does not `git rm` tracked files.
+When those paths are still tracked, update prints
+`git rm -r --cached graphify-out`.
+
+When the key is true, `/iflow-plan` and epic draft run `issue-flow graphify`
+(AST `update`) before they read the graph, even if `auto_graphify_on_plan` is
+false. `auto_graphify_on_plan` stays the switch for that refresh when the
+report is still committed. Missing or failing graphify does not block planning.
+
 ## Correction (2026-05-14): graphify is subcommand-based
 
 The original implementation assumed `graphify <path> [flags…]` was the canonical "build" invocation, modeled on tools like `ruff` or `pyright`. **It is not.** The `graphify` CLI is dispatch-based — every action is a subcommand (`extract <path>`, `update <path>`, `watch <path>`, `cluster-only <path>`, …) and there is no top-level "scan this folder" mode. Running `graphify C:\some\dir` fails with `unknown command 'C:\some\dir'`. The published `/build` doc, the rules entry, the cursor-issue-workflow doc, and the README all advertised non-existent flags (`--update`, `--no-viz`, `--mode deep`, `--watch`, `--cluster-only`) that are actually subcommands or per-subcommand flags.

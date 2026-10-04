@@ -27,6 +27,7 @@ from issue_flow.modes import (
     DEFAULT_ESSENTIAL_REVIEW,
     DEFAULT_ESSENTIAL_TESTS,
     DEFAULT_AUTO_GRAPHIFY_ON_PLAN,
+    DEFAULT_GRAPHIFY_GITIGNORED,
     DEFAULT_AUTO_SWITCHBACK,
     DEFAULT_AUTO_REMOVE_WORKTREE,
     DEFAULT_WORKTREE_FIRST,
@@ -500,6 +501,20 @@ class Settings:
             "auto_graphify_on_plan",
             _env_flag(
                 "ISSUEFLOW_AUTO_GRAPHIFY_ON_PLAN", default=DEFAULT_AUTO_GRAPHIFY_ON_PLAN
+            ),
+        )
+
+    def resolve_graphify_gitignored(self, project_root: Path) -> bool:
+        """Resolve whether ``graphify-out/`` is fully gitignored."""
+        persisted = modes_module.read_graphify_gitignored(
+            self.config_path(project_root)
+        )
+        if persisted is not None:
+            return persisted
+        return self.user_global_or(
+            "graphify_gitignored",
+            _env_flag(
+                "ISSUEFLOW_GRAPHIFY_GITIGNORED", default=DEFAULT_GRAPHIFY_GITIGNORED
             ),
         )
 
@@ -987,6 +1002,10 @@ class Settings:
                 "ISSUEFLOW_AUTO_GRAPHIFY_ON_PLAN",
                 default=DEFAULT_AUTO_GRAPHIFY_ON_PLAN,
             ),
+            "graphify_gitignored": _env_flag(
+                "ISSUEFLOW_GRAPHIFY_GITIGNORED",
+                default=DEFAULT_GRAPHIFY_GITIGNORED,
+            ),
             "auto_switchback": _env_flag(
                 "ISSUEFLOW_AUTO_SWITCHBACK", default=DEFAULT_AUTO_SWITCHBACK
             ),
@@ -1076,6 +1095,7 @@ class Settings:
             "on_bleeding_edge": self.resolve_on_bleeding_edge(project_root),
             "suggest_graphify": self.resolve_suggest_graphify(project_root),
             "auto_graphify_on_plan": self.resolve_auto_graphify_on_plan(project_root),
+            "graphify_gitignored": self.resolve_graphify_gitignored(project_root),
             "auto_switchback": self.resolve_auto_switchback(project_root),
             "auto_remove_worktree": self.resolve_auto_remove_worktree(project_root),
             "worktree_first": self.resolve_worktree_first(project_root),
@@ -1182,6 +1202,7 @@ class Settings:
             "on_bleeding_edge": self.resolve_on_bleeding_edge(project_root),
             "suggest_graphify": self.resolve_suggest_graphify(project_root),
             "auto_graphify_on_plan": self.resolve_auto_graphify_on_plan(project_root),
+            "graphify_gitignored": self.resolve_graphify_gitignored(project_root),
             "auto_switchback": self.resolve_auto_switchback(project_root),
             "auto_remove_worktree": self.resolve_auto_remove_worktree(project_root),
             "worktree_first": self.resolve_worktree_first(project_root),

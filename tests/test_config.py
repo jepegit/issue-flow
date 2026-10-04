@@ -74,6 +74,7 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "on_bleeding_edge",
         "suggest_graphify",
         "auto_graphify_on_plan",
+        "graphify_gitignored",
         "auto_switchback",
         "auto_remove_worktree",
         "worktree_first",
@@ -462,6 +463,7 @@ def test_skill_behaviour_knob_defaults(
         "ISSUEFLOW_CONFIRM_CHANGELOG_UPDATE",
         "ISSUEFLOW_DEFER_CHANGELOG",
         "ISSUEFLOW_AUTO_GRAPHIFY_ON_PLAN",
+        "ISSUEFLOW_GRAPHIFY_GITIGNORED",
         "ISSUEFLOW_CLEANUP_INCLUDE_GITHUB",
         "ISSUEFLOW_CLEANUP_YES_A1",
         "ISSUEFLOW_CLEANUP_YES_A2",
@@ -481,6 +483,7 @@ def test_skill_behaviour_knob_defaults(
     assert settings.resolve_on_bleeding_edge(tmp_path) is False
     assert settings.resolve_suggest_graphify(tmp_path) is True
     assert settings.resolve_auto_graphify_on_plan(tmp_path) is False
+    assert settings.resolve_graphify_gitignored(tmp_path) is False
     assert settings.resolve_auto_switchback(tmp_path) is True
     assert settings.resolve_auto_remove_worktree(tmp_path) is True
     assert settings.resolve_worktree_first(tmp_path) is True
@@ -517,6 +520,7 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
         "on_bleeding_edge = true\n"
         "suggest_graphify = false\n"
         "auto_graphify_on_plan = true\n"
+        "graphify_gitignored = true\n"
         "auto_switchback = false\n"
         "auto_remove_worktree = false\n"
         "worktree_first = false\n"
@@ -549,6 +553,7 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
     assert settings.resolve_on_bleeding_edge(tmp_path) is True
     assert settings.resolve_suggest_graphify(tmp_path) is False
     assert settings.resolve_auto_graphify_on_plan(tmp_path) is True
+    assert settings.resolve_graphify_gitignored(tmp_path) is True
     assert settings.resolve_auto_switchback(tmp_path) is False
     assert settings.resolve_auto_remove_worktree(tmp_path) is False
     assert settings.resolve_worktree_first(tmp_path) is False

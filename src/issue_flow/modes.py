@@ -79,6 +79,7 @@ DEFAULT_CLEANUP_YES_A2 = False
 DEFAULT_ON_BLEEDING_EDGE = False
 DEFAULT_SUGGEST_GRAPHIFY = True
 DEFAULT_AUTO_GRAPHIFY_ON_PLAN = False
+DEFAULT_GRAPHIFY_GITIGNORED = False
 DEFAULT_AUTO_SWITCHBACK = True
 DEFAULT_AUTO_REMOVE_WORKTREE = True
 DEFAULT_WORKTREE_FIRST = True
@@ -785,6 +786,17 @@ def read_auto_graphify_on_plan(cfg_path: Path) -> bool | None:
     return None
 
 
+def read_graphify_gitignored(cfg_path: Path) -> bool | None:
+    """Return the persisted ``[issueflow].graphify_gitignored`` flag."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "graphify_gitignored" in section:
+        return bool(section.get("graphify_gitignored"))
+    return None
+
+
 def read_auto_switchback(cfg_path: Path) -> bool | None:
     """Return the persisted ``[issueflow].auto_switchback`` flag."""
     if not cfg_path.is_file():
@@ -1266,6 +1278,7 @@ def write_default_config(
     on_bleeding_edge: bool = DEFAULT_ON_BLEEDING_EDGE,
     suggest_graphify: bool = DEFAULT_SUGGEST_GRAPHIFY,
     auto_graphify_on_plan: bool = DEFAULT_AUTO_GRAPHIFY_ON_PLAN,
+    graphify_gitignored: bool = DEFAULT_GRAPHIFY_GITIGNORED,
     auto_switchback: bool = DEFAULT_AUTO_SWITCHBACK,
     auto_remove_worktree: bool = DEFAULT_AUTO_REMOVE_WORKTREE,
     worktree_first: bool = DEFAULT_WORKTREE_FIRST,
@@ -1344,6 +1357,7 @@ def write_default_config(
         section["on_bleeding_edge"] = on_bleeding_edge
         section["suggest_graphify"] = suggest_graphify
         section["auto_graphify_on_plan"] = auto_graphify_on_plan
+        section["graphify_gitignored"] = graphify_gitignored
         section["auto_switchback"] = auto_switchback
         section["auto_remove_worktree"] = auto_remove_worktree
         section["worktree_first"] = worktree_first
@@ -1406,6 +1420,7 @@ def write_default_config(
             on_bleeding_edge,
             suggest_graphify,
             auto_graphify_on_plan,
+            graphify_gitignored,
             auto_switchback,
             auto_remove_worktree,
             worktree_first,
@@ -1476,6 +1491,7 @@ def _commented_issueflow_table(
     on_bleeding_edge: bool,
     suggest_graphify: bool,
     auto_graphify_on_plan: bool,
+    graphify_gitignored: bool,
     auto_switchback: bool,
     auto_remove_worktree: bool,
     worktree_first: bool,
@@ -1671,6 +1687,15 @@ def _commented_issueflow_table(
         )
     )
     table["auto_graphify_on_plan"] = auto_graphify_on_plan
+    table.add(
+        tomlkit.comment(
+            "When true, gitignore the whole graphify-out/ tree and run "
+            "issue-flow graphify before /iflow-plan and epic draft "
+            "(true/false; default false). Does not git rm tracked files. "
+            "Re-run 'issue-flow update'."
+        )
+    )
+    table["graphify_gitignored"] = graphify_gitignored
     table.add(
         tomlkit.comment(
             "After /iflow-close opens a PR, switch back to the default branch "

@@ -20,6 +20,7 @@ epic #269). Until Stage 2 ships, only the project file and env exist.
 | Cleanup defaults (`cleanup_*`) | `cleanup_include_github`, `cleanup_yes_a1`, `cleanup_yes_a2` |
 | Tool upgrade (event-hook name) | `on_bleeding_edge` |
 | Auto behaviours (`auto_*`) | `auto_switchback`, `auto_remove_worktree`, `auto_close`, `auto_cleanup`, `auto_plan`, `auto_build`, `auto_graphify_on_plan` |
+| Graphify checkout | `graphify_gitignored` |
 | Start layout | `worktree_first` (issue #329; distinct from `auto_remove_worktree` and from worktree location #328) |
 | Timing / PR | `early_pr` |
 | Fix-session | `fix_auto_name` |
@@ -40,6 +41,7 @@ epic #269). Until Stage 2 ships, only the project file and env exist.
 | `on_bleeding_edge` | `false` | When `true`, `/iflow-cleanup` runs `issue-flow agent self-update` after a successful FF pull (`uv tool install issue-flow@latest` then `issue-flow update`). Trailing `bleeding edge` / `no bleeding` override. Skips editable installs (issue #382) |
 | `suggest_graphify` | `true` | Soft GRAPH_REPORT / rebuild suggestions (never auto-run) |
 | `auto_graphify_on_plan` | `false` | `/iflow-plan` runs `issue-flow graphify` (AST `update`) before prior-art; missing/fail → note + continue (issue #214) |
+| `graphify_gitignored` | `false` | Gitignore all of `graphify-out/` on `init`/`update`. Also runs the plan and epic refresh even when `auto_graphify_on_plan` is false. Prints `git rm -r --cached graphify-out` when paths are still tracked; does not run it (issue #400) |
 | `auto_switchback` | `true` | After PR, switch to default when clean (`false` ≈ always `stay`) |
 | `auto_remove_worktree` | `true` | After `/iflow-close` opens or merges a PR, remove the sibling issue worktree when clean (`false` = YES/NO). Skip `stay` / draft / failed merge. Never deletes the branch (issue #273) |
 | `worktree_first` | `true` | `/iflow-pick` / `/iflow-issue` / `/iflow-fix` start in a sibling worktree. `false` → `git switch -c` on home. Tokens `inplace` / `no worktree` / `worktree` override (issue #329) |
