@@ -59,5 +59,7 @@ Do **not** use this skill from `/iflow-build`, `/iflow-close`, or `/iflow`. `/if
 
 - Never auto-dispatch `/iflow-graphify` from another slash command. The user opts in explicitly.
 - Never commit `graphify-out/cost.json` or `graphify-out/manifest.json`; they are local-only.
+{% if graphify_gitignored %}- `graphify_gitignored = true`: do not commit `graphify-out/` at all. Rebuild with `issue-flow graphify` when a plan needs the graph.
+{% endif %}
 - Long-running modes (`watch`) keep the process alive; ask the user before launching them in an agent context.
 - Forward extra arguments verbatim. Do **not** translate or rewrite graphify's flag set inside issue-flow.

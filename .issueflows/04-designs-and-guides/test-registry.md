@@ -43,6 +43,10 @@ current issue**. `/iflow-doctor` may audit the whole suite against this table.
 | `tests/test_templating.py::test_cleanup_bakes_yes_knobs` | no | no | cleanup/close skill bake of `cleanup_yes_*` / `auto_cleanup` | #388 | Config default bake; leave unmarked |
 | `tests/test_doc_configuration.py::test_all_settings_table_lists_every_config_key_once` | yes | yes | `docs/configuration.md` vs `CONFIG_KEYS` | #388 | Already essential; digit keys (`cleanup_yes_a1`) must match |
 | `tests/test_templating.py::test_issue_create_skills_use_body_file_not_bash_heredoc` | no | no | `_gh_body_file.md.j2` included from issue/fix/close | #380 | Docs/skill contract; leave unmarked |
+| `tests/test_graphify_gitignore.py` (module) | no | no | `surfaces.sync_graphify_gitignore`, `note_tracked_graphify` | #400 | Temp git repo for the tracked-path note; leave unmarked |
+| `tests/test_templating.py::test_iflow_plan_graphify_gitignored_refreshes_without_auto_flag` | no | no | plan / epic / graphify templates when `graphify_gitignored` | #400 | Text contract; leave unmarked |
+| `tests/test_config.py` (`resolve_graphify_gitignored` asserts) | no | no | `Settings.resolve_graphify_gitignored` | #400 | Same knob-precedence tests as other `[issueflow]` flags; leave unmarked |
+| `tests/test_doc_configuration.py::test_all_settings_table_lists_every_config_key_once` | yes | yes | `docs/configuration.md` vs `CONFIG_KEYS` | #400 | Already essential; a new knob missing from the table fails here |
 
 **Columns**
 

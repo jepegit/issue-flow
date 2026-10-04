@@ -3113,6 +3113,7 @@ def test_config_add_creates_defaults(
     assert payload["on_bleeding_edge"] is False
     assert payload["suggest_graphify"] is True
     assert payload["auto_graphify_on_plan"] is False
+    assert payload["graphify_gitignored"] is False
     assert payload["auto_switchback"] is True
     assert payload["auto_remove_worktree"] is True
     assert payload["worktree_first"] is True

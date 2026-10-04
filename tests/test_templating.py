@@ -52,6 +52,7 @@ _MODE_CONTEXT = {
     "on_bleeding_edge": False,
     "suggest_graphify": True,
     "auto_graphify_on_plan": False,
+    "graphify_gitignored": False,
     "auto_switchback": True,
     "auto_remove_worktree": True,
     "worktree_first": True,
@@ -517,8 +518,34 @@ def test_iflow_plan_auto_graphify_on_plan_gated() -> None:
     assert "auto_graphify_on_plan = true" in on_cmd
     assert "issue-flow graphify -C <project_root>" in on_cmd
     assert "auto_graphify_on_plan = true" in on_skill
-    assert "issue-flow graphify -C <project_root>" in on_skill
+    assert on_cmd.count("issue-flow graphify -C <project_root>") == 1
+    assert on_skill.count("issue-flow graphify -C <project_root>") == 1
     assert "Do **not** auto-run `extract`" in on_skill
+
+
+def test_iflow_plan_graphify_gitignored_refreshes_without_auto_flag() -> None:
+    """Issue #400: gitignore-all enables the plan refresh on its own."""
+    ctx = {**_default_context(), "graphify_gitignored": True}
+    cmd = render_template("commands/iflow-plan.md.j2", ctx)
+    skill = render_template("skills/iflow_plan/SKILL.md.j2", ctx)
+    assert "graphify_gitignored = true" in cmd
+    assert "graphify_gitignored = true" in skill
+    assert "auto_graphify_on_plan = true" not in cmd
+    assert "issue-flow graphify -C <project_root>" in skill
+    epic = render_template("skills/iflow_epic/SKILL.md.j2", ctx)
+    assert "graphify_gitignored = true" in epic
+    assert "issue-flow graphify -C <project_root>" in epic
+    both = {
+        **_default_context(),
+        "auto_graphify_on_plan": True,
+        "graphify_gitignored": True,
+    }
+    both_skill = render_template("skills/iflow_plan/SKILL.md.j2", both)
+    assert both_skill.count("issue-flow graphify -C <project_root>") == 1
+    graphify_cmd = render_template("commands/iflow-graphify.md.j2", ctx)
+    assert "do not commit any of `graphify-out/`" in graphify_cmd
+    off = render_template("commands/iflow-graphify.md.j2", _default_context())
+    assert "fine to commit" in off
 
 
 def test_templates_reference_project_brief() -> None:

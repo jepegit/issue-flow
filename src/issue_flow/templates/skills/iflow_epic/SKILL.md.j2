@@ -36,7 +36,10 @@ Parse the first token **before** the draft path:
 > the GitHub lookups.
 
 ## Instructions
+{% if auto_graphify_on_plan or graphify_gitignored %}
+0. **Refresh knowledge graph (configured).**{% if graphify_gitignored %} `graphify_gitignored = true`: `graphify-out/` is gitignored.{% endif %}{% if auto_graphify_on_plan %} `auto_graphify_on_plan = true`.{% endif %} Before drafting, run `issue-flow graphify -C <project_root>` (AST `update`, no LLM key). If `graphify` is missing or exits non-zero, report the failure and continue. Do **not** auto-run `extract`.
 
+{% endif %}
 1. **Gather context (read-only).** Read the epic anchor (`gh issue view <N> --repo <owner/repo>`), skim `{{ issueflows_dir }}/{{ designs_folder }}/` for relevant design docs (cite them in the plan when they shape the approach), and — when `graphify-out/GRAPH_REPORT.md` exists — skim it before grepping.{% if grill_me_default %} Grilling is on by default for this project: run the `grill-me` interview on the epic's goal before drafting.{% endif %}
 
 2. **Draft the staged plan** at `{{ issueflows_dir }}/{{ epics_folder }}/epic<N>_plan.md` using exactly this structure (the publish step parses it):

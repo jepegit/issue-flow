@@ -23,7 +23,9 @@ Parse the first token **before** the draft path:
 ## Steps
 
 The full playbook lives in `{{ agent_dir }}/skills/iflow-epic/SKILL.md` — follow it. In short:
-
+{% if auto_graphify_on_plan or graphify_gitignored %}
+0. **Refresh knowledge graph (configured).**{% if graphify_gitignored %} `graphify_gitignored = true`: `graphify-out/` is gitignored.{% endif %}{% if auto_graphify_on_plan %} `auto_graphify_on_plan = true`.{% endif %} Before drafting, run `issue-flow graphify -C <project_root>` (AST `update`). If `graphify` is missing or exits non-zero, report and continue. Do **not** auto-run `extract`.
+{% endif %}
 1. **Gather context (read-only):** the anchor issue (`gh issue view <N>`), relevant `{{ issueflows_dir }}/{{ designs_folder }}/` docs, `graphify-out/GRAPH_REPORT.md` when present.
 2. **Draft** `epic<N>_plan.md`: Goal / Constraints / Stages (each with `- Goal:`); each stage holds `### Issue:` specs with Spec, `- Goal:`, `- Model: deep|fast|default`, explicit `Depends on:` lines (`#<M>`, or `stage <j> issue <k>` placeholders), and a per-issue **yolo-fitness judgment**. Publish copies Goal + Model into GitHub issue bodies.
 3. **Sizing rules:** one issue = one branch = one PR (~a day or less), crisp acceptance criteria, dependencies explicit. Detail at most 2–3 stages; sketch the rest under `## Later (unstaged)`.

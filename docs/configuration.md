@@ -61,6 +61,7 @@ an environment-variable fallback, `ISSUEFLOW_<KEY>` (for example
 | `on_bleeding_edge` | bool | `false` | `/iflow-cleanup` upgrades the `uv tool` install to `issue-flow@latest` and runs `issue-flow update` after a successful fast-forward pull. Opt in per run with `bleeding edge`; opt out with `no bleeding`. Skips editable installs. |
 | `suggest_graphify` | bool | `true` | Suggest reading `GRAPH_REPORT.md` / rebuilding graphify (never runs it). |
 | `auto_graphify_on_plan` | bool | `false` | `/iflow-plan` rebuilds the graphify graph (AST only) before prior-art discovery. |
+| `graphify_gitignored` | bool | `false` | Gitignore all of `graphify-out/`. `/iflow-plan` and epic draft then rebuild the graph (AST only) before they read it. Does not untrack files that are already committed. |
 | `auto_switchback` | bool | `true` | After `/iflow-close` opens a PR, switch back to the default branch when the tree is clean (`false` ≈ always `stay`). |
 | `auto_remove_worktree` | bool | `true` | Close removes the issue's sibling worktree once the PR is open (or merged) and the tree is clean; `false` asks first. |
 | `worktree_first` | bool | `true` | `/iflow-pick`, `/iflow-issue` and `/iflow-fix` start in a sibling worktree `../<repo>-<N>`; `false` uses `git switch -c` in your checkout. Tokens `inplace` / `worktree` override per run. |

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import shutil
+import subprocess
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -47,6 +48,9 @@ _CANONICAL_RENDER_PROFILE = get_profile("codex")
 
 _GITIGNORE_MARKER_BEGIN = "# BEGIN issue-flow editor surfaces (generated; do not edit)"
 _GITIGNORE_MARKER_END = "# END issue-flow editor surfaces"
+
+_GRAPHIFY_GITIGNORE_BEGIN = "# BEGIN issue-flow graphify (generated; do not edit)"
+_GRAPHIFY_GITIGNORE_END = "# END issue-flow graphify"
 
 _LINGUIST_MARKER_BEGIN = "# BEGIN issue-flow linguist (generated; do not edit)"
 _LINGUIST_MARKER_END = "# END issue-flow linguist"
@@ -441,3 +445,96 @@ def maybe_ensure_linguist_gitattributes(project_root: Path, settings: Settings) 
     if not settings.resolve_linguist_attributes(project_root):
         return False
     return ensure_linguist_gitattributes(project_root)
+
+
+def _strip_managed_block(text: str, begin: str, end: str) -> str:
+    """Remove one managed block, including a blank line inserted before it."""
+    start = text.find(begin)
+    if start < 0:
+        return text
+    end_at = text.find(end, start)
+    if end_at < 0:
+        return text
+    end_at += len(end)
+    if end_at < len(text) and text[end_at] == "\n":
+        end_at += 1
+    prefix = text[:start]
+    if prefix.endswith("\n\n"):
+        prefix = prefix[:-1]
+    return prefix + text[end_at:]
+
+
+def _graphify_gitignore_block() -> str:
+    return "\n".join(
+        [
+            _GRAPHIFY_GITIGNORE_BEGIN,
+            "graphify-out/",
+            _GRAPHIFY_GITIGNORE_END,
+        ]
+    )
+
+
+def sync_graphify_gitignore(project_root: Path, *, enabled: bool) -> bool:
+    """Upsert or remove the managed ``graphify-out/`` gitignore block.
+
+    Returns True when ``.gitignore`` changed. Does not untrack files.
+    """
+    path = project_root / ".gitignore"
+    existing = path.read_text(encoding="utf-8") if path.is_file() else ""
+    block = _graphify_gitignore_block()
+    if enabled:
+        if block in existing:
+            return False
+        base = existing
+        if _GRAPHIFY_GITIGNORE_BEGIN in base:
+            base = _strip_managed_block(
+                base, _GRAPHIFY_GITIGNORE_BEGIN, _GRAPHIFY_GITIGNORE_END
+            )
+        updated = (
+            base.rstrip("\n") + "\n\n" + block + "\n" if base.strip() else block + "\n"
+        )
+        path.write_text(updated, encoding="utf-8")
+        console_io.console.print("  [green]write[/green] .gitignore  (graphify-out/)")
+        return True
+    if _GRAPHIFY_GITIGNORE_BEGIN not in existing:
+        return False
+    updated = _strip_managed_block(
+        existing, _GRAPHIFY_GITIGNORE_BEGIN, _GRAPHIFY_GITIGNORE_END
+    )
+    path.write_text(updated, encoding="utf-8")
+    console_io.console.print(
+        "  [yellow]remove[/yellow] .gitignore  (graphify-out/ block)"
+    )
+    return True
+
+
+def note_tracked_graphify(project_root: Path) -> bool:
+    """Print the untrack command when ``graphify-out/`` is still in the index.
+
+    Returns True when a note was printed. Never runs ``git rm``.
+    """
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(project_root), "ls-files", "--", "graphify-out"],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except OSError:
+        return False
+    if result.returncode != 0 or not result.stdout.strip():
+        return False
+    console_io.console.print(
+        "  [yellow]note[/yellow]  graphify-out/ is gitignored but still tracked. "
+        "Untrack with: git rm -r --cached graphify-out"
+    )
+    return True
+
+
+def maybe_sync_graphify_gitignore(project_root: Path, settings: Settings) -> bool:
+    """Apply ``graphify_gitignored`` to ``.gitignore`` and note tracked paths."""
+    enabled = settings.resolve_graphify_gitignored(project_root)
+    changed = sync_graphify_gitignore(project_root, enabled=enabled)
+    if enabled:
+        note_tracked_graphify(project_root)
+    return changed

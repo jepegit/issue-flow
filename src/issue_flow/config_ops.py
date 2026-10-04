@@ -72,6 +72,7 @@ CONFIG_KEYS: dict[str, ConfigKeySpec] = {
     "on_bleeding_edge": ConfigKeySpec("bool"),
     "suggest_graphify": ConfigKeySpec("bool"),
     "auto_graphify_on_plan": ConfigKeySpec("bool"),
+    "graphify_gitignored": ConfigKeySpec("bool"),
     "auto_switchback": ConfigKeySpec("bool"),
     "auto_remove_worktree": ConfigKeySpec("bool"),
     "worktree_first": ConfigKeySpec("bool"),

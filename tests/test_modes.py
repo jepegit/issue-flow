@@ -366,6 +366,7 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
         DEFAULT_REMIND_CLEANUP,
         DEFAULT_RUFF_AUTOFIX,
         DEFAULT_AUTO_GRAPHIFY_ON_PLAN,
+        DEFAULT_GRAPHIFY_GITIGNORED,
         DEFAULT_SUGGEST_GRAPHIFY,
         read_confirm_version_bump,
         read_auto_build,
@@ -392,6 +393,7 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
         read_remind_cleanup,
         read_ruff_autofix,
         read_auto_graphify_on_plan,
+        read_graphify_gitignored,
         read_suggest_graphify,
         DEFAULT_DEFER_CHANGELOG,
         DEFAULT_ESSENTIAL_TESTS,
@@ -412,6 +414,7 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
     assert read_on_bleeding_edge(cfg) is DEFAULT_ON_BLEEDING_EDGE
     assert read_suggest_graphify(cfg) is DEFAULT_SUGGEST_GRAPHIFY
     assert read_auto_graphify_on_plan(cfg) is DEFAULT_AUTO_GRAPHIFY_ON_PLAN
+    assert read_graphify_gitignored(cfg) is DEFAULT_GRAPHIFY_GITIGNORED
     assert read_auto_switchback(cfg) is DEFAULT_AUTO_SWITCHBACK
     assert read_auto_remove_worktree(cfg) is DEFAULT_AUTO_REMOVE_WORKTREE
     assert read_worktree_first(cfg) is DEFAULT_WORKTREE_FIRST

@@ -10,6 +10,7 @@ than the GitHub release notes they link to.
 ## [Unreleased]
 
 - Iterative fixes: docs-flow-diagram. (#397)
+- Graphify totally gitignored. (#400)
 
 ## [0.5.17] - 2026-09-26
 

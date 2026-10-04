@@ -25,6 +25,7 @@ from issue_flow.surfaces import (
     materialize_editor_profile,
     materialize_user_global_both_skills,
     maybe_ensure_linguist_gitattributes,
+    maybe_sync_graphify_gitignore,
     write_manifest_files,
 )
 from issue_flow.skill_ownership import foreign_skill_reason, load_stamps, stamp_key
@@ -530,6 +531,7 @@ def run_init(
     console_io.console.print()
     _ensure_dotenv_file(project_root)
     maybe_ensure_linguist_gitattributes(project_root, settings)
+    maybe_sync_graphify_gitignore(project_root, settings)
 
     console_io.console.print()
     if not canonical:
@@ -683,6 +685,7 @@ def run_update(
 
     console_io.console.print()
     maybe_ensure_linguist_gitattributes(project_root, settings)
+    maybe_sync_graphify_gitignore(project_root, settings)
 
     console_io.console.print()
     _graphify_postinstall(project_root, profiles, mode_obj)
