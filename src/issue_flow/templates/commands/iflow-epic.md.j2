@@ -23,8 +23,8 @@ Parse the first token **before** the draft path:
 ## Steps
 
 The full playbook lives in `{{ agent_dir }}/skills/iflow-epic/SKILL.md` — follow it. In short:
-{% if auto_graphify_on_plan or graphify_gitignored %}
-0. **Refresh knowledge graph (configured).**{% if graphify_gitignored %} `graphify_gitignored = true`: `graphify-out/` is gitignored.{% endif %}{% if auto_graphify_on_plan %} `auto_graphify_on_plan = true`.{% endif %} Before drafting, run `issue-flow graphify -C <project_root>` (AST `update`). If `graphify` is missing or exits non-zero, report and continue. Do **not** auto-run `extract`.
+{% if hands_off or auto_graphify_on_plan or graphify_gitignored %}
+0. **Refresh knowledge graph (configured).**{% if hands_off %} `hands_off` is on: run this before the epic draft.{% endif %}{% if graphify_gitignored %} `graphify_gitignored = true`: `graphify-out/` is gitignored.{% endif %}{% if auto_graphify_on_plan %} `auto_graphify_on_plan = true`.{% endif %} Before drafting, run `issue-flow graphify -C <project_root>` (AST `update`). If `graphify` is missing or exits non-zero, report and continue.{% if auto_graphify_on_plan or graphify_gitignored %} Do **not** auto-run `extract`.{% endif %}
 {% endif %}
 1. **Gather context (read-only):** the anchor issue (`gh issue view <N>`), relevant `{{ issueflows_dir }}/{{ designs_folder }}/` docs, `graphify-out/GRAPH_REPORT.md` when present.
 2. **Draft** `epic<N>_plan.md`: Goal / Constraints / Stages (each with `- Goal:`); each stage holds `### Issue:` specs with Spec, `- Goal:`, `- Model: deep|fast|default`, explicit `Depends on:` lines (`#<M>`, or `stage <j> issue <k>` placeholders), and a per-issue **yolo-fitness judgment**. Publish copies Goal + Model into GitHub issue bodies.
@@ -36,7 +36,7 @@ The full playbook lives in `{{ agent_dir }}/skills/iflow-epic/SKILL.md` — foll
 
 **Stop action** (`stop` / `abort`): delete `epic_session.md` and report.
 
-**Publish action** (`publish [stage <k>]`, confirmed plans only): dry-run listing → one consolidated confirm → `gh issue create` per unpublished spec in dependency order (yolo label only when the judgment says yes and the label exists; `Part of epic #<N>.` in each body; `stage <j> issue <k>` placeholders resolved to real numbers where published) → record `- Published: #<M>` back into the plan → append `- [ ] #<M>` task-list lines to the anchor issue (append/patch only). Skipping specs that already carry `Published:` makes re-runs idempotent.
+**Publish action** (`publish [stage <k>]`, confirmed plans only): dry-run listing → {% if hands_off %}no confirm (`hands_off` already authorized publish){% else %}one consolidated confirm{% endif %} → `gh issue create` per unpublished spec in dependency order (yolo label only when the judgment says yes and the label exists; `Part of epic #<N>.` in each body; `stage <j> issue <k>` placeholders resolved to real numbers where published) → record `- Published: #<M>` back into the plan → append `- [ ] #<M>` task-list lines to the anchor issue (append/patch only). Skipping specs that already carry `Published:` makes re-runs idempotent.
 
 {% include "skills/_gh_body_file.md.j2" %}
 

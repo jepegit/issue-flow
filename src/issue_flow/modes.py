@@ -104,6 +104,8 @@ DEFAULT_AUTO_CLOSE = False
 DEFAULT_AUTO_CLEANUP = False
 DEFAULT_AUTO_PLAN = True
 DEFAULT_AUTO_BUILD = True
+# Unattended chain skips up-front confirms. Distinct from scaffolding `mode`.
+DEFAULT_HANDS_OFF = False
 DEFAULT_EARLY_PR = False
 DEFAULT_FIX_AUTO_NAME = False
 DEFAULT_LOCKED = False
@@ -1005,6 +1007,17 @@ def read_auto_build(cfg_path: Path) -> bool | None:
     return None
 
 
+def read_hands_off(cfg_path: Path) -> bool | None:
+    """Return the persisted ``[issueflow].hands_off`` flag."""
+    if not cfg_path.is_file():
+        return None
+    data = tomllib.loads(cfg_path.read_text(encoding="utf-8"))
+    section = data.get("issueflow")
+    if isinstance(section, dict) and "hands_off" in section:
+        return bool(section.get("hands_off"))
+    return None
+
+
 def read_early_pr(cfg_path: Path) -> bool | None:
     """Return the persisted ``[issueflow].early_pr`` flag."""
     if not cfg_path.is_file():
@@ -1293,6 +1306,7 @@ def write_default_config(
     auto_cleanup: bool = DEFAULT_AUTO_CLEANUP,
     auto_plan: bool = DEFAULT_AUTO_PLAN,
     auto_build: bool = DEFAULT_AUTO_BUILD,
+    hands_off: bool = DEFAULT_HANDS_OFF,
     early_pr: bool = DEFAULT_EARLY_PR,
     fix_auto_name: bool = DEFAULT_FIX_AUTO_NAME,
     locked: bool = DEFAULT_LOCKED,
@@ -1372,6 +1386,7 @@ def write_default_config(
         section["auto_cleanup"] = auto_cleanup
         section["auto_plan"] = auto_plan
         section["auto_build"] = auto_build
+        section["hands_off"] = hands_off
         section["early_pr"] = early_pr
         section["fix_auto_name"] = fix_auto_name
         section["locked"] = locked
@@ -1435,6 +1450,7 @@ def write_default_config(
             auto_cleanup,
             auto_plan,
             auto_build,
+            hands_off,
             early_pr,
             fix_auto_name,
             locked,
@@ -1506,6 +1522,7 @@ def _commented_issueflow_table(
     auto_cleanup: bool,
     auto_plan: bool,
     auto_build: bool,
+    hands_off: bool,
     early_pr: bool,
     fix_auto_name: bool,
     locked: bool,
@@ -1790,6 +1807,17 @@ def _commented_issueflow_table(
         )
     )
     table["auto_build"] = auto_build
+    table.add(
+        tomlkit.comment(
+            "When true, the unattended chain (drive / yolo / cycle / auto) "
+            "skips its up-front confirm. Drive also accepts a short "
+            "description and runs AST graphify before each plan. Distinct "
+            "from scaffolding mode. Set with 'issue-flow mode hands-off' "
+            "(or 'issue-flow mode standard' to turn off), which re-renders "
+            "skills. Default false."
+        )
+    )
+    table["hands_off"] = hands_off
     table.add(
         tomlkit.comment(
             "When true, /iflow-build opens a draft PR after the first push "

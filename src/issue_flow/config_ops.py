@@ -89,6 +89,7 @@ CONFIG_KEYS: dict[str, ConfigKeySpec] = {
     "auto_cleanup": ConfigKeySpec("bool"),
     "auto_plan": ConfigKeySpec("bool"),
     "auto_build": ConfigKeySpec("bool"),
+    "hands_off": ConfigKeySpec("bool"),
     "early_pr": ConfigKeySpec("bool"),
     "fix_auto_name": ConfigKeySpec("bool"),
     "locked": ConfigKeySpec("bool", needs_update=False),

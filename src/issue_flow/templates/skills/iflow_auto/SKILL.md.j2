@@ -61,14 +61,14 @@ Contract: `{{ issueflows_dir }}/{{ designs_folder }}/advanced-auto-mode.md`
    `auto_status.md` lacks overnight authorization for this epic/stage, present
    one confirm (epic, stage, that create/reopen may happen) before proceeding.
 
-6. **Overnight confirm** (full auto; only planned interruption before the
+6. **Overnight confirm**{% if hands_off %} — hands-off mode is on. Print the epic, stage, queue, non-yolo lane, and loop budget. This confirm is already authorized. Do not ask.{% else %} (full auto; only planned interruption before the
    budget ask). Present in normal prose: epic `#<N>`, stage index + title,
    ordered queue (numbers + titles), that each issue runs the full chain +
    auto-merge via `/iflow-cycle`, the **non-yolo issues** in the stage (queue
    payload `nonyolo`, or the plan's `yolo: no` judgments) and the `nonyolo`
    policy that applies to them, **loop budget**, and that adversarial review
    may **reopen or create** GitHub issues under that confirm. Require explicit
-   yes.
+   yes.{% endif %}
 
 7. **Write / update `auto_status.md`** at
    `{{ issueflows_dir }}/{{ current_issues_folder }}/auto_status.md`:
@@ -116,13 +116,13 @@ Contract: `{{ issueflows_dir }}/{{ designs_folder }}/advanced-auto-mode.md`
        issue numbers via `/iflow-cycle` (explicit numbers; overnight confirm
        already covers cycle confirms — do not re-ask), then **return to step 9**
        (adversarial procedure). Keep yolo/cycle safeguards.
-    d. If open work remains and `loop_count` **>=** `budget`: set
+    d. If open work remains and `loop_count` **>=** `budget`:{% if hands_off %} hands-off mode is on. Record `last_outcome: accepted` and do not re-queue. Do not ask. Continue to the epoch gate.{% else %} set
        `last_outcome: budget_ask` and **stop and ask** in normal prose — three
        options only:
        - **accept** current implementation (record `accepted`; do not re-queue)
        - **grant N more loops** (raise effective `budget` by N for this run;
          clear `budget_ask`; continue from 10c)
-       - **abort** (record `aborted`; stop)
+       - **abort** (record `aborted`; stop){% endif %}
     e. If no open work remains after findings were addressed by a prior loop,
        treat as clear for loop purposes and go to step 11.
     f. After user **accept**, still run step 11 (gate will refuse advance if

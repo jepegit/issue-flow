@@ -312,6 +312,84 @@ def update(
     )
 
 
+@app.command("mode")
+def execution_mode(
+    target: str | None = typer.Argument(
+        None,
+        help="hands-off to enable, or standard / off to disable. Omit to print.",
+    ),
+    yes: bool = typer.Option(
+        False,
+        "--yes",
+        "-y",
+        help="Skip the confirm when turning hands-off on.",
+    ),
+    project_dir: Path = typer.Option(
+        Path("."),
+        "--project-dir",
+        "-C",
+        help="Project root (defaults to the current directory).",
+        exists=True,
+        file_okay=False,
+        resolve_path=True,
+    ),
+    skip_dep_check: bool = typer.Option(
+        False,
+        "--skip-dep-check",
+        help="Skip the git/gh check while re-rendering skills.",
+    ),
+) -> None:
+    """Turn hands-off behaviour on or off and re-render skills.
+
+    This is not the scaffolding mode (``issue-flow init --mode``). It sets
+    ``[issueflow].hands_off`` and runs the same render as ``issue-flow update``.
+    """
+    from issue_flow.config import Settings
+    from issue_flow.config_ops import upsert_config_value
+    from issue_flow.init import run_update
+
+    settings = Settings()
+    if target is None or not target.strip():
+        current = settings.resolve_hands_off(project_dir)
+        _console.print(f"hands_off = {'true' if current else 'false'}")
+        return
+
+    token = target.strip().lower()
+    if token in {"hands-off", "handsoff", "on"}:
+        enabled = True
+    elif token in {"standard", "off"}:
+        enabled = False
+    else:
+        _console.print(
+            "[red]error[/red]  unknown mode "
+            f"{target!r}. Use hands-off, standard, or off."
+        )
+        raise typer.Exit(code=2)
+
+    if enabled and not yes:
+        nonyolo = settings.resolve_cycle_nonyolo(project_dir)
+        _console.print(
+            "Hands-off re-renders skills so [bold]iflow drive[/bold], "
+            "[bold]yolo[/bold], [bold]cycle[/bold], and [bold]auto[/bold] "
+            "skip their up-front confirms. Drive may auto-merge PRs "
+            f"(cycle_nonyolo = {nonyolo}) and delete local branches "
+            "(-d reachable, -D squash-landed). Safety stops stay. "
+            "Interactive pick, plan Accept, build, and ordinary close still ask."
+        )
+        if not typer.confirm("Turn on hands-off mode and re-render skills?"):
+            raise typer.Exit(code=1)
+
+    cfg_path = settings.config_path(project_dir)
+    upsert_config_value(cfg_path, "hands_off", enabled)
+    _console.print(f"hands_off = {'true' if enabled else 'false'}")
+    run_update(
+        project_root=project_dir,
+        skip_dep_check=skip_dep_check,
+        editors=None,
+        force=False,
+    )
+
+
 @app.command()
 def sync(
     project_dir: Path = typer.Argument(
@@ -1396,6 +1474,7 @@ def config_add(
     ``cycle_nonyolo``, ``auto_adversarial_loops``,
     ``confirm_version_bump``,
     ``ruff_autofix``, ``auto_close``, ``auto_cleanup``, ``auto_plan``, ``auto_build``,
+    ``hands_off``,
     ``early_pr``, ``fix_auto_name``, ``confirm_changelog_update``,
     ``defer_changelog``,
     ``essential_tests``, ``test_runner``, ``essential_marker``,

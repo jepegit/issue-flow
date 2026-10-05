@@ -141,6 +141,14 @@ the **next stage or issue boundary**. Record `aborted` in
 
 Not an `issue<N>_*` group — folder sweeps leave it alone.
 
+## Hands-off knob
+
+`issue-flow mode hands-off` is a separate project behaviour knob, not a
+new drive subcommand. When `[issueflow].hands_off` is on, the confirm
+above is already authorized, a short description may create one epic
+anchor after grill-me, and a spent auto loop budget records accept.
+See [hands-off-mode.md](./hands-off-mode.md).
+
 ## Non-goals
 
 - New CLI subcommand

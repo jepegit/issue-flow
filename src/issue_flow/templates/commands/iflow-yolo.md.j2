@@ -30,7 +30,7 @@ Same as `/iflow-capture` (issue number, URL, or empty to infer from the branch).
 
 3. **Tests must pass up front.** Run `uv run pytest` (or the repo's documented test command). If any test fails, **stop** before the chain starts. Yolo never ships on a broken baseline.
 
-4. **Single consolidated confirm.** Present the full planned chain explicitly, for example:
+4. **Single consolidated confirm.**{% if hands_off %} Hands-off mode is on. Print the planned chain. This confirm is already authorized. Do not ask.{% else %} Present the full planned chain explicitly, for example:
 
    ```
    /iflow-yolo will run, without further prompts:
@@ -46,7 +46,7 @@ Same as `/iflow-capture` (issue number, URL, or empty to infer from the branch).
    Proceed? [y/N]
    ```
 
-   Require an explicit yes. Any other input aborts. (When `/iflow-pick` routed here via the yolo issue label, its combined confirmation already covered this — do not ask twice.)
+   Require an explicit yes. Any other input aborts. (When `/iflow-pick` routed here via the yolo issue label, its combined confirmation already covered this — do not ask twice.){% endif %}
 
 ## Chain
 

@@ -17,6 +17,7 @@ from issue_flow.modes import (
     DEFAULT_AUTO_CLEANUP,
     DEFAULT_AUTO_CLOSE,
     DEFAULT_AUTO_PLAN,
+    DEFAULT_HANDS_OFF,
     DEFAULT_CHECKS_WATCH_MINUTES,
     DEFAULT_CONFIRM_CHANGELOG_UPDATE,
     DEFAULT_DEFER_CHANGELOG,
@@ -740,6 +741,15 @@ class Settings:
             "auto_build", _env_flag("ISSUEFLOW_AUTO_BUILD", default=DEFAULT_AUTO_BUILD)
         )
 
+    def resolve_hands_off(self, project_root: Path) -> bool:
+        """Resolve whether the unattended chain skips its up-front confirms."""
+        persisted = modes_module.read_hands_off(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        return self.user_global_or(
+            "hands_off", _env_flag("ISSUEFLOW_HANDS_OFF", default=DEFAULT_HANDS_OFF)
+        )
+
     def resolve_early_pr(self, project_root: Path) -> bool:
         """Resolve whether ``/iflow-build`` opens a draft PR after the first push."""
         persisted = modes_module.read_early_pr(self.config_path(project_root))
@@ -1040,6 +1050,7 @@ class Settings:
             ),
             "auto_plan": _env_flag("ISSUEFLOW_AUTO_PLAN", default=DEFAULT_AUTO_PLAN),
             "auto_build": _env_flag("ISSUEFLOW_AUTO_BUILD", default=DEFAULT_AUTO_BUILD),
+            "hands_off": _env_flag("ISSUEFLOW_HANDS_OFF", default=DEFAULT_HANDS_OFF),
             "early_pr": _env_flag("ISSUEFLOW_EARLY_PR", default=DEFAULT_EARLY_PR),
             "fix_auto_name": _env_flag(
                 "ISSUEFLOW_FIX_AUTO_NAME", default=DEFAULT_FIX_AUTO_NAME
@@ -1112,6 +1123,7 @@ class Settings:
             "auto_cleanup": self.resolve_auto_cleanup(project_root),
             "auto_plan": self.resolve_auto_plan(project_root),
             "auto_build": self.resolve_auto_build(project_root),
+            "hands_off": self.resolve_hands_off(project_root),
             "early_pr": self.resolve_early_pr(project_root),
             "fix_auto_name": self.resolve_fix_auto_name(project_root),
             "locked": self.resolve_locked(project_root),
@@ -1217,6 +1229,7 @@ class Settings:
             "auto_cleanup": self.resolve_auto_cleanup(project_root),
             "auto_plan": self.resolve_auto_plan(project_root),
             "auto_build": self.resolve_auto_build(project_root),
+            "hands_off": self.resolve_hands_off(project_root),
             "early_pr": self.resolve_early_pr(project_root),
             "fix_auto_name": self.resolve_fix_auto_name(project_root),
             "confirm_changelog_update": self.resolve_confirm_changelog_update(

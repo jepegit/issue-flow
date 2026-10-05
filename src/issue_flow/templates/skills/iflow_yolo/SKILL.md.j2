@@ -26,7 +26,7 @@ Use only for minor fixes, doc tweaks, and similar low-risk changes. Anything non
 
 3. **Tests must pass up front.** Run `uv run pytest` (or the repo's documented test command). On any failure, **stop** before the chain starts.
 
-4. **Single consolidated confirm.** Present the full planned chain explicitly (issue reference, target branch, repo, downstream commands including any `bump` / `patch` / `draft` / `stay` flags). Require an explicit yes; any other input aborts. (When `/iflow-pick` routed here via the yolo issue label, its combined confirmation already covered this — do not ask twice.)
+4. **Single consolidated confirm.**{% if hands_off %} Hands-off mode is on. Print the planned chain (issue, branch, repo, flags). This confirm is already authorized. Do not ask.{% else %} Present the full planned chain explicitly (issue reference, target branch, repo, downstream commands including any `bump` / `patch` / `draft` / `stay` flags). Require an explicit yes; any other input aborts. (When `/iflow-pick` routed here via the yolo issue label, its combined confirmation already covered this — do not ask twice.){% endif %}
 
 ## Chain
 

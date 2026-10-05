@@ -78,6 +78,7 @@ an environment-variable fallback, `ISSUEFLOW_<KEY>` (for example
 | `auto_cleanup` | bool | `false` | After a PR exists, watch until it merges (budget `checks_watch_minutes`) and then run `/iflow-cleanup`. Does not merge. Independent of `auto_close`. |
 | `auto_plan` | bool | `true` | `/iflow-pick` chains into `/iflow-plan` after the pick and branch; trailing `noplan` skips once. |
 | `auto_build` | bool | `true` | `/iflow-plan` chains into `/iflow-build` when you accept the plan; trailing `nobuild` skips once. |
+| `hands_off` | bool | `false` | Unattended chain (`/iflow-drive`, `/iflow-yolo`, `/iflow-cycle`, `/iflow-auto`) skips its up-front confirm. `/iflow-drive` also accepts a short description (grill-me, then one epic anchor). AST graphify runs before the epic draft and each child plan. A spent auto loop budget records accept and continues. Set with `issue-flow mode hands-off` (re-renders skills) or `issue-flow mode standard` to turn off. |
 | `early_pr` | bool | `false` | `/iflow-build` opens a draft PR after the first push; trailing `early` / `pr` / `noearly` override per run. |
 | `fix_auto_name` | bool | `false` | `/iflow-fix` invents the session name without asking (creating the issue and branch still asks). |
 | `locked` | bool | `false` | `issue-flow update --all` skips this repo. Project only. See [Per-repo lock](#per-repo-lock). |

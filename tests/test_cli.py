@@ -134,6 +134,69 @@ def test_update_has_no_mode_option(runner: CliRunner) -> None:
     assert "--mode" not in plain
 
 
+def test_mode_prints_hands_off(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("ISSUEFLOW_HANDS_OFF", raising=False)
+    result = runner.invoke(app, ["mode", "-C", str(tmp_path)])
+    assert result.exit_code == 0, result.output
+    assert "hands_off = false" in result.stdout
+
+
+def test_mode_hands_off_yes_renders_skip_confirm(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import tomllib
+
+    monkeypatch.delenv("ISSUEFLOW_HANDS_OFF", raising=False)
+    result = runner.invoke(
+        app,
+        ["mode", "hands-off", "-C", str(tmp_path), "--yes", "--skip-dep-check"],
+    )
+    assert result.exit_code == 0, result.output
+    cfg = tmp_path / ".issueflows" / "config.toml"
+    data = tomllib.loads(cfg.read_text(encoding="utf-8"))
+    assert data["issueflow"]["hands_off"] is True
+    skill = (tmp_path / ".cursor" / "skills" / "iflow-drive" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    assert "No drive confirm" in skill
+    assert "short description" in skill
+    assert "records **accept**" in skill
+
+    off = runner.invoke(
+        app,
+        ["mode", "standard", "-C", str(tmp_path), "--yes", "--skip-dep-check"],
+    )
+    assert off.exit_code == 0, off.output
+    data = tomllib.loads(cfg.read_text(encoding="utf-8"))
+    assert data["issueflow"]["hands_off"] is False
+    skill = (tmp_path / ".cursor" / "skills" / "iflow-drive" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    assert "No drive confirm" not in skill
+    assert "Require `<N>`" in skill
+    assert "**Drive confirm**" in skill
+
+
+def test_mode_hands_off_decline_does_not_write(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    result = runner.invoke(
+        app,
+        ["mode", "hands-off", "-C", str(tmp_path), "--skip-dep-check"],
+        input="n\n",
+    )
+    assert result.exit_code == 1
+    assert not (tmp_path / ".issueflows" / "config.toml").exists()
+
+
+def test_mode_unknown_target_exits_2(runner: CliRunner, tmp_path: Path) -> None:
+    result = runner.invoke(app, ["mode", "bogus", "-C", str(tmp_path)])
+    assert result.exit_code == 2
+    assert not (tmp_path / ".issueflows" / "config.toml").exists()
+
+
 def test_graphify_help_describes_passthrough(runner: CliRunner) -> None:
     result = runner.invoke(app, ["graphify", "--help"])
     assert result.exit_code == 0

@@ -20,6 +20,7 @@ epic #269). Until Stage 2 ships, only the project file and env exist.
 | Cleanup defaults (`cleanup_*`) | `cleanup_include_github`, `cleanup_yes_a1`, `cleanup_yes_a2` |
 | Tool upgrade (event-hook name) | `on_bleeding_edge` |
 | Auto behaviours (`auto_*`) | `auto_switchback`, `auto_remove_worktree`, `auto_close`, `auto_cleanup`, `auto_plan`, `auto_build`, `auto_graphify_on_plan` |
+| Unattended chain | `hands_off` (distinct from scaffolding `mode`; set with `issue-flow mode`) |
 | Graphify checkout | `graphify_gitignored` |
 | Start layout | `worktree_first` (issue #329; distinct from `auto_remove_worktree` and from worktree location #328) |
 | Timing / PR | `early_pr` |
@@ -49,6 +50,7 @@ epic #269). Until Stage 2 ships, only the project file and env exist.
 | `auto_cleanup` | `false` | After a PR exists, watch until it merges (`checks_watch_minutes`) and then run `/iflow-cleanup`. Does not merge. Independent of `auto_close` (issue #388) |
 | `auto_plan` | `true` | `/iflow-pick` chains into `/iflow-plan` after pick confirm + branch/init; trailing `noplan` skips once (issue #219) |
 | `auto_build` | `true` | `/iflow-plan` chains into `/iflow-build` on plan Accept; trailing `nobuild` skips once (issue #219) |
+| `hands_off` | `false` | Unattended chain skips its up-front confirm. Drive accepts a short description, AST graphify runs before each plan, and a spent auto budget records accept. `issue-flow mode hands-off` / `standard`. See [hands-off-mode.md](./hands-off-mode.md) |
 | `early_pr` | `false` | `/iflow-build` opens a draft PR after the first push; trailing `early`/`pr` / `noearly` override per run |
 | `fix_auto_name` | `false` | `/iflow-fix` invents session title/slug without a naming confirm; create issue+branch still confirms (issue #258). CLI: `issue-flow config show\|set\|edit` |
 | `auto_adversarial_loops` | `2` | `/iflow-auto` inter-epoch adversarial loop budget; trailing `loops:<n>` overrides per run ([advanced-auto-mode.md](./advanced-auto-mode.md)) |

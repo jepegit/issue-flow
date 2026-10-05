@@ -29,6 +29,10 @@ Follow `{{ agent_dir }}/skills/iflow-auto/SKILL.md` verbatim.
 ## Constraints
 
 - Off-path; never auto-dispatched by `/iflow`.
+{% if hands_off %}
+- A spent loop budget records accept and continues. Do not ask.
+{% else %}
 - Budget ask options: accept / grant N more loops / abort.
+{% endif %}
 - A `yolo: no` issue runs on cycle's non-yolo lane; only `nonyolo:stop` halts there.
 - Never start stage `k+1` while stage `k` is not clear (`epoch_gated`).

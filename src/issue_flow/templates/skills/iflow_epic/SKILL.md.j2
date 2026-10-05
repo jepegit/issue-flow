@@ -36,8 +36,8 @@ Parse the first token **before** the draft path:
 > the GitHub lookups.
 
 ## Instructions
-{% if auto_graphify_on_plan or graphify_gitignored %}
-0. **Refresh knowledge graph (configured).**{% if graphify_gitignored %} `graphify_gitignored = true`: `graphify-out/` is gitignored.{% endif %}{% if auto_graphify_on_plan %} `auto_graphify_on_plan = true`.{% endif %} Before drafting, run `issue-flow graphify -C <project_root>` (AST `update`, no LLM key). If `graphify` is missing or exits non-zero, report the failure and continue. Do **not** auto-run `extract`.
+{% if hands_off or auto_graphify_on_plan or graphify_gitignored %}
+0. **Refresh knowledge graph (configured).**{% if hands_off %} `hands_off` is on: run this before the epic draft.{% endif %}{% if graphify_gitignored %} `graphify_gitignored = true`: `graphify-out/` is gitignored.{% endif %}{% if auto_graphify_on_plan %} `auto_graphify_on_plan = true`.{% endif %} Before drafting, run `issue-flow graphify -C <project_root>` (AST `update`, no LLM key). If `graphify` is missing or exits non-zero, report the failure and continue.{% if auto_graphify_on_plan or graphify_gitignored %} Do **not** auto-run `extract`.{% endif %}
 
 {% endif %}
 1. **Gather context (read-only).** Read the epic anchor (`gh issue view <N> --repo <owner/repo>`), skim `{{ issueflows_dir }}/{{ designs_folder }}/` for relevant design docs (cite them in the plan when they shape the approach), and — when `graphify-out/GRAPH_REPORT.md` exists — skim it before grepping.{% if grill_me_default %} Grilling is on by default for this project: run the `grill-me` interview on the epic's goal before drafting.{% endif %}
@@ -89,7 +89,7 @@ Parse the first token **before** the draft path:
 
 4. **Stage discipline** — stages are sequential milestones, each small enough that finishing it can change the plan for the next. Front-load the stage that retires the most risk. Do not plan more than 2–3 stages in detail; sketch later stages as bullets under a `## Later (unstaged)` heading instead of fake-precise issue specs.
 
-5. **Review with the user.** Present the draft (stage titles, issue titles, dependency graph, yolo flags) and iterate until they confirm. Record the confirmation by changing `Status: draft` to `Status: confirmed` in the plan file.
+5. **Review with the user.**{% if hands_off %} Hands-off mode is on. Set `Status: confirmed` without a review prompt (the mode switch authorized draft-accept). Grill only when the `grill` / `grill-me` token is present.{% else %} Present the draft (stage titles, issue titles, dependency graph, yolo flags) and iterate until they confirm. Record the confirmation by changing `Status: draft` to `Status: confirmed` in the plan file.{% endif %}
 
 6. **Stop.** Creating the GitHub issues is the `publish` action below, with its own consolidated confirm — never create them from the drafting flow, even if asked to "just create them": run `/iflow-epic <N> publish` explicitly so the confirm gates stay distinct.
 
@@ -130,7 +130,7 @@ Turn one stage of a **confirmed** plan into real GitHub issues. Requires `Status
 
 1. **Select the stage.** A named `stage <k>` publishes exactly that stage; otherwise pick the earliest stage containing specs without a `Published:` line. Specs that already carry `- Published: #<M>` are **skipped** (this makes re-runs idempotent).
 2. **Dry-run listing.** Show what would be created: per spec — title, labels (`yolo` when the judgment says yes **and** the label exists per `gh label list`; otherwise note the gap), and the dependency lines after placeholder resolution. `stage <j> issue <k>` placeholders pointing at already-published specs are rewritten to their real `#<M>`; placeholders at still-unpublished specs stay verbatim with a note.
-3. **Consolidated confirm** (destructive-ish — outward-facing writes; normal prose, never shortened). One prompt covering exactly: which issues get created, with which labels, and that the anchor issue's task list will be updated. Do not proceed without a clear yes.
+3. **Consolidated confirm**{% if hands_off %} — hands-off mode is on. This publish is already authorized. Print the dry-run list. Do not ask.{% else %} (destructive-ish — outward-facing writes; normal prose, never shortened). One prompt covering exactly: which issues get created, with which labels, and that the anchor issue's task list will be updated. Do not proceed without a clear yes.{% endif %}
 4. **Create, in dependency order within the stage.** For each spec: `gh issue create --repo <owner/repo>` with the self-contained body (context, scope, acceptance criteria, **Goal:** and **Model:** lines when present in the plan, resolved `Depends on: #<M>` lines, and a closing `Part of epic #<N>.` line). Immediately record the new number in the plan file as `- Published: #<M>` under that spec.
 
 {% include "skills/_gh_body_file.md.j2" %}
@@ -140,7 +140,7 @@ Turn one stage of a **confirmed** plan into real GitHub issues. Requires `Status
 
 ## Constraints
 
-- **Drafting writes nothing on GitHub**: no `gh issue create`, no label or milestone writes, no task-list edits on the anchor issue. Reading with `gh issue view` / `gh issue list` is always fine. The `publish` action is the single exception and never runs without its consolidated confirm.
+- **Drafting writes nothing on GitHub**: no `gh issue create`, no label or milestone writes, no task-list edits on the anchor issue. Reading with `gh issue view` / `gh issue list` is always fine. The `publish` action is the single exception{% if hands_off %} and, because `hands_off` is on, is already authorized — print the list and do not ask{% else %} and never runs without its consolidated confirm{% endif %}.
 - **Off-path**: `/iflow` never auto-dispatches to `/iflow-epic`; the user opts in explicitly.
 - **`start` never silent-picks.** Continue is today’s `/iflow-pick` chain on a later turn. Child `yolo` / `ops` labels still apply via pick.
 - Epics decompose **into** the normal single-issue lifecycle, never around it — no issue spec may assume work happens outside a normal issue branch + PR.
