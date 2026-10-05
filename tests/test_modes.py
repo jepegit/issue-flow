@@ -344,6 +344,7 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
     from issue_flow.modes import (
         DEFAULT_CONFIRM_VERSION_BUMP,
         DEFAULT_AUTO_BUILD,
+        DEFAULT_HANDS_OFF,
         DEFAULT_AUTO_CLOSE,
         DEFAULT_AUTO_CLEANUP,
         DEFAULT_AUTO_PLAN,
@@ -370,6 +371,7 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
         DEFAULT_SUGGEST_GRAPHIFY,
         read_confirm_version_bump,
         read_auto_build,
+        read_hands_off,
         read_auto_close,
         read_auto_cleanup,
         read_auto_plan,
@@ -428,6 +430,7 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
     assert read_auto_cleanup(cfg) is DEFAULT_AUTO_CLEANUP
     assert read_auto_plan(cfg) is DEFAULT_AUTO_PLAN
     assert read_auto_build(cfg) is DEFAULT_AUTO_BUILD
+    assert read_hands_off(cfg) is DEFAULT_HANDS_OFF
     assert read_early_pr(cfg) is DEFAULT_EARLY_PR
     assert read_fix_auto_name(cfg) is DEFAULT_FIX_AUTO_NAME
     assert read_locked(cfg) is DEFAULT_LOCKED
@@ -437,6 +440,13 @@ def test_write_default_config_includes_label_flow_keys(tmp_path: Path) -> None:
     assert read_test_runner(cfg) == DEFAULT_TEST_RUNNER
     assert read_essential_marker(cfg) == DEFAULT_ESSENTIAL_MARKER
     assert read_essential_review(cfg) == DEFAULT_ESSENTIAL_REVIEW
+
+
+def test_read_hands_off_missing_key_is_none(tmp_path: Path) -> None:
+    from issue_flow.modes import read_hands_off
+
+    cfg = _write_config(tmp_path, '[issueflow]\nmode = "standard"\n')
+    assert read_hands_off(cfg) is None
 
 
 def test_write_default_config_upserts_label_flow_keys(tmp_path: Path) -> None:

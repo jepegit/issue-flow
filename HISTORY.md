@@ -9,8 +9,11 @@ than the GitHub release notes they link to.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-05
+
 - Iterative fixes: docs-flow-diagram. (#397)
 - Graphify totally gitignored. (#400)
+- Create a mode that drives hands off. (#402)
 
 ## [0.5.17] - 2026-09-26
 

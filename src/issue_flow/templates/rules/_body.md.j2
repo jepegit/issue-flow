@@ -198,6 +198,9 @@ Lifecycle skills include a **`### MODEL & EXECUTION DIRECTIVE`** section that te
 {% endif %}
 {% if "iflow_drive" in included_skills %}
 `/iflow-drive <N>` runs a **compose-only** path from an existing GitHub issue: draft epic (auto-confirm unless grill-me) → publish every stage → `/iflow-auto` each epoch → final review (create leftover findings) → local cleanup **`-d` only** → `/iflow-status`. One confirm covers draft-accept, publish-all, auto-all, final-review creates, and reachable-only cleanup. User `abort` / `stop` / `cancel` / `halt` stops at the next boundary. Off-path (never auto-dispatched). See `{{ issueflows_dir }}/{{ designs_folder }}/drive-mode.md`.
+{% if hands_off %}
+When `hands_off` is on, `/iflow-drive` skips that confirm. A short description creates one epic anchor after grill-me, then drives it. A spent auto loop budget records accept and continues.
+{% endif %}
 {% endif %}
 {% if "iflow_archive" in included_skills %}
 `/iflow-archive` condenses old solved issue groups under `{{ issueflows_dir }}/{{ solved_folder }}/` into a single dated `YYYY-MM-DD_archived_issues.md` summary file (recording the pre-archive git ref for recovery via `git show <ref>:<path>`), then deletes the original `issue<N>_*` files. It is off-path and destructive: nothing is deleted before one consolidated confirmation.

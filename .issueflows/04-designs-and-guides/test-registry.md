@@ -47,6 +47,12 @@ current issue**. `/iflow-doctor` may audit the whole suite against this table.
 | `tests/test_templating.py::test_iflow_plan_graphify_gitignored_refreshes_without_auto_flag` | no | no | plan / epic / graphify templates when `graphify_gitignored` | #400 | Text contract; leave unmarked |
 | `tests/test_config.py` (`resolve_graphify_gitignored` asserts) | no | no | `Settings.resolve_graphify_gitignored` | #400 | Same knob-precedence tests as other `[issueflow]` flags; leave unmarked |
 | `tests/test_doc_configuration.py::test_all_settings_table_lists_every_config_key_once` | yes | yes | `docs/configuration.md` vs `CONFIG_KEYS` | #400 | Already essential; a new knob missing from the table fails here |
+| `tests/test_templating.py::test_hands_off_bakes_graphify_and_skips_confirms` | no | no | plan / epic / drive / yolo / cycle / auto templates when `hands_off` | #402 | Text contract; leave unmarked |
+| `tests/test_config.py` (`resolve_hands_off` asserts) | no | no | `Settings.resolve_hands_off` | #402 | Project config beats `ISSUEFLOW_HANDS_OFF`; leave unmarked |
+| `tests/test_modes.py::test_read_hands_off_missing_key_is_none` | no | no | `modes.read_hands_off`, `write_default_config` | #402 | Missing key is unset; default false when written |
+| `tests/test_cli.py::test_mode_hands_off_yes_renders_skip_confirm` | no | no | `issue-flow mode` plus rendered drive skill | #402 | Real `update` into a temp dir; leave unmarked |
+| `tests/test_cli.py::test_mode_prints_hands_off` / `test_mode_hands_off_decline_does_not_write` / `test_mode_unknown_target_exits_2` | no | no | `issue-flow mode` print, decline, unknown target | #402 | Leave unmarked |
+| `tests/test_doc_configuration.py::test_all_settings_table_lists_every_config_key_once` | yes | yes | `docs/configuration.md` vs `CONFIG_KEYS` | #402 | Already essential; `hands_off` must appear once |
 
 **Columns**
 

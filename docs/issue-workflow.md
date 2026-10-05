@@ -471,6 +471,8 @@ iflow cycle yolo
 
 **What it asks you:** **One drive confirm** covering draft-accept, publish-all, auto-all (both lanes), final-review creates, and the local cleanup (`-d` and `-D`). It still pauses for auto's budget ask and for cycle/yolo stop conditions. "Never rebase / force-push" applies to the **default branch** only — issue branches are synced with `agent sync-branch` (+ `--force-with-lease`) as usual. See `.issueflows/04-designs-and-guides/drive-mode.md`.
 
+`issue-flow mode hands-off` sets `[issueflow].hands_off` and re-renders skills. While that knob is on, the drive confirm is already authorized, a short description may replace `<N>` (grill-me, then one epic anchor), AST graphify runs before the epic draft and each child plan, and a spent auto loop budget records accept. See `.issueflows/04-designs-and-guides/hands-off-mode.md`.
+
 **Result:** Epic published and driven through auto; findings issues recorded; landed local branches pruned; status report.
 
 **Related:** [Drive an epic hands-off](https://issue-flow.readthedocs.io/en/latest/how-to/drive/) · [Use auto mode](https://issue-flow.readthedocs.io/en/latest/how-to/auto-mode/)

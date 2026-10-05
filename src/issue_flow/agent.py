@@ -5739,6 +5739,7 @@ def _print_config_guide(console: Console, cfg_path: Path) -> None:
         "[bold]worktree_first[/bold] / "
         "[bold]auto_close[/bold] / [bold]auto_cleanup[/bold] / "
         "[bold]auto_plan[/bold] / [bold]auto_build[/bold] / "
+        "[bold]hands_off[/bold] / "
         "[bold]early_pr[/bold] / [bold]fix_auto_name[/bold]; "
         "[bold]confirm_version_bump[/bold] / [bold]confirm_changelog_update[/bold] / "
         "[bold]defer_changelog[/bold]; "

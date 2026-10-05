@@ -89,6 +89,7 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "auto_cleanup",
         "auto_plan",
         "auto_build",
+        "hands_off",
         "early_pr",
         "fix_auto_name",
         "confirm_changelog_update",
@@ -211,6 +212,45 @@ def test_grill_me_default_config_beats_env(
     monkeypatch.setenv("ISSUEFLOW_GRILL_ME_DEFAULT", "true")
     settings = Settings()
     assert settings.resolve_grill_me_default(tmp_path) is False
+
+
+def test_hands_off_off_by_default(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    """With no config and no env, hands-off stays off."""
+    monkeypatch.delenv("ISSUEFLOW_HANDS_OFF", raising=False)
+    settings = Settings()
+    assert settings.resolve_hands_off(tmp_path) is False
+    assert settings.template_context(tmp_path)["hands_off"] is False
+
+
+def test_hands_off_from_config(tmp_path: Path) -> None:
+    """A persisted [issueflow].hands_off=true is honored."""
+    _write_config(tmp_path, "[issueflow]\nhands_off = true\n")
+    settings = Settings()
+    assert settings.resolve_hands_off(tmp_path) is True
+
+
+def test_hands_off_from_env(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    """ISSUEFLOW_HANDS_OFF is used when config does not set the key."""
+    monkeypatch.setenv("ISSUEFLOW_HANDS_OFF", "true")
+    settings = Settings()
+    assert settings.resolve_hands_off(tmp_path) is True
+
+
+def test_hands_off_config_beats_env(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    """The persisted config value wins over a conflicting env var."""
+    _write_config(tmp_path, "[issueflow]\nhands_off = false\n")
+    monkeypatch.setenv("ISSUEFLOW_HANDS_OFF", "true")
+    settings = Settings()
+    assert settings.resolve_hands_off(tmp_path) is False
 
 
 def test_label_flows_on_by_default(
@@ -497,6 +537,7 @@ def test_skill_behaviour_knob_defaults(
     assert settings.resolve_auto_cleanup(tmp_path) is False
     assert settings.resolve_auto_plan(tmp_path) is True
     assert settings.resolve_auto_build(tmp_path) is True
+    assert settings.resolve_hands_off(tmp_path) is False
     assert settings.resolve_early_pr(tmp_path) is False
     assert settings.resolve_fix_auto_name(tmp_path) is False
     assert settings.resolve_locked(tmp_path) is False
@@ -534,6 +575,7 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
         "auto_cleanup = true\n"
         "auto_plan = false\n"
         "auto_build = false\n"
+        "hands_off = true\n"
         "early_pr = true\n"
         "fix_auto_name = true\n"
         "locked = true\n"
@@ -567,6 +609,7 @@ def test_skill_behaviour_knobs_from_config(tmp_path: Path) -> None:
     assert settings.resolve_auto_cleanup(tmp_path) is True
     assert settings.resolve_auto_plan(tmp_path) is False
     assert settings.resolve_auto_build(tmp_path) is False
+    assert settings.resolve_hands_off(tmp_path) is True
     assert settings.resolve_early_pr(tmp_path) is True
     assert settings.resolve_fix_auto_name(tmp_path) is True
     assert settings.resolve_locked(tmp_path) is True

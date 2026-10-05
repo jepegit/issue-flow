@@ -23,9 +23,17 @@ those skills; this one only sequences them and records `drive_status.md`.
 
 ## Input
 
+{% if hands_off %}
+- **`<N>`** — existing GitHub issue that becomes the epic anchor.
+- **`<short description>`** — not a positive integer. Announce hands-off,
+  run grill-me until the feature is specified, create one epic-anchor
+  issue (same shape as `/iflow-issue epic`) with no second confirm, then
+  drive that number.
+{% else %}
 - **`<N>`** — existing GitHub issue that becomes the epic anchor
   (required). Drive never creates the anchor; if none exists, stop and
   point at `/iflow-issue epic <intent>`.
+{% endif %}
 - **`grill` / `grill-me`** — run grill-me on the epic goal before
   confirming the draft. Else auto-set `Status: confirmed` after draft
   (also honour project `grill_me_default`).
@@ -52,9 +60,21 @@ those skills; this one only sequences them and records `drive_status.md`.
 {% include "skills/_resolve_project_root.md.j2" %}
 ## Instructions
 
+{% if hands_off %}
+1. **Resolve the target.** First line: hands-off mode is on.
+   - A positive integer `<N>`: `gh issue view <N> --repo <owner/repo>`
+     must succeed.
+   - Any other non-empty text is a **short description**. Run the
+     `grill-me` skill until the feature is specified. Create one
+     epic-anchor GitHub issue (problem / spec / acceptance, same shape
+     as `/iflow-issue epic`) with no second confirm. That new number is
+     `<N>` for the rest of this skill.
+   - Empty input: **stop** and ask.
+{% else %}
 1. **Require `<N>`.** If missing or not a positive integer, **stop** and
    ask. Run `gh issue view <N> --repo <owner/repo>` to confirm the
    issue exists.
+{% endif %}
 
 2. **`dry-run`.** If the token is present: show whether
    `{{ issueflows_dir }}/{{ epics_folder }}/epic<N>_plan.md` exists and
@@ -67,6 +87,14 @@ those skills; this one only sequences them and records `drive_status.md`.
    reachable branches plus `-D` on squash-landed ones (step 10). **Stop**
    without confirm or writes.
 
+{% if hands_off %}
+3. **No drive confirm.** Announce that hands-off mode is on, then print
+   the same run list a confirm would have shown (draft-accept, publish
+   every unpublished stage, `/iflow-auto` each unfinished stage, final
+   review, local cleanup `-d` and `-D`, `/iflow-status`, and the
+   non-yolo lane under `{{ cycle_nonyolo }}`). The mode switch already
+   authorized it. Do not ask.
+{% else %}
 3. **Drive confirm** (only planned interruption besides auto's budget
    ask and cycle/yolo stop conditions). Present in normal prose: issue
    `#<N>` as epic anchor; that this run will **draft-accept** (unless
@@ -82,6 +110,7 @@ those skills; this one only sequences them and records `drive_status.md`.
    publish confirms, auto's overnight confirm, the non-yolo lane,
    final-review creates, and the local cleanup (both `-d` and `-D`) —
    do not re-ask those mid-run.
+{% endif %}
 
 4. **Write / update `drive_status.md`** at
    `{{ issueflows_dir }}/{{ current_issues_folder }}/drive_status.md`:
@@ -122,9 +151,9 @@ those skills; this one only sequences them and records `drive_status.md`.
    confirm covers auto's overnight authorization and the non-yolo lane
    — do not re-ask, and do not stop at a `yolo: no` issue (cycle runs it
    on the non-yolo lane; only `nonyolo:stop` halts there). Honour
-   `epoch_gated`, cycle/yolo stop conditions, and auto's **budget ask**
-   (accept / grant N more loops / abort) as a **planned pause**, not a
-   drive failure. A merge that reports the PR is **already merged** is a
+   `epoch_gated` and cycle/yolo stop conditions.{% if hands_off %} A spent adversarial budget records **accept** and continues. It does not ask.{% else %} Auto's **budget ask**
+   (accept / grant N more loops / abort) stays a **planned pause**, not a
+   drive failure.{% endif %} A merge that reports the PR is **already merged** is a
    success, not a stop. Append created/reopened numbers to
    `drive_status.md` `findings:`. Abort-check at each stage / issue
    boundary.
@@ -182,5 +211,9 @@ those skills; this one only sequences them and records `drive_status.md`.
   merged-PR-divergent with nothing newer than the merge) — both under
   the drive confirm; never `unique_work`, never Phase B.
 - Do not leave `Published: #<M>` unpushed on home default (#303).
+{% if hands_off %}
+- A spent adversarial budget records **accept** and continues. It does not ask.
+{% else %}
 - Auto's budget ask remains a planned pause (accept / grant / abort).
+{% endif %}
 - User abort tokens stop only at the next stage / issue boundary.

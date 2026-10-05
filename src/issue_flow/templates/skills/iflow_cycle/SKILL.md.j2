@@ -56,13 +56,14 @@ The lane never changes a **stop condition** (step 6): tests failing, a scope che
 
 2. **Cap check.** If the ordered queue is longer than **{{ cycle_max_issues }}** and the input did not pass `max:<n>` raising the limit, **stop** and ask the user to confirm a larger run explicitly. Long unattended runs compound risk.
 
-3. **One consolidated confirm** (the only planned interruption). Present, in normal prose:
+3. **One consolidated confirm**{% if hands_off %} — hands-off mode is on. Print the ordered queue, skipped and blocked issues, the non-yolo lane and its policy, and the `onfail` policy. This confirm is already authorized. Do not ask. Then continue at step 4.{% else %} (the only planned interruption). Present, in normal prose:
    - the **ordered** queue (numbers + titles), and which issues are **skipped** (closed) or **blocked** (open dependency outside the queue) with the reason;
    - that each issue runs the **full chain** and — on the yolo lane — its PR is **auto-merged**;
    - the **non-yolo lane**: list the `nonyolo` issues from the queue payload (numbers + titles, or “none”) and the policy that applies to them (`nonyolo:merge|pr-only|stop`; default **`{{ cycle_nonyolo }}`** unless a token overrides). With `merge`, say explicitly that these PRs are auto-merged too;
    - the failure policy (`onfail:stop` or `onfail:skip`; default from config is **`{{ cycle_onfail }}`** unless overridden by a token — see step 7);
    - the default-branch preflight that must hold before starting (clean tree, tests passing).
    Require an explicit yes; anything else aborts before any work.
+{% endif %}
 
 4. **Write the cycle state file.** After the confirm, write `{{ issueflows_dir }}/{{ current_issues_folder }}/cycle_status.md` — the durable record that makes the run resumable and visible to `/iflow-status`. Include: the queue spec, the `onfail` policy, the `nonyolo` policy, an ISO timestamp, and the ordered queue as a checklist with one line per issue (`- [ ] #<N> — <title> — pending` — append ` (non-yolo)` for `yolo: false` items). Update this file as the loop progresses (see step 5); it is a normal tracking file (not an `issue<N>_*` group), so the folder sweep never touches it.
 

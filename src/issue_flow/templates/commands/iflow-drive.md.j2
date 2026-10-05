@@ -32,11 +32,17 @@ Follow `{{ agent_dir }}/skills/iflow-drive/SKILL.md` verbatim.
 ## Constraints
 
 - Off-path; never auto-dispatched by `/iflow`.
+{% if hands_off %}
+- Hands-off mode is on. Skip the drive confirm. A short description
+  (not an issue number) runs grill-me, creates one epic anchor, then
+  drives it. A spent auto loop budget records accept and continues.
+{% else %}
 - One confirm covers draft-accept, publish-all, auto-all (both lanes),
   final-review creates, and the local cleanup (`-d` **and** `-D`). Do not
   re-ask those.
 - Auto's budget ask (accept / grant N more loops / abort) stays a
   planned pause.
+{% endif %}
 - Never rebase / force-push / push the **default branch**. Issue branches
   may be rebased by `agent sync-branch` (optionally `--base <parent>`)
   and pushed `--force-with-lease` — that is normal PR-queue sync.

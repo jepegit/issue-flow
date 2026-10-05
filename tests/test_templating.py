@@ -67,6 +67,7 @@ _MODE_CONTEXT = {
     "auto_cleanup": False,
     "auto_plan": True,
     "auto_build": True,
+    "hands_off": False,
     "early_pr": False,
     "fix_auto_name": False,
     "confirm_changelog_update": True,
@@ -546,6 +547,58 @@ def test_iflow_plan_graphify_gitignored_refreshes_without_auto_flag() -> None:
     assert "do not commit any of `graphify-out/`" in graphify_cmd
     off = render_template("commands/iflow-graphify.md.j2", _default_context())
     assert "fine to commit" in off
+
+
+def test_hands_off_bakes_graphify_and_skips_confirms() -> None:
+    """Issue #402: hands_off forces AST graphify and skips unattended confirms."""
+    on = {
+        **_default_context(),
+        "hands_off": True,
+        "auto_graphify_on_plan": False,
+        "graphify_gitignored": False,
+    }
+    plan = render_template("skills/iflow_plan/SKILL.md.j2", on)
+    epic = render_template("skills/iflow_epic/SKILL.md.j2", on)
+    for rendered in (plan, epic):
+        assert "issue-flow graphify -C <project_root>" in rendered
+        assert "extract" not in rendered
+        assert "auto_graphify_on_plan = true" not in rendered
+    assert "before every plan" in plan
+    assert "before the epic draft" in epic
+
+    off_plan = render_template("skills/iflow_plan/SKILL.md.j2", _default_context())
+    off_epic = render_template("skills/iflow_epic/SKILL.md.j2", _default_context())
+    assert "hands_off` is on" not in off_plan
+    assert "hands_off` is on" not in off_epic
+    assert "issue-flow graphify -C <project_root>" not in off_plan
+
+    drive = render_template("skills/iflow_drive/SKILL.md.j2", on)
+    assert "No drive confirm" in drive
+    assert "short description" in drive
+    assert "records **accept**" in drive
+    drive_off = render_template("skills/iflow_drive/SKILL.md.j2", _default_context())
+    assert "Require `<N>`" in drive_off
+    assert "**Drive confirm**" in drive_off
+    assert "short description" not in drive_off
+    assert "records **accept**" not in drive_off
+
+    yolo = render_template("skills/iflow_yolo/SKILL.md.j2", on)
+    assert "already authorized" in yolo
+    yolo_off = render_template("skills/iflow_yolo/SKILL.md.j2", _default_context())
+    assert "Single consolidated confirm" in yolo_off
+    assert "Require an explicit yes" in yolo_off
+
+    auto = render_template("skills/iflow_auto/SKILL.md.j2", on)
+    assert "last_outcome: accepted" in auto
+    assert "grant N more loops" not in auto
+    auto_off = render_template("skills/iflow_auto/SKILL.md.j2", _default_context())
+    assert "grant N more loops" in auto_off
+
+    cycle = render_template("skills/iflow_cycle/SKILL.md.j2", on)
+    assert "already authorized" in cycle
+    cycle_off = render_template("skills/iflow_cycle/SKILL.md.j2", _default_context())
+    assert "One consolidated confirm" in cycle_off
+    assert "Explicit yes" in cycle_off or "explicit yes" in cycle_off
 
 
 def test_templates_reference_project_brief() -> None:
