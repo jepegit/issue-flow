@@ -45,6 +45,14 @@ synopsis of every command is in the collapsible block below the tables.
 | [`config add`](#issue-flow-config-add) | Create `.issueflows/config.toml` |
 | `config show` / `config set` | Read or write a setting (see [Configuration](configuration.md)) |
 
+### Changelog
+
+| Command | What it does |
+| --- | --- |
+| `changelog list` | Print unreleased `Changelog` trailers. Does not write `HISTORY.md`. |
+| `changelog release <version>` | On the default branch, prepend one version section and record shipped ids. Refuses a dirty tree, a repeated heading, a moved `HEAD`, or an empty list. Does not commit. |
+| `changelog check` | Exit 1 when `HISTORY.md` differs from the base and the commits that touch it lack `Changelog-Release:`. |
+
 ### Agent helpers
 
 | Command | What it does |
@@ -60,6 +68,9 @@ synopsis of every command is in the collapsible block below the tables.
       [--all] [--json]
     issue-flow register [PROJECT_DIR] [--json]
     issue-flow unregister [PROJECT_DIR] [--json]
+    issue-flow changelog list [PROJECT_DIR] [--json]
+    issue-flow changelog release VERSION [PROJECT_DIR] [--date YYYY-MM-DD] [--json]
+    issue-flow changelog check [PROJECT_DIR] [--base REF] [--json]
     issue-flow graphify [-C PROJECT_DIR] [...graphify subcommand + args]
     issue-flow status [PROJECT_DIR] [--local] [--json]
     issue-flow doctor [PROJECT_DIR] [--fix] [--except N] [--dry-run] [--json]
@@ -272,7 +283,7 @@ project never installs `issue-flow`.
 | `agent preflight` | Branch hygiene report: default branch, clean/dirty working tree, `dirty_paths` + `issueflows_only` (JSON), ahead/behind vs `origin/<default>`, a stale-branch flag when the issue is already archived, and the same `cli_version` / `skills_version` / `version_drift` fields (drift adds a `notes` entry). Runs `git fetch --prune` first. |
 | `agent switchback` | The mechanical "switch back when safe" half of `/iflow-close`: refuses (exit 1) while the working tree is dirty — listing the paths — else runs `git switch <default>` and `git pull --ff-only`. A refused fast-forward is reported, never forced. Never deletes branches (that stays in `/iflow-cleanup`). |
 | `agent sync-branch` | Bring the current issue branch up to date with `origin/<default>` before merging, so commits that landed during the issue are included instead of surfacing as a `CONFLICTING` PR at merge time. Refuses (exit 1) on a dirty tree or the default branch; otherwise fetches and rebases (`--strategy merge` merges instead). Conflicts confined to **bookkeeping files** are resolved keep-both and reported per path in `resolvers`: the changelog where both sides only add `## [Unreleased]` bullets (in-flight bullet **last**), and additive bullets / table rows in `<issueflows>/04-designs-and-guides/*.md` or any `issue<N>_status.md`. Every other conflict (product code, headings, prose, edited lines) aborts the operation, leaves the branch untouched, and exits 1. A branch **stacked on a squash-landed parent** is detected automatically (`base_detected`, `base`, `dropped_commits`; the parent must be provably landed — merged PR, zero `git cherry` unique commits, or its touched files byte-identical on `origin/<default>`) and replayed with `git rebase --onto` so only the child's own commits move; `--base REF` sets the parent explicitly (must be an ancestor of `HEAD`; rebase strategy only). Never pushes — the `--force-with-lease` push stays in `/iflow-close`. |
-| `agent apply-changelog` | Apply a deferred changelog bullet on the **default** branch (`--issue N`). Reads `### Deferred changelog` from `issue<N>_status.md` (current, then solved) and writes `HISTORY.md` / the configured changelog. Refuses (exit 1) on an issue branch. No-op when the file is missing, the close step chose `nohistory`, or the bullet is already present. Used by `/iflow-cleanup` and yolo post-pull when `defer_changelog` is on (issue #288). |
+| `agent apply-changelog` | Apply a deferred changelog bullet on the **default** branch (`--issue N`). Reads `### Deferred changelog` from `issue<N>_status.md` (current, then solved) and writes `HISTORY.md` / the configured changelog. Refuses (exit 1) on an issue branch. No-op when the file is missing, the close step chose `nohistory`, or the bullet is already present. Kept for a status file that already has that block. Close and cleanup no longer call it. |
 | `agent self-update` | Upgrade the `uv tool` install (`uv tool install issue-flow@latest`) then run `issue-flow update` on the project. Skips (exit 0) when the install is editable or a local path. Hard-fails when `uv` is missing or either step fails. Used by `/iflow-cleanup` when `on_bleeding_edge` is on. |
 | `agent pr-ready` | **Read-only** merge-ready classifier for an open PR (`[N]`, or the current-branch PR). Reports `ready` / `pending` / `blocked` / `unknown` from draft, review, mergeability, and **required** checks (optional noise such as Cursor Approval does not block `UNSTABLE` + `MERGEABLE`). Exit 0 only when `ready`. `--watch` polls until ready, blocked, or `checks_watch_minutes` elapses. Never merges — yolo still owns `gh pr merge` / `gh pr checks --watch`. |
 | `agent branches` | **Read-only** remote audit for `/iflow-cleanup include GitHub`: classifies `origin/*` into `deletable` (tip fully in the default branch, no open PR), `unique_work` (unique commits and/or an open PR, with commit onelines + shortstat), and `skipped` (default, protected, uncomparable). Never deletes a remote — that stays in the skill's Phase B confirm. |

@@ -83,7 +83,7 @@ an environment-variable fallback, `ISSUEFLOW_<KEY>` (for example
 | `fix_auto_name` | bool | `false` | `/iflow-fix` invents the session name without asking (creating the issue and branch still asks). |
 | `locked` | bool | `false` | `issue-flow update --all` skips this repo. Project only. See [Per-repo lock](#per-repo-lock). |
 | `confirm_changelog_update` | bool | `false` | `/iflow-close` shows the changelog entry and asks once before writing; declining stops close. `false` writes without asking (`nohistory` still skips). |
-| `defer_changelog` | bool | `false` | Issue branches never write the changelog; the entry goes in the status file and PR body and is applied on the default branch after merge (`issue-flow agent apply-changelog`). |
+| `defer_changelog` | bool | `false` | Superseded for writes. Close always puts the bullet in commit trailers and does not edit the changelog file, whether this is true or false. `issue-flow agent apply-changelog` remains for a status file that already has `### Deferred changelog`. |
 | `essential_tests` | bool | `false` | Opt-in essential-test suite: close runs `pytest -m essential` as its required local check and triages the tests an issue touched. |
 | `test_runner` | text | `"pytest"` | Test runner for essential tests (only `pytest` for now). |
 | `essential_marker` | text | `"essential"` | The pytest marker name for the essential suite. |

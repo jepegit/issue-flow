@@ -64,10 +64,9 @@ Optional free-form text after the command. Examples:
 
 5. **Consolidated confirm for post-merge cleanup (Phase A1).** Gather the full action list into a single yes/no prompt:
    - `git switch <default>` (home only)
-   - `git pull --ff-only` — if it fails, stop A1 steps that assume default is current (apply-changelog, release tag, self-update). Run `issue-flow agent default-sync --json`, print ahead/behind + unique commit onelines/paths + `action`, and follow that recovery (tracking → tiny PR; obsolete merge → replay; product → stop). Never rebase default, force-push default, or push default to skip CI.
+   - `git pull --ff-only` — if it fails, stop A1 steps that assume default is current (release tag, self-update). Run `issue-flow agent default-sync --json`, print ahead/behind + unique commit onelines/paths + `action`, and follow that recovery (tracking → tiny PR; obsolete merge → replay; product → stop). Never rebase default, force-push default, or push default to skip CI.
    - **Self-update (when enabled).** After a successful FF pull, on home: `issue-flow agent self-update --json -C <home>`. Skip when FF failed. Report skip/fail; do not roll back deletes.
-{% if defer_changelog %}   - **Apply deferred changelog.** After a **successful** FF pull, for each just-merged issue with `### Deferred changelog` on `issue<N>_status.md`: `issue-flow agent apply-changelog --issue N --json`. If it wrote, commit on default: `docs: changelog for #<N>` (`{{ history_file }}` only). Auto-commit when this cleanup run is already confirmed; honour `confirm_changelog_update` only for an interactive cleanup.
-{% endif %}   - `git fetch --prune`
+   - `git fetch --prune`
    - `issue-flow agent worktree-remove` for each linked worktree whose branch is `reachable` (**before** deleting the branch)
    - `git branch -d <branch>` for each **`reachable`** branch, listed explicitly by name before asking.
    - **Planned release tag (tag-derived projects only).** When `/iflow-close` planned a tag it did not create — check the focus issue's status file and the newest `{{ history_file }}` release section for a version whose tag is missing from `git tag -l` — include creating it in the same confirm: `git tag <planned>` then `git push origin <planned>` (or `gh release create <planned> --generate-notes`). Run it **after** the pull so the tag lands on the merged {{ pr_merge_method }} commit.
@@ -122,6 +121,4 @@ Report:
 - Remote deletes and findings-issue creation require the Phase B confirm. None of the three confirms implies another.
 - If anything is ambiguous (detached HEAD, multiple remotes, missing tracking info), report and stop rather than guessing.
 - Do not open or update PRs. Do not bump version fields — pyproject bumps belong to `/iflow-close`. The only version action allowed here is creating a release tag that `/iflow-close` **planned** (tag-derived strategy), inside the Phase A consolidated confirm.
-{% if defer_changelog %}- Apply a **deferred** changelog bullet after the FF pull (`issue-flow agent apply-changelog`). That is not a new HISTORY *offer* — do not invent a fresh bullet here.
-{% else %}- Do **not** offer to update `{{ history_file }}` / CHANGELOG here — that belongs in `/iflow-close` before the PR.
-{% endif %}
+- Do **not** offer to update `{{ history_file }}` / CHANGELOG here — that belongs in `/iflow-close` before the PR (commit-message trailers). A version section is `issue-flow changelog release` on the default branch, not a cleanup step.

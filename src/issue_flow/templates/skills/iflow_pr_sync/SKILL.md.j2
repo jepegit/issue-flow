@@ -75,5 +75,4 @@ Do **not** use this from `/iflow`. Off-path only. Sibling of `/iflow-cleanup`
 - Never `--admin` merge; never skip required checks.
 - Non-changelog / heading-promote conflicts → stop that head (and the batch
   under fail-fast); human decides.
-- Prevention (`defer_changelog`) is separate — see
-  `{{ issueflows_dir }}/{{ designs_folder }}/pr-queue-sync.md`.
+- New closes put the bullet in commit trailers instead of `{{ history_file }}`. This skill still repairs a queue that went dirty on a leftover `[Unreleased]` section. See `{{ issueflows_dir }}/{{ designs_folder }}/pr-queue-sync.md`.

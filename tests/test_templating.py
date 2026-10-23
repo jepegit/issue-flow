@@ -1206,25 +1206,25 @@ def test_changelog_timing_forbids_post_merge_updates() -> None:
 
 
 def test_defer_changelog_close_does_not_write_history_on_issue_branch() -> None:
-    on = {**_default_context(), "defer_changelog": True}
-    close = render_template("skills/iflow_close/SKILL.md.j2", on)
-    history = render_template("skills/iflow_history_update/SKILL.md.j2", on)
-    cleanup = render_template("skills/iflow_cleanup/SKILL.md.j2", on)
-    assert "Do not edit" in close or "do not write" in close.lower()
-    assert "### Deferred changelog" in close
-    assert "apply-changelog" in close
-    assert "Do not append" in history or "do not write" in history.lower()
-    assert "apply-changelog" in cleanup
-    assert "Do **not** offer to update" not in cleanup
-    off = {
-        **_default_context(),
-        "defer_changelog": False,
-        "confirm_changelog_update": False,
-    }
-    off_close = render_template("skills/iflow_close/SKILL.md.j2", off)
-    off_cleanup = render_template("skills/iflow_cleanup/SKILL.md.j2", off)
-    assert "so the bullet is in the PR commit" in off_close
-    assert "Do **not** offer to update" in off_cleanup
+    """Trailers replace both the direct HISTORY write and defer_changelog (#404)."""
+    for flag in (True, False):
+        ctx = {
+            **_default_context(),
+            "defer_changelog": flag,
+            "confirm_changelog_update": False,
+        }
+        close = render_template("skills/iflow_close/SKILL.md.j2", ctx)
+        history = render_template("skills/iflow_history_update/SKILL.md.j2", ctx)
+        cleanup = render_template("skills/iflow_cleanup/SKILL.md.j2", ctx)
+        assert "Do not edit" in close or "do not write" in close.lower()
+        assert "Changelog-Id" in close
+        assert "so the bullet is in the PR commit" in close
+        assert "### Deferred changelog" not in close
+        assert "apply-changelog" not in close
+        assert "do not write" in history.lower() or "Do **not**" in history
+        assert "Changelog-Id" in history
+        assert "apply-changelog" not in cleanup
+        assert "Do **not** offer to update" in cleanup
 
 
 def test_issue_close_bakes_checks_watch_minutes_override() -> None:
@@ -1849,17 +1849,18 @@ def test_iflow_close_and_start_nudge_ruff_fix_when_present() -> None:
 
 
 def test_history_update_skill_documents_both_modes() -> None:
-    """The history-update skill must describe append-and-promote, plus the missing-file fallback."""
+    """The history-update skill emits trailers and does not edit the changelog file."""
     rendered = render_template(
         "skills/iflow_history_update/SKILL.md.j2", _default_context()
     )
     assert "HISTORY.md" in rendered
+    assert "Changelog-Id" in rendered
     assert "[Unreleased]" in rendered
-    # Append mode (no bump) and promote mode (with bump) are both described.
+    assert "do not" in rendered.lower() and "edit" in rendered.lower()
+    # Keep-both still documents the leftover [Unreleased] repair.
     assert "append" in rendered.lower()
     assert "promote" in rendered.lower()
-    # Gracefully skip when the file is missing; never auto-create.
-    assert "skipping changelog" in rendered.lower() or "skip" in rendered.lower()
+    assert "skip" in rendered.lower()
     assert "Never create" in rendered or "never create" in rendered.lower()
 
 
