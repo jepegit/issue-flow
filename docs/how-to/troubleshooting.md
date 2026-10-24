@@ -134,12 +134,16 @@ directly to get past this.
 
 **Symptom:** a PR that was fine now shows a conflict, usually in `HISTORY.md`.
 
-**Cause:** another PR merged first and added its own changelog entry in the
-same place.
+**Cause:** another PR merged first and both sides edited `## [Unreleased]`.
+Current closes do not edit `HISTORY.md`; they put the bullet in commit
+trailers. This symptom is the leftover shape, from a branch that still
+appends under that heading.
 
 **Fix:** run `iflow pr-sync`. It rebases the affected PR branches, keeps
 both changelog entries, and pushes with `--force-with-lease` after one
-confirmation. See [Refresh dirty open PRs](pr-sync.md).
+confirmation. See [Refresh dirty open PRs](pr-sync.md). New notes show up
+in `issue-flow changelog list` until `issue-flow changelog release` folds
+them into a version section on the default branch.
 
 ## Settings seem to be ignored on WSL or Windows
 

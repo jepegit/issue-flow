@@ -180,8 +180,10 @@ checking, because Read the Docs serves pages under `/en/latest/`.
 "Release & version bump" section of
 `.issueflows/04-designs-and-guides/this-project.md`). Prefer shipping a
 dedicated release issue (e.g. `/iflow-pick` → plan → build →
-`/iflow-close`) so HISTORY, docs, and the bump land in one PR — then tag
-on `main` after merge.
+`/iflow-close`) so the version bump lands in one PR. The dated `HISTORY.md`
+section is **not** part of that PR. After the bump is on `main`, run
+`issue-flow changelog release` there, commit that file with a
+`Changelog-Release:` trailer, and tag.
 
 ### 1. Make sure tests pass
 
@@ -207,17 +209,29 @@ via uv (`patch`, `minor`, `major`, `stable`, `alpha`, `beta`, `rc`, `post`,
 `dev`). A bare `bump` in `/iflow-close` stays on the current pre-release
 channel when the version is already an alpha/beta/rc.
 
-Also promote `HISTORY.md`: rename `## [Unreleased]` to
-`## [<new_version>] - YYYY-MM-DD`, move the release bullets into that
-section, and open a fresh empty `## [Unreleased]` above it. `/iflow-close`
-with a bump token does this via the `iflow-history-update` skill; if you
-bump by hand, edit `HISTORY.md` the same way. Drop any Unreleased bullet
-that already shipped in an earlier tag.
+Do **not** promote `## [Unreleased]` inside the bump PR. `/iflow-close`
+puts each bullet in the commit message (`Changelog`, `Changelog-Date`,
+`Changelog-Id`) and leaves `HISTORY.md` alone. On `main`, after the bump
+has merged:
+
+```bash
+issue-flow changelog list          # preview; writes nothing
+issue-flow changelog release 0.4.9 --date 2026-10-23
+```
+
+`changelog release` prepends `## [0.4.9] - 2026-10-23`, folds any leftover
+`## [Unreleased]` bullets into that section, deletes that heading, and
+records the shipped ids in an HTML comment. It refuses a dirty tree, a
+heading that already exists, a non-default branch, a `HEAD` that moved
+while it ran, or an empty list. It does not commit. Commit only
+`HISTORY.md`, and include `Changelog-Release: 0.4.9` so CI can tell this
+from a feature edit. The first release after adoption is the one that
+removes `## [Unreleased]`. Older sections are never rewritten.
 
 ### 3. Commit, push, and merge the release PR
 
 ```bash
-git add pyproject.toml HISTORY.md docs/
+git add pyproject.toml docs/
 # include uv.lock only if it changed
 git commit -m "Release 0.4.9"
 git push
@@ -288,8 +302,10 @@ uv run issue-flow init /tmp/test-project
 
 # Release (after merge to main)
 uv version --bump patch
-# promote HISTORY.md [Unreleased] → ## [x.y.z] - YYYY-MM-DD
-git add pyproject.toml HISTORY.md && git commit -m "Release x.y.z" && git push
+git add pyproject.toml && git commit -m "Release x.y.z" && git push
+# on main, after that PR merges:
+issue-flow changelog release x.y.z
+git add HISTORY.md && git commit -m "Changelog x.y.z" -m "Changelog-Release: x.y.z" && git push
 # after PR merges:
 gh release create "v$(uv run python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")" --generate-notes
 ```

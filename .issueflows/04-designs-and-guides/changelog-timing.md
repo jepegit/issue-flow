@@ -37,8 +37,24 @@ the file. Repair (`sync-branch` / `pr-sync`) stays the default-off path.
    (from **home** even under `stay`) and commit `docs: changelog for #<N>`
    when it wrote. That apply is not a new offer.
 
+## Follow-up (#404) — trailers, not a file edit
+
+Decided 2026-10-23 with the plan for #404. Close no longer writes
+`HISTORY.md` on the issue branch, and cleanup no longer runs
+`apply-changelog`. The bullet is three commit-message trailers
+(`Changelog`, `Changelog-Date`, `Changelog-Id`). `issue-flow changelog release`
+prepends one version section on the default branch and deletes
+`## [Unreleased]` the first time it runs. `defer_changelog` stays in config
+so old files still parse, but templates ignore it when choosing where to
+write. `apply-changelog` stays for a status file that already has
+`### Deferred changelog`.
+
+A repo that still has `## [Unreleased]` keeps those bullets until the first
+`changelog release`, which folds them into the new version section and
+removes the heading. Do not recreate the heading after that.
+
 ## Link
 
-Issue #171 / #288; knob table in [skill-behaviour-knobs.md](./skill-behaviour-knobs.md).
+Issue #171 / #288 / #404; knob table in [skill-behaviour-knobs.md](./skill-behaviour-knobs.md).
 Conflict *repair*: [changelog-conflicts.md](./changelog-conflicts.md) (#240),
 [pr-queue-sync.md](./pr-queue-sync.md) (#260 Part A).

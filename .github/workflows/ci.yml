@@ -34,6 +34,21 @@ jobs:
       - name: Run tests
         run: uv run pytest -v
 
+  changelog-history:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+
+      - name: Reject a feature-PR diff of HISTORY.md
+        run: uv run issue-flow changelog check --base origin/${{ github.base_ref }}
+
   docs-links:
     runs-on: ubuntu-latest
     steps:

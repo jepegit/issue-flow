@@ -78,3 +78,13 @@ Issue #240; timing rules in [changelog-timing.md](./changelog-timing.md);
 parallel coordinator in [parallel-cycle.md](./parallel-cycle.md);
 multi-PR refresh in [pr-queue-sync.md](./pr-queue-sync.md) (issue #260);
 prevention via `defer_changelog` in #288 (default off).
+
+## Prevention that removes the shared heading (#404)
+
+Keep-both still repairs a repo whose open PRs edit `## [Unreleased]`.
+New closes do not. They put the bullet in commit trailers, and
+`issue-flow changelog release` is the only writer of a new version section.
+The first release after adoption folds the bullets already under
+`## [Unreleased]` into that section and deletes the heading. After that,
+the heading stays gone, so this conflict shape stops occurring for
+changelog text. Design-guide and status-file keep-both is unchanged.

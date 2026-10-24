@@ -2144,8 +2144,139 @@ def unregister(
         _console.print(f"[dim]not in registry[/dim]  {project_dir}")
 
 
+changelog_app = typer.Typer(
+    name="changelog",
+    add_completion=False,
+    help=(
+        "Read unreleased changelog trailers and, on the default branch, "
+        "prepend one HISTORY section when a version is cut."
+    ),
+)
+
+
+def _changelog_settings_file() -> str:
+    from issue_flow.config import Settings
+
+    return Settings().history_file
+
+
+@changelog_app.command("list")
+def changelog_list(
+    project_dir: Path = _PROJECT_DIR_ARGUMENT,
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Print unreleased changelog trailers. Does not write the changelog file."""
+    from issue_flow.changelog import list_notes
+
+    history_file = _changelog_settings_file()
+    notes = list_notes(project_dir, history_file)
+    payload = {
+        "ok": True,
+        "history_file": history_file,
+        "notes": [
+            {
+                "text": note.text,
+                "date": note.note_date,
+                "id": note.note_id,
+            }
+            for note in notes
+        ],
+    }
+    if json_output:
+        _console.print_json(data=payload)
+        return
+    for note in notes:
+        _console.print(f"- {note.text}")
+
+
+@changelog_app.command("release")
+def changelog_release(
+    version: str = typer.Argument(
+        ..., help="Version heading to prepend, without brackets."
+    ),
+    project_dir: Path = _PROJECT_DIR_ARGUMENT,
+    today: str | None = typer.Option(
+        None,
+        "--date",
+        help="Heading date YYYY-MM-DD (default: today).",
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Prepend one version section on the default branch. Does not commit."""
+    from datetime import date
+
+    from issue_flow.changelog import release
+
+    history_file = _changelog_settings_file()
+    result = release(
+        project_dir,
+        version,
+        history_file=history_file,
+        today=today or date.today().isoformat(),
+    )
+    payload = {
+        "ok": result.ok,
+        "reason": result.reason,
+        "version": result.version,
+        "history_file": result.path,
+        "bullet_count": result.bullet_count,
+    }
+    if json_output:
+        _console.print_json(data=payload)
+    elif result.ok:
+        _console.print(
+            f"[green]wrote[/green] {result.path} (## [{result.version}], "
+            f"{result.bullet_count} bullet(s))"
+        )
+    else:
+        _console.print(f"[red]refused[/red] {result.reason}")
+    if not result.ok:
+        raise typer.Exit(code=1)
+
+
+@changelog_app.command("check")
+def changelog_check(
+    project_dir: Path = _PROJECT_DIR_ARGUMENT,
+    base: str | None = typer.Option(
+        None,
+        "--base",
+        help="Base ref for the diff (default: origin/<default-branch>).",
+    ),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit a machine-readable JSON object."
+    ),
+) -> None:
+    """Fail when a non-release commit changes the changelog file."""
+    from issue_flow.changelog import check_history_diff
+    from issue_flow.gitutils import default_branch
+
+    history_file = _changelog_settings_file()
+    base_ref = base or f"origin/{default_branch(project_dir)}"
+    result = check_history_diff(project_dir, history_file, base_ref)
+    payload = {
+        "ok": result.ok,
+        "reason": result.reason,
+        "changed": result.changed,
+        "base": base_ref,
+        "history_file": history_file,
+    }
+    if json_output:
+        _console.print_json(data=payload)
+    elif result.ok:
+        _console.print("[green]ok[/green] changelog diff")
+    else:
+        _console.print(f"[red]refused[/red] {result.reason}")
+    if not result.ok:
+        raise typer.Exit(code=1)
+
+
 app.add_typer(agent_app)
 app.add_typer(config_app)
+app.add_typer(changelog_app)
 workspace_app.add_typer(workspace_git_app)
 app.add_typer(workspace_app)
 

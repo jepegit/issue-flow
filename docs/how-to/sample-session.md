@@ -202,7 +202,7 @@ iflow close
 1. ran the essential tests (18 passed) and the full suite (882 passed) and
    checked lint;
 2. left the version alone (no bump was asked for);
-3. added a changelog entry under `## [Unreleased]` in `HISTORY.md`;
+3. put a changelog trailer block (`Changelog`, `Changelog-Date`, `Changelog-Id`) in the commit message, and left `HISTORY.md` unchanged;
 4. marked the status `- [x] Done` and moved the `issue328_*` files to
    `03-solved-issues/`;
 5. committed, synced with `main` (`already up to date with origin/main`),

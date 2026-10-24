@@ -144,7 +144,7 @@ Now the ordinary loop. In the chat window:
 | `iflow pick` | Shows you the open GitHub issues, you choose one, it creates a branch |
 | `iflow plan` | Writes a plan and **stops** for you to approve it |
 | `iflow build` | Implements the approved plan |
-| `iflow close` | Runs tests, updates the changelog, commits, pushes, opens a pull request |
+| `iflow close` | Runs tests, writes changelog trailers into the commit, commits, pushes, opens a pull request |
 | `iflow cleanup` | After the PR is merged: back to the main branch, tidy up local branches |
 
 If you forget where you are, just type `iflow` — it works out which step is

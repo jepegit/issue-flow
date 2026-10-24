@@ -49,7 +49,7 @@ flowchart LR
 | Capture | `iflow capture <N>` | `issue<N>_original.md`: the issue text from GitHub |
 | Plan | `iflow plan` | `issue<N>_plan.md`: goal, constraints, approach, files, tests. **Stops for your approval** |
 | Build | `iflow build` | Implements the approved plan. Starts `issue<N>_status.md` with `- [ ] Done` |
-| Close | `iflow close` | Runs tests, adds a `HISTORY.md` entry, marks `- [x] Done`, moves the issue files, commits, pushes, opens a PR |
+| Close | `iflow close` | Runs tests, puts changelog trailers in the commit (does not edit `HISTORY.md`), marks `- [x] Done`, moves the issue files, commits, pushes, opens a PR |
 | Cleanup | `iflow cleanup` | After the PR is merged: switches to the default branch, pulls, deletes merged local branches |
 
 If you lose track, type `iflow`. It looks at the **focus issue's** files and

@@ -33,6 +33,23 @@ HEADING_CONFLICT = "heading_conflict"
 NON_BULLET_CONTENT = "non_bullet_content"
 EMPTY_SIDE = "empty_side"
 
+#: Refusal reasons for ``changelog release``. Success is a written file, not a
+#: code in this list.
+VERSION_EXISTS = "version_exists"
+DIRTY_TREE = "dirty_tree"
+NOT_DEFAULT_BRANCH = "not_default_branch"
+HEAD_MOVED = "head_moved"
+EMPTY_LIST = "empty_list"
+
+_DATED_VERSION_RE = re.compile(
+    r"^##\s+\[(?P<version>[^\]]+)\]\s+-\s+(?P<date>\d{4}-\d{2}-\d{2})\s*$"
+)
+_CHANGELOG_LINE_RE = re.compile(r"^Changelog:\s*(.*?)\s*$")
+_CHANGELOG_DATE_LINE_RE = re.compile(r"^Changelog-Date:\s*(\d{4}-\d{2}-\d{2})\s*$")
+_CHANGELOG_ID_LINE_RE = re.compile(r"^Changelog-Id:\s*([0-9a-fA-F]{12})\s*$")
+_RELEASE_TRAILER_RE = re.compile(r"^Changelog-Release:\s*(\S+)\s*$", re.MULTILINE)
+_IDS_COMMENT_RE = re.compile(r"<!--\s*changelog-ids:([^>]*)-->", re.IGNORECASE)
+
 _HEADING_RE = re.compile(r"^\s{0,3}#{1,6}\s")
 _UNRELEASED_RE = re.compile(r"^\s{0,3}##\s*\[?unreleased\]?", re.IGNORECASE)
 _VERSION_HEADING_RE = re.compile(r"^\s{0,3}##\s+\[")
@@ -196,6 +213,212 @@ def parse_deferred_changelog(status_text: str) -> DeferredChangelog | None:
     if bullet is None:
         return DeferredChangelog(skipped=False, bullet=None, planned_version=planned)
     return DeferredChangelog(skipped=False, bullet=bullet, planned_version=planned)
+
+
+@dataclass(frozen=True)
+class ChangelogNote:
+    """One unreleased changelog bullet recovered from commit trailers.
+
+    ``text`` is the sentence without a leading list marker. ``note_date`` is
+    the ``Changelog-Date`` value (a sort key inside the release, not a filing
+    date). ``order`` is the winning commit's position in the scan window,
+    oldest first, so equal dates stay in commit order.
+    """
+
+    text: str
+    note_date: str
+    note_id: str
+    order: int = 0
+
+
+def normalize_version(version: str) -> str:
+    """Strip a single leading ``v`` when the next character is a digit."""
+    text = version.strip()
+    if text.startswith("v") and len(text) > 1 and text[1].isdigit():
+        return text[1:]
+    return text
+
+
+def parse_message_notes(message: str) -> list[ChangelogNote]:
+    """Pull changelog triples out of a full commit message.
+
+    A triple is ``Changelog`` / ``Changelog-Date`` / ``Changelog-Id``, in that
+    order, anywhere in the body — squash commits embed several trailer blocks,
+    so this does not stop at the last ``git interpret-trailers`` block. An
+    incomplete triple is dropped. The same id later in the same message
+    replaces the earlier text (one bullet per id).
+    """
+    pending_text: str | None = None
+    pending_date: str | None = None
+    found: list[ChangelogNote] = []
+    for raw in message.splitlines():
+        line = raw.strip()
+        id_match = _CHANGELOG_ID_LINE_RE.match(line)
+        if id_match and pending_text is not None and pending_date is not None:
+            found.append(
+                ChangelogNote(
+                    text=pending_text,
+                    note_date=pending_date,
+                    note_id=id_match.group(1).lower(),
+                )
+            )
+            pending_text = None
+            pending_date = None
+            continue
+        date_match = _CHANGELOG_DATE_LINE_RE.match(line)
+        if date_match and pending_text is not None:
+            pending_date = date_match.group(1)
+            continue
+        text_match = _CHANGELOG_LINE_RE.match(line)
+        if text_match:
+            pending_text = text_match.group(1).strip()
+            pending_date = None
+    return _collapse_notes(found)
+
+
+def _collapse_notes(notes: list[ChangelogNote]) -> list[ChangelogNote]:
+    """Keep the last note for each id, in the order those last occurrences appear."""
+    last_at: dict[str, int] = {}
+    for index, note in enumerate(notes):
+        last_at[note.note_id] = index
+    return [notes[index] for index in sorted(last_at.values())]
+
+
+def merge_commit_notes(per_commit: list[list[ChangelogNote]]) -> list[ChangelogNote]:
+    """Merge per-commit note lists (oldest commit first).
+
+    A later commit with the same id replaces the text and the date. The result
+    is sorted by ``Changelog-Date``, then by commit order.
+    """
+    winners: dict[str, ChangelogNote] = {}
+    for commit_index, notes in enumerate(per_commit):
+        for note in notes:
+            winners[note.note_id] = ChangelogNote(
+                text=note.text,
+                note_date=note.note_date,
+                note_id=note.note_id,
+                order=commit_index,
+            )
+    ordered = sorted(winners.values(), key=lambda note: (note.note_date, note.order))
+    return ordered
+
+
+def message_is_release(message: str) -> bool:
+    """True when ``message`` carries a ``Changelog-Release:`` trailer."""
+    return _RELEASE_TRAILER_RE.search(message) is not None
+
+
+def recorded_changelog_ids(text: str) -> set[str]:
+    """Ids named in ``<!-- changelog-ids: ... -->`` comments."""
+    found: set[str] = set()
+    for match in _IDS_COMMENT_RE.finditer(text):
+        for token in match.group(1).split():
+            if re.fullmatch(r"[0-9a-fA-F]{12}", token):
+                found.add(token.lower())
+    return found
+
+
+def top_version_heading(text: str) -> str | None:
+    """First dated ``## [version] - YYYY-MM-DD`` line, skipping ``[Unreleased]``."""
+    for line in text.splitlines():
+        stripped = line.strip()
+        if _UNRELEASED_RE.match(stripped):
+            continue
+        if _DATED_VERSION_RE.match(stripped):
+            return stripped
+    return None
+
+
+def has_version_heading(text: str, version: str) -> bool:
+    """True when ``## [version]`` already exists (with or without a date)."""
+    want = normalize_version(version)
+    pattern = re.compile(rf"^##\s+\[{re.escape(want)}\](?:\s|$)")
+    for line in text.splitlines():
+        if pattern.match(line.strip()):
+            return True
+    return False
+
+
+def unreleased_bullet_lines(text: str) -> list[str]:
+    """Normalized bullets under ``## [Unreleased]``, or ``[]`` when it is absent."""
+    lines = text.splitlines()
+    try:
+        start, end = _unreleased_span(lines)
+    except MissingUnreleased:
+        return []
+    bullets: list[str] = []
+    for line in lines[start + 1 : end]:
+        if _BULLET_RE.match(line):
+            bullets.append(normalize_bullet(line))
+    return bullets
+
+
+def render_release_section(
+    version: str,
+    date: str,
+    legacy_bullets: list[str],
+    notes: list[ChangelogNote],
+) -> str:
+    """One new version section. Does not include older sections.
+
+    Legacy ``[Unreleased]`` bullets come first, then trailer notes. Shipped
+    ids are stored in an HTML comment so a later list can skip them even if
+    the scan window is wrong.
+    """
+    version = normalize_version(version)
+    lines = [f"## [{version}] - {date}", ""]
+    if notes:
+        ids = " ".join(note.note_id for note in notes)
+        lines.append(f"<!-- changelog-ids: {ids} -->")
+        lines.append("")
+    for bullet in legacy_bullets:
+        lines.append(normalize_bullet(bullet))
+    for note in notes:
+        lines.append(normalize_bullet(note.text))
+    return "\n".join(lines)
+
+
+def apply_release(text: str, section: str) -> str:
+    """Prepend ``section`` and delete ``## [Unreleased]`` when it is present.
+
+    Older dated sections are left byte-for-byte apart from the blank line that
+    separates them from the new section.
+    """
+    lines = text.splitlines()
+    try:
+        start, end = _unreleased_span(lines)
+    except MissingUnreleased:
+        start = None
+        end = None
+    if start is not None and end is not None:
+        lines = lines[:start] + lines[end:]
+        insert_at = start
+    else:
+        insert_at = len(lines)
+        for index, line in enumerate(lines):
+            if _VERSION_HEADING_RE.match(line):
+                insert_at = index
+                break
+    while insert_at > 0 and lines[insert_at - 1].strip() == "":
+        insert_at -= 1
+        lines.pop(insert_at)
+    section_lines = section.splitlines()
+    rest = lines[insert_at:]
+    while rest and rest[0].strip() == "":
+        rest.pop(0)
+    out = lines[:insert_at]
+    if out and out[-1].strip():
+        out.append("")
+    out.extend(section_lines)
+    if rest:
+        out.append("")
+        out.extend(rest)
+    return _join_lines(text if text.endswith(("\n", "\r")) else text + "\n", out)
+
+
+def release_is_empty(legacy_bullets: list[str], notes: list[ChangelogNote]) -> bool:
+    """True when a release would write a heading with no bullets."""
+    return not legacy_bullets and not notes
 
 
 @dataclass(frozen=True)

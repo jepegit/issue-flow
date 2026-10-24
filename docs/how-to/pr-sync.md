@@ -6,8 +6,11 @@ title: Refresh dirty open PRs
 
 ## Goal
 
-When another merge (often `HISTORY.md`) leaves sibling open PRs `DIRTY`, refresh
-those heads without losing keep-both changelog bullets.
+When another merge (often a leftover `## [Unreleased]` block in `HISTORY.md`)
+leaves sibling open PRs `DIRTY`, refresh those heads without losing keep-both
+changelog bullets. Current closes put the bullet in commit trailers
+instead, so they do not edit that heading. This repair path stays for branches
+that still do.
 
 ## Steps
 
