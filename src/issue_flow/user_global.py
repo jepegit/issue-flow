@@ -1,6 +1,6 @@
 """User-global issue-flow config directory, ``config.toml``, and registry.
 
-Path contract: `.issueflows/04-designs-and-guides/user-global-config.md`.
+Path contract: `.issueflows/04-designs-and-guides/scaffolding-and-editors.md#user-global-config`.
 """
 
 from __future__ import annotations
@@ -43,7 +43,7 @@ def user_config_dir() -> Path:
 def editor_user_global_skills_root(editor_id: str) -> Path | None:
     """Per-editor user-global skills directory, or ``None`` if unknown.
 
-    Paths: [global-vs-local-skills.md](.issueflows/04-designs-and-guides/global-vs-local-skills.md).
+    Paths: [scaffolding-and-editors.md](.issueflows/04-designs-and-guides/scaffolding-and-editors.md#global-vs-local-skills).
     Cursor / Claude / Codex use ``Path.home()``; opencode uses XDG/APPDATA
     ``opencode/skills`` — never Claude or Codex compat dirs as the write target.
     """
@@ -87,7 +87,7 @@ def upsert_user_global_value(key: str, value: Any) -> Path:
     """Write ``[issueflow].key`` in the user-global file. Refuses forbidden keys."""
     if key in USER_GLOBAL_FORBIDDEN_KEYS:
         raise ValueError(
-            f"{key} is not a user-global key (project-only; see user-global-config.md)"
+            f"{key} is not a user-global key (project-only; see https://issue-flow.readthedocs.io/en/latest/configuration/)"
         )
     path = user_global_config_path()
     config_ops.upsert_config_value(

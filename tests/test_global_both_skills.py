@@ -1,4 +1,4 @@
-"""User-global materialize of ``both`` stems (caveman / grill-me / gh-ci / iflow-init)."""
+"""User-global materialize of ``both`` stems (caveman / grill-me / gh-ci / iflow-setup)."""
 
 from __future__ import annotations
 

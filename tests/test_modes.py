@@ -64,14 +64,14 @@ def test_simple_is_strict_subset() -> None:
     # Core markdown lifecycle is present.
     for stem in (
         "iflow_iflow",
-        "iflow_init",
+        "iflow_setup",
         "iflow_plan",
         "iflow_build",
         "iflow_pause",
     ):
         assert stem in simple.skills
     # Heavy git/PR automation is excluded.
-    for stem in ("iflow_close", "iflow_yolo", "iflow_fix", "iflow_graphify"):
+    for stem in ("iflow_close", "iflow_run", "iflow_issue", "iflow_cleanup"):
         assert stem not in simple.skills
 
 
@@ -83,8 +83,8 @@ def test_caveman_in_standard_not_in_simple() -> None:
 
 def test_gh_ci_in_standard_not_in_simple() -> None:
     """The gh-ci skill ships in standard (PR/CI path) but is omitted by simple."""
-    assert "gh_ci" in resolve_mode("standard").skills
-    assert "gh_ci" not in resolve_mode("simple").skills
+    assert "iflow_close" in resolve_mode("standard").skills
+    assert "iflow_close" not in resolve_mode("simple").skills
 
 
 def test_unknown_mode_raises_with_known_list() -> None:
@@ -112,11 +112,11 @@ def test_project_config_can_define_custom_mode_via_extends_add(tmp_path: Path) -
         tmp_path,
         '[issueflow]\nmode = "mine"\n\n'
         '[modes.mine]\nname = "Mine"\nextends = "simple"\n'
-        'add = ["iflow_graphify"]\n',
+        'add = ["iflow_status"]\n',
     )
     mine = resolve_mode("mine", cfg)
     simple = resolve_mode("simple", cfg)
-    assert mine.skills == simple.skills | {"iflow_graphify"}
+    assert mine.skills == simple.skills | {"iflow_status"}
     assert "mine" in available_modes(cfg)
 
 
@@ -133,22 +133,27 @@ def test_custom_mode_unknown_stem_raises(tmp_path: Path) -> None:
 def test_project_config_can_override_builtin(tmp_path: Path) -> None:
     cfg = _write_config(
         tmp_path,
-        '[modes.simple]\nname = "Tiny"\nskills = ["iflow_init"]\ncommands = ["iflow-init"]\n',
+        '[modes.simple]\nname = "Tiny"\nskills = ["iflow_setup"]\ncommands = ["iflow-setup"]\n',
     )
     simple = resolve_mode("simple", cfg)
-    assert simple.skills == frozenset({"iflow_init"})
+    assert simple.skills == frozenset({"iflow_setup"})
     assert simple.name == "Tiny"
 
 
 def test_extends_remove(tmp_path: Path) -> None:
     cfg = _write_config(
         tmp_path,
-        '[modes.noyolo]\nextends = "standard"\nremove = ["iflow_yolo", "iflow-yolo"]\n',
+        '[modes.noyolo]\nextends = "standard"\nremove = ["iflow_run", "iflow-run"]\n'
+        # Retired stems (pre-#406) still resolve. Removing one part of a merged
+        # skill keeps the skill.
+        '[modes.lean]\nextends = "standard"\nremove = ["iflow_yolo", "gh_ci"]\n',
     )
     mode = resolve_mode("noyolo", cfg)
-    assert "iflow_yolo" not in mode.skills
-    assert "iflow-yolo" not in mode.commands
-    assert "iflow_init" in mode.skills
+    assert "iflow_run" not in mode.skills
+    assert "iflow-run" not in mode.commands
+    lean = resolve_mode("lean", cfg)
+    assert {"iflow_run", "iflow_close"} <= lean.skills
+    assert "iflow_setup" in mode.skills
 
 
 def test_circular_extends_raises(tmp_path: Path) -> None:
@@ -177,7 +182,7 @@ def test_write_active_mode_preserves_user_modes_and_comments(tmp_path: Path) -> 
     cfg = _write_config(
         tmp_path,
         '# my project config\n\n[issueflow]\nmode = "simple"\n\n'
-        '[modes.mine]\nextends = "standard"\nadd = ["iflow_graphify"]\n',
+        '[modes.mine]\nextends = "standard"\nadd = ["iflow_status"]\n',
     )
     write_active_mode(cfg, "standard")
     text = cfg.read_text(encoding="utf-8")
@@ -185,7 +190,7 @@ def test_write_active_mode_preserves_user_modes_and_comments(tmp_path: Path) -> 
     # User content survived the round-trip.
     assert "my project config" in text
     assert "[modes.mine]" in text
-    assert "iflow_graphify" in text
+    assert "iflow_status" in text
     # The custom mode is still resolvable afterwards.
     assert "mine" in available_modes(cfg)
 

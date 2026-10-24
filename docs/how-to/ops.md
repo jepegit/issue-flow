@@ -13,7 +13,7 @@ steps — through an issue, and close it cleanly.
 ## Steps
 
 1. Put the configured `ops` label on the GitHub issue (default name: `ops`) and
-   run `iflow pick`, **or** run `iflow ops <N>` directly. If an issue has both
+   run `iflow pick`, **or** run `iflow close ops <N>` directly. If an issue has both
    the `ops` and `yolo` labels, ops wins.
 2. The agent captures the issue and checks the working tree. It refuses when
    product code has uncommitted changes; working on the default branch is
@@ -27,6 +27,6 @@ steps — through an issue, and close it cleanly.
 
 ## Related
 
-- [Command reference](../issue-workflow.md) — `/iflow-ops`
+- [Command reference](../issue-workflow.md) — `/iflow-close ops`
 - [Label-driven flows](../configuration.md#label-driven-flows) — `label_flows`, `ops_label`
 - [Work one issue end-to-end](work-one-issue.md) — the normal PR path

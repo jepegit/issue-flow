@@ -20,7 +20,7 @@ Ship a **small, low-risk** change (docs tweak, tiny fix) under one confirm:
 **Option B — explicit**
 
 1. Already on an issue branch with a clean tree and green tests.
-2. Run `iflow yolo <N>` (or `/iflow-yolo`). Confirm once.
+2. Run `iflow run yolo <N>` (or `/iflow-run yolo`). Confirm once.
 3. Chain runs through close: changelog without a prompt, PR squash-merged
    (may watch checks, then retry; `--auto` only as last resort).
 
@@ -30,6 +30,6 @@ unrelated tree **stops** the chain — fall back to the linear commands.
 ## Related
 
 - [Label-driven flows](../configuration.md#label-driven-flows) — `label_flows` / `yolo_label`
-- [Command reference](../issue-workflow.md) — `/iflow-yolo` section
+- [Command reference](../issue-workflow.md) — `/iflow-run yolo` section
 - [Work one issue end-to-end](work-one-issue.md) — non-hands-off path
 - [Run a cycle of issues](cycle.md) — batch many yolo-fit issues

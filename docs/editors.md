@@ -15,23 +15,24 @@ issue-flow init --editor all             # every supported editor
 every editor gets the full set. **`AGENTS.md`** is the convergent rules file and
 is written for every editor as a non-destructive *managed block* (issue-flow
 only ever owns the content between its markers, so a hand-maintained `AGENTS.md`
-is preserved). Slash commands and an editor-specific rules file are layered on
-top where the tool supports them.
+is preserved). Every editor gets the same eleven skills; each skill folder holds
+`SKILL.md` plus its mode files. The extra rules file only points at `AGENTS.md`,
+so the rules load once.
 
 | Editor      | `agent_dir`  | Slash commands | Skills | Extra rules file                    | `AGENTS.md` | graphify auto-register |
 | ----------- | ------------ | -------------- | ------ | ----------------------------------- | ----------- | ---------------------- |
 | Cursor      | `.cursor/`   | — (use skills) | yes    | `.cursor/rules/issueflow-rules.mdc` | yes         | yes                    |
-| Claude Code | `.claude/`   | `commands/`    | yes    | `CLAUDE.md`                         | yes         | no                     |
-| opencode    | `.opencode/` | `command/`     | yes    | —                                   | yes         | no                     |
+| Claude Code | `.claude/`   | — (use skills) | yes    | `CLAUDE.md` (imports `AGENTS.md`)   | yes         | no                     |
+| opencode    | `.opencode/` | `command/` (one-line wrappers) | yes | —                     | yes         | no                     |
 | Codex       | `.codex/`    | — (use skills) | yes    | —                                   | yes         | no                     |
 
-Cursor and Codex use skills as their primary slash-menu surface, so you invoke
-the mirrored skills (e.g. `/iflow-capture`) instead of separate files under
-`commands/`. `issue-flow update` removes known generated `.cursor/commands/`
-files during the Cursor migration but preserves unrelated user commands. The
-[graphify integration](graphify.md) currently registers only with Cursor; other
-editors still get the `/iflow-graphify` command/skill where applicable but no
-automatic `graphify cursor install`.
+Cursor, Claude Code, and Codex show skills in the slash menu, so `/iflow-pick`
+runs the `iflow-pick` skill directly. opencode gets a one-line command file per
+skill that tells the agent to read the skill. `issue-flow update` removes the
+older generated `.cursor/commands/` and `.claude/commands/iflow*.md` copies and
+leaves unrelated user commands alone. The [graphify integration](graphify.md)
+currently registers only with Cursor; other editors still get
+`/iflow-status graph` but no automatic `graphify cursor install`.
 
 ## Multi-root workspaces
 
@@ -54,7 +55,7 @@ commands must still target the correct repo. Use slash hints (`root:<path>`,
 `repo:<folder-name>`, `repo:owner/name`), or run
 `issue-flow agent resolve [--from-file <active-file>] [--json]` before
 `git`/`gh` calls. The design notes are in
-[multi-repo-workspaces.md](https://github.com/jepegit/issue-flow/blob/main/.issueflows/04-designs-and-guides/multi-repo-workspaces.md)
+[workspaces notes](https://github.com/jepegit/issue-flow/blob/main/.issueflows/04-designs-and-guides/workspaces.md#multi-repo-workspaces)
 in the issue-flow repository. Run `issue-flow update` to refresh the scoped
 `issueflow-rules.mdc` files.
 
@@ -78,5 +79,5 @@ the default was used (`resolved_via_workspace_default: true`).
 
 A single **shared** `.issueflows/` folder for the whole workspace is
 deliberately not supported: GitHub issue numbers are a per-repo namespace,
-branches and PRs are per-repo regardless, and `/iflow-archive` recovery
+branches and PRs are per-repo regardless, and `/iflow-cleanup archive` recovery
 depends on tracking files being committed in the repo that owns them.

@@ -11,7 +11,7 @@ GitHub sub-issues, keeping the original open as the tracker.
 
 ## Steps
 
-1. Run `iflow split <N>` (or `iflow split` on the issue's branch).
+1. Run `iflow issue split <N>` (or `iflow issue split` on the issue's branch).
 2. The agent drafts 2–5 child issues, each with the same light structure as
    `iflow issue` (context, spec, acceptance). If the pieces must happen in
    stages or depend on each other, it stops and recommends an
@@ -28,11 +28,11 @@ GitHub sub-issues, keeping the original open as the tracker.
 
 | Use | When |
 | --- | --- |
-| `iflow split` | The pieces are independent and can land in any order |
-| `iflow epic` | The work has stages or dependencies, or needs a plan first |
+| `iflow issue split` | The pieces are independent and can land in any order |
+| `iflow issue epic` | The work has stages or dependencies, or needs a plan first |
 
 ## Related
 
-- [Command reference](../issue-workflow.md) — `/iflow-split`
+- [Command reference](../issue-workflow.md) — `/iflow-issue split`
 - [Create and run epics](epics.md)
 - [Write a good issue](write-an-issue.md)

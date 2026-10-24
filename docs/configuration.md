@@ -42,9 +42,9 @@ an environment-variable fallback, `ISSUEFLOW_<KEY>` (for example
 | `skill_level` | text | `"standard"` | How opinionated the quality-tooling guidance is: `basic`, `standard`, `advanced`. See [Skill levels](#skill-levels). |
 | `caveman_default` | bool | `false` | Terse caveman reply style on from the first message. See [Caveman skill](#caveman-skill). |
 | `grill_me_default` | bool | `false` | Run the grill-me interview during every `/iflow-plan`. See [Grill-me skill](#grill-me-skill). |
-| `label_flows` | bool | `true` | Let issue labels choose the flow in `/iflow-pick` (yolo → `/iflow-yolo`, ops → `/iflow-ops`). See [Label-driven flows](#label-driven-flows). |
-| `yolo_label` | text | `"yolo"` | The label that routes an issue to `/iflow-yolo`; also what `/iflow-cycle yolo` and `/iflow-review yolo` use. |
-| `ops_label` | text | `"ops"` | The label that routes an issue to `/iflow-ops` (ops wins over yolo). |
+| `label_flows` | bool | `true` | Let issue labels choose the flow in `/iflow-pick` (yolo → `/iflow-run yolo`, ops → `/iflow-close ops`). See [Label-driven flows](#label-driven-flows). |
+| `yolo_label` | text | `"yolo"` | The label that routes an issue to `/iflow-run yolo`; also what `/iflow-run cycle yolo` and `/iflow-issue review yolo` use. |
+| `ops_label` | text | `"ops"` | The label that routes an issue to `/iflow-close ops` (ops wins over yolo). |
 | `publish_label` | text | `"publish"` | Label that bumps + creates a GitHub release after merge (bare = patch; `publish:minor` / `publish:0.6.0` override). See [Label-driven flows](#label-driven-flows). |
 | `checks_watch_minutes` | int | `15` | How long hands-off closes watch pending CI checks before falling back to `--auto` merge. |
 | `step_directives` | bool | `true` | Add a MODEL & EXECUTION DIRECTIVE (economy or reasoning) to lifecycle skills; tune per step under `[issueflow.step_profiles]`. |
@@ -64,23 +64,23 @@ an environment-variable fallback, `ISSUEFLOW_<KEY>` (for example
 | `graphify_gitignored` | bool | `false` | Gitignore all of `graphify-out/`. `/iflow-plan` and epic draft then rebuild the graph (AST only) before they read it. Does not untrack files that are already committed. |
 | `auto_switchback` | bool | `true` | After `/iflow-close` opens a PR, switch back to the default branch when the tree is clean (`false` ≈ always `stay`). |
 | `auto_remove_worktree` | bool | `true` | Close removes the issue's sibling worktree once the PR is open (or merged) and the tree is clean; `false` asks first. |
-| `worktree_first` | bool | `true` | `/iflow-pick`, `/iflow-issue` and `/iflow-fix` start in a sibling worktree `../<repo>-<N>`; `false` uses `git switch -c` in your checkout. Tokens `inplace` / `worktree` override per run. |
+| `worktree_first` | bool | `true` | `/iflow-pick`, `/iflow-issue` and `/iflow-issue fix` start in a sibling worktree `../<repo>-<N>`; `false` uses `git switch -c` in your checkout. Tokens `inplace` / `worktree` override per run. |
 | `worktrees_dir` | text | `""` | Common folder for issue worktrees, e.g. `~/worktrees` (absolute or `~`). Empty = next to the repo. A missing folder or a relative path falls back to next-to-repo with a note. Best set user-wide (`--global`). See [Where the worktree goes](how-to/worktrees.md#where-the-worktree-goes). |
 | `worktrees_in_workspace` | bool | `true` | When the repo sits in a workspace folder (an `issueflow-workspace.toml` above it), keep its worktrees next to it, inside that folder, even if `worktrees_dir` is set. |
 | `pr_merge_method` | text | `"squash"` | How hands-off closes merge: `squash`, `merge`, or `rebase`. |
-| `cycle_max_issues` | int | `10` | Safety cap on `/iflow-cycle` queue length (raise per run with `max:<n>`). |
-| `cycle_onfail` | text | `"stop"` | Default `/iflow-cycle` failure policy: `stop` (halt) or `skip` (park and continue). Per-run `onfail:stop\|skip` overrides. |
-| `cycle_nonyolo` | text | `"merge"` | Merge policy for `yolo: no` issues run hands-off by `/iflow-cycle`, `/iflow-auto` and `/iflow-drive`: `merge` (land the PR like yolo), `pr-only` (open the PR and continue; the next issue stacks on the branch), or `stop` (halt at the first one — the old behaviour). Per-run `nonyolo:merge\|pr-only\|stop` overrides. Env: `ISSUEFLOW_CYCLE_NONYOLO`. |
-| `auto_adversarial_loops` | int | `2` | `/iflow-auto` review-and-fix loops per stage before it stops to ask (override per run with `loops:<n>`). |
+| `cycle_max_issues` | int | `10` | Safety cap on `/iflow-run cycle` queue length (raise per run with `max:<n>`). |
+| `cycle_onfail` | text | `"stop"` | Default `/iflow-run cycle` failure policy: `stop` (halt) or `skip` (park and continue). Per-run `onfail:stop\|skip` overrides. |
+| `cycle_nonyolo` | text | `"merge"` | Merge policy for `yolo: no` issues run hands-off by `/iflow-run cycle`, `/iflow-run auto` and `/iflow-run drive`: `merge` (land the PR like yolo), `pr-only` (open the PR and continue; the next issue stacks on the branch), or `stop` (halt at the first one — the old behaviour). Per-run `nonyolo:merge\|pr-only\|stop` overrides. Env: `ISSUEFLOW_CYCLE_NONYOLO`. |
+| `auto_adversarial_loops` | int | `2` | `/iflow-run auto` review-and-fix loops per stage before it stops to ask (override per run with `loops:<n>`). |
 | `confirm_version_bump` | bool | `false` | Non-yolo close asks once about a version bump when none was requested. |
 | `ruff_autofix` | bool | `true` | When the project uses ruff, run `ruff check --fix` + `ruff format` during build and close. |
-| `auto_close` | bool | `false` | `/iflow-build` (and the end of `/iflow-fix`) chain into `/iflow-close` when the work is ready; close keeps its own confirms. |
+| `auto_close` | bool | `false` | `/iflow-build` (and the end of `/iflow-issue fix`) chain into `/iflow-close` when the work is ready; close keeps its own confirms. |
 | `auto_cleanup` | bool | `false` | After a PR exists, watch until it merges (budget `checks_watch_minutes`) and then run `/iflow-cleanup`. Does not merge. Independent of `auto_close`. |
 | `auto_plan` | bool | `true` | `/iflow-pick` chains into `/iflow-plan` after the pick and branch; trailing `noplan` skips once. |
 | `auto_build` | bool | `true` | `/iflow-plan` chains into `/iflow-build` when you accept the plan; trailing `nobuild` skips once. |
-| `hands_off` | bool | `false` | Unattended chain (`/iflow-drive`, `/iflow-yolo`, `/iflow-cycle`, `/iflow-auto`) skips its up-front confirm. `/iflow-drive` also accepts a short description (grill-me, then one epic anchor). AST graphify runs before the epic draft and each child plan. A spent auto loop budget records accept and continues. Set with `issue-flow mode hands-off` (re-renders skills) or `issue-flow mode standard` to turn off. |
+| `hands_off` | bool | `false` | Unattended chain (`/iflow-run drive`, `/iflow-run yolo`, `/iflow-run cycle`, `/iflow-run auto`) skips its up-front confirm. `/iflow-run drive` also accepts a short description (grill-me, then one epic anchor). AST graphify runs before the epic draft and each child plan. A spent auto loop budget records accept and continues. Set with `issue-flow mode hands-off` (re-renders skills) or `issue-flow mode standard` to turn off. |
 | `early_pr` | bool | `false` | `/iflow-build` opens a draft PR after the first push; trailing `early` / `pr` / `noearly` override per run. |
-| `fix_auto_name` | bool | `false` | `/iflow-fix` invents the session name without asking (creating the issue and branch still asks). |
+| `fix_auto_name` | bool | `false` | `/iflow-issue fix` invents the session name without asking (creating the issue and branch still asks). |
 | `locked` | bool | `false` | `issue-flow update --all` skips this repo. Project only. See [Per-repo lock](#per-repo-lock). |
 | `confirm_changelog_update` | bool | `false` | `/iflow-close` shows the changelog entry and asks once before writing; declining stops close. `false` writes without asking (`nohistory` still skips). |
 | `defer_changelog` | bool | `false` | Superseded for writes. Close always puts the bullet in commit trailers and does not edit the changelog file, whether this is true or false. `issue-flow agent apply-changelog` remains for a status file that already has `### Deferred changelog`. |
@@ -97,9 +97,9 @@ than you need. Three modes ship built in:
 
 | Mode | What you get |
 | --- | --- |
-| `standard` (default) | The full workflow: planning, PRs, history, cleanup, graphify, and all helpers. |
-| `novice` | Guided setup plus the straight-line lifecycle and the safety nets: `/iflow`, `/iflow-setup`, `/iflow-pick`, `/iflow-init`, `/iflow-capture`, `/iflow-issue`, `/iflow-plan`, `/iflow-build`, `/iflow-pause`, `/iflow-close`, `/iflow-cleanup`, `/iflow-status`, `/iflow-doctor`. No yolo / cycle / auto / epic / split / fix / review / archive / graphify. |
-| `simple` | A markdown-only lifecycle (capture, plan, implement, park, status, archive). No PR/cleanup/yolo/fix/graphify automation. Includes `/iflow-archive` for condensing a large `03-solved-issues/` folder. |
+| `standard` (default) | All eleven commands: the lifecycle plus `/iflow-run`, `/iflow-issue`, and `/iflow-status` with every mode. |
+| `novice` | Guided setup plus the straight-line lifecycle and the safety nets: `/iflow`, `/iflow-setup`, `/iflow-pick`, `/iflow-issue`, `/iflow-plan`, `/iflow-build`, `/iflow-pause`, `/iflow-close`, `/iflow-cleanup`, `/iflow-status`. No `/iflow-run` (yolo / cycle / auto / drive). |
+| `simple` | A markdown-only lifecycle: `/iflow`, `/iflow-setup`, `/iflow-pick`, `/iflow-plan`, `/iflow-build`, `/iflow-pause`, `/iflow-status`. No PR, cleanup, or hands-off automation. |
 
 ```bash
 issue-flow init --mode simple
@@ -154,8 +154,12 @@ mode = "mine"
 [modes.mine]
 name = "Mine"
 extends = "simple"
-add = ["iflow_graphify"]
+add = ["iflow_close", "iflow-close"]
 ```
+
+Stems name whole commands (`iflow_run`, not single modes such as yolo). Stems
+retired by the command merge still resolve: `add = ["iflow_yolo"]` adds
+`iflow_run`, and `issue-flow update` rewrites them in place.
 
 ## Skill levels
 
@@ -285,8 +289,8 @@ pstack_skills = ["unslop", "tdd", "blast-radius"]
 ```
 
 Each selected skill lands at `<agent_dir>/skills/<name>/SKILL.md` (so `/unslop`
-works exactly as in pstack's own docs), the managed rule body gains a short
-"pstack skills" section listing what is installed, and `/iflow-close` /
+works exactly as in pstack's own docs), the managed rule body lists what is
+installed in one line, and `/iflow-close` /
 `/iflow-build` gain soft, membership-gated suggestions (unslop the PR body,
 blast-radius before the PR, tdd for bug-shaped issues). Nothing is ever run
 automatically. Removing a name and re-running `update` prunes that folder.
@@ -302,7 +306,7 @@ licence text ships as `_pstack_LICENSE.txt` next to the templates.
 ## Label-driven flows
 
 Issue labels can select the flow: when an issue picked via `/iflow-pick`
-carries the **`yolo`** label, it is routed through the hands-off `/iflow-yolo`
+carries the **`yolo`** label, it is routed through the hands-off `/iflow-run yolo`
 chain (one combined confirmation covering the branch and the whole
 `init → plan → build → close yolo` run, which merges the PR and pulls the
 default branch at the end). This is **on by default** and controlled by two
@@ -331,9 +335,9 @@ yolo close or `/iflow-cleanup` creates `gh release create "v<version>"
 
 Related off-path flows (see [Command reference](issue-workflow.md)):
 
-- `/iflow-review` — propose which open issues should get the configured
+- `/iflow-issue review` — propose which open issues should get the configured
   `yolo_label` (re-score all open issues; apply behind one confirm).
-- `/iflow-cycle yolo` — alias for `label:<yolo_label>`; batch-process every
+- `/iflow-run cycle yolo` — alias for `label:<yolo_label>`; batch-process every
   open issue that carries that label under one up-front confirm.
 
 ## Per-repo lock
@@ -353,7 +357,7 @@ issue-flow config show locked
 user-global file is ignored. `ISSUEFLOW_LOCKED=true|false` wins for that
 process only (CI / one-off include-or-skip without editing the file).
 
-Design notes: [user-global-config.md](https://github.com/jepegit/issue-flow/blob/main/.issueflows/04-designs-and-guides/user-global-config.md).
+Design notes: [scaffolding and editors notes](https://github.com/jepegit/issue-flow/blob/main/.issueflows/04-designs-and-guides/scaffolding-and-editors.md#user-global-config).
 
 ## Linguist `.gitattributes`
 
@@ -399,10 +403,10 @@ issue-flow config show --global
 issue-flow config set --global caveman_default true
 ```
 
-Design notes: [user-global-config.md](https://github.com/jepegit/issue-flow/blob/main/.issueflows/04-designs-and-guides/user-global-config.md).
+Design notes: [scaffolding and editors notes](https://github.com/jepegit/issue-flow/blob/main/.issueflows/04-designs-and-guides/scaffolding-and-editors.md#user-global-config).
 
-`init` / `update` also copy the `both` skills (`iflow-init`,
-`caveman`, `grill-me`, `gh-ci`) into **every** editor user-global
+`init` / `update` also copy the `both` skills (`iflow-setup`,
+`caveman`, `grill-me`) into **every** editor user-global
 skill dir (Cursor `~/.cursor/skills/`, Claude `~/.claude/skills/`,
 Codex `~/.agents/skills/`, opencode `~/.config/opencode/skills/`),
 even when `--editor` is Cursor-only. The project copy stays; a
@@ -410,7 +414,7 @@ project skill with the same name wins. `--editor` still controls
 which project tree is written. Stamps for those global dirs live beside the
 user-global config (`skill-stamps.json`), not in the repo. `--force`
 overwrites a foreign global skill dir the same way it does a project
-one. Design notes: [global-vs-local-skills.md](https://github.com/jepegit/issue-flow/blob/main/.issueflows/04-designs-and-guides/global-vs-local-skills.md).
+one. Design notes: [scaffolding and editors notes](https://github.com/jepegit/issue-flow/blob/main/.issueflows/04-designs-and-guides/scaffolding-and-editors.md#global-vs-local-skills).
 
 ### Environment-only variables
 

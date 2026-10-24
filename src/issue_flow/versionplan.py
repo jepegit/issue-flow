@@ -162,7 +162,7 @@ def bump(current: Version, levels: list[str]) -> tuple[Version | None, list[str]
 def default_levels(current: Version) -> list[str]:
     """The pre-release-aware default when no level is given.
 
-    Mirrors the iflow-version-bump skill: stay on the current pre-release
+    Mirrors the version step of the iflow-close skill: stay on the current pre-release
     channel; from a stable release, bump ``patch``.
     """
     if current.dev is not None:

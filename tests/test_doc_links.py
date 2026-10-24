@@ -49,11 +49,11 @@ def test_no_unversioned_readthedocs_page_links() -> None:
 
 @pytest.mark.essential
 def test_no_mangled_graphify_domain() -> None:
-    """``iflow-graphify.net`` is a #74 rename artefact; the site is graphify.net (#353)."""
+    """``iflow-status graph.net`` is a #74 rename artefact; the site is graphify.net (#353)."""
     hits = [
         f"{path.relative_to(REPO_ROOT)}:{lineno}"
         for path in _files()
         for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1)
-        if "iflow-graphify.net" in line
+        if "iflow-status graph.net" in line
     ]
     assert not hits, "Use https://graphify.net/: " + ", ".join(hits)

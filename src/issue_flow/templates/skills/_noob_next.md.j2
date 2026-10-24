@@ -1,80 +1,27 @@
 {% if noob %}
 ### NEXT (noob)
 
-`noob` is on. After this step, tell the user what to run next. **Do not**
-auto-dispatch the suggestion unless this skill already chains that command
-(`auto_plan` / `auto_build` / `auto_close` / yolo).
+`noob` is on. After this step, tell the user what to run next, with a one-line why. Do **not** run it unless this skill already chains it (`auto_plan` / `auto_build` / `auto_close` / yolo).
 
-1. Run `issue-flow agent state --json`. Choose **Recommended** from this
-   table (chat form `iflow <step>` also works). Do **not** blindly print
-   `next_command` when there is no focus.
+**Recommended** — from `issue-flow agent state --json`; do **not** blindly print `next_command` when there is no focus:
 
-   - **Focus exists** → print `next_command` (plan / build / close).
-   - **No focus** + `epic_hint.epics` non-empty + `epic_session` set →
-     `/iflow` (one-and-ask). Put the first `next_candidates` number in
-     the why line.
-   - **No focus** + `epic_hint.epics` non-empty + no session →
-     `/iflow-pick`.
-   - **No focus** + `epic_session` set + empty `epic_hint.epics` → run
-     `issue-flow agent epic-status <epic_session.epic> --json`. If the
-     current stage has unpublished specs → `/iflow-epic <N> publish`.
-     Else `/iflow-status`. Never `/iflow-capture`.
-   - **Else** → `next_command` (usually `/iflow-capture`).
+- Focus exists → `next_command` (plan / build / close).
+- No focus, `epic_hint.epics` non-empty → `/iflow` when `epic_session` is set (name the first `next_candidates` number), else `/iflow-pick`.
+- No focus, `epic_session` set, `epic_hint.epics` empty → `issue-flow agent epic-status <epic> --json`: unpublished specs in the current stage → `/iflow-issue epic <N> publish`, else `/iflow-status`.
+- Else → `next_command` (usually `/iflow-pick`).
 
-2. Also list these **relevant** commands (not the full catalog):
-{% set stem = noob_stem | default("iflow") %}
-{% if stem in ["capture", "pick", "issue"] %}
-   - `/iflow-plan` — design the approach (usual next)
-   - `/iflow-status` — bird's-eye view
-   - `/iflow-pause` — park mid-stream
-{% elif stem == "plan" %}
-   - `/iflow-build` — implement after Accept
-   - `/iflow-status` — bird's-eye view
-   - `/iflow-pause` — park mid-stream
-{% elif stem == "build" %}
-   - `/iflow-close` — tests, commit, PR
-   - `/iflow-pause` — park mid-stream
-   - `/iflow-status` — bird's-eye view
-{% elif stem == "close" %}
-   - `/iflow-cleanup` — prune merged local branches (after merge)
-   - `/iflow-status` — bird's-eye view
-   - `/iflow-pick` — choose the next issue
-{% elif stem == "cleanup" %}
-   - `/iflow-pick` — choose the next issue
-   - `/iflow-status` — bird's-eye view
-{% elif stem == "iflow" %}
-   - `/iflow-status` — bird's-eye view
-   - `/iflow-pause` — park mid-stream
-   - `/iflow-cleanup` — after a merged PR
-{% elif stem == "pause" %}
-   - `/iflow-pick` — resume parked work
-   - `/iflow-capture` — re-open an archived group
-   - `/iflow-status` — bird's-eye view
-{% elif stem == "setup" %}
-   - `/iflow-pick` — choose the first issue
-   - `/iflow-init` — scaffold / refresh harness
-   - `/iflow-status` — bird's-eye view
-{% elif stem == "init" %}
-   - `/iflow-pick` — choose an issue
-   - `/iflow-setup` — if the project is not ready
-   - `/iflow-status` — bird's-eye view
-{% elif stem == "status" %}
-   - `/iflow` — run the linear next step
-   - `/iflow-pick` — choose an issue
-{% elif stem in ["yolo", "cycle", "auto", "drive"] %}
-   - `/iflow-cleanup` — prune merged local branches
-   - `/iflow-status` — bird's-eye view
-   - `/iflow-pick` — choose the next issue
-{% elif stem == "epic" %}
-   - `/iflow` — next child when a session is on
-   - `/iflow-pick` — start a published child
-   - `/iflow-epic <N> publish` — current stage still unpublished
-   - `/iflow-status` — bird's-eye view
-{% else %}
-   - `/iflow-status` — bird's-eye view
-   - `/iflow` — dispatcher for the linear next step
-   - `/iflow-pick` — choose an issue
+**Also relevant:**
+{% set stem = noob_stem | default("iflow") -%}
+{% if stem == "pick" %}`/iflow-plan` (usual next), `/iflow-status`, `/iflow-pause`.
+{% elif stem == "plan" %}`/iflow-build` (after Accept), `/iflow-status`, `/iflow-pause`.
+{% elif stem == "build" %}`/iflow-close`, `/iflow-pause`, `/iflow-status`.
+{% elif stem == "close" or stem == "run" %}`/iflow-cleanup` (after merge), `/iflow-status`, `/iflow-pick`.
+{% elif stem == "cleanup" %}`/iflow-pick`, `/iflow-status`.
+{% elif stem == "pause" %}`/iflow-pick` (resume parked work or re-open an archived group), `/iflow-status`.
+{% elif stem == "setup" %}`/iflow-pick` (first issue), `/iflow-setup harness`, `/iflow-status`.
+{% elif stem == "status" %}`/iflow`, `/iflow-pick`.
+{% elif stem == "issue" %}`/iflow` (next epic child when a session is on), `/iflow-pick`, `/iflow-issue epic <N> publish`, `/iflow-status`.
+{% else %}`/iflow-status`, `/iflow-pause`, `/iflow-cleanup` (after a merged PR).
 {% endif %}
-3. One-line why. Never invent extra steps outside this list plus the
-   table in step 1.
+Never invent steps outside these lists.
 {% endif %}

@@ -14,9 +14,9 @@ publish every stage, work through each stage, review, and tidy up.
 
 1. Make sure the change is described in a GitHub issue `<N>`. If not, create
    one with `iflow issue epic <intent>`.
-2. Optional: preview with `iflow drive <N> dry-run` (shows the plan state and
+2. Optional: preview with `iflow run drive <N> dry-run` (shows the plan state and
    queue; changes nothing).
-3. Run `iflow drive <N>` and read the one confirmation carefully. It covers:
+3. Run `iflow run drive <N>` and read the one confirmation carefully. It covers:
    - accepting the drafted plan (unless you add `grill` to be interviewed first);
    - publishing every stage as GitHub issues;
    - running each stage hands-off with [auto mode](auto-mode.md), which merges
@@ -52,4 +52,4 @@ publishing and goes straight to running the stages.
 
 - [Create and run epics](epics.md) — the same path, step by step
 - [Use auto mode](auto-mode.md) — one stage at a time
-- [Command reference](../issue-workflow.md) — `/iflow-drive`
+- [Command reference](../issue-workflow.md) — `/iflow-run drive`

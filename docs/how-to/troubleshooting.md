@@ -108,7 +108,7 @@ issue-flow doctor              # report only
 issue-flow doctor --fix        # safe repairs: create missing folders, sweep leftovers
 ```
 
-Or type `iflow doctor` in chat. Finished groups (status says `- [x] Done`)
+Or type `iflow status doctor` in chat. Finished groups (status says `- [x] Done`)
 move to `03-solved-issues/`, unfinished ones to `02-partly-solved-issues/`.
 Nothing is deleted.
 
@@ -139,7 +139,7 @@ Current closes do not edit `HISTORY.md`; they put the bullet in commit
 trailers. This symptom is the leftover shape, from a branch that still
 appends under that heading.
 
-**Fix:** run `iflow pr-sync`. It rebases the affected PR branches, keeps
+**Fix:** run `iflow cleanup prs`. It rebases the affected PR branches, keeps
 both changelog entries, and pushes with `--force-with-lease` after one
 confirmation. See [Refresh dirty open PRs](pr-sync.md). New notes show up
 in `issue-flow changelog list` until `issue-flow changelog release` folds

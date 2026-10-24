@@ -29,12 +29,16 @@ from issue_flow.skill_ownership import (
 )
 from issue_flow.templating import (
     BOTH_SKILL_STEMS,
+    COMMAND_WRAPPER_TEMPLATE,
     build_canonical_manifest,
     build_manifest,
+    command_wrapper_context,
     is_skill_template,
     render_template,
     resolve_output_path,
+    side_files_for_output_name,
     skill_output_name,
+    skill_side_templates,
 )
 from issue_flow.user_global import (
     editor_user_global_skills_root,
@@ -62,6 +66,16 @@ _LINGUIST_BLOCK_LINES = (
     "# Without this, graphify-out/graph.html might dominate as HTML.",
     "",
     "graphify-out/** linguist-generated",
+    "",
+    "# Generated scaffold copies and archived tracking files: collapsed in PR diffs.",
+    ".cursor/** linguist-generated",
+    ".claude/** linguist-generated",
+    ".opencode/** linguist-generated",
+    ".codex/** linguist-generated",
+    ".issueflows/agent/** linguist-generated",
+    ".issueflows/02-partly-solved-issues/** linguist-generated",
+    ".issueflows/03-solved-issues/** linguist-generated",
+    "",
     "docs/** linguist-documentation",
     "tests/** linguist-documentation",
     ".issueflows/** linguist-documentation",
@@ -75,6 +89,24 @@ _LINGUIST_BLOCK_LINES = (
     _LINGUIST_MARKER_END,
     "",
 )
+
+
+def _skipped_skill_dir(
+    absolute_path: Path, skipped_files: list[Path], project_root: Path
+) -> bool:
+    """True when ``absolute_path`` is a mode file whose ``SKILL.md`` was skipped.
+
+    A foreign skill folder is skipped as a whole, so its side files must not be
+    written either.
+    """
+    if absolute_path.name == "SKILL.md":
+        return False
+    skill_md = absolute_path.parent / "SKILL.md"
+    try:
+        relative = skill_md.relative_to(project_root)
+    except ValueError:
+        return False
+    return relative in skipped_files
 
 
 @dataclass
@@ -115,6 +147,7 @@ def write_manifest_files(
             reason = foreign_skill_reason(
                 skill_dir,
                 stamp=stamps.get(stamp_key(project_root, skill_dir)),
+                side_files=side_files_for_output_name(skill_dir.name),
             )
             if reason:
                 rel_dir = skill_dir.relative_to(project_root).as_posix()
@@ -125,7 +158,12 @@ def write_manifest_files(
                 skipped_files.append(relative_path)
                 continue
 
+        if _skipped_skill_dir(absolute_path, skipped_files, project_root):
+            continue
+
         render_context = enrich_render_context(context, template_name)
+        if template_name == COMMAND_WRAPPER_TEMPLATE:
+            render_context.update(command_wrapper_context(absolute_path.stem))
         rendered = render_template(template_name, render_context)
         if is_skill_template(template_name):
             prepare_skill_dir_for_write(absolute_path.parent)
@@ -258,7 +296,11 @@ def materialize_user_global_both_skills(
             label = f"{profile.id}:{dest}"
 
             if not overwrite_foreign:
-                reason = foreign_skill_reason(skill_dir, stamp=stamps.get(key))
+                reason = foreign_skill_reason(
+                    skill_dir,
+                    stamp=stamps.get(key),
+                    side_files=side_files_for_output_name(output_name),
+                )
                 if reason:
                     console_io.console.print(
                         f"  [yellow]skip[/yellow]  {label}  "
@@ -272,6 +314,9 @@ def materialize_user_global_both_skills(
             rendered = render_template(template_name, render_context)
             prepare_skill_dir_for_write(skill_dir)
             replace_skill_file(dest, rendered)
+            for side in skill_side_templates(stem):
+                side_text = render_template(f"skills/{stem}/{side}", render_context)
+                replace_skill_file(skill_dir / side.removesuffix(".j2"), side_text)
             digest = hash_skill_text(rendered)
             save_stamp_hash(stamp_path, key, digest)
             stamps[key] = digest
@@ -415,9 +460,10 @@ def ensure_editor_gitignore(project_root: Path) -> bool:
 
 
 def ensure_linguist_gitattributes(project_root: Path) -> bool:
-    """Append a managed Linguist ``.gitattributes`` block. Returns True if changed.
+    """Upsert the managed Linguist ``.gitattributes`` block. Returns True if changed.
 
-    Idempotent: skips when the begin marker is already present. Never rewrites
+    Idempotent: an up-to-date block is left alone; an older block is replaced
+    in place (issue #406 added the generated-surface lines). Never rewrites
     user content outside the managed block. Does not remove the block when the
     feature is later disabled — callers gate invocation on the config flag.
     """
@@ -425,11 +471,21 @@ def ensure_linguist_gitattributes(project_root: Path) -> bool:
     path = project_root / ".gitattributes"
     if path.exists():
         existing = path.read_text(encoding="utf-8")
-        if _LINGUIST_MARKER_BEGIN in existing:
+        if block.rstrip("\n") in existing:
             console_io.console.print(
-                "  [dim]skip[/dim]  .gitattributes  (issue-flow linguist block present)"
+                "  [dim]skip[/dim]  .gitattributes  (issue-flow linguist block up to date)"
             )
             return False
+        if _LINGUIST_MARKER_BEGIN in existing:
+            stripped = _strip_managed_block(
+                existing, _LINGUIST_MARKER_BEGIN, _LINGUIST_MARKER_END
+            )
+            updated = stripped.rstrip("\n") + "\n\n" + block if stripped.strip() else block
+            path.write_text(updated, encoding="utf-8")
+            console_io.console.print(
+                "  [green]update[/green] .gitattributes  (refreshed issue-flow linguist block)"
+            )
+            return True
         updated = existing.rstrip("\n") + "\n\n" + block
     else:
         updated = block

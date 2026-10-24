@@ -69,7 +69,10 @@ EDITORS: dict[str, EditorProfile] = {
         id="claude",
         name="Claude Code",
         agent_dir=".claude",
-        commands_dir="commands",
+        # Claude Code exposes project skills in the slash menu as ``/<name>``,
+        # so issue-flow is skills-first here too (issue #406); ``update`` prunes
+        # the old generated ``.claude/commands/iflow*.md`` copies.
+        commands_dir=None,
         rules_extra=("rules/CLAUDE.md.j2", "CLAUDE.md"),
         graphify_installer=None,
     ),

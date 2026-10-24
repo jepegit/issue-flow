@@ -54,6 +54,11 @@ def load_stamp_hashes(path: Path) -> dict[str, str]:
 def save_stamp_hash(path: Path, key: str, digest: str) -> None:
     hashes = load_stamp_hashes(path)
     hashes[key] = digest
+    write_stamp_hashes(path, hashes)
+
+
+def write_stamp_hashes(path: Path, hashes: dict[str, str]) -> None:
+    """Replace the whole stamp store at ``path`` with ``hashes``."""
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = {"format": _STAMP_FORMAT, "hashes": dict(sorted(hashes.items()))}
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
@@ -84,8 +89,14 @@ def foreign_skill_reason(
     skill_dir: Path,
     *,
     stamp: str | None,
+    side_files: frozenset[str] = frozenset(),
 ) -> str | None:
-    """Return a short reason when ``skill_dir`` is not ours, else ``None``."""
+    """Return a short reason when ``skill_dir`` is not ours, else ``None``.
+
+    ``side_files`` names the packaged mode files (``yolo.md``, ...) that may sit
+    next to ``SKILL.md``. The stamp covers ``SKILL.md`` only; side files are
+    rewritten whenever their folder is ours.
+    """
     if not skill_dir.exists():
         return None
     if skill_dir.is_symlink():
@@ -94,7 +105,7 @@ def foreign_skill_reason(
         return "not a directory"
 
     names = {entry.name for entry in skill_dir.iterdir()}
-    extra = names - _ALLOWED_NAMES
+    extra = names - _ALLOWED_NAMES - side_files
     if extra:
         return f"unexpected extra files ({', '.join(sorted(extra))})"
 

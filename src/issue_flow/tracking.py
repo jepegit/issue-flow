@@ -44,7 +44,7 @@ STAGE_INIT = STAGE_CAPTURE
 STAGE_START = STAGE_BUILD
 
 STAGE_NEXT_COMMAND: dict[str, str] = {
-    STAGE_CAPTURE: "/iflow-capture",
+    STAGE_CAPTURE: "/iflow-pick",
     STAGE_PLAN: "/iflow-plan",
     STAGE_BUILD: "/iflow-build",
     STAGE_CLOSE: "/iflow-close",
@@ -272,7 +272,7 @@ def apply_sweep(
 class ArchiveMove:
     """A planned (or applied) removal of one solved issue group.
 
-    Archiving (``/iflow-archive``) condenses solved issue groups into a single
+    Archiving (``/iflow-cleanup archive``) condenses solved issue groups into a single
     dated summary file and then deletes the original ``issue<N>_*`` files.
     The files stay recoverable through git history, which is why the archive
     workflow records the pre-archive HEAD sha alongside the summaries.
@@ -469,7 +469,7 @@ def audit_issueflows(
                         ),
                         issue_numbers=[number],
                         repairable=False,
-                        suggested_command="/iflow-capture",
+                        suggested_command="/iflow-pick",
                     )
                 )
 

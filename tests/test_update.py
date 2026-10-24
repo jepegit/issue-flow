@@ -41,10 +41,10 @@ def test_update_preserves_issue_markdown(tmp_path: Path) -> None:
 def test_update_refreshes_our_skill_files(tmp_path: Path) -> None:
     """A second update still refreshes packaged skills we last wrote."""
     run_init(tmp_path)
-    skill = tmp_path / ".cursor" / "skills" / "iflow-init" / "SKILL.md"
+    skill = tmp_path / ".cursor" / "skills" / "iflow-setup" / "SKILL.md"
     run_update(tmp_path)
     content = skill.read_text(encoding="utf-8")
-    assert "name: iflow-init" in content
+    assert "name: iflow-setup" in content
     assert f"issue-flow-version: {ISSUE_FLOW_VERSION}" in content
 
 
@@ -52,7 +52,7 @@ def test_update_skips_foreign_skill_without_version(tmp_path: Path) -> None:
     """A packaged name with no issue-flow-version is left alone."""
     run_init(tmp_path)
 
-    skill = tmp_path / ".cursor" / "skills" / "iflow-init" / "SKILL.md"
+    skill = tmp_path / ".cursor" / "skills" / "iflow-setup" / "SKILL.md"
     skill.write_text("custom skill", encoding="utf-8")
 
     run_update(tmp_path)
@@ -67,13 +67,13 @@ def test_update_prunes_generated_cursor_commands_but_keeps_user_commands(
     run_init(tmp_path)
     commands_dir = tmp_path / ".cursor" / "commands"
     commands_dir.mkdir(parents=True)
-    (commands_dir / "iflow-init.md").write_text("generated", encoding="utf-8")
+    (commands_dir / "iflow-setup.md").write_text("generated", encoding="utf-8")
     (commands_dir / "iflow.md").write_text("generated", encoding="utf-8")
     (commands_dir / "my-command.md").write_text("user command", encoding="utf-8")
 
     run_update(tmp_path)
 
-    assert not (commands_dir / "iflow-init.md").exists()
+    assert not (commands_dir / "iflow-setup.md").exists()
     assert not (commands_dir / "iflow.md").exists()
     assert (commands_dir / "my-command.md").read_text(
         encoding="utf-8"
@@ -85,7 +85,7 @@ def test_update_prunes_empty_cursor_commands_dir(tmp_path: Path) -> None:
     run_init(tmp_path)
     commands_dir = tmp_path / ".cursor" / "commands"
     commands_dir.mkdir(parents=True)
-    (commands_dir / "iflow-init.md").write_text("generated", encoding="utf-8")
+    (commands_dir / "iflow-setup.md").write_text("generated", encoding="utf-8")
 
     run_update(tmp_path)
 
@@ -241,7 +241,7 @@ def test_update_refreshes_agents_md_block_preserving_user_content(
     assert refreshed.startswith("# My project")
     assert "Keep me." in refreshed
     assert "OUTDATED" not in refreshed
-    assert "Issue-flow best practices" in refreshed
+    assert "# Issue-flow" in refreshed
     assert refreshed.count(_AGENTS_BEGIN) == 1
 
 
@@ -256,7 +256,7 @@ def test_update_claude_editor_refreshes_claude_md(tmp_path: Path) -> None:
 
     content = claude_md.read_text(encoding="utf-8")
     assert content != "custom"
-    assert "Issue-flow best practices" in content
+    assert "@AGENTS.md" in content
 
 
 def test_update_respects_persisted_simple_mode(tmp_path: Path) -> None:
@@ -269,9 +269,9 @@ def test_update_respects_persisted_simple_mode(tmp_path: Path) -> None:
 
     # Excluded skills are not re-created by update.
     assert not (skills / "iflow-close").exists()
-    assert not (skills / "iflow-yolo").exists()
+    assert not (skills / "iflow-run").exists()
     # Included skills are refreshed.
-    assert (skills / "iflow-init" / "SKILL.md").is_file()
+    assert (skills / "iflow-setup" / "SKILL.md").is_file()
 
 
 def test_update_default_mode_keeps_full_surface(tmp_path: Path) -> None:
@@ -281,7 +281,7 @@ def test_update_default_mode_keeps_full_surface(tmp_path: Path) -> None:
 
     skills = tmp_path / ".cursor" / "skills"
     assert (skills / "iflow-close" / "SKILL.md").is_file()
-    assert (skills / "iflow-yolo" / "SKILL.md").is_file()
+    assert (skills / "iflow-run" / "yolo.md").is_file()
 
 
 def test_update_prunes_after_external_mode_switch(tmp_path: Path) -> None:
@@ -322,10 +322,8 @@ def test_init_and_update_honour_pstack_skills_key(tmp_path: Path) -> None:
     skills = tmp_path / ".cursor" / "skills"
     assert not (skills / "unslop").exists()
     assert not (skills / "tdd").exists()
-    rules = (tmp_path / ".cursor" / "rules" / "issueflow-rules.mdc").read_text(
-        encoding="utf-8"
-    )
-    assert "### pstack skills" not in rules
+    rules = (tmp_path / "AGENTS.md").read_text(encoding="utf-8")
+    assert "**pstack**" not in rules
 
     cfg = config_path(tmp_path, ".issueflows")
     cfg.write_text('[issueflow]\npstack_skills = ["unslop", "tdd"]\n', encoding="utf-8")
@@ -339,16 +337,11 @@ def test_init_and_update_honour_pstack_skills_key(tmp_path: Path) -> None:
     assert text.startswith("---\nname: unslop\n")
     assert f"issue-flow-version: {ISSUE_FLOW_VERSION}" in text
     assert "vendored verbatim from cursor/plugins pstack" in text
-    rules = (tmp_path / ".cursor" / "rules" / "issueflow-rules.mdc").read_text(
-        encoding="utf-8"
-    )
-    assert "### pstack skills" in rules
-    assert "**`unslop`**" in rules
-    agents = (tmp_path / "AGENTS.md").read_text(encoding="utf-8")
-    assert "### pstack skills" in agents
+    rules = (tmp_path / "AGENTS.md").read_text(encoding="utf-8")
+    assert "**pstack** (unslop, tdd)" in rules
     close = (skills / "iflow-close" / "SKILL.md").read_text(encoding="utf-8")
-    assert "Unslop (pstack, optional)" in close
-    assert "Blast radius (pstack" not in close
+    assert "`unslop` skill" in close
+    assert "`blast-radius` skill" not in close
 
     doc = tomlkit.parse(cfg.read_text(encoding="utf-8"))
     doc["issueflow"]["pstack_skills"] = []
@@ -358,16 +351,14 @@ def test_init_and_update_honour_pstack_skills_key(tmp_path: Path) -> None:
     assert not (skills / "unslop").exists()
     assert not (skills / "tdd").exists()
     assert (skills / "iflow-close" / "SKILL.md").is_file()
-    rules = (tmp_path / ".cursor" / "rules" / "issueflow-rules.mdc").read_text(
-        encoding="utf-8"
-    )
-    assert "### pstack skills" not in rules
+    rules = (tmp_path / "AGENTS.md").read_text(encoding="utf-8")
+    assert "**pstack**" not in rules
 
 
 def test_update_skips_stamp_mismatch(tmp_path: Path) -> None:
     run_init(tmp_path)
     run_update(tmp_path)
-    skill = tmp_path / ".cursor" / "skills" / "iflow-init" / "SKILL.md"
+    skill = tmp_path / ".cursor" / "skills" / "iflow-setup" / "SKILL.md"
     skill.write_text(
         skill.read_text(encoding="utf-8") + "\n# edited\n", encoding="utf-8"
     )
@@ -379,19 +370,19 @@ def test_update_skips_stamp_mismatch(tmp_path: Path) -> None:
 
 def test_update_force_overwrites_foreign_skill(tmp_path: Path) -> None:
     run_init(tmp_path)
-    skill = tmp_path / ".cursor" / "skills" / "iflow-init" / "SKILL.md"
+    skill = tmp_path / ".cursor" / "skills" / "iflow-setup" / "SKILL.md"
     skill.write_text("custom skill", encoding="utf-8")
 
     run_update(tmp_path, force=True)
 
     content = skill.read_text(encoding="utf-8")
     assert content != "custom skill"
-    assert "name: iflow-init" in content
+    assert "name: iflow-setup" in content
 
 
 def test_update_skips_symlink_skill_dir(tmp_path: Path) -> None:
     run_init(tmp_path)
-    skill_dir = tmp_path / ".cursor" / "skills" / "iflow-init"
+    skill_dir = tmp_path / ".cursor" / "skills" / "iflow-setup"
     target = tmp_path / "foreign-skill"
     target.mkdir()
     (target / "SKILL.md").write_text("foreign\n", encoding="utf-8")
@@ -406,7 +397,7 @@ def test_update_skips_symlink_skill_dir(tmp_path: Path) -> None:
 
 def test_update_force_replaces_symlink_without_touching_target(tmp_path: Path) -> None:
     run_init(tmp_path)
-    skill_dir = tmp_path / ".cursor" / "skills" / "iflow-init"
+    skill_dir = tmp_path / ".cursor" / "skills" / "iflow-setup"
     target = tmp_path / "foreign-skill"
     target.mkdir()
     (target / "SKILL.md").write_text("foreign\n", encoding="utf-8")
@@ -416,13 +407,13 @@ def test_update_force_replaces_symlink_without_touching_target(tmp_path: Path) -
     run_update(tmp_path, force=True)
 
     assert not skill_dir.is_symlink()
-    assert "name: iflow-init" in (skill_dir / "SKILL.md").read_text(encoding="utf-8")
+    assert "name: iflow-setup" in (skill_dir / "SKILL.md").read_text(encoding="utf-8")
     assert (target / "SKILL.md").read_text(encoding="utf-8") == "foreign\n"
 
 
 def test_update_skips_skill_dir_with_extra_files(tmp_path: Path) -> None:
     run_init(tmp_path)
-    skill_dir = tmp_path / ".cursor" / "skills" / "iflow-init"
+    skill_dir = tmp_path / ".cursor" / "skills" / "iflow-setup"
     (skill_dir / "notes.md").write_text("mine\n", encoding="utf-8")
     original = (skill_dir / "SKILL.md").read_text(encoding="utf-8")
 

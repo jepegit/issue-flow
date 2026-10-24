@@ -3,7 +3,7 @@
 Backs ``issue-flow agent queue``: given a set of issues (explicit numbers, a
 label, or an epic stage), parse their ``Depends on #N`` / ``Blocked by #N``
 lines, order the queue topologically, and flag blocked and independent
-members — the mechanical groundwork ``/iflow-cycle`` confirms and executes.
+members — the mechanical groundwork ``/iflow-run cycle`` confirms and executes.
 Read-only computation throughout; dependency cycles are reported, never
 silently broken.
 """

@@ -14,7 +14,7 @@ API key in `.env` for the optional `extract` pass; see below.)
   the graphify Cursor skill is registered alongside the issue-flow scaffold.
   If graphify is not installed, both commands just print install hints and
   continue — they never block.
-- A new `/iflow-graphify` entry point (skill on Cursor/Codex, command + skill
+- A new `/iflow-status graph` entry point (skill on Cursor/Codex, command + skill
   for command-emitting editors) wraps `issue-flow graphify`. With no extra args
   it runs `graphify update <project>` — AST-only, **no LLM API key required**,
   so the no-arg case "just works". For richer semantic relationships add
@@ -27,7 +27,7 @@ API key in `.env` for the optional `extract` pass; see below.)
   Other subcommands (`watch`, `cluster-only`, …) pass through too; trailing
   flags forward verbatim.
 - The scaffolded rules and `/iflow-build` mention `graphify-out/GRAPH_REPORT.md`
-  as a recommended pre-read when the file exists. `/iflow-graphify` is
+  as a recommended pre-read when the file exists. `/iflow-status graph` is
   **off-path** — `/iflow` never auto-dispatches to it.
 
 ## Enabling
@@ -48,7 +48,7 @@ gets registered.
 > **Why not an `issue-flow[graphify]` extra (or `uv tool install issue-flow --with graphifyy`)?**
 > `uv tool install` only puts the **host package's** entry-point scripts on
 > PATH. An extra (or `--with graphifyy`) pulls graphifyy into issue-flow's
-> venv but leaves the `graphify` CLI invisible to the shell, so `/iflow-graphify`
+> venv but leaves the `graphify` CLI invisible to the shell, so `/iflow-status graph`
 > and `graphify cursor install` would still fail. Installing graphify as
 > its own tool puts a real `graphify` shim on PATH and matches how we
 > treat `git` / `gh`.

@@ -35,14 +35,23 @@ def test_ensure_linguist_gitattributes_appends_without_clobber(tmp_path: Path) -
     assert _BEGIN in text
 
 
-def test_ensure_linguist_gitattributes_skips_when_markers_present(
+def test_ensure_linguist_gitattributes_refreshes_an_old_block(
     tmp_path: Path,
 ) -> None:
+    """An older managed block is replaced in place; user lines survive (#406)."""
     path = tmp_path / ".gitattributes"
-    path.write_text(f"{_BEGIN}\nold\n{_END}\n", encoding="utf-8")
+    path.write_text(f"*.png binary\n\n{_BEGIN}\nold\n{_END}\n", encoding="utf-8")
+
+    assert ensure_linguist_gitattributes(tmp_path) is True
+    text = path.read_text(encoding="utf-8")
+    assert text.startswith("*.png binary\n")
+    assert "\nold\n" not in text
+    assert text.count(_BEGIN) == 1
+    assert ".cursor/** linguist-generated" in text
+    assert ".issueflows/03-solved-issues/** linguist-generated" in text
 
     assert ensure_linguist_gitattributes(tmp_path) is False
-    assert path.read_text(encoding="utf-8") == f"{_BEGIN}\nold\n{_END}\n"
+    assert path.read_text(encoding="utf-8") == text
 
 
 def test_maybe_ensure_respects_flag_off(tmp_path: Path) -> None:

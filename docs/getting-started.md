@@ -97,8 +97,8 @@ overwrites your own content.
 !!! tip "Why `--mode novice`?"
 
     `novice` installs the straight-line workflow plus the safety nets and
-    leaves out the hands-off and batch automation, so you get about a dozen
-    commands instead of twenty. It also writes settings that **stop at each
+    leaves out the hands-off runs (`/iflow-run`), so you get ten commands
+    instead of eleven. It also writes settings that **stop at each
     step and ask you** rather than chaining one step into the next.
 
     Nothing is locked in. When the flow feels familiar, run
