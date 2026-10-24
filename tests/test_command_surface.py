@@ -283,7 +283,7 @@ def test_close_cleanup_reminder_and_auto_cleanup_are_gated(
     auto = render_template(
         "skills/iflow_close/SKILL.md.j2", {**loud_context, "auto_cleanup": True}
     )
-    assert "Never merge because of this knob" in auto
+    assert "The knob acts only after a merge" in auto
 
 
 def test_run_router_and_modes(loud_context: dict[str, object]) -> None:
@@ -320,7 +320,7 @@ def test_pick_captures_known_issue_directly(loud_context: dict[str, object]) -> 
 def test_dispatcher_routes_capture_to_pick(loud_context: dict[str, object]) -> None:
     iflow = render_template("skills/iflow_iflow/SKILL.md.j2", loud_context)
     assert "`/iflow-pick <N>`" in iflow
-    assert "Never auto-dispatch to any command other than" in iflow
+    assert "Dispatch only to the four targets above" in iflow
 
 
 def test_noob_footer_uses_merged_names(loud_context: dict[str, object]) -> None:

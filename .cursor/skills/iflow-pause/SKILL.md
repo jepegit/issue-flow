@@ -1,8 +1,8 @@
 ---
 name: iflow-pause
 description: >-
-  Park work on the current issue without closing it: update status, move
-  the group to 02-partly-solved-issues/, optional WIP commit.
+  Parks work on the current issue without closing it: updates status,
+  moves the group to 02-partly-solved-issues/, optional WIP commit.
 disable-model-invocation: true
 issue-flow-version: 0.7.0
 ---
@@ -59,5 +59,5 @@ Before any `git`, `gh`, or `.issueflows/` operation, settle `<project_root>` and
 ## Constraints
 
 - The focus issue's `- [ ] Done` checkbox **must** stay unchecked. `/iflow-pause` is not `/iflow-close`.
-- Do not delete branches. Do not `git reset`, `git stash drop`, or force-push.
-- Do not open a PR. Do not bump versions. Do not run tests.
+- Keep every branch, commit, and stash: no branch delete, `git reset`, `git stash drop`, or force-push.
+- Pause touches only the status file, the issue-group move, and the optional WIP commit / switch; PRs, version bumps, and tests belong to `/iflow-close`.

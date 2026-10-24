@@ -1,9 +1,10 @@
 ---
 name: iflow-issue
 description: >-
-  Create and shape GitHub issues. Modes: (default) one well-specified issue,
-  fix (iterative small-fixes session), epic (staged multi-issue plan, publish,
-  session), split (cut an issue into sub-issues), review (label triage).
+  Creates and shapes GitHub issues. Modes: (default) one well-specified
+  issue, fix (iterative small-fixes session), epic (staged multi-issue plan,
+  publish, session), split (cut an issue into sub-issues), review (label
+  triage).
 disable-model-invocation: true
 issue-flow-version: 0.7.0
 ---
@@ -53,5 +54,5 @@ The first word after `issue` selects the mode. Read **only** that mode's file in
 ## Shared rules
 
 - Never create, edit, or label a GitHub issue without an explicit yes on the exact text.
-- Staged work with dependencies goes through `epic`; flat children through `split`. Other skills may *offer* these modes but never create children themselves.
-- Epics decompose into the normal single-issue lifecycle; they never bypass it.
+- Staged work with dependencies goes through `epic`; flat children through `split`. Other skills may *offer* these modes; only these modes create children.
+- Epics decompose into the normal single-issue lifecycle, and every child goes through it.

@@ -1,5 +1,7 @@
 # Run — cycle (`/iflow-run cycle`)
 
+**Contents:** Lanes — yolo vs non-yolo · Input — queue spec · Instructions · Resuming · Parallel dispatch (experimental, opt-in) · All yolo issues + merge conflicts · Constraints
+
 Read this to **process a queue of issues hands-off**, one after another, with a **single up-front confirmation** — the batch equivalent of `/iflow-run yolo`. Each issue runs the full yolo chain (`capture → plan → build → close yolo`, PR auto-merged, switch back to default); the cycle interrupts you only when input is **strictly necessary**.
 
 Best when every queued issue is yolo-fit (small, low-risk, well-specified, test-guarded). Issues the queue marks `yolo: false` (an epic plan's `yolo: no` judgment, or no yolo label) still run — on the **non-yolo lane** below — but a queue of genuinely risky changes belongs in the individual commands.

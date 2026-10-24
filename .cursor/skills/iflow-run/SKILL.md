@@ -1,9 +1,9 @@
 ---
 name: iflow-run
 description: >-
-  Run issues hands-off under one up-front confirm. Modes: yolo <N> (one small
-  issue), cycle <queue> (many issues), auto <epic> (an epic stage by stage
-  with review), drive <N> (compose an epic from an issue and run all of it).
+  Runs issues hands-off under one up-front confirm. Modes: yolo N (one
+  small issue), cycle QUEUE (many issues), auto EPIC (an epic stage by stage
+  with review), drive N (compose an epic from an issue and run all of it).
 disable-model-invocation: true
 issue-flow-version: 0.7.0
 ---
@@ -48,11 +48,11 @@ The first word after `run` selects the mode. Read **only** that mode's file in t
 | `auto <N>` | `auto.md` | Confirmed epic `<N>`: run each stage as a cycle, review between stages. |
 | `drive <N>` | `drive.md` | Issue `<N>` → draft epic → publish → auto every stage → final review. |
 
-With no input, ask which mode (and which issue or queue) the user means. Do not guess.
+With no input, ask which mode (and which issue or queue) the user means.
 
 ## Shared rules
 
 - Never run on a dirty tree with unrelated changes, and never start on a failing test baseline.
-- Never run `/iflow-cleanup` from here. Branch deletion waits for the user (except the narrowed `drive` cleanup described in `drive.md`).
+- Branch deletion and `/iflow-cleanup` wait for the user (except the narrowed `drive` cleanup described in `drive.md`).
 - Stop on the first condition that needs a human: unfixable failure, refused merge, non-fast-forward pull, an ambiguous or not-actually-small spec, or anything outside the confirmed scope.
 - Leave the repo clean on the default branch when stopping.

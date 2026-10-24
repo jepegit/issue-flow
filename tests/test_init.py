@@ -483,7 +483,7 @@ def test_init_cleanup_skill_offers_stage_gate(tmp_path: Path) -> None:
     assert "stage gate" in content.lower()
     assert "issue-flow agent epic-status" in content
     # Offer only — never auto-publish.
-    assert "Never do either automatically" in content
+    assert "both wait for the user's yes" in content
     assert "/iflow-issue epic" in content
 
 
@@ -655,7 +655,7 @@ def test_init_dispatcher_never_dispatches_to_cycle(tmp_path: Path) -> None:
     """/iflow's constraint list must include the cycle surface."""
     run_init(tmp_path)
     content = _bundle(tmp_path / ".cursor" / "skills" / "iflow")
-    assert "Never auto-dispatch to any command other than" in content
+    assert "Dispatch only to the four targets above" in content
 
 
 def test_init_close_skill_documents_prerelease_default(tmp_path: Path) -> None:

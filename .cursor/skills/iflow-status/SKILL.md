@@ -1,9 +1,9 @@
 ---
 name: iflow-status
 description: >-
-  Where every issue stands, locally and on GitHub (read-only). Modes: doctor
-  (audit and repair .issueflows/), git (workspace git snapshot), graph
-  (rebuild the graphify knowledge graph).
+  Reports where every issue stands, locally and on GitHub (read-only).
+  Modes: doctor (audit and repair .issueflows/), git (workspace git snapshot),
+  graph (rebuild the graphify knowledge graph).
 disable-model-invocation: true
 issue-flow-version: 0.7.0
 ---
@@ -56,13 +56,12 @@ Before any `git`, `gh`, or `.issueflows/` operation, settle `<project_root>` and
 > root (`issueflow-workspace.toml` present and not a member scaffold) → run
 > `issue-flow workspace status [--local] [--json]` instead of the single-repo
 > command. The CLI is optional: if it is missing or errors, fall back to the manual
-> instructions below. (`issue-flow` is only present when the user installed it,
-> e.g. `uv tool install issue-flow`.)
+> instructions below.
 
 0. **Workspace scope.** If the user passed `workspace` / `all`, or resolve
    shows you are at the workspace root (toml present, cwd is not a member),
-   run `issue-flow workspace status` and present each member. Do **not** guess
-   a single repo. Then stop (skip the single-repo steps unless they also named
+   run `issue-flow workspace status` and present every member, not
+   one guessed repo. Then stop (skip the single-repo steps unless they also named
    `root:` / `repo:`).
 
 1. **Context / preflight.** Detect the default branch (`gh repo view --json defaultBranchRef -q .defaultBranchRef.name`; fall back to `git symbolic-ref --quiet --short refs/remotes/origin/HEAD | sed 's|^origin/||'`, else `main`). Report current branch, clean/dirty tree (`git status --porcelain`), and ahead/behind vs `origin/<default>`. If the branch matches `^(\d+)-.+`, treat the leading digits as the focus issue `N`.
@@ -80,7 +79,7 @@ Before any `git`, `gh`, or `.issueflows/` operation, settle `<project_root>` and
 
 4a. **In-flight cycle.** If `.issueflows/01-current-issues/cycle_status.md` exists, a `/iflow-run cycle` batch run is paused or active — report it and its progress (from the file's checklist), and note that `/iflow-run cycle resume` continues it. (`issue-flow status --json` reports this as `cycle_active`.)
 
-5. **Open GitHub issues** (skip if the user passed `local`). Run `gh issue list --state open --json number,title,labels,milestone,updatedAt` and tag each issue's local state: **focus**, **parked**, **solved-locally**, or **untracked**. If `gh` is missing/unauthenticated, skip this section and note it (suggest `gh auth login`) — never fail.
+5. **Open GitHub issues** (skip if the user passed `local`). Run `gh issue list --state open --json number,title,labels,milestone,updatedAt` and tag each issue's local state: **focus**, **parked**, **solved-locally**, or **untracked**. If `gh` is missing/unauthenticated, skip this section and note it (suggest `gh auth login`); the report still completes.
 
 6. **Summary line.** One terse line, e.g. `Focus: #20 (start). Parked: 2. Solved: 31. Open on GitHub: 7 (5 untracked).`
 

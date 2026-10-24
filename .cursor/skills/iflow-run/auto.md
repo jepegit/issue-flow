@@ -1,5 +1,7 @@
 # Run — auto (`/iflow-run auto`)
 
+**Contents:** Input · Instructions · Constraints
+
 Read this to run an **unattended large-change flow** over a confirmed
 epic: select a stage, drive it through `/iflow-run cycle`, record durable state in
 `auto_status.md`, run adversarial inter-epoch review (`review`), then honour

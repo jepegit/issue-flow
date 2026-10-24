@@ -3,8 +3,8 @@
  documented runner) as the required local sanity gate; *remind* that the full
  suite belongs on schedule/release CI when dual workflows exist (see
  `{{ issueflows_dir }}/{{ designs_folder }}/essential-tests.md`). If the project
- has no essential CI yet, still run essential locally and note the gap. Never
- skip a failing essential suite without explicit user agreement.
+ has no essential CI yet, still run essential locally and note the gap. A failing
+ essential suite blocks the close unless the user explicitly agrees to skip it.
 {%- elif essential_tests and test_runner != "pytest" %}
  **Essential tests:** unsupported `test_runner={{ test_runner }}` — run the
  full suite as usual; invite a contribution for this runner.

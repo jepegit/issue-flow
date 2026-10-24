@@ -1,9 +1,10 @@
 ---
 name: iflow-setup
 description: >-
-  Get a project ready for issue-flow: uv project, git repo, GitHub remote,
-  scaffold. Mode harness: cold-start or refresh the scaffold (init / update /
-  workspace bootstrap), also from a parent folder with no scaffold yet.
+  Gets a project ready for issue-flow: uv project, git repo, GitHub
+  remote, scaffold. Mode harness: cold-start or refresh the scaffold (init /
+  update / workspace bootstrap), also from a parent folder with no scaffold
+  yet.
 disable-model-invocation: true
 issue-flow-version: 0.7.0
 ---
@@ -60,15 +61,15 @@ Before any `git`, `gh`, or `.issueflows/` operation, settle `<project_root>` and
 > `issue-flow agent setup-status --json` for the whole readiness picture
 > (tools on `PATH`, git repo / remote / commits, `gh` authentication, Python
 > project, existing scaffold) plus an ordered `blockers` list where each entry
-> carries the exact `fix` command. It never prompts, never mutates, and exits 0
+> carries the exact `fix` command. It is read-only and non-interactive, and exits 0
 > even when the project is not ready. If the CLI is missing, run the equivalent
 > probes by hand (`git rev-parse --is-inside-work-tree`, `git remote get-url
 > origin`, `gh auth status`, and file checks for `pyproject.toml` /
 > `.issueflows/`).
 
-1. **Read the state.** Run the readiness check and summarise it in a few plain lines — what is already fine, what is missing. Do not use issue-flow jargon the user has not met yet.
+1. **Read the state.** Run the readiness check and summarise it in a few plain lines — what is already fine, what is missing — in words the user already knows (explain issue-flow terms on first use).
 
-2. **Stop early when nothing is missing.** If the verdict is `ready`, say so, point at the next step (step 6), and stop. Never re-run setup steps on a healthy project.
+2. **Stop early when nothing is missing.** If the verdict is `ready`, say so, point at the next step (step 6), and stop: a healthy project needs no setup steps.
 
 3. **Decide new vs existing — and confirm it.** Infer from the readiness payload (a `pyproject.toml`, a git history, or source files means *existing*), then **state your inference and ask the user to confirm** before acting. A wrong guess here is the one that leads to `uv init` scribbling into a real project. `new` / `existing` in the input skips the question.
 
@@ -78,7 +79,7 @@ Before any `git`, `gh`, or `.issueflows/` operation, settle `<project_root>` and
    |---|---|
    | `uv` | **Print** the install command (`curl -LsSf https://astral.sh/uv/install.sh \| sh`, or `winget install --id=astral-sh.uv -e` on Windows) and **stop** — you cannot install a package manager for the user. Ask them to run it and re-invoke `/iflow-setup`. |
    | Python project (new) | `uv init` (confirm the project name and whether they want a package or a script layout first), then `uv sync`. |
-   | Python project (existing, no `pyproject.toml`) | Do **not** run `uv init` blind. Ask what the project uses; if it documents conda / poetry / plain venv, record that and move on — issue-flow defers to the project's toolchain. |
+   | Python project (existing, no `pyproject.toml`) | Ask what the project uses before any `uv init`; if it documents conda / poetry / plain venv, record that and move on — issue-flow defers to the project's toolchain. |
    | git repo | `git init`, then a first commit (`git add -A && git commit -m "Initial commit"`) once the user has seen what would be committed. Offer a `.gitignore` if none exists. |
    | `gh` | **Print** the install hints and **stop** that branch — the GitHub CLI cannot be installed for them. |
    | `gh` not authenticated | Tell the user to run **`gh auth login`** themselves in a terminal. It is an interactive browser flow: **never** try to drive it, pipe into it, or run it in the background. Wait for them to confirm, then re-check. |
@@ -87,7 +88,7 @@ Before any `git`, `gh`, or `.issueflows/` operation, settle `<project_root>` and
 
 5. **Choose a starting mode when scaffolding.** For someone new to agentic coding, recommend **`issue-flow init --mode novice`**: it installs the linear lifecycle plus the safety nets (`/iflow`, `/iflow-setup`, `/iflow-pick`, `/iflow-setup`, `/iflow-pick`, `/iflow-issue`, `/iflow-plan`, `/iflow-build`, `/iflow-pause`, `/iflow-close`, `/iflow-cleanup`, `/iflow-status`, `/iflow-status doctor`) and leaves out the hands-off and batch machinery, and it seeds settings that ask before each step instead of chaining. Mention that `issue-flow init --mode standard` adds everything later — switching mode is just a re-run.
 
-6. **Hand off — never auto-dispatch.** End with the single next thing to type:
+6. **Hand off.** End with the single next thing for the user to type:
    - GitHub issues already exist → **`/iflow-pick`** (`iflow pick` in chat).
    - No issues yet → **`/iflow-issue`** to write a good first one.
    - Then the ordinary path: `/iflow-plan` → `/iflow-build` → `/iflow-close`.
@@ -100,5 +101,5 @@ Before any `git`, `gh`, or `.issueflows/` operation, settle `<project_root>` and
 - **Never run `gh auth login` yourself**, and never install `uv` or `gh` on the user's behalf — print the command and stop.
 - **Never run `uv init` in a directory that already holds a project.** When in doubt, ask.
 - **`check` is read-only.** With that token, report and stop: no prompts, no commands.
-- **Off-path.** Never auto-dispatch this skill from `/iflow`, `/iflow-plan`, or `/iflow-build`; the user invokes it. It never captures an issue, creates a branch, or opens a PR — that is `/iflow-pick` onward.
+- **Off-path.** Only the user invokes this skill (not `/iflow`, `/iflow-plan`, or `/iflow-build`). Capturing issues, branches, and PRs belong to `/iflow-pick` onward.
 - **Plain language.** Assume the user has not read the workflow doc. Explain what each command will do to their machine or their GitHub account before asking.

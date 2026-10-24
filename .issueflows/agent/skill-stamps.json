@@ -1,18 +1,18 @@
 {
   "format": "issueflow-skill-stamps-v1",
   "hashes": {
-    ".cursor/skills/caveman": "ca786dd0be4a2108302ed4dc0fe11fdd21b6744e45616562bc25e25a1314bb2f",
-    ".cursor/skills/grill-me": "93e51224aeaa31dc0ae9f5cc61485c254ae2e0ed760429ba3849f2db92a36c04",
-    ".cursor/skills/iflow": "fb08c695ab4f6be2c96b33a71d09aa2a12156ef29e70cf3ed2c042d3765588f2",
-    ".cursor/skills/iflow-build": "650a83236c5b21374f1ecac1f77ff0e47924c7c5b2d1a2e767bdf96ad7925aa2",
-    ".cursor/skills/iflow-cleanup": "d8581e9b0de94da8d7d4aa511502ec361b955676284e76224caee6c89fd6613b",
-    ".cursor/skills/iflow-close": "62b81c72241e2df23b663d6af4386e0f3dcc3eb11ab2b4247e3ff5070d5daf5f",
-    ".cursor/skills/iflow-issue": "820b7d815ee670a0ddd1ee5b3a6946e2874facac203a24eac366f16cad718093",
-    ".cursor/skills/iflow-pause": "2e4985e6f4eefc0ccc1111dc79274089469096c7a66ec5ed95165186b79d4a25",
-    ".cursor/skills/iflow-pick": "832e2ddf7dcd968476a71f03dc5eacf7332bb5304d65174ae3ffefc01f51311a",
-    ".cursor/skills/iflow-plan": "a6690d50c31ed17a29fd95f49f7e5ddf7a6928530b75ef1659f2f7af5dfc8eda",
-    ".cursor/skills/iflow-run": "f9d611eb0bd9d43f114f1edea788a54d2f85589a44fb9785ebfd999860c960b0",
-    ".cursor/skills/iflow-setup": "8c5402eb0d97a414341c02d10651a8d5b07be6718ab48f2857064126a97e821a",
-    ".cursor/skills/iflow-status": "df24127eb363a30391a587d9af12bc3bb17d7335cf0e4d12e6b28dd3c39ca234"
+    ".cursor/skills/caveman": "3c75f3fd550e94b8d064fb50c3b31b32e3660ae5586b34ef774d7773ada27170",
+    ".cursor/skills/grill-me": "5767aa6aab7f99cb41097607cf5fca1e93e63b1a6453106face4ddca94b37ba8",
+    ".cursor/skills/iflow": "ee4682d3b095372f059d294610557c57c407cfec0b03d6d2f370146d9f99ff58",
+    ".cursor/skills/iflow-build": "12659e59a321cd2b83a0da819b8b7c7e271b8d8c4c670e4d611e5b72e2cd57f6",
+    ".cursor/skills/iflow-cleanup": "769eb4a217cdceeb21fc5eabad9367f110a3c720ff9bd6bdb1d1b3c5fc78a091",
+    ".cursor/skills/iflow-close": "75b5f4c61aa1986879e8f4da9c861afad3c97794f012a1c58e582f79b369461c",
+    ".cursor/skills/iflow-issue": "2a0ed102295b8a68bc28e36b75af79e5f8478d242f1b16b107d4a8ff85c198a7",
+    ".cursor/skills/iflow-pause": "20b052954a92e7fde070acd7e79b100f2b4dfc16194cfac96549f644c885aab1",
+    ".cursor/skills/iflow-pick": "fd8735507bad0fcd12efe443dd8659460eb3c9d64fdd76dfe899f07ac1d84b15",
+    ".cursor/skills/iflow-plan": "720b4ab39a4137cf5e63fbef4b9d3c96c0a607c1ab223d83e77925be7a17e174",
+    ".cursor/skills/iflow-run": "81aa6141db92af87810382234b3f72158656bacbca6043096c8a79eef881f776",
+    ".cursor/skills/iflow-setup": "f0149832868f150680db5cd98ddc10366a65df659cdec5c4a66624b58e3437b7",
+    ".cursor/skills/iflow-status": "2482d767d3d1a004a2cbc1f080b41818d586199010e0ac4622592b0c93ed3760"
   }
 }
