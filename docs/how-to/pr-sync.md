@@ -15,7 +15,7 @@ that still do.
 ## Steps
 
 1. On a clean default-branch checkout (or wherever you normally run ops), run
-   `iflow pr-sync` (or `/iflow-pr-sync`).
+   `iflow cleanup prs` (or `/iflow-cleanup prs`).
 2. Review the candidate list (default: dirty open PRs only).
 3. Confirm once. For each head the agent uses a worktree, runs
    `issue-flow agent sync-branch` (keep-both for `[Unreleased]` HISTORY
@@ -42,6 +42,6 @@ owns the confirm).
 
 ## Related
 
-- [Command reference](../issue-workflow.md) — `/iflow-pr-sync` reference
+- [Command reference](../issue-workflow.md) — `/iflow-cleanup prs` reference
 - [CLI](../cli.md) — `agent sync-branch` / `agent pr-sync`
 - [After a squash merge](after-squash-merge.md)

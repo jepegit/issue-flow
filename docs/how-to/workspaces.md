@@ -53,7 +53,7 @@ That runs `issue-flow init` in each **own-git** child, then writes
 `issueflow-workspace.toml`. Non-git folders are skipped (use
 `iflow setup` inside those first). Drop `--yes` to classify only.
 
-In the editor, type `iflow init` from the parent folder — same path, with a
+In the editor, type `iflow setup` from the parent folder — same path, with a
 confirm before `--yes`.
 
 ### B. Both repos already have `.issueflows/`
@@ -106,7 +106,7 @@ resolve the target repo in this order: `root:` / `repo:` hints, then
 then the **default** member. They never guess between siblings, and
 never let `git` or `gh` infer the repository from the current directory
 alone. Design notes:
-[multi-repo-workspaces.md](https://github.com/jepegit/issue-flow/blob/main/.issueflows/04-designs-and-guides/multi-repo-workspaces.md).
+[workspaces notes](https://github.com/jepegit/issue-flow/blob/main/.issueflows/04-designs-and-guides/workspaces.md#multi-repo-workspaces).
 
 Work **per repo**: `iflow pick` and close in `batbase` do not touch
 `batbase-loader`. Repeat in the other repo when needed.
@@ -121,7 +121,7 @@ issue-flow workspace git status     # branch / dirty / ahead-behind
 issue-flow workspace git fetch      # git fetch --prune only
 issue-flow workspace cleanup        # landed-branch plan per member (read-only)
 iflow cleanup all                   # agent path: one A1 + one A2 confirm for all
-iflow git                           # agent path for workspace git
+iflow status git                           # agent path for workspace git
 ```
 
 `workspace doctor` is audit-only. Repair one member:

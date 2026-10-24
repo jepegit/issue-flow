@@ -11,11 +11,16 @@ collected in the [glossary](#glossary) at the end.
 
 ## Commands and skills
 
-issue-flow adds a set of **commands** to your editor: `/iflow`, `/iflow-plan`,
-`/iflow-close`, and so on. Depending on the editor they are delivered as
-*Agent Skills* (Cursor, Codex), as slash-command files (Claude Code,
-opencode), or both. See [Editor support](editors.md). These docs call them all
-**commands**.
+issue-flow adds eleven **commands** to your editor: `/iflow`, `/iflow-plan`,
+`/iflow-close`, and so on. Each one is an *Agent Skill*; opencode also gets a
+one-line slash-command wrapper that points at the skill. See
+[Editor support](editors.md). These docs call them all **commands**.
+
+Several commands take a **mode** as their first word: `iflow run cycle
+label:yolo`, `iflow issue epic 42 publish`, `iflow status doctor`. A skill
+folder holds a short `SKILL.md` plus one file per mode (`cycle.md`,
+`epic.md`, …), and the agent reads only the file for the mode you asked for.
+That keeps each step's instructions small.
 
 Each command can be typed in three ways:
 
@@ -46,7 +51,7 @@ flowchart LR
 | Step | Command | What it writes or does |
 | --- | --- | --- |
 | Pick | `iflow pick` | Lets you choose an issue, creates the `<N>-<slug>` branch (in a sibling worktree by default), then runs capture |
-| Capture | `iflow capture <N>` | `issue<N>_original.md`: the issue text from GitHub |
+| Capture | `iflow pick <N>` | `issue<N>_original.md`: the issue text from GitHub |
 | Plan | `iflow plan` | `issue<N>_plan.md`: goal, constraints, approach, files, tests. **Stops for your approval** |
 | Build | `iflow build` | Implements the approved plan. Starts `issue<N>_status.md` with `- [ ] Done` |
 | Close | `iflow close` | Runs tests, puts changelog trailers in the commit (does not edit `HISTORY.md`), marks `- [x] Done`, moves the issue files, commits, pushes, opens a PR |
@@ -105,7 +110,7 @@ flowchart LR
 
 - `iflow close` moves the focus issue when it is finished.
 - `iflow pause` moves it to `02-` on purpose, with notes on what remains.
-- `iflow capture` and `iflow build` **sweep** any *other* groups out of
+- `iflow pick` and `iflow build` **sweep** any *other* groups out of
   `01-current-issues/` the same way, so only the focus issue stays there.
 
 `issue-flow init` and `issue-flow update` never touch these issue files, or
@@ -119,11 +124,13 @@ The dispatcher (`iflow`) chooses among only these four.
 Everything else is **off-path**: you run it deliberately, and `iflow` never
 starts it for you. That includes:
 
-- `pick`, `issue`, `setup`, `init`, which create issues, branches or files;
-- `pause`, `cleanup`, `archive`, which move or delete things;
-- `yolo`, `cycle`, `auto`, `drive`, `fix`, `ops`, `epic`, `split`, `review`,
-  which run hands-off or write to GitHub;
-- `status`, `doctor`, `graphify`, which are helpers.
+- `pick` (choosing an issue), `issue` (creating or splitting issues, epics,
+  fix sessions, label review) and `setup`, which create issues, branches or
+  files;
+- `pause` and `cleanup` (including `cleanup archive` and `cleanup prs`), which
+  move or delete things;
+- `run` (`yolo`, `cycle`, `auto`, `drive`), which runs hands-off;
+- `status` (with `doctor`, `git`, `graph`), which is read-only or a helper.
 
 `iflow` may *mention* an off-path command (for example "run `iflow cleanup`
 after the PR merges"), but it never runs one.
@@ -141,7 +148,7 @@ flowchart TB
         setup(["setup"])
         pick(["pick"])
         issueCmd(["issue"])
-        fix(["fix"])
+        fix(["issue fix"])
     end
 
     subgraph onpath [On-path — dispatcher iflow]
@@ -153,16 +160,16 @@ flowchart TB
     end
 
     subgraph hands [Hands-off / batch]
-        yolo(["yolo"])
-        cycle(["cycle"])
-        auto(["auto"])
-        drive(["drive"])
-        ops(["ops"])
+        yolo(["run yolo"])
+        cycle(["run cycle"])
+        auto(["run auto"])
+        drive(["run drive"])
+        ops(["close ops"])
     end
 
     subgraph big [Bigger than one issue]
-        epic(["epic"])
-        split(["split"])
+        epic(["issue epic"])
+        split(["issue split"])
     end
 
     pick -->|worktree_first| capture
@@ -274,12 +281,13 @@ behave as described here, see [Troubleshooting](how-to/troubleshooting.md).
 | Term | Meaning |
 | --- | --- |
 | **Adversarial review** | In [auto mode](how-to/auto-mode.md), a check after each epic stage: did the merged PRs really meet the stage goal? Gaps get issues reopened or new ones created. |
-| **Command** | One of the `/iflow-*` actions. Delivered as a skill or a slash-command file depending on the editor. |
+| **Command** | One of the eleven `/iflow-*` actions. Delivered as an Agent Skill (opencode also gets a one-line slash-command wrapper). |
+| **Command mode** | The first word after a merged command, such as `cycle` in `iflow run cycle` or `epic` in `iflow issue epic 42`. Each one has its own file in the skill folder. Not the same as a scaffolding **Mode**. |
 | **Dispatcher** | `iflow` with no step name. It reads the focus issue's files and runs capture, plan, build or close. |
 | **Epic** | A change too big for one issue, planned as sequential **stages** of normal issues in `05-epics/epic<N>_plan.md`. See [Create and run epics](how-to/epics.md). |
 | **Epoch** | One stage of an epic as run by auto mode: run the stage's issues, review, then decide whether to move to the next stage. |
 | **Focus issue** | The issue currently being worked on: taken from the branch name `<N>-<slug>`, or else the single group in `01-current-issues/`. |
-| **Harness** | The files issue-flow scaffolds into a project (skills, rules, `AGENTS.md` block, `.issueflows/`). `iflow init` checks or cold-starts it. |
+| **Harness** | The files issue-flow scaffolds into a project (skills, rules, `AGENTS.md` block, `.issueflows/`). `iflow setup` checks or cold-starts it. |
 | **Managed block** | The section of `AGENTS.md` (and similar shared files) between issue-flow's markers. `update` rewrites only that section and leaves the rest of the file alone. |
 | **Mode** | Which set of commands is installed: `novice`, `simple`, or `standard`. See [Choose a mode](how-to/choose-a-mode.md). |
 | **Noob** | A separate setting (`noob = true`) that prints a "what to do next" hint after each step. It does not change which commands are installed. |

@@ -26,12 +26,12 @@ acceptance criteria), and optionally start working on it straight away.
    `iflow pick`.
 
 If the draft is clearly too big for one PR, the agent offers
-[`iflow split`](split-an-issue.md) or an [epic](epics.md) instead of creating
+[`iflow issue split`](split-an-issue.md) or an [epic](epics.md) instead of creating
 children itself.
 
 **Epic anchors:** `iflow issue epic <intent>` creates the umbrella issue for an
 epic (`Epic:` title, plus the `epic` label when the repo has one). Then run
-`iflow epic <N>`.
+`iflow issue epic <N>`.
 
 ## Related
 

@@ -33,6 +33,8 @@ from issue_flow.templating import (
     PSTACK_NAME_TO_STEM,
     PSTACK_SKILL_NAMES,
     SKILL_DIRS,
+    rename_removed_stems,
+    rename_stem,
 )
 
 DEFAULT_MODE = "standard"
@@ -91,8 +93,8 @@ ALLOWED_PR_MERGE_METHODS = frozenset({"squash", "merge", "rebase"})
 DEFAULT_CYCLE_MAX_ISSUES = 10
 DEFAULT_CYCLE_ONFAIL = "stop"
 ALLOWED_CYCLE_ONFAIL = frozenset({"stop", "skip"})
-#: Merge policy for the non-yolo lane in ``/iflow-cycle`` / ``/iflow-auto`` /
-#: ``/iflow-drive`` (issue #386): ``merge`` lands the PR like yolo, ``pr-only``
+#: Merge policy for the non-yolo lane in ``/iflow-run cycle`` / ``/iflow-run auto`` /
+#: ``/iflow-run drive`` (issue #386): ``merge`` lands the PR like yolo, ``pr-only``
 #: opens the PR and continues (next issue stacks on the branch), ``stop`` halts
 #: at the first ``yolo: no`` issue (the pre-#386 behaviour).
 DEFAULT_CYCLE_NONYOLO = "merge"
@@ -249,16 +251,20 @@ def _expand(
     if value is None or value == "all":
         return set(all_set if all_set is not None else universe)
     if isinstance(value, list):
-        return {str(item) for item in value}
+        return {rename_stem(str(item)) for item in value}
     raise ValueError(f'mode field must be "all" or a list of stems, got {value!r}')
 
 
-def _route(stems: object) -> tuple[set[str], set[str]]:
+def _route(stems: object, *, removing: bool = False) -> tuple[set[str], set[str]]:
     """Split an ``add``/``remove`` stem list into (skill stems, command stems)."""
     if not stems:
         return set(), set()
     if not isinstance(stems, list):
         raise ValueError(f"'add'/'remove' must be a list of stems, got {stems!r}")
+    if removing:
+        stems = rename_removed_stems([str(s) for s in stems])
+    else:
+        stems = [rename_stem(str(s)) for s in stems]
     skills = {str(s) for s in stems if s in _SKILL_SET}
     commands = {str(s) for s in stems if s in _COMMAND_SET}
     unknown = {str(s) for s in stems} - skills - commands
@@ -303,7 +309,7 @@ def _resolve_sets(
             commands = _expand(table.get("commands"), _COMMAND_SET)
 
     add_skills, add_commands = _route(table.get("add"))
-    rem_skills, rem_commands = _route(table.get("remove"))
+    rem_skills, rem_commands = _route(table.get("remove"), removing=True)
     skills = (skills | add_skills) - rem_skills
     commands = (commands | add_commands) - rem_commands
 
@@ -1574,8 +1580,8 @@ def _commented_issueflow_table(
     table.add(
         tomlkit.comment(
             "Let issue labels select the flow (true/false): an issue carrying "
-            "the yolo label is run through /iflow-yolo when picked; the ops "
-            "label routes to /iflow-ops (no-PR close). Re-run "
+            "the yolo label is run through /iflow-run yolo when picked; the ops "
+            "label routes to /iflow-close ops (no-PR close). Re-run "
             "'issue-flow update' after changing so the commands re-render."
         )
     )
@@ -1584,7 +1590,7 @@ def _commented_issueflow_table(
     table["yolo_label"] = yolo_label
     table.add(
         tomlkit.comment(
-            "The GitHub label that triggers the ops / no-PR flow (/iflow-ops)."
+            "The GitHub label that triggers the ops / no-PR flow (/iflow-close ops)."
         )
     )
     table["ops_label"] = ops_label
@@ -1731,7 +1737,7 @@ def _commented_issueflow_table(
     table["auto_remove_worktree"] = auto_remove_worktree
     table.add(
         tomlkit.comment(
-            "When true, /iflow-pick / /iflow-issue / /iflow-fix start in a "
+            "When true, /iflow-pick / /iflow-issue / /iflow-issue fix start in a "
             "sibling worktree. false → git switch -c on home (inplace). "
             "Tokens inplace / no worktree / worktree still override. "
             "Re-run 'issue-flow update'."
@@ -1746,13 +1752,13 @@ def _commented_issueflow_table(
     table["pr_merge_method"] = pr_merge_method
     table.add(
         tomlkit.comment(
-            "Default /iflow-cycle queue safety cap (raise per run with max:<n>)."
+            "Default /iflow-run cycle queue safety cap (raise per run with max:<n>)."
         )
     )
     table["cycle_max_issues"] = cycle_max_issues
     table.add(
         tomlkit.comment(
-            "Default /iflow-cycle failure policy: 'stop' (halt) or 'skip' "
+            "Default /iflow-run cycle failure policy: 'stop' (halt) or 'skip' "
             "(park and continue). Per-run onfail:stop|skip overrides. "
             "Re-run 'issue-flow update' after changing."
         )
@@ -1760,8 +1766,8 @@ def _commented_issueflow_table(
     table["cycle_onfail"] = cycle_onfail
     table.add(
         tomlkit.comment(
-            "Merge policy for yolo:no issues run hands-off by /iflow-cycle, "
-            "/iflow-auto and /iflow-drive: 'merge' (land like yolo), 'pr-only' "
+            "Merge policy for yolo:no issues run hands-off by /iflow-run cycle, "
+            "/iflow-run auto and /iflow-run drive: 'merge' (land like yolo), 'pr-only' "
             "(open the PR, continue), or 'stop' (halt at the first one). "
             "Per-run nonyolo:<policy> overrides. Re-run 'issue-flow update'."
         )
@@ -1769,14 +1775,14 @@ def _commented_issueflow_table(
     table["cycle_nonyolo"] = cycle_nonyolo
     table.add(
         tomlkit.comment(
-            "Default /iflow-auto inter-epoch adversarial loop budget "
+            "Default /iflow-run auto inter-epoch adversarial loop budget "
             "(override per run with loops:<n>). Re-run 'issue-flow update'."
         )
     )
     table["auto_adversarial_loops"] = auto_adversarial_loops
     table.add(
         tomlkit.comment(
-            "When true, /iflow-build (and /iflow-fix end) chain into "
+            "When true, /iflow-build (and /iflow-issue fix end) chain into "
             "/iflow-close automatically once work is ready to ship "
             "(default false). Close keeps its own confirms."
         )
@@ -1828,7 +1834,7 @@ def _commented_issueflow_table(
     table["early_pr"] = early_pr
     table.add(
         tomlkit.comment(
-            "When true, /iflow-fix lets the agent invent the session title/"
+            "When true, /iflow-issue fix lets the agent invent the session title/"
             "slug from invoke text or context without a naming confirm "
             "(default false). Create issue+branch still needs one confirm. "
             "Re-run 'issue-flow update' after changing."

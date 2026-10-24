@@ -4,7 +4,7 @@
 
 ## Agent setup (read first)
 
-- [Upgrade, init, and workspace](https://issue-flow.readthedocs.io/en/latest/how-to/for-agents/): package upgrade (`uv tool upgrade`) vs scaffold refresh (`issue-flow update` / `workspace update`); user-global `iflow init`; parent-folder workspace.
+- [Upgrade, init, and workspace](https://issue-flow.readthedocs.io/en/latest/how-to/for-agents/): package upgrade (`uv tool upgrade`) vs scaffold refresh (`issue-flow update` / `workspace update`); user-global `iflow setup`; parent-folder workspace.
 - [Folder of repos](https://issue-flow.readthedocs.io/en/latest/how-to/workspaces/): `workspace bootstrap` / `init` / `update` from the parent. Never `init` the parent.
 
 ## Humans

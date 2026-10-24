@@ -23,7 +23,7 @@ def test_init_canonical_creates_agent_store(tmp_path: Path) -> None:
 
     agent_skills = tmp_path / ".issueflows" / "agent" / "skills"
     assert agent_skills.is_dir()
-    assert (agent_skills / "iflow-init" / "SKILL.md").is_file()
+    assert (agent_skills / "iflow-setup" / "SKILL.md").is_file()
     assert (tmp_path / ".issueflows" / "agent" / "manifest.json").is_file()
     assert (tmp_path / "AGENTS.md").is_file()
     assert not (tmp_path / ".cursor").exists()
@@ -41,7 +41,7 @@ def test_convert_to_editor_materializes_cursor_tree(tmp_path: Path) -> None:
 
     run_convert(tmp_path, to="cursor", force=True)
 
-    skills = tmp_path / ".cursor" / "skills" / "iflow-init" / "SKILL.md"
+    skills = tmp_path / ".cursor" / "skills" / "iflow-setup" / "SKILL.md"
     assert skills.is_file()
     assert (tmp_path / ".cursor" / "rules" / "issueflow-rules.mdc").is_file()
 
@@ -53,7 +53,7 @@ def test_convert_to_canonical_prunes_editor_dirs(tmp_path: Path) -> None:
     run_convert(tmp_path, to="canonical", force=True, prune_other=True)
 
     assert (
-        tmp_path / ".issueflows" / "agent" / "skills" / "iflow-init" / "SKILL.md"
+        tmp_path / ".issueflows" / "agent" / "skills" / "iflow-setup" / "SKILL.md"
     ).is_file()
     assert not (tmp_path / ".cursor").exists()
 

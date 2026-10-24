@@ -40,7 +40,7 @@ from issue_flow import (
 )
 from issue_flow.config import Settings
 from issue_flow.editors import DEFAULT_EDITOR, EDITORS
-from issue_flow.templating import packaged_skill_output_names
+from issue_flow.templating import RETIRED_SKILLS, packaged_skill_output_names
 
 
 def _folders(project_root: Path, settings: Settings) -> dict[str, Path]:
@@ -141,7 +141,7 @@ def run_state(project_root: Path, console: Console, as_json: bool) -> int:
         }
     elif focus.resolved_via != "ambiguous":
         # No focus yet — surface active-epic next_candidates so /iflow can
-        # recommend /iflow-pick instead of a blind /iflow-capture (issue #210).
+        # recommend /iflow-pick instead of a blind /iflow-pick (issue #210).
         epic_hint = _collect_epic_hints(project_root, local=False)
         payload["epic_hint"] = epic_hint
         if not epic_hint["epics"]:
@@ -2565,7 +2565,7 @@ def run_version_plan(
     as_json: bool,
 ) -> int:
     """Plan the next version deterministically — the mechanical half of the
-    release-strategy work in the iflow-version-bump skill.
+    release-strategy work in the version step of the iflow-close skill.
 
     Read-only: detects the strategy from ``pyproject.toml``, reads the current
     version (static field, or latest git tag), applies the PEP 440 bump
@@ -2966,7 +2966,7 @@ def run_epic_status(
 ) -> int:
     """Deterministic epic progress: stages, per-issue state, next candidates.
 
-    Read-only. Parses ``epic<N>_plan.md`` (the contract the /iflow-epic skill
+    Read-only. Parses ``epic<N>_plan.md`` (the contract the /iflow-issue epic skill
     writes) and — unless ``local`` — resolves each published issue's state via
     ``gh``. A missing/unauthenticated ``gh`` degrades to ``state: "unknown"``
     per issue rather than failing the command.
@@ -2980,7 +2980,7 @@ def run_epic_status(
     )
     payload = _build_epic_status_payload(project_root, number, local=local)
     if payload is None:
-        msg = f"no epic plan found at {plan_path}; draft one with /iflow-epic {number}."
+        msg = f"no epic plan found at {plan_path}; draft one with /iflow-issue epic {number}."
         if as_json:
             _emit_json(console, {"epic": number, "error": msg})
         else:
@@ -3427,7 +3427,7 @@ def run_queue(
         ],
         "skipped_closed": [item.number for item in plan.skipped_closed],
         "independent": plan.independent,
-        # #386: the hands-off drivers (/iflow-cycle, /iflow-auto, /iflow-drive)
+        # #386: the hands-off drivers (/iflow-run cycle, /iflow-run auto, /iflow-run drive)
         # surface these in their confirm so the operator knows which issues
         # will take the non-yolo lane (policy: cycle_nonyolo) instead of
         # stopping the run.
@@ -5162,7 +5162,7 @@ def _audit_context(
 
 # Every editor scaffold materializes this skill, so its presence under an agent
 # directory is a reliable "issue-flow is scaffolded here" marker.
-_SCAFFOLD_MARKER_SKILL = Path("skills") / "iflow-init" / "SKILL.md"
+_SCAFFOLD_MARKER_SKILL = Path("skills") / "iflow-setup" / "SKILL.md"
 
 
 def audit_editor_scaffolds(
@@ -5194,7 +5194,7 @@ def audit_editor_scaffolds(
             continue  # skills scaffold already materialized
         if (
             profile.commands_dir
-            and (agent_root / profile.commands_dir / "iflow-init.md").is_file()
+            and (agent_root / profile.commands_dir / "iflow-setup.md").is_file()
         ):
             continue  # command scaffold present (skills-less layout)
         findings.append(
@@ -5241,6 +5241,20 @@ def audit_unmanaged_editor_skills(
             if entry.name in packaged:
                 continue
             rel = entry.relative_to(project_root).as_posix()
+            if entry.name in RETIRED_SKILLS:
+                findings.append(
+                    tracking.DirtyFinding(
+                        code="retired_editor_skill",
+                        severity=tracking.SEVERITY_WARN,
+                        message=(
+                            f"Skill directory {rel!r} was retired by a newer "
+                            "issue-flow. `issue-flow update` removes it unless "
+                            "it was edited; then delete it by hand."
+                        ),
+                        repairable=False,
+                    )
+                )
+                continue
             findings.append(
                 tracking.DirtyFinding(
                     code="unmanaged_editor_skill",
@@ -5709,8 +5723,8 @@ def _print_config_guide(console: Console, cfg_path: Path) -> None:
     console.print(
         "  [dim]- [bold]label_flows[/bold] / [bold]yolo_label[/bold] / "
         "[bold]ops_label[/bold] / [bold]publish_label[/bold]: let issue labels "
-        "pick the flow (e.g. a 'yolo' label runs /iflow-yolo; 'ops' runs "
-        "/iflow-ops no-PR close; 'publish' bumps + releases after merge); "
+        "pick the flow (e.g. a 'yolo' label runs /iflow-run yolo; 'ops' runs "
+        "/iflow-close ops no-PR close; 'publish' bumps + releases after merge); "
         "re-run 'issue-flow update' so the commands re-render.[/dim]"
     )
     console.print(
@@ -5750,9 +5764,9 @@ def _print_config_guide(console: Console, cfg_path: Path) -> None:
     )
     console.print(
         "  [dim]- [bold]pr_merge_method[/bold]: squash|merge|rebase for yolo "
-        "close (default squash); [bold]cycle_max_issues[/bold]: /iflow-cycle "
+        "close (default squash); [bold]cycle_max_issues[/bold]: /iflow-run cycle "
         "queue cap (default 10); [bold]auto_adversarial_loops[/bold]: "
-        "/iflow-auto inter-epoch budget (default 2; trailing loops:<n>).[/dim]"
+        "/iflow-run auto inter-epoch budget (default 2; trailing loops:<n>).[/dim]"
     )
     console.print(
         "  [dim]- [bold]pstack_skills[/bold]: vendored pstack skills to scaffold "
@@ -6107,7 +6121,7 @@ def _status_payload(project_root: Path, local: bool) -> dict[str, Any]:
     ]
     solved_numbers = sorted(tracking.group_issue_files(folders["solved"]))
 
-    # An in-flight /iflow-cycle leaves a cycle_status.md in current-issues; a
+    # An in-flight /iflow-run cycle leaves a cycle_status.md in current-issues; a
     # finished one is archived to solved/, so its presence here means a batch
     # run is paused or active.
     cycle_active = (folders["current"] / "cycle_status.md").is_file()
@@ -6209,7 +6223,7 @@ def _render_status_text(
     if payload.get("cycle_active"):
         console.print(
             "[bold]Cycle[/bold]: [yellow]in-flight[/yellow] "
-            "(cycle_status.md present — resume with `/iflow-cycle resume`)"
+            "(cycle_status.md present — resume with `/iflow-run cycle resume`)"
         )
 
     github = payload["github"]

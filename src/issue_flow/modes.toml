@@ -16,24 +16,22 @@
 #
 # Users can add or override modes in their own project's
 # `.issueflows/config.toml` using the same `[modes.<id>]` grammar; a mode may
-# only reference surface stems that ship as packaged templates.
+# only reference surface stems that ship as packaged templates. Stems retired by
+# a merge (e.g. `iflow_yolo` -> `iflow_run`) are mapped automatically.
 
 [modes.standard]
 name = "Standard"
-description = "Full issue-flow workflow: planning, PRs, history, cleanup, graphify, and all helpers."
+description = "Full issue-flow workflow: planning, PRs, hands-off runs, issue shaping, cleanup, and status."
 skills = "all"
 commands = "all"
 
 [modes.novice]
 name = "Novice"
-description = "Guided first-project surface: setup, the linear lifecycle, and the safety nets. No hands-off, batch, or decomposition automation."
+description = "Guided first-project surface: setup, the linear lifecycle, and the safety nets. No hands-off runs."
 skills = [
     "iflow_iflow",
     "iflow_setup",
     "iflow_pick",
-    "iflow_init",
-    "iflow_capture",
-    "iflow_comments",
     "iflow_issue",
     "iflow_plan",
     "iflow_build",
@@ -41,15 +39,11 @@ skills = [
     "iflow_close",
     "iflow_cleanup",
     "iflow_status",
-    "iflow_doctor",
-    "gh_ci",
 ]
 commands = [
     "iflow",
     "iflow-setup",
     "iflow-pick",
-    "iflow-init",
-    "iflow-capture",
     "iflow-issue",
     "iflow-plan",
     "iflow-build",
@@ -57,30 +51,26 @@ commands = [
     "iflow-close",
     "iflow-cleanup",
     "iflow-status",
-    "iflow-doctor",
 ]
 
 [modes.simple]
 name = "Simple"
-description = "Lightweight markdown-only lifecycle: capture, plan, implement, park, and status. No PR/cleanup/yolo/fix/graphify automation."
+description = "Lightweight markdown-only lifecycle: pick, plan, implement, park, and status. No PR, cleanup, or hands-off automation."
 skills = [
     "iflow_iflow",
-    "iflow_init",
-    "iflow_capture",
-    "iflow_comments",
+    "iflow_setup",
+    "iflow_pick",
     "iflow_plan",
     "iflow_build",
     "iflow_pause",
     "iflow_status",
-    "iflow_archive",
 ]
 commands = [
     "iflow",
-    "iflow-init",
-    "iflow-capture",
+    "iflow-setup",
+    "iflow-pick",
     "iflow-plan",
     "iflow-build",
     "iflow-pause",
     "iflow-status",
-    "iflow-archive",
 ]

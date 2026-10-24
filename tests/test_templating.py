@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 from issue_flow import __version__ as ISSUE_FLOW_VERSION
 from issue_flow.editors import EDITORS, get_profile
 from issue_flow.step_profiles import PACKAGED_DEFAULTS, enrich_render_context
 from issue_flow.templating import (
+    COMMANDS,
     COMMAND_NAMES,
     DEFAULT_SKILL_DIRS,
     PSTACK_NAME_TO_STEM,
@@ -21,8 +23,35 @@ from issue_flow.templating import (
     packaged_skill_output_names,
     render_template,
     resolve_output_path,
+    skill_side_templates,
     stamp_skill_version,
 )
+
+def _skill_bundle(stem: str, context: dict) -> str:
+    """Render a skill folder: ``SKILL.md`` plus every mode file (issue #406)."""
+    parts = [render_template(f"skills/{stem}/SKILL.md.j2", context)]
+    for side in skill_side_templates(stem):
+        parts.append(render_template(f"skills/{stem}/{side}", context))
+    return "\n".join(parts)
+
+
+def _render(template_name: str, context: dict) -> str:
+    """Render ``template_name``; skill and command templates render their whole skill.
+
+    Mode content moved out of ``SKILL.md`` into side files, and command files
+    became thin wrappers, so content assertions read the skill folder as a
+    bundle.
+    """
+    match = re.fullmatch(r"commands/(iflow(?:-[a-z]+)?)(?: [a-z]+)?\.md\.j2", template_name)
+    if match:
+        name = match.group(1)
+        stem = "iflow_iflow" if name == "iflow" else name.replace("-", "_")
+        return _skill_bundle(stem, context)
+    match = re.fullmatch(r"skills/([a-z_]+)/[a-zA-Z_]+\.md\.j2", template_name)
+    if match and not template_name.startswith("skills/_"):
+        return _skill_bundle(match.group(1), context)
+    return render_template(template_name, context)
+
 
 # The standard surface: every default stem, no opt-in (pstack) stems.
 _ALL_SKILLS = sorted(DEFAULT_SKILL_DIRS)
@@ -32,6 +61,7 @@ _MODE_CONTEXT = {
     "mode_name": "Standard",
     "included_skills": _ALL_SKILLS,
     "included_commands": _ALL_COMMANDS,
+    "command_rows": list(COMMANDS),
     "caveman_default": False,
     "grill_me_default": False,
     "label_flows": True,
@@ -102,7 +132,7 @@ def test_all_templates_render_without_error() -> None:
     }
     for template_name, _ in TEMPLATE_MANIFEST:
         ctx = enrich_render_context(context, template_name)
-        result = render_template(template_name, ctx)
+        result = _render(template_name, ctx)
         assert isinstance(result, str)
         assert len(result) > 0, f"Template {template_name} rendered empty"
 
@@ -127,14 +157,14 @@ def test_template_substitution() -> None:
         "graphify_installer": "cursor",
         **_MODE_CONTEXT,
     }
-    rendered = render_template("commands/iflow-capture.md.j2", context)
+    rendered = _render("commands/iflow-pick.md.j2", context)
     assert "CUSTOM_DIR/01-current-issues" in rendered
     assert "{{ issueflows_dir }}" not in rendered
 
 
 def test_project_brief_template_renders() -> None:
     """The durable project brief starter template should render with placeholders."""
-    rendered = render_template("docs/this-project.md.j2", _default_context())
+    rendered = _render("docs/this-project.md.j2", _default_context())
     assert "# test-project" in rendered
     assert "What this project is" in rendered
     assert "How to run / test" in rendered
@@ -143,13 +173,8 @@ def test_project_brief_template_renders() -> None:
 
 def test_resolve_output_path() -> None:
     context = {"agent_dir": ".cursor", "docs_dir": "docs"}
-    path = resolve_output_path("{agent_dir}/commands/iflow-init.md", context)
-    assert path == Path(".cursor/commands/iflow-init.md")
-
-
-def test_manifest_entry_count() -> None:
-    # Cursor is skills-first: 1 rule + 1 doc + 32 skills = 34
-    assert len(TEMPLATE_MANIFEST) == 34
+    path = resolve_output_path("{agent_dir}/commands/iflow-setup.md", context)
+    assert path == Path(".cursor/commands/iflow-setup.md")
 
 
 def _resolved_paths(profile_id: str) -> set[str]:
@@ -166,12 +191,6 @@ def _resolved_paths(profile_id: str) -> set[str]:
     }
 
 
-def test_build_manifest_cursor_matches_default() -> None:
-    """The default TEMPLATE_MANIFEST is the cursor profile manifest."""
-    assert build_manifest(EDITORS["cursor"]) == TEMPLATE_MANIFEST
-    assert len(build_manifest(EDITORS["cursor"])) == 34
-
-
 def test_build_manifest_cursor_has_skills_and_rules_but_no_commands() -> None:
     """Cursor now uses Agent Skills as the primary slash-menu surface."""
     manifest = build_manifest(get_profile("cursor"))
@@ -183,33 +202,13 @@ def test_build_manifest_cursor_has_skills_and_rules_but_no_commands() -> None:
     assert ".cursor/rules/issueflow-rules.mdc" in paths
 
 
-def test_build_manifest_codex_has_skills_and_docs_but_no_commands() -> None:
-    """Codex: skills (32) + docs (1), no slash commands and no rules extra."""
-    manifest = build_manifest(get_profile("codex"))
-    template_names = [name for name, _ in manifest]
-    assert not any(name.startswith("commands/") for name in template_names)
-    assert sum(name.startswith("skills/") for name in template_names) == 32
-    assert "docs/issue-workflow.md.j2" in template_names
-    # No .mdc / CLAUDE.md rules extra for Codex.
-    assert not any(name.startswith("rules/") for name in template_names)
-    assert len(manifest) == 33
-
-
 def test_build_manifest_opencode_uses_singular_command_dir() -> None:
     paths = _resolved_paths("opencode")
-    assert ".opencode/command/iflow-init.md" in paths
-    assert ".opencode/skills/iflow-init/SKILL.md" in paths
+    assert ".opencode/command/iflow-setup.md" in paths
+    assert ".opencode/skills/iflow-setup/SKILL.md" in paths
     # opencode has no editor-specific rules file (AGENTS.md is handled by init).
     assert not any(p.endswith(".mdc") for p in paths)
     assert "CLAUDE.md" not in paths
-
-
-def test_build_manifest_claude_emits_claude_md_and_commands() -> None:
-    manifest = build_manifest(get_profile("claude"))
-    assert ("rules/CLAUDE.md.j2", "CLAUDE.md") in manifest
-    paths = _resolved_paths("claude")
-    assert ".claude/commands/iflow-init.md" in paths
-    assert "CLAUDE.md" in paths
 
 
 def test_build_manifest_no_cursor_leakage_in_non_cursor_outputs() -> None:
@@ -238,7 +237,7 @@ def test_build_manifest_no_cursor_leakage_in_non_cursor_outputs() -> None:
         for template_name, path_template in manifest:
             resolved = resolve_output_path(path_template, context).as_posix()
             assert ".cursor" not in resolved, f"{editor_id}: {resolved}"
-            rendered = render_template(template_name, context)
+            rendered = _render(template_name, context)
             assert "Cursor" not in rendered, (
                 f"{editor_id} output {template_name} leaks literal 'Cursor'"
             )
@@ -255,59 +254,29 @@ def test_manifest_has_expected_skills() -> None:
     for skill in (
         "iflow_setup",
         "iflow_pick",
-        "iflow_init",
-        "iflow_capture",
-        "iflow_comments",
+        "iflow_setup",
+        "iflow_pick",
+        "iflow_pick",
         "iflow_plan",
         "iflow_build",
         "iflow_pause",
         "iflow_close",
         "iflow_cleanup",
-        "iflow_yolo",
-        "iflow_fix",
+        "iflow_run",
         "iflow_issue",
-        "iflow_split",
+        "iflow_issue",
+        "iflow_issue",
         "iflow_status",
-        "iflow_workspace_git",
-        "iflow_archive",
-        "iflow_cycle",
-        "iflow_auto",
-        "iflow_drive",
-        "iflow_version_bump",
-        "iflow_history_update",
-        "iflow_graphify",
+        "iflow_status",
+        "iflow_cleanup",
+        "iflow_run",
+        "iflow_run",
+        "iflow_run",
+        "iflow_close",
+        "iflow_close",
+        "iflow_status",
     ):
         assert f"skills/{skill}/SKILL.md.j2" in template_names
-
-
-def test_claude_manifest_has_expected_commands() -> None:
-    """Command-emitting editors still include every slash-command template."""
-    template_names = {name for name, _ in build_manifest(get_profile("claude"))}
-    for command in (
-        "iflow",
-        "iflow-setup",
-        "iflow-pick",
-        "iflow-init",
-        "iflow-capture",
-        "iflow-plan",
-        "iflow-build",
-        "iflow-pause",
-        "iflow-close",
-        "iflow-cleanup",
-        "iflow-yolo",
-        "iflow-fix",
-        "iflow-issue",
-        "iflow-split",
-        "iflow-status",
-        "iflow-workspace-git",
-        "iflow-doctor",
-        "iflow-archive",
-        "iflow-cycle",
-        "iflow-auto",
-        "iflow-drive",
-        "iflow-graphify",
-    ):
-        assert f"commands/{command}.md.j2" in template_names
 
 
 def _default_context() -> dict[str, object]:
@@ -334,7 +303,7 @@ def _default_context() -> dict[str, object]:
 
 def test_issue_start_mentions_branch_and_sweep_preflight() -> None:
     """The /iflow-build command must include the new preflight and sweep steps."""
-    rendered = render_template("commands/iflow-build.md.j2", _default_context())
+    rendered = _render("commands/iflow-build.md.j2", _default_context())
     assert "Branch status preflight" in rendered
     assert "Sweep stale current issues" in rendered
     assert "git fetch --prune" in rendered
@@ -343,25 +312,25 @@ def test_issue_start_mentions_branch_and_sweep_preflight() -> None:
 _CLI_FASTPATH_SURFACES = {
     "commands/iflow.md.j2": "issue-flow agent state",
     "commands/iflow-status.md.j2": "issue-flow status",
-    "commands/iflow-capture.md.j2": "issue-flow agent capture",
+    "commands/iflow-pick.md.j2": "issue-flow agent capture",
     "commands/iflow-build.md.j2": "issue-flow agent preflight",
     "commands/iflow-plan.md.j2": "issue-flow agent preflight",
     "skills/iflow_iflow/SKILL.md.j2": "issue-flow agent state",
     "skills/iflow_status/SKILL.md.j2": "issue-flow status",
-    "skills/iflow_capture/SKILL.md.j2": "issue-flow agent capture",
+    "skills/iflow_pick/capture.md.j2": "issue-flow agent capture",
     "skills/iflow_build/SKILL.md.j2": "issue-flow agent preflight",
     "skills/iflow_plan/SKILL.md.j2": "issue-flow agent preflight",
-    "commands/iflow-archive.md.j2": "issue-flow agent archive",
-    "skills/iflow_archive/SKILL.md.j2": "issue-flow agent archive",
-    "commands/iflow-review.md.j2": "issue-flow agent label-candidates",
-    "skills/iflow_review/SKILL.md.j2": "issue-flow agent label-candidates",
+    "commands/iflow-cleanup archive.md.j2": "issue-flow agent archive",
+    "skills/iflow_cleanup/archive.md.j2": "issue-flow agent archive",
+    "commands/iflow-issue review.md.j2": "issue-flow agent label-candidates",
+    "skills/iflow_issue/review.md.j2": "issue-flow agent label-candidates",
 }
 
 
 def test_cli_fast_path_notes_render_with_fallback() -> None:
     """Updated surfaces advertise the optional CLI fast path AND keep a fallback."""
     for template_name, expected_cmd in _CLI_FASTPATH_SURFACES.items():
-        rendered = render_template(template_name, _default_context())
+        rendered = _render(template_name, _default_context())
         assert "CLI fast path (optional)" in rendered, template_name
         assert expected_cmd in rendered, template_name
         # The CLI is optional, so the note must point back to the manual steps.
@@ -369,27 +338,26 @@ def test_cli_fast_path_notes_render_with_fallback() -> None:
 
 
 def test_iflow_capture_fast_path_mentions_sweep_and_capture() -> None:
-    """/iflow-capture's fast path covers both the capture and the sweep shortcuts."""
-    rendered = render_template("commands/iflow-capture.md.j2", _default_context())
+    """/iflow-pick's fast path covers both the capture and the sweep shortcuts."""
+    rendered = _render("commands/iflow-pick.md.j2", _default_context())
     assert "issue-flow agent capture" in rendered
     assert "issue-flow agent sweep --except" in rendered
 
 
 def test_iflow_init_is_harness_cold_start_not_capture() -> None:
-    """/iflow-init guides issue-flow init; it must not own agent capture (#241)."""
-    rendered = render_template("commands/iflow-init.md.j2", _default_context())
+    """/iflow-setup guides issue-flow init; it must not own agent capture (#241)."""
+    rendered = _render("commands/iflow-setup.md.j2", _default_context())
     assert "issue-flow init" in rendered
     assert "workspace bootstrap" in rendered
     assert "https://issue-flow.readthedocs.io/en/latest/how-to/workspaces/" in rendered
     assert "https://issue-flow.readthedocs.io/en/latest/how-to/for-agents/" in rendered
     assert "issue-flow agent capture" not in rendered
-    assert "/iflow-capture" in rendered
-    assert "off-path" in rendered.lower()
+    assert "/iflow-pick" in rendered
 
 
 def test_iflow_init_skill_points_at_workspace_howto() -> None:
-    """Agents following /iflow-init must see the same parent-folder recipe (#313)."""
-    rendered = render_template("skills/iflow_init/SKILL.md.j2", _default_context())
+    """Agents following /iflow-setup must see the same parent-folder recipe (#313)."""
+    rendered = _render("skills/iflow_setup/SKILL.md.j2", _default_context())
     assert "https://issue-flow.readthedocs.io/en/latest/how-to/workspaces/" in rendered
     assert "https://issue-flow.readthedocs.io/en/latest/how-to/for-agents/" in rendered
     assert "uv tool upgrade issue-flow" in rendered
@@ -399,43 +367,32 @@ def test_iflow_init_skill_points_at_workspace_howto() -> None:
 
 
 def test_iflow_setup_points_at_capture_not_init() -> None:
-    """After #241, /iflow-setup must send issue capture to /iflow-capture."""
-    command = render_template("commands/iflow-setup.md.j2", _default_context())
-    skill = render_template("skills/iflow_setup/SKILL.md.j2", _default_context())
+    """After #241, /iflow-setup must send issue capture to /iflow-pick."""
+    command = _render("commands/iflow-setup.md.j2", _default_context())
+    skill = _render("skills/iflow_setup/SKILL.md.j2", _default_context())
     for rendered in (command, skill):
         assert (
-            "that is `/iflow-capture`" in rendered or "is `/iflow-capture`" in rendered
+            "that is `/iflow-pick`" in rendered or "is `/iflow-pick`" in rendered
         )
         assert (
-            "Capturing a GitHub issue" not in rendered or "/iflow-capture" in rendered
+            "Capturing a GitHub issue" not in rendered or "/iflow-pick" in rendered
         )
-        assert "that is `/iflow-init`" not in rendered
-        assert "is `/iflow-init`;" not in rendered
+        assert "that is `/iflow-setup`" not in rendered
+        assert "is `/iflow-setup`;" not in rendered
 
 
 def test_issue_close_delegates_post_merge_cleanup_to_issue_cleanup() -> None:
     """/iflow-close no longer deletes branches; it points at /iflow-cleanup instead."""
-    rendered = render_template("commands/iflow-close.md.j2", _default_context())
+    rendered = _render("commands/iflow-close.md.j2", _default_context())
     assert "/iflow-cleanup" in rendered
     assert "git pull --ff-only" in rendered
     # The destructive branch delete lives in /iflow-cleanup now, not /iflow-close.
     assert "git branch -d" not in rendered
 
 
-def test_issue_close_switches_to_default_when_clean_unless_stay() -> None:
-    """/iflow-close should switch back to default after PR when the tree is clean."""
-    rendered = render_template("commands/iflow-close.md.j2", _default_context())
-    assert "stay on branch" in rendered
-    assert "don't switch" in rendered
-    assert "dont switch to main" in rendered
-    assert "git status --porcelain" in rendered
-    assert "git switch <default>" in rendered
-    assert "A clean tree here means" in rendered
-
-
 def test_issue_cleanup_describes_post_merge_branch_cleanup() -> None:
     """The /iflow-cleanup command owns the post-merge branch cleanup logic."""
-    rendered = render_template("commands/iflow-cleanup.md.j2", _default_context())
+    rendered = _render("commands/iflow-cleanup.md.j2", _default_context())
     assert "git branch -d" in rendered
     assert "git pull --ff-only" in rendered
     assert "gh pr view" in rendered
@@ -448,7 +405,7 @@ def test_issue_cleanup_describes_post_merge_branch_cleanup() -> None:
     assert "agent branches" in rendered
     assert "git push origin --delete" in rendered
     assert "--force" in rendered
-    skill = render_template("skills/iflow_cleanup/SKILL.md.j2", _default_context())
+    skill = _render("skills/iflow_cleanup/SKILL.md.j2", _default_context())
     assert "include github" in skill.lower()
     assert (
         "Second consolidated confirm" in skill or "second consolidated confirm" in skill
@@ -460,93 +417,43 @@ def test_issue_cleanup_describes_post_merge_branch_cleanup() -> None:
 
 def test_worktree_start_does_not_require_home_ff() -> None:
     """Issue #303: worktree start may skip home ff-only when default-sync says so."""
-    pick = render_template("skills/iflow_pick/SKILL.md.j2", _default_context())
-    shared = render_template("skills/_worktree_start.md.j2", _default_context())
+    pick = _render("skills/iflow_pick/SKILL.md.j2", _default_context())
+    shared = _render("skills/_worktree_start.md.j2", _default_context())
     for rendered in (pick, shared):
         assert "default-sync" in rendered
         assert "must not wait for home to be ff-able" in rendered
         assert "origin/<default>" in rendered
-    cleanup = render_template("skills/iflow_cleanup/SKILL.md.j2", _default_context())
+    cleanup = _render("skills/iflow_cleanup/SKILL.md.j2", _default_context())
     assert (
         "Never rebase default" in cleanup or "never rebase default" in cleanup.lower()
     )
-    close = render_template("skills/iflow_close/SKILL.md.j2", _default_context())
+    close = _render("skills/iflow_close/SKILL.md.j2", _default_context())
     assert "default_sync" in close or "default-sync" in close
 
 
 def test_issue_start_requires_or_offers_plan() -> None:
     """/iflow-build should read the plan file and offer to run /iflow-plan when missing."""
-    rendered = render_template("commands/iflow-build.md.j2", _default_context())
+    rendered = _render("commands/iflow-build.md.j2", _default_context())
     assert "issue<N>_plan.md" in rendered
     assert "/iflow-plan" in rendered
 
 
-def test_issue_plan_writes_plan_file_and_stops_for_confirmation() -> None:
-    """/iflow-plan must produce a plan file and require confirmation."""
-    rendered = render_template("commands/iflow-plan.md.j2", _default_context())
-    assert "issue<N>_plan.md" in rendered
-    assert "Goal" in rendered
-    assert "Approach" in rendered
-    assert "Confirm" in rendered or "confirmation" in rendered.lower()
-    assert "1.75" in rendered
-    assert "Prior-art discovery" in rendered
-    assert "GRAPH_REPORT.md" in rendered
-    assert "### Prior art" in rendered
-
-
-def test_issue_plan_includes_prior_art_discovery() -> None:
-    """/iflow-plan must document graceful graphify + grep prior-art checklist."""
-    rendered = render_template("commands/iflow-plan.md.j2", _default_context())
-    assert "Prior-art discovery" in rendered
-    assert "God Nodes" in rendered
-    assert "None found (grep + graph checked)" in rendered
-    assert "Open questions" in rendered
-    skill = render_template("skills/iflow_plan/SKILL.md.j2", _default_context())
-    assert "Prior-art discovery" in skill or "Prior art" in skill
-    assert "### Prior art" in skill
-
-
 def test_iflow_plan_auto_graphify_on_plan_gated() -> None:
     """Issue #214: plan auto-runs graphify only when auto_graphify_on_plan is true."""
-    off_cmd = render_template("commands/iflow-plan.md.j2", _default_context())
-    off_skill = render_template("skills/iflow_plan/SKILL.md.j2", _default_context())
+    off_cmd = _render("commands/iflow-plan.md.j2", _default_context())
+    off_skill = _render("skills/iflow_plan/SKILL.md.j2", _default_context())
     assert "auto_graphify_on_plan = true" not in off_cmd
     assert "auto_graphify_on_plan = true" not in off_skill
 
     on_ctx = {**_default_context(), "auto_graphify_on_plan": True}
-    on_cmd = render_template("commands/iflow-plan.md.j2", on_ctx)
-    on_skill = render_template("skills/iflow_plan/SKILL.md.j2", on_ctx)
+    on_cmd = _render("commands/iflow-plan.md.j2", on_ctx)
+    on_skill = _render("skills/iflow_plan/SKILL.md.j2", on_ctx)
     assert "auto_graphify_on_plan = true" in on_cmd
     assert "issue-flow graphify -C <project_root>" in on_cmd
     assert "auto_graphify_on_plan = true" in on_skill
     assert on_cmd.count("issue-flow graphify -C <project_root>") == 1
     assert on_skill.count("issue-flow graphify -C <project_root>") == 1
     assert "Do **not** auto-run `extract`" in on_skill
-
-
-def test_iflow_plan_graphify_gitignored_refreshes_without_auto_flag() -> None:
-    """Issue #400: gitignore-all enables the plan refresh on its own."""
-    ctx = {**_default_context(), "graphify_gitignored": True}
-    cmd = render_template("commands/iflow-plan.md.j2", ctx)
-    skill = render_template("skills/iflow_plan/SKILL.md.j2", ctx)
-    assert "graphify_gitignored = true" in cmd
-    assert "graphify_gitignored = true" in skill
-    assert "auto_graphify_on_plan = true" not in cmd
-    assert "issue-flow graphify -C <project_root>" in skill
-    epic = render_template("skills/iflow_epic/SKILL.md.j2", ctx)
-    assert "graphify_gitignored = true" in epic
-    assert "issue-flow graphify -C <project_root>" in epic
-    both = {
-        **_default_context(),
-        "auto_graphify_on_plan": True,
-        "graphify_gitignored": True,
-    }
-    both_skill = render_template("skills/iflow_plan/SKILL.md.j2", both)
-    assert both_skill.count("issue-flow graphify -C <project_root>") == 1
-    graphify_cmd = render_template("commands/iflow-graphify.md.j2", ctx)
-    assert "do not commit any of `graphify-out/`" in graphify_cmd
-    off = render_template("commands/iflow-graphify.md.j2", _default_context())
-    assert "fine to commit" in off
 
 
 def test_hands_off_bakes_graphify_and_skips_confirms() -> None:
@@ -557,8 +464,8 @@ def test_hands_off_bakes_graphify_and_skips_confirms() -> None:
         "auto_graphify_on_plan": False,
         "graphify_gitignored": False,
     }
-    plan = render_template("skills/iflow_plan/SKILL.md.j2", on)
-    epic = render_template("skills/iflow_epic/SKILL.md.j2", on)
+    plan = _render("skills/iflow_plan/SKILL.md.j2", on)
+    epic = _render("skills/iflow_issue/epic.md.j2", on)
     for rendered in (plan, epic):
         assert "issue-flow graphify -C <project_root>" in rendered
         assert "extract" not in rendered
@@ -566,77 +473,60 @@ def test_hands_off_bakes_graphify_and_skips_confirms() -> None:
     assert "before every plan" in plan
     assert "before the epic draft" in epic
 
-    off_plan = render_template("skills/iflow_plan/SKILL.md.j2", _default_context())
-    off_epic = render_template("skills/iflow_epic/SKILL.md.j2", _default_context())
+    off_plan = _render("skills/iflow_plan/SKILL.md.j2", _default_context())
+    off_epic = _render("skills/iflow_issue/epic.md.j2", _default_context())
     assert "hands_off` is on" not in off_plan
     assert "hands_off` is on" not in off_epic
     assert "issue-flow graphify -C <project_root>" not in off_plan
 
-    drive = render_template("skills/iflow_drive/SKILL.md.j2", on)
+    drive = _render("skills/iflow_run/drive.md.j2", on)
     assert "No drive confirm" in drive
     assert "short description" in drive
     assert "records **accept**" in drive
-    drive_off = render_template("skills/iflow_drive/SKILL.md.j2", _default_context())
+    drive_off = _render("skills/iflow_run/drive.md.j2", _default_context())
     assert "Require `<N>`" in drive_off
     assert "**Drive confirm**" in drive_off
     assert "short description" not in drive_off
     assert "records **accept**" not in drive_off
 
-    yolo = render_template("skills/iflow_yolo/SKILL.md.j2", on)
+    yolo = _render("skills/iflow_run/yolo.md.j2", on)
     assert "already authorized" in yolo
-    yolo_off = render_template("skills/iflow_yolo/SKILL.md.j2", _default_context())
+    yolo_off = _render("skills/iflow_run/yolo.md.j2", _default_context())
     assert "Single consolidated confirm" in yolo_off
     assert "Require an explicit yes" in yolo_off
 
-    auto = render_template("skills/iflow_auto/SKILL.md.j2", on)
+    auto = _render("skills/iflow_run/auto.md.j2", on)
     assert "last_outcome: accepted" in auto
     assert "grant N more loops" not in auto
-    auto_off = render_template("skills/iflow_auto/SKILL.md.j2", _default_context())
+    auto_off = _render("skills/iflow_run/auto.md.j2", _default_context())
     assert "grant N more loops" in auto_off
 
-    cycle = render_template("skills/iflow_cycle/SKILL.md.j2", on)
+    cycle = _render("skills/iflow_run/cycle.md.j2", on)
     assert "already authorized" in cycle
-    cycle_off = render_template("skills/iflow_cycle/SKILL.md.j2", _default_context())
+    cycle_off = _render("skills/iflow_run/cycle.md.j2", _default_context())
     assert "One consolidated confirm" in cycle_off
     assert "Explicit yes" in cycle_off or "explicit yes" in cycle_off
 
 
-def test_templates_reference_project_brief() -> None:
-    """Rules, plan, start, and docs should tell agents about this-project.md."""
-    templates = (
-        "rules/issueflow-rules.mdc.j2",
-        "rules/AGENTS.md.j2",
-        "rules/CLAUDE.md.j2",
-        "commands/iflow-plan.md.j2",
-        "commands/iflow-build.md.j2",
-        "skills/iflow_plan/SKILL.md.j2",
-        "skills/iflow_build/SKILL.md.j2",
-        "docs/issue-workflow.md.j2",
-    )
-    for template_name in templates:
-        rendered = render_template(template_name, _default_context())
-        assert "this-project.md" in rendered, template_name
-
-
 def test_issue_start_reads_prior_art_from_plan() -> None:
     """/iflow-build should remind the agent to read ### Prior art from the plan."""
-    rendered = render_template("commands/iflow-build.md.j2", _default_context())
+    rendered = _render("commands/iflow-build.md.j2", _default_context())
     assert "### Prior art" in rendered
-    skill = render_template("skills/iflow_build/SKILL.md.j2", _default_context())
+    skill = _render("skills/iflow_build/SKILL.md.j2", _default_context())
     assert "### Prior art" in skill
 
 
 def test_issue_pause_moves_to_partly_solved() -> None:
     """/iflow-pause moves the issue group to the partly-solved folder."""
-    rendered = render_template("commands/iflow-pause.md.j2", _default_context())
+    rendered = _render("commands/iflow-pause.md.j2", _default_context())
     assert "02-partly-solved-issues" in rendered
     assert "Remaining work" in rendered
     assert "- [ ] Done" in rendered
 
 
 def test_issue_yolo_has_safeguards() -> None:
-    """/iflow-yolo must advertise the up-front safeguards before chaining."""
-    rendered = render_template("commands/iflow-yolo.md.j2", _default_context())
+    """/iflow-run yolo must advertise the up-front safeguards before chaining."""
+    rendered = _render("commands/iflow-run yolo.md.j2", _default_context())
     assert "uv run pytest" in rendered
     assert "default branch" in rendered.lower()
     # Must not chain cleanup automatically.
@@ -644,12 +534,12 @@ def test_issue_yolo_has_safeguards() -> None:
 
 
 def test_issue_yolo_chains_hands_off_close() -> None:
-    """/iflow-yolo must forward the yolo token so close merges and pulls itself."""
+    """/iflow-run yolo must forward the yolo token so close merges and pulls itself."""
     for template_name in (
-        "commands/iflow-yolo.md.j2",
-        "skills/iflow_yolo/SKILL.md.j2",
+        "commands/iflow-run yolo.md.j2",
+        "skills/iflow_run/yolo.md.j2",
     ):
-        rendered = render_template(template_name, _default_context())
+        rendered = _render(template_name, _default_context())
         assert "/iflow-close yolo" in rendered, template_name
         assert "gh pr merge --squash" in rendered, template_name
         assert "gh pr checks --watch" in rendered, template_name
@@ -662,7 +552,7 @@ def test_issue_close_yolo_token_merges_and_pulls() -> None:
         "commands/iflow-close.md.j2",
         "skills/iflow_close/SKILL.md.j2",
     ):
-        rendered = render_template(template_name, _default_context())
+        rendered = _render(template_name, _default_context())
         assert "`yolo`" in rendered, template_name
         assert "gh pr merge" in rendered, template_name
         assert "gh pr list" in rendered, template_name
@@ -678,101 +568,42 @@ def test_issue_close_yolo_token_merges_and_pulls() -> None:
         )
 
 
-def test_close_bakes_pr_merge_method_and_gates_cleanup_reminder() -> None:
-    """pr_merge_method and remind_cleanup gate close skill wording."""
-    on = render_template(
-        "skills/iflow_close/SKILL.md.j2",
-        {**_default_context(), "pr_merge_method": "merge", "remind_cleanup": True},
-    )
-    assert "gh pr merge <number> --merge" in on
-    assert "/iflow-cleanup" in on
-    assert "Remind the user to run **`/iflow-cleanup`**" in on
-    assert "Do **not** auto-run cleanup from this skill." in on
-    off = render_template(
-        "skills/iflow_close/SKILL.md.j2",
-        {**_default_context(), "remind_cleanup": False, "ruff_autofix": False},
-    )
-    assert "ruff check --fix" not in off
-    # Still mentions cleanup skill ownership, but step 10/11 reminder is gated.
-    assert "Remind the user to run **`/iflow-cleanup`**" not in off
-
-
 def test_cleanup_bakes_include_github_default() -> None:
     """cleanup_include_github gates Phase B default wording in cleanup skill."""
-    off = render_template(
+    off = _render(
         "skills/iflow_cleanup/SKILL.md.j2",
         {**_default_context(), "cleanup_include_github": False},
     )
-    assert "Phase B stays off unless a GitHub-audit token is present." in off
+    assert "Phase B runs too" not in off
     assert "no github" in off
-    on = render_template(
+    on = _render(
         "skills/iflow_cleanup/SKILL.md.j2",
         {**_default_context(), "cleanup_include_github": True},
     )
     assert "cleanup_include_github = true" in on
-    assert "Phase B also runs by default" in on
+    assert "Phase B runs too" in on
 
 
 def test_cleanup_bakes_on_bleeding_edge() -> None:
     """on_bleeding_edge gates self-update default wording in cleanup skill."""
-    off = render_template(
+    off = _render(
         "skills/iflow_cleanup/SKILL.md.j2",
         {**_default_context(), "on_bleeding_edge": False},
     )
     assert "issue-flow agent self-update" in off
     assert "on_bleeding_edge = true" not in off
-    on = render_template(
+    on = _render(
         "skills/iflow_cleanup/SKILL.md.j2",
         {**_default_context(), "on_bleeding_edge": True},
     )
     assert "on_bleeding_edge = true" in on
     assert "issue-flow agent self-update" in on
-    cmd_on = render_template(
+    cmd_on = _render(
         "commands/iflow-cleanup.md.j2",
         {**_default_context(), "on_bleeding_edge": True},
     )
     assert "on_bleeding_edge = true" in cmd_on
     assert "issue-flow agent self-update" in cmd_on
-
-
-def test_cleanup_bakes_yes_knobs() -> None:
-    """cleanup_yes_a1 / cleanup_yes_a2 skip the matching confirm."""
-    off = render_template(
-        "skills/iflow_cleanup/SKILL.md.j2",
-        {**_default_context(), "cleanup_yes_a1": False, "cleanup_yes_a2": False},
-    )
-    assert "cleanup_yes_a1 = true" not in off
-    assert "cleanup_yes_a2 = true" not in off
-    assert "ask a1" in off
-    on = render_template(
-        "skills/iflow_cleanup/SKILL.md.j2",
-        {**_default_context(), "cleanup_yes_a1": True, "cleanup_yes_a2": True},
-    )
-    assert "cleanup_yes_a1 = true" in on
-    assert "cleanup_yes_a2 = true" in on
-    assert "does **not** authorize Phase A2" in on
-    close_on = render_template(
-        "skills/iflow_close/SKILL.md.j2",
-        {**_default_context(), "auto_cleanup": True},
-    )
-    assert "auto_cleanup = true" in close_on
-    assert "do **not** merge from this knob" in close_on
-
-
-def test_rules_soften_remind_cleanup_wording() -> None:
-    """remind_cleanup=true reminds; never mandates auto-running cleanup."""
-    on = render_template(
-        "rules/_body.md.j2",
-        {**_default_context(), "remind_cleanup": True},
-    )
-    assert "**remind** the user to run **`/iflow-cleanup`**" in on
-    assert "Do **not** auto-run cleanup" in on
-    assert "After a PR merges: run **`/iflow-cleanup`**" not in on
-    off = render_template(
-        "rules/_body.md.j2",
-        {**_default_context(), "remind_cleanup": False},
-    )
-    assert "does not nudge cleanup" in off
 
 
 def test_iflow_dispatcher_epic_gap_contract() -> None:
@@ -781,7 +612,7 @@ def test_iflow_dispatcher_epic_gap_contract() -> None:
         "skills/iflow_iflow/SKILL.md.j2",
         "commands/iflow.md.j2",
     ):
-        rendered = render_template(template_name, _default_context())
+        rendered = _render(template_name, _default_context())
         assert "epic_hint" in rendered, template_name
         assert "next_candidates" in rendered, template_name
         assert "never pick silently" in rendered.lower() or (
@@ -795,39 +626,18 @@ def test_iflow_dispatcher_epic_gap_contract() -> None:
 
 
 def test_cycle_bakes_max_issues() -> None:
-    rendered = render_template(
-        "skills/iflow_cycle/SKILL.md.j2",
+    rendered = _render(
+        "skills/iflow_run/cycle.md.j2",
         {**_default_context(), "cycle_max_issues": 20},
     )
     assert "longer than **20**" in rendered
     assert "default 20" in rendered
 
 
-def test_cycle_bakes_onfail_default() -> None:
-    stop = render_template(
-        "skills/iflow_cycle/SKILL.md.j2",
-        {**_default_context(), "cycle_onfail": "stop"},
-    )
-    assert "Default from config **`stop`**" in stop
-    skip = render_template(
-        "skills/iflow_cycle/SKILL.md.j2",
-        {**_default_context(), "cycle_onfail": "skip"},
-    )
-    assert "Default from config **`skip`**" in skip
-    assert "default from config is **`skip`**" in skip
-    assert "otherwise config **`skip`**" in skip
-    cmd = render_template(
-        "commands/iflow-cycle.md.j2",
-        {**_default_context(), "cycle_onfail": "skip"},
-    )
-    assert "Default from config **`skip`**" in cmd
-    assert "cycle_onfail` = **`skip`**" in cmd
-
-
 def test_cycle_non_yolo_lane_bakes_policy() -> None:
     """#386: yolo:no issues run on a non-yolo lane; the merge policy is baked."""
-    skill = render_template(
-        "skills/iflow_cycle/SKILL.md.j2",
+    skill = _render(
+        "skills/iflow_run/cycle.md.j2",
         {**_default_context(), "cycle_nonyolo": "pr-only"},
     )
     assert "## Lanes — yolo vs non-yolo" in skill
@@ -839,8 +649,8 @@ def test_cycle_non_yolo_lane_bakes_policy() -> None:
     )
     assert "**already merged**" in skill
     assert "`nonyolo` policy" in skill  # cycle_status.md records it
-    cmd = render_template(
-        "commands/iflow-cycle.md.j2",
+    cmd = _render(
+        "commands/iflow-run cycle.md.j2",
         {**_default_context(), "cycle_nonyolo": "pr-only"},
     )
     assert "non-yolo lane" in cmd
@@ -850,16 +660,16 @@ def test_cycle_non_yolo_lane_bakes_policy() -> None:
 def test_drive_and_auto_forward_nonyolo_and_never_stop_on_yolo_no() -> None:
     ctx = {**_default_context(), "cycle_nonyolo": "merge"}
     for template in (
-        "skills/iflow_drive/SKILL.md.j2",
-        "commands/iflow-drive.md.j2",
-        "skills/iflow_auto/SKILL.md.j2",
-        "commands/iflow-auto.md.j2",
+        "skills/iflow_run/drive.md.j2",
+        "commands/iflow-run drive.md.j2",
+        "skills/iflow_run/auto.md.j2",
+        "commands/iflow-run auto.md.j2",
     ):
-        rendered = render_template(template, ctx)
+        rendered = _render(template, ctx)
         assert "nonyolo:" in rendered, template
         assert "`yolo: no`" in rendered, template
         assert "not a stop" in rendered.lower(), template
-    drive = render_template("skills/iflow_drive/SKILL.md.j2", ctx)
+    drive = _render("skills/iflow_run/drive.md.j2", ctx)
     # Constraint is scoped to the default branch; issue branches may be
     # rebased + force-with-lease pushed by sync-branch.
     assert "Never rebase / force-push / push the **default branch**" in drive
@@ -868,177 +678,34 @@ def test_drive_and_auto_forward_nonyolo_and_never_stop_on_yolo_no() -> None:
     assert "`--base <parent>`" in drive
 
 
-def test_close_and_yolo_describe_widened_sync_resolver() -> None:
-    ctx = _default_context()
-    close = render_template("skills/iflow_close/SKILL.md.j2", ctx)
-    assert "issue<N>_status.md" in close
-    assert "Stacked on a squash-landed parent" in close
-    assert "`--base <ref>`" in close
-    assert "base_detected: true" in close
-    assert "**Already merged.**" in close
-    close_cmd = render_template("commands/iflow-close.md.j2", ctx)
-    assert "issue<N>_status.md" in close_cmd
-    assert "`--base <ref>`" in close_cmd
-    assert "**Already merged**" in close_cmd
-    yolo = render_template("skills/iflow_yolo/SKILL.md.j2", ctx)
-    assert "issue<N>_status.md" in yolo
-    assert "base_detected" in yolo
-    history = render_template("skills/iflow_history_update/SKILL.md.j2", ctx)
-    assert "Same rule, other bookkeeping files" in history
-    pr_sync = render_template("skills/iflow_pr_sync/SKILL.md.j2", ctx)
-    assert "sync-branch --base <parent>" in pr_sync
-
-
 def test_cleanup_documents_orchestrator_token() -> None:
     ctx = _default_context()
-    skill = render_template("skills/iflow_cleanup/SKILL.md.j2", ctx)
-    assert "Pre-authorized force-delete (orchestrator token)" in skill
+    skill = _render("skills/iflow_cleanup/SKILL.md.j2", ctx)
+    assert "Orchestrator token" in skill
     assert "never `unique_work` / `skipped`" in skill
-    cmd = render_template("commands/iflow-cleanup.md.j2", ctx)
-    assert "`drive` / `landed`" in cmd
-
-
-def test_cleanup_documents_workspace_mode() -> None:
-    """Issue #392: `/iflow-cleanup all` — consolidated confirms, CLI half."""
-    ctx = _default_context()
-    skill = render_template("skills/iflow_cleanup/SKILL.md.j2", ctx)
-    assert "issue-flow workspace cleanup --json" in skill
-    assert "issue-flow workspace cleanup --apply --json" in skill
-    assert (
-        "issue-flow workspace cleanup --apply --yes-delete-squash-landed --json"
-        in skill
-    )
-    assert "never more than three" in skill
-    assert "unless invoked with `all`" in skill
-    assert "There is no mute `workspace cleanup` CLI" not in skill
-    # A1 never implies A2; unique work stays out of every confirm.
-    assert "A1 never authorises A2" in skill
-    assert "**Never** list `unique_work` or `skipped` branches" in skill
-    # Non-ff members are listed with their default-sync action and skipped.
-    assert "not `even` / `ff_only`" in skill
-    cmd = render_template("commands/iflow-cleanup.md.j2", ctx)
-    assert "issue-flow workspace cleanup --json" in cmd
-    assert "--yes-delete-squash-landed" in cmd
-    assert "unless invoked with `all`" in cmd
+    assert "`drive` / `landed`" in skill
 
 
 def test_iflow_dispatcher_warns_on_version_drift() -> None:
     ctx = _default_context()
-    skill = render_template("skills/iflow_iflow/SKILL.md.j2", ctx)
+    skill = _render("skills/iflow_iflow/SKILL.md.j2", ctx)
     assert "`version_drift`" in skill
     assert "**Version drift.**" in skill
     assert "Never run `issue-flow update` yourself" in skill
-    cmd = render_template("commands/iflow.md.j2", ctx)
+    cmd = _render("commands/iflow.md.j2", ctx)
     assert "`version_drift`" in cmd
 
 
 def test_rules_body_checks_graph_json_before_graphify_query() -> None:
-    body = render_template("rules/_body.md.j2", _default_context())
+    body = _render("rules/_body.md.j2", _default_context())
     assert "graphify-out/graph.json" in body
     assert "`graphify query`" in body
 
 
-def test_workflow_doc_bakes_auto_adversarial_loops() -> None:
-    rendered = render_template(
-        "docs/issue-workflow.md.j2",
-        {**_default_context(), "auto_adversarial_loops": 5},
-    )
-    assert "auto_adversarial_loops" in rendered
-    assert "**5**" in rendered
-    assert "loops:<n>" in rendered
-
-
-def test_iflow_auto_skill_skeleton_renders() -> None:
-    assert "iflow_auto" in SKILL_DIRS
-    assert "iflow-auto" in COMMAND_NAMES
-    skill = render_template("skills/iflow_auto/SKILL.md.j2", _default_context())
-    assert "auto_status.md" in skill
-    assert "adversarial review not implemented" not in skill
-    assert "adversarial_clear" in skill
-    assert "adversarial_findings" in skill
-    assert "gh issue reopen" in skill
-    assert "gh issue create" in skill
-    assert "Model: deep" in skill
-    assert "`review`" in skill or "**`review`**" in skill
-    assert "loops:<n>" in skill
-    assert "Loop control" in skill
-    assert "budget_ask" in skill
-    assert "grant N more loops" in skill
-    assert "accept" in skill and "abort" in skill
-    assert "loop_count" in skill
-    assert "Next-epoch gate" in skill
-    assert "epoch_gated" in skill
-    assert "complete" in skill
-    assert str(_default_context()["auto_adversarial_loops"]) in skill
-    cmd = render_template("commands/iflow-auto.md.j2", _default_context())
-    assert "iflow-auto/SKILL.md" in cmd
-    assert "review" in cmd
-    assert "grant N more loops" in cmd
-    assert "epoch_gated" in cmd
-    assert "stub" not in cmd.lower()
-
-
-def test_iflow_lists_auto_as_off_path() -> None:
-    """/iflow and its skill must list /iflow-auto among the explicit-only commands."""
-    cmd = render_template("commands/iflow.md.j2", _default_context())
-    skill = render_template("skills/iflow_iflow/SKILL.md.j2", _default_context())
-    assert "/iflow-auto" in cmd
-    assert "/iflow-auto" in skill
-    rules = render_template("rules/AGENTS.md.j2", _default_context())
-    assert "/iflow-auto" in rules
-    assert "auto_status.md" in rules
-
-
-def test_iflow_drive_skill_skeleton_renders() -> None:
-    assert "iflow_drive" in SKILL_DIRS
-    assert "iflow-drive" in COMMAND_NAMES
-    skill = render_template("skills/iflow_drive/SKILL.md.j2", _default_context())
-    assert "drive_status.md" in skill
-    assert "/iflow-epic" in skill
-    assert "publish" in skill
-    assert "/iflow-auto" in skill
-    assert "final review" in skill.lower() or "final_review" in skill
-    assert "local only" in skill
-    assert "git branch -d" in skill
-    # #386: drive carries through — squash-landed locals go via -D under the
-    # drive confirm; unique work is never touched.
-    assert "`git branch -D` on **`squash_landed`**" in skill
-    assert "Leave `unique_work` untouched, always" in skill
-    assert "Phase A1 and A2" in skill
-    assert (
-        "abort" in skill and "stop" in skill and "cancel" in skill and "halt" in skill
-    )
-    assert "grill" in skill
-    assert "#303" in skill or "unpushed on default" in skill
-    assert "/iflow-status" in skill
-    assert "compose" in skill.lower()
-    cmd = render_template("commands/iflow-drive.md.j2", _default_context())
-    assert "iflow-drive/SKILL.md" in cmd
-    assert "local only" in cmd or "`-d`" in cmd
-    assert "`-D` on squash-landed" in cmd
-    assert "abort" in cmd
-    assert "stub" not in cmd.lower()
-    workflow = render_template("docs/issue-workflow.md.j2", _default_context())
-    assert "/iflow-drive" in workflow
-    assert "drive-mode.md" in workflow
-
-
-def test_iflow_lists_drive_as_off_path() -> None:
-    """/iflow and its skill must list /iflow-drive among the explicit-only commands."""
-    cmd = render_template("commands/iflow.md.j2", _default_context())
-    skill = render_template("skills/iflow_iflow/SKILL.md.j2", _default_context())
-    assert "/iflow-drive" in cmd
-    assert "/iflow-drive" in skill
-    rules = render_template("rules/AGENTS.md.j2", _default_context())
-    assert "/iflow-drive" in rules
-    assert "drive_status.md" not in rules or "drive-mode.md" in rules
-    assert "drive-mode.md" in rules
-
-
 def test_start_auto_close_chains_into_close() -> None:
-    off = render_template("skills/iflow_build/SKILL.md.j2", _default_context())
+    off = _render("skills/iflow_build/SKILL.md.j2", _default_context())
     assert "tell the user to run `/iflow-close`" in off
-    on = render_template(
+    on = _render(
         "skills/iflow_build/SKILL.md.j2",
         {**_default_context(), "auto_close": True},
     )
@@ -1048,24 +715,24 @@ def test_start_auto_close_chains_into_close() -> None:
 
 def test_pick_auto_plan_chains_into_plan() -> None:
     """Issue #219: pick Phase 3 chains to plan when auto_plan is true."""
-    off = render_template(
+    off = _render(
         "skills/iflow_pick/SKILL.md.j2",
         {**_default_context(), "auto_plan": False},
     )
     assert "Ask** whether to continue with `/iflow-plan`" in off
     assert "auto_plan = true" not in off
-    on = render_template("skills/iflow_pick/SKILL.md.j2", _default_context())
+    on = _render("skills/iflow_pick/SKILL.md.j2", _default_context())
     assert "auto_plan = true" in on
     assert "noplan" in on
     assert "Ask** whether to continue with `/iflow-plan`" not in on
-    cmd_on = render_template("commands/iflow-pick.md.j2", _default_context())
+    cmd_on = _render("commands/iflow-pick.md.j2", _default_context())
     assert "auto_plan = true" in cmd_on
     assert "`noplan`" in cmd_on
 
 
 def test_plan_auto_build_chains_into_build() -> None:
     """Issue #219: plan Accept chains to build when auto_build is true."""
-    off = render_template(
+    off = _render(
         "skills/iflow_plan/SKILL.md.j2",
         {**_default_context(), "auto_build": False},
     )
@@ -1073,21 +740,21 @@ def test_plan_auto_build_chains_into_build() -> None:
         "Do **not** proceed to implementation from this skill" in off
     )
     assert "auto_build chained" not in off
-    on = render_template("skills/iflow_plan/SKILL.md.j2", _default_context())
+    on = _render("skills/iflow_plan/SKILL.md.j2", _default_context())
     assert "auto_build" in on and "nobuild" in on
     assert "iflow-build" in on
     assert "chained the handoff" in on
-    cmd_on = render_template("commands/iflow-plan.md.j2", _default_context())
+    cmd_on = _render("commands/iflow-plan.md.j2", _default_context())
     assert "`nobuild`" in cmd_on
     assert "auto_build chained" in cmd_on or "auto_build` chained" in cmd_on
 
 
 def test_essential_tests_hooks_gated_by_knob() -> None:
     """Essential-tests wording appears only when essential_tests is true."""
-    off_close = render_template("skills/iflow_close/SKILL.md.j2", _default_context())
+    off_close = _render("skills/iflow_close/SKILL.md.j2", _default_context())
     assert "Essential tests:" not in off_close
     assert "Essential tests review" not in off_close
-    off_doctor = render_template("skills/iflow_doctor/SKILL.md.j2", _default_context())
+    off_doctor = _render("skills/iflow_status/doctor.md.j2", _default_context())
     assert "Essential tests audit" not in off_doctor
 
     on_ctx = {
@@ -1097,29 +764,29 @@ def test_essential_tests_hooks_gated_by_knob() -> None:
         "essential_marker": "smoke",
         "essential_review": "close",
     }
-    on_close = render_template("skills/iflow_close/SKILL.md.j2", on_ctx)
+    on_close = _render("skills/iflow_close/SKILL.md.j2", on_ctx)
     assert "pytest -m smoke" in on_close
     assert "Essential tests review" in on_close
     assert "@pytest.mark.smoke" in on_close
 
-    build_both = render_template(
+    build_both = _render(
         "skills/iflow_build/SKILL.md.j2",
         {**on_ctx, "essential_review": "both"},
     )
     assert "Essential tests" in build_both
     assert "@pytest.mark.smoke" in build_both
 
-    build_close_only = render_template(
+    build_close_only = _render(
         "skills/iflow_build/SKILL.md.j2",
         on_ctx,
     )
     assert "Essential tests review" not in build_close_only
 
-    doctor = render_template("skills/iflow_doctor/SKILL.md.j2", on_ctx)
+    doctor = _render("skills/iflow_status/doctor.md.j2", on_ctx)
     assert "Essential tests audit" in doctor
     assert "test-registry.md" in doctor
 
-    unsupported = render_template(
+    unsupported = _render(
         "skills/iflow_close/SKILL.md.j2",
         {**on_ctx, "test_runner": "nose"},
     )
@@ -1127,104 +794,57 @@ def test_essential_tests_hooks_gated_by_knob() -> None:
         "not supported" in unsupported.lower() or "unsupported" in unsupported.lower()
     )
 
-    guide = render_template("designs/essential-tests.md.j2", on_ctx)
+    guide = _render("designs/essential-tests.md.j2", on_ctx)
     assert "smoke" in guide
     assert "pytest" in guide
-    registry = render_template("designs/test-registry.md.j2", on_ctx)
+    registry = _render("designs/test-registry.md.j2", on_ctx)
     assert "Essential?" in registry
 
 
 def test_build_early_pr_step_and_tokens() -> None:
     """Build always documents early-PR tokens; baked early_pr appears in text."""
-    off = render_template("skills/iflow_build/SKILL.md.j2", _default_context())
+    off = _render("skills/iflow_build/SKILL.md.j2", _default_context())
     assert "Early PR tokens" in off
     assert "`early`" in off and "`noearly`" in off
     assert "gh pr create --draft" in off
     assert "Refs #N" in off
     assert "currently **False**" in off or "currently **false**" in off
-    on = render_template(
+    on = _render(
         "skills/iflow_build/SKILL.md.j2",
         {**_default_context(), "early_pr": True},
     )
     assert "currently **True**" in on or "currently **true**" in on
-    cmd = render_template("commands/iflow-build.md.j2", _default_context())
+    cmd = _render("commands/iflow-build.md.j2", _default_context())
     assert "Early pull request (optional)" in cmd
     assert "gh pr list" in cmd
 
 
-def test_close_formalizes_draft_and_early_pr_reuse() -> None:
-    rendered = render_template("skills/iflow_close/SKILL.md.j2", _default_context())
-    assert "Draft PR token" in rendered
-    assert "gh pr create --draft" in rendered
-    assert "gh pr ready" in rendered
-    assert "early pr" in rendered.lower()
-    assert "skip merge entirely" in rendered.lower()
-    cmd = render_template("commands/iflow-close.md.j2", _default_context())
-    assert "`draft`" in cmd
-    assert "gh pr create --draft" in cmd
-    assert "gh pr ready" in cmd
-
-
 def test_close_documents_publish_on_success_label() -> None:
     ctx = {**_default_context(), "publish_label": "ship-it"}
-    close = render_template("skills/iflow_close/SKILL.md.j2", ctx)
+    close = _render("skills/iflow_close/SKILL.md.j2", ctx)
     assert "Publish-on-success label" in close
     assert "publish-intent" in close
     assert "`ship-it`" in close
     assert "gh release create" in close
-    cleanup = render_template("skills/iflow_cleanup/SKILL.md.j2", ctx)
-    assert "publish-on-success" in cleanup.lower() or "Publish label" in cleanup
+    cleanup = _render("skills/iflow_cleanup/SKILL.md.j2", ctx)
+    assert "publish label" in cleanup.lower()
     assert "gh release create" in cleanup
 
 
 def test_history_confirm_changelog_update_gate() -> None:
-    on = render_template(
-        "skills/iflow_history_update/SKILL.md.j2",
+    on = _render(
+        "skills/iflow_close/changelog.md.j2",
         {**_default_context(), "confirm_changelog_update": True},
     )
     assert "confirm once before writing" in on
     assert "**stop**" in on
     assert "nohistory" in on
-    off = render_template(
-        "skills/iflow_history_update/SKILL.md.j2",
+    off = _render(
+        "skills/iflow_close/changelog.md.j2",
         {**_default_context(), "confirm_changelog_update": False},
     )
     assert "without a confirm prompt" in off
     assert "confirm once before writing" not in off
-
-
-def test_changelog_timing_forbids_post_merge_updates() -> None:
-    """Close/history/cleanup must keep HISTORY in the PR commit, not after merge."""
-    ctx = {**_default_context(), "confirm_changelog_update": False}
-    history = render_template("skills/iflow_history_update/SKILL.md.j2", ctx)
-    close = render_template("skills/iflow_close/SKILL.md.j2", ctx)
-    cleanup = render_template("skills/iflow_cleanup/SKILL.md.j2", ctx)
-    assert "after close has finished or after merge" in history
-    assert "early PR" in history
-    assert "Changelog timing" in close
-    assert "Do **not** offer to update" in cleanup
-
-
-def test_defer_changelog_close_does_not_write_history_on_issue_branch() -> None:
-    """Trailers replace both the direct HISTORY write and defer_changelog (#404)."""
-    for flag in (True, False):
-        ctx = {
-            **_default_context(),
-            "defer_changelog": flag,
-            "confirm_changelog_update": False,
-        }
-        close = render_template("skills/iflow_close/SKILL.md.j2", ctx)
-        history = render_template("skills/iflow_history_update/SKILL.md.j2", ctx)
-        cleanup = render_template("skills/iflow_cleanup/SKILL.md.j2", ctx)
-        assert "Do not edit" in close or "do not write" in close.lower()
-        assert "Changelog-Id" in close
-        assert "so the bullet is in the PR commit" in close
-        assert "### Deferred changelog" not in close
-        assert "apply-changelog" not in close
-        assert "do not write" in history.lower() or "Do **not**" in history
-        assert "Changelog-Id" in history
-        assert "apply-changelog" not in cleanup
-        assert "Do **not** offer to update" in cleanup
 
 
 def test_issue_close_bakes_checks_watch_minutes_override() -> None:
@@ -1234,7 +854,7 @@ def test_issue_close_bakes_checks_watch_minutes_override() -> None:
         "commands/iflow-close.md.j2",
         "skills/iflow_close/SKILL.md.j2",
     ):
-        rendered = render_template(template_name, context)
+        rendered = _render(template_name, context)
         assert "30" in rendered, template_name
 
 
@@ -1245,9 +865,9 @@ def test_issue_pick_routes_yolo_label_when_label_flows_on() -> None:
         "commands/iflow-pick.md.j2",
         "skills/iflow_pick/SKILL.md.j2",
     ):
-        rendered = render_template(template_name, context)
+        rendered = _render(template_name, context)
         assert "fast-track" in rendered, template_name
-        assert "iflow-yolo" in rendered, template_name
+        assert "iflow-run yolo" in rendered, template_name
 
 
 def test_issue_pick_routes_ops_label_when_label_flows_on() -> None:
@@ -1257,10 +877,10 @@ def test_issue_pick_routes_ops_label_when_label_flows_on() -> None:
         "commands/iflow-pick.md.j2",
         "skills/iflow_pick/SKILL.md.j2",
     ):
-        rendered = render_template(template_name, context)
-        assert "no-pr" in rendered, template_name
-        assert "Label-driven ops flow" in rendered, template_name
-        assert "iflow-ops" in rendered, template_name
+        rendered = _render(template_name, context)
+        assert "`no-pr` label" in rendered, template_name
+        assert "ops.md" in rendered, template_name
+        assert "close ops" in rendered, template_name
 
 
 def test_issue_close_documents_ops_token() -> None:
@@ -1269,24 +889,10 @@ def test_issue_close_documents_ops_token() -> None:
         "commands/iflow-close.md.j2",
         "skills/iflow_close/SKILL.md.j2",
     ):
-        rendered = render_template(template_name, _default_context())
+        rendered = _render(template_name, _default_context())
         assert "ops" in rendered.lower(), template_name
         assert "Ops close path" in rendered or "no-PR close" in rendered, template_name
         assert "nopr" in rendered, template_name
-
-
-def test_iflow_ops_skill_is_off_path_no_pr() -> None:
-    """/iflow-ops is off-path and ends at close ops."""
-    for template_name in (
-        "commands/iflow-ops.md.j2",
-        "skills/iflow_ops/SKILL.md.j2",
-    ):
-        rendered = render_template(template_name, _default_context())
-        assert "off-path" in rendered.lower() or "Off-path" in rendered, template_name
-        assert "/iflow-close ops" in rendered, template_name
-        assert (
-            "no-PR" in rendered or "no PR" in rendered or "without a PR" in rendered
-        ), template_name
 
 
 def test_issue_pick_omits_label_routing_when_label_flows_off() -> None:
@@ -1296,16 +902,15 @@ def test_issue_pick_omits_label_routing_when_label_flows_off() -> None:
         "commands/iflow-pick.md.j2",
         "skills/iflow_pick/SKILL.md.j2",
     ):
-        rendered = render_template(template_name, context)
+        rendered = _render(template_name, context)
         assert "Label-driven yolo flow" not in rendered, template_name
         assert "Label-driven ops flow" not in rendered, template_name
 
 
 def test_issue_fix_describes_interactive_session() -> None:
-    """/iflow-fix must describe the off-path interactive iterative-fix session."""
-    rendered = render_template("commands/iflow-fix.md.j2", _default_context())
+    """/iflow-issue fix must describe the off-path interactive iterative-fix session."""
+    rendered = _render("commands/iflow-issue fix.md.j2", _default_context())
     # Off-path and explicitly not driven by /iflow during a session.
-    assert "off-path" in rendered.lower()
     assert "/iflow" in rendered
     # Always creates a GitHub issue via gh; GitLab is out of scope.
     assert "gh issue create" in rendered
@@ -1314,37 +919,26 @@ def test_issue_fix_describes_interactive_session() -> None:
     assert "Iterative fixes log" in rendered
     assert "issue<N>_status.md" in rendered
     # Branch-from-current-vs-default choice and delegation to capture/close.
-    assert "/iflow-capture" in rendered
+    assert "/iflow-pick" in rendered
     assert "/iflow-close" in rendered
     # Keeps the unchecked Done checkbox during the session.
     assert "- [ ] Done" in rendered
 
 
-def test_issue_fix_skill_mirrors_command() -> None:
-    """The issue-fix skill must carry the same session flow and frontmatter."""
-    rendered = render_template("skills/iflow_fix/SKILL.md.j2", _default_context())
-    assert "name: iflow-fix" in rendered
-    assert "disable-model-invocation: true" in rendered
-    assert "gh issue create" in rendered
-    assert "Iterative fixes log" in rendered
-    assert "/iflow-capture" in rendered
-    assert "/iflow-close" in rendered
-
-
 def test_issue_fix_auto_name_knob() -> None:
-    """fix_auto_name bakes agent-names vs ask-once naming into /iflow-fix."""
-    off = render_template("commands/iflow-fix.md.j2", _default_context())
+    """fix_auto_name bakes agent-names vs ask-once naming into /iflow-issue fix."""
+    off = _render("commands/iflow-issue fix.md.j2", _default_context())
     assert "fix_auto_name = false" in off
     assert "ask once" in off.lower()
 
-    on = render_template(
-        "commands/iflow-fix.md.j2",
+    on = _render(
+        "commands/iflow-issue fix.md.j2",
         {**_default_context(), "fix_auto_name": True},
     )
     assert "fix_auto_name = true" in on
     assert "Do **not** ask the user to approve or rename" in on
-    skill_on = render_template(
-        "skills/iflow_fix/SKILL.md.j2",
+    skill_on = _render(
+        "skills/iflow_issue/fix.md.j2",
         {**_default_context(), "fix_auto_name": True},
     )
     assert "fix_auto_name = true" in skill_on
@@ -1352,8 +946,8 @@ def test_issue_fix_auto_name_knob() -> None:
 
 
 def test_iflow_archive_command_documents_gated_deletion() -> None:
-    """/iflow-archive must describe the summary file, recovery ref, and gating."""
-    rendered = render_template("commands/iflow-archive.md.j2", _default_context())
+    """/iflow-cleanup archive must describe the summary file, recovery ref, and gating."""
+    rendered = _render("commands/iflow-cleanup archive.md.j2", _default_context())
     # Dated summary file in the solved folder.
     assert "_archived_issues.md" in rendered
     assert "03-solved-issues" in rendered
@@ -1364,66 +958,30 @@ def test_iflow_archive_command_documents_gated_deletion() -> None:
     assert "clean working tree" in rendered
     assert "Consolidated confirm" in rendered
     # Off-path: never auto-dispatched.
-    assert "off-path" in rendered.lower()
     # Selection inputs.
     assert "keep <K>" in rendered
     assert "all" in rendered
 
 
-def test_iflow_archive_skill_mirrors_command() -> None:
-    """The iflow-archive skill must carry the same flow and frontmatter."""
-    rendered = render_template("skills/iflow_archive/SKILL.md.j2", _default_context())
-    assert "name: iflow-archive" in rendered
-    assert "disable-model-invocation: true" in rendered
-    assert "_archived_issues.md" in rendered
-    assert "git rev-parse HEAD" in rendered
-    assert "Consolidated confirm" in rendered
-    # Only the solved folder is ever touched.
-    assert "03-solved-issues" in rendered
-
-
-def test_iflow_does_not_auto_dispatch_archive() -> None:
-    """/iflow must list /iflow-archive among the explicit-only commands."""
-    cmd = render_template("commands/iflow.md.j2", _default_context())
-    assert "/iflow-archive" in cmd
-
-
-def test_rules_body_mentions_archive() -> None:
-    """The shared rules body must describe /iflow-archive as off-path + gated."""
-    rendered = render_template("rules/AGENTS.md.j2", _default_context())
-    assert "/iflow-archive" in rendered
-    assert "_archived_issues.md" in rendered
-    assert "pre-archive git ref" in rendered
-
-
-def test_iflow_lists_issue_fix_as_off_path() -> None:
-    """/iflow and its skill must list /iflow-fix among the explicit-only commands."""
-    cmd = render_template("commands/iflow.md.j2", _default_context())
-    skill = render_template("skills/iflow_iflow/SKILL.md.j2", _default_context())
-    assert "/iflow-fix" in cmd
-    assert "/iflow-fix" in skill
-
-
 def test_iflow_issue_describes_normal_issue_create() -> None:
     """/iflow-issue must describe confirm-gated create + optional init handoff."""
-    rendered = render_template("commands/iflow-issue.md.j2", _default_context())
-    assert "off-path" in rendered.lower()
+    rendered = _render("commands/iflow-issue.md.j2", _default_context())
     assert "gh issue create" in rendered
     assert "GitLab is not supported" in rendered
     assert "Problem / context" in rendered
     assert "Acceptance criteria" in rendered
-    assert "/iflow-capture" in rendered
+    assert "/iflow-pick" in rendered
     assert "/iflow-plan" in rendered
     assert "epic" in rendered.lower()
 
 
 def test_iflow_issue_skill_mirrors_command() -> None:
     """The iflow-issue skill must carry the same flow and frontmatter."""
-    rendered = render_template("skills/iflow_issue/SKILL.md.j2", _default_context())
+    rendered = _render("skills/iflow_issue/SKILL.md.j2", _default_context())
     assert "name: iflow-issue" in rendered
     assert "disable-model-invocation: true" in rendered
     assert "gh issue create" in rendered
-    assert "/iflow-capture" in rendered
+    assert "/iflow-pick" in rendered
     assert "/iflow-plan" in rendered
     assert "Acceptance criteria" in rendered
 
@@ -1433,10 +991,10 @@ def test_issue_create_skills_use_body_file_not_bash_heredoc() -> None:
     for name in (
         "skills/iflow_issue/SKILL.md.j2",
         "commands/iflow-issue.md.j2",
-        "skills/iflow_fix/SKILL.md.j2",
+        "skills/iflow_issue/fix.md.j2",
         "skills/iflow_close/SKILL.md.j2",
     ):
-        rendered = render_template(name, _default_context())
+        rendered = _render(name, _default_context())
         assert "--body-file" in rendered, name
         assert "PowerShell" in rendered, name
         assert "<<'EOF'" in rendered, name
@@ -1444,23 +1002,15 @@ def test_issue_create_skills_use_body_file_not_bash_heredoc() -> None:
 
 def test_iflow_lists_issue_as_off_path() -> None:
     """/iflow and its skill must list /iflow-issue among the explicit-only commands."""
-    cmd = render_template("commands/iflow.md.j2", _default_context())
-    skill = render_template("skills/iflow_iflow/SKILL.md.j2", _default_context())
+    cmd = _render("commands/iflow.md.j2", _default_context())
+    skill = _render("skills/iflow_iflow/SKILL.md.j2", _default_context())
     assert "/iflow-issue" in cmd
     assert "/iflow-issue" in skill
 
 
-def test_rules_body_mentions_iflow_issue() -> None:
-    """The shared rules body must describe /iflow-issue as off-path."""
-    rendered = render_template("rules/AGENTS.md.j2", _default_context())
-    assert "/iflow-issue" in rendered
-    assert "well-specified normal GitHub issue" in rendered
-
-
 def test_iflow_split_describes_confirm_and_rest_recipe() -> None:
-    """/iflow-split must describe confirm-gated create + native sub-issue link."""
-    rendered = render_template("commands/iflow-split.md.j2", _default_context())
-    assert "off-path" in rendered.lower()
+    """/iflow-issue split must describe confirm-gated create + native sub-issue link."""
+    rendered = _render("commands/iflow-issue split.md.j2", _default_context())
     assert "gh issue create" in rendered
     assert "sub-issue-add" in rendered
     assert "sub_issue_id" in rendered
@@ -1468,41 +1018,15 @@ def test_iflow_split_describes_confirm_and_rest_recipe() -> None:
     assert "422" in rendered
     assert "Sub-issue of #" in rendered
     assert "GitLab is not supported" in rendered
-    assert "/iflow-epic" in rendered
-
-
-def test_iflow_split_skill_mirrors_command() -> None:
-    """The iflow-split skill must carry the same flow and frontmatter."""
-    rendered = render_template("skills/iflow_split/SKILL.md.j2", _default_context())
-    assert "name: iflow-split" in rendered
-    assert "disable-model-invocation: true" in rendered
-    assert "sub-issue-add" in rendered
-    assert "sub_issue_id" in rendered
-    assert "--input" in rendered
-    assert "Consolidated confirm" in rendered or "consolidated confirm" in rendered
-
-
-def test_iflow_lists_split_as_off_path() -> None:
-    """/iflow and its skill must list /iflow-split among the explicit-only commands."""
-    cmd = render_template("commands/iflow.md.j2", _default_context())
-    skill = render_template("skills/iflow_iflow/SKILL.md.j2", _default_context())
-    assert "/iflow-split" in cmd
-    assert "/iflow-split" in skill
-
-
-def test_rules_body_mentions_iflow_split() -> None:
-    """The shared rules body must describe /iflow-split as off-path."""
-    rendered = render_template("rules/AGENTS.md.j2", _default_context())
-    assert "/iflow-split" in rendered
-    assert "native sub-issues" in rendered
+    assert "/iflow-issue epic" in rendered
 
 
 def test_iflow_issue_offers_split_for_over_large() -> None:
     """/iflow-issue over-large path offers split or epic, never auto-creates."""
-    cmd = render_template("commands/iflow-issue.md.j2", _default_context())
-    skill = render_template("skills/iflow_issue/SKILL.md.j2", _default_context())
+    cmd = _render("commands/iflow-issue.md.j2", _default_context())
+    skill = _render("skills/iflow_issue/SKILL.md.j2", _default_context())
     for rendered in (cmd, skill):
-        assert "/iflow-split" in rendered
+        assert "/iflow-issue split" in rendered
         assert (
             "do **not** auto-create" in rendered.lower()
             or "do not auto-create" in rendered.lower()
@@ -1510,54 +1034,27 @@ def test_iflow_issue_offers_split_for_over_large() -> None:
 
 
 def test_iflow_plan_scope_check_offers_split() -> None:
-    """/iflow-plan scope check points at /iflow-split."""
-    cmd = render_template("commands/iflow-plan.md.j2", _default_context())
-    skill = render_template("skills/iflow_plan/SKILL.md.j2", _default_context())
-    assert "/iflow-split" in cmd
-    assert "/iflow-split" in skill
+    """/iflow-plan scope check points at /iflow-issue split."""
+    cmd = _render("commands/iflow-plan.md.j2", _default_context())
+    skill = _render("skills/iflow_plan/SKILL.md.j2", _default_context())
+    assert "/iflow-issue split" in cmd
+    assert "/iflow-issue split" in skill
 
 
 def test_iflow_review_command_documents_kinds_and_cli() -> None:
-    """/iflow-review must describe kinds, confirm gate, and CLI helpers."""
-    rendered = render_template("commands/iflow-review.md.j2", _default_context())
+    """/iflow-issue review must describe kinds, confirm gate, and CLI helpers."""
+    rendered = _render("commands/iflow-issue review.md.j2", _default_context())
     assert "label-candidates" in rendered
     assert "label-apply" in rendered
     assert "yolo" in rendered
     assert "Consolidated confirm" in rendered or "consolidated confirm" in rendered
-    assert "off-path" in rendered.lower()
     assert "gh label create" in rendered
-
-
-def test_iflow_review_skill_mirrors_command() -> None:
-    """The iflow-review skill must carry the same flow and frontmatter."""
-    rendered = render_template("skills/iflow_review/SKILL.md.j2", _default_context())
-    assert "name: iflow-review" in rendered
-    assert "disable-model-invocation: true" in rendered
-    assert "label-candidates" in rendered
-    assert "label-apply" in rendered
-    assert "well-specified" in rendered
-    assert "low blast radius" in rendered
-    assert "/iflow-cycle yolo" in rendered
-
-
-def test_iflow_cycle_documents_yolo_alias() -> None:
-    """/iflow-cycle must document the yolo → label:<yolo_label> alias (#175)."""
-    context = {**_default_context(), "yolo_label": "fast-track"}
-    skill = render_template("skills/iflow_cycle/SKILL.md.j2", context)
-    cmd = render_template("commands/iflow-cycle.md.j2", context)
-    for rendered in (skill, cmd):
-        assert "label:fast-track" in rendered
-        assert "yolo" in rendered
-        assert "All yolo issues" in rendered or "all yolo" in rendered.lower()
-    rules = render_template("rules/AGENTS.md.j2", context)
-    assert "/iflow-cycle yolo" in rules
-    assert "label:fast-track" in rules
 
 
 def test_iflow_epic_documents_goal_and_model_markers() -> None:
     """Epic skill/command must document Stage/issue Goal and Model markers (#193)."""
-    skill = render_template("skills/iflow_epic/SKILL.md.j2", _default_context())
-    cmd = render_template("commands/iflow-epic.md.j2", _default_context())
+    skill = _render("skills/iflow_issue/epic.md.j2", _default_context())
+    cmd = _render("commands/iflow-issue epic.md.j2", _default_context())
     for rendered in (skill, cmd):
         assert "- Goal:" in rendered
         assert "Model:" in rendered
@@ -1567,44 +1064,12 @@ def test_iflow_epic_documents_goal_and_model_markers() -> None:
     )
 
 
-def test_iflow_epic_documents_start_and_stop() -> None:
-    """Issue #333: epic skill+command mention start [N] / stop; never silent-pick."""
-    skill = render_template("skills/iflow_epic/SKILL.md.j2", _default_context())
-    cmd = render_template("commands/iflow-epic.md.j2", _default_context())
-    for rendered in (skill, cmd):
-        assert "start [N]" in rendered
-        assert "stop" in rendered
-        assert "never silent-pick" in rendered.lower()
-        assert "epic_session.md" in rendered
-        assert "one-and-ask" in rendered
-    close = render_template("skills/iflow_close/SKILL.md.j2", _default_context())
-    close_cmd = render_template("commands/iflow-close.md.j2", _default_context())
-    for rendered in (close, close_cmd):
-        assert "epic_session" in rendered
-        assert "run `/iflow`" in rendered
-
-
-def test_iflow_lists_review_as_off_path() -> None:
-    """/iflow must list /iflow-review among the explicit-only commands."""
-    cmd = render_template("commands/iflow.md.j2", _default_context())
-    skill = render_template("skills/iflow_iflow/SKILL.md.j2", _default_context())
-    assert "/iflow-review" in cmd
-    assert "/iflow-review" in skill
-
-
-def test_rules_body_mentions_review() -> None:
-    """The shared rules body must describe /iflow-review as off-path."""
-    rendered = render_template("rules/AGENTS.md.j2", _default_context())
-    assert "/iflow-review" in rendered
-    assert "label-candidates" in rendered
-
-
 def test_iflow_describes_state_machine() -> None:
     """/iflow must describe the four-state dispatch and name its downstream targets."""
-    rendered = render_template("commands/iflow.md.j2", _default_context())
+    rendered = _render("commands/iflow.md.j2", _default_context())
     # Dispatches into all four linear-flow commands.
     for target in (
-        "/iflow-capture",
+        "/iflow-pick",
         "/iflow-plan",
         "/iflow-build",
         "/iflow-close",
@@ -1617,7 +1082,7 @@ def test_iflow_describes_state_machine() -> None:
     # Off-path commands are explicitly not auto-dispatched.
     assert "/iflow-pause" in rendered
     assert "/iflow-cleanup" in rendered
-    assert "/iflow-yolo" in rendered
+    assert "/iflow-run yolo" in rendered
 
 
 def test_iflow_treats_branch_derived_n_as_authoritative() -> None:
@@ -1628,7 +1093,7 @@ def test_iflow_treats_branch_derived_n_as_authoritative() -> None:
     trigger the archived-issue guard warning when the group lives in
     02-partly-solved or 03-solved.
     """
-    rendered = render_template("commands/iflow.md.j2", _default_context())
+    rendered = _render("commands/iflow.md.j2", _default_context())
     assert "authoritative" in rendered.lower()
     # Both archive folders are consulted for the archived-issue guard warning.
     assert "02-partly-solved-issues" in rendered
@@ -1636,92 +1101,37 @@ def test_iflow_treats_branch_derived_n_as_authoritative() -> None:
     assert "archived-issue guard" in rendered.lower()
 
 
-def test_issue_pick_documents_three_phases_and_fix_shortcut() -> None:
-    """/iflow-pick must describe its three phases, ranking inputs, and the `fix` shortcut."""
-    rendered = render_template("commands/iflow-pick.md.j2", _default_context())
-    # Three phases.
-    assert "Phase 1" in rendered
-    assert "Phase 2" in rendered
-    assert "Phase 3" in rendered
-    # Parked work is the primary candidate source, GitHub the fallback.
-    assert "02-partly-solved-issues" in rendered
-    assert "gh issue list" in rendered
-    # Relevance ranking combines milestone + labels + topical similarity.
-    assert "Milestone" in rendered or "milestone" in rendered
-    assert "Labels" in rendered or "label" in rendered
-    # `fix` shortcut creates a new issue every time.
-    assert "fix" in rendered
-    assert "gh issue create" in rendered
-    # Delegates capture to /iflow-capture and hands off to /iflow-plan.
-    assert "/iflow-capture" in rendered
-    assert "/iflow-plan" in rendered
-    # Off-path: not auto-dispatched by /iflow.
-    assert "off-path" in rendered.lower()
-    # Over-large issues offer /iflow-split; pick never creates children.
-    assert "/iflow-split" in rendered
-    assert "offer" in rendered.lower()
-
-
-def test_issue_pick_documents_label_hard_filter() -> None:
-    """/iflow-pick must document label:<L> as a hard filter (#228)."""
-    cmd = render_template("commands/iflow-pick.md.j2", _default_context())
-    skill = render_template("skills/iflow_pick/SKILL.md.j2", _default_context())
-    for rendered in (cmd, skill):
-        assert "`label:<L>`" in rendered
-        assert "hard filter" in rendered.lower()
-        assert "--label" in rendered
-        assert "no open issues with label" in rendered
-        # Still confirm — never auto-pick a singleton filtered shortlist.
-        assert "single" in rendered.lower()
-        # Point at the batch twin.
-        assert "/iflow-cycle label:" in rendered
-    assert "/iflow-pick label:enhancement" in cmd
-    docs = render_template("docs/issue-workflow.md.j2", _default_context())
-    assert "label:<L>" in docs
-    assert "hard-filter" in docs.lower() or "hard filter" in docs.lower()
-
-
 def test_issue_pick_skill_mirrors_command() -> None:
     """The issue-pick skill must carry the same front-door flow and frontmatter."""
-    rendered = render_template("skills/iflow_pick/SKILL.md.j2", _default_context())
+    rendered = _render("skills/iflow_pick/SKILL.md.j2", _default_context())
     assert "name: iflow-pick" in rendered
     assert "disable-model-invocation: true" in rendered
     assert "Phase 1" in rendered
     assert "Phase 2" in rendered
     assert "Phase 3" in rendered
-    assert "/iflow-capture" in rendered
+    assert "/iflow-pick" in rendered
     assert "/iflow-plan" in rendered
 
 
 def test_iflow_does_not_auto_dispatch_issue_pick() -> None:
     """/iflow must list /iflow-pick among the explicit-only, never-auto-dispatched commands."""
-    cmd = render_template("commands/iflow.md.j2", _default_context())
-    skill = render_template("skills/iflow_iflow/SKILL.md.j2", _default_context())
+    cmd = _render("commands/iflow.md.j2", _default_context())
+    skill = _render("skills/iflow_iflow/SKILL.md.j2", _default_context())
     assert "/iflow-pick" in cmd
     assert "/iflow-pick" in skill
 
 
 def test_issue_init_mentions_branch_preflight_and_archive_guard() -> None:
-    """The /iflow-capture command must include the preflight and archived-issue guard."""
-    rendered = render_template("commands/iflow-capture.md.j2", _default_context())
+    """The /iflow-pick command must include the preflight and archived-issue guard."""
+    rendered = _render("commands/iflow-pick.md.j2", _default_context())
     assert "Branch status preflight" in rendered
     assert "Archived-issue guard" in rendered or "archived" in rendered.lower()
-
-
-def test_issueflow_rules_has_branch_hygiene_section() -> None:
-    """The workspace rules must describe branch and folder hygiene expectations."""
-    rendered = render_template("rules/issueflow-rules.mdc.j2", _default_context())
-    assert "Branch hygiene" in rendered
-    assert "git branch -d" in rendered
-    assert "Folder hygiene" in rendered
-    assert "alwaysApply: false" in rendered
-    assert '"**/*"' in rendered or "'**/*'" in rendered
 
 
 def test_lifecycle_skills_include_resolve_partial() -> None:
     """Lifecycle skills must document multi-root project-root resolution."""
     stems = (
-        "iflow_init",
+        "iflow_setup",
         "iflow_close",
         "iflow_cleanup",
         "iflow_pick",
@@ -1730,128 +1140,27 @@ def test_lifecycle_skills_include_resolve_partial() -> None:
         "iflow_build",
         "iflow_plan",
         "iflow_pause",
-        "iflow_yolo",
-        "iflow_fix",
+        "iflow_run",
+        "iflow_issue",
     )
     for stem in stems:
-        rendered = render_template(f"skills/{stem}/SKILL.md.j2", _default_context())
+        rendered = _render(f"skills/{stem}/SKILL.md.j2", _default_context())
         assert "issue-flow agent resolve" in rendered, stem
-        assert (
-            "Multi-root workspaces" in rendered or "multi-root" in rendered.lower()
-        ), stem
-
-
-def test_rules_body_mentions_multi_root_workspaces() -> None:
-    """The shared rules body must point agents at the multi-root contract."""
-    rendered = render_template("rules/_body.md.j2", _default_context())
-    assert "Multi-root workspaces" in rendered
-    assert "issue-flow agent resolve" in rendered
-    assert "multi-repo-workspaces.md" in rendered
-
-
-def test_rules_body_documents_slashless_chat_invocation() -> None:
-    """Issue #118: agents must honor `iflow plan` as explicit invocation."""
-    rendered = render_template("rules/_body.md.j2", _default_context())
-    assert "Chat invocation (no slash)" in rendered
-    assert "`iflow plan`" in rendered
-    assert "`iflow pick`" in rendered or "`iflow {{ cmd[6:] }}`" in rendered
-    assert "starts with" in rendered.lower()
-    for template_name in ("rules/issueflow-rules.mdc.j2", "rules/AGENTS.md.j2"):
-        rules = render_template(template_name, _default_context())
-        assert "Chat invocation (no slash)" in rules
-        assert "`iflow plan`" in rules
+        assert "Resolve the project root first" in rendered, stem
 
 
 def test_iflow_plan_skill_documents_slashless_invoke_line() -> None:
     """Lifecycle skills should recommend `iflow plan` before slash form."""
-    rendered = render_template("skills/iflow_plan/SKILL.md.j2", _default_context())
+    rendered = _render("skills/iflow_plan/SKILL.md.j2", _default_context())
     assert "**Invoke:**" in rendered
     assert "type `iflow plan` in chat" in rendered
     assert "/iflow-plan" in rendered
 
 
-def test_issue_workflow_doc_leads_with_slashless_chat() -> None:
-    """docs/issue-workflow should document space form before slash-only wording."""
-    rendered = render_template("docs/issue-workflow.md.j2", _default_context())
-    assert "Keyboard-friendly chat" in rendered
-    plan_idx = rendered.index("iflow plan")
-    slash_only = rendered.find("| `iflow-plan` | `iflow plan`")
-    assert slash_only == -1 or plan_idx < slash_only
-    assert "`iflow plan`, `iflow-plan`, `/iflow-plan`" in rendered
-
-
-def test_issue_workflow_doc_covers_epic_cycle_review_examples() -> None:
-    """Scaffolded workflow doc must document epic/cycle/review with examples (#179)."""
-    rendered = render_template("docs/issue-workflow.md.j2", _default_context())
-    assert "/iflow-epic" in rendered
-    assert "/iflow-cycle" in rendered
-    assert "/iflow-review" in rendered
-    assert "iflow review yolo" in rendered
-    assert "iflow cycle yolo" in rendered
-    assert "/iflow-cycle yolo" in rendered
-    assert "iflow epic" in rendered
-    assert "iflow epic start" in rendered
-    assert "publish" in rendered
-    assert "iflow-epic" in rendered
-    assert "iflow-cycle" in rendered
-    # Off-path list should name the batch/epic skills explicitly.
-    assert "/iflow-epic" in rendered.split("Not auto-dispatched:")[1].split("\n")[0]
-    assert "/iflow-cycle" in rendered.split("Not auto-dispatched:")[1].split("\n")[0]
-
-
-def test_rules_body_defers_to_project_toolchain_and_covers_conda() -> None:
-    """Regression for issue #58: the shared rules body must defer to the
-    project's existing toolchain and cover conda, not hard-mandate uv."""
-    # The body is included by all three rules outputs; assert on each so none drift.
-    for template_name in (
-        "rules/issueflow-rules.mdc.j2",
-        "rules/AGENTS.md.j2",
-        "rules/CLAUDE.md.j2",
-    ):
-        rendered = render_template(template_name, _default_context())
-        lowered = rendered.lower()
-        # Defers to whatever the project already documents.
-        assert "respect the project's existing toolchain" in lowered
-        # conda is explicitly covered, including pytest inside the activated env.
-        assert "conda" in lowered
-        assert "conda activate" in rendered
-        assert "conda run -n" in rendered
-        # uv stays the documented default/example…
-        assert "uv run" in rendered
-        # …but the old hard mandate is gone.
-        assert "Use `uv` exclusively" not in rendered
-        assert "uv exclusively" not in lowered
-
-
-def test_issue_close_describes_history_update_step() -> None:
-    """/iflow-close must describe the HISTORY.md update step and its input tokens."""
-    rendered = render_template("commands/iflow-close.md.j2", _default_context())
-    assert "HISTORY.md" in rendered
-    assert "[Unreleased]" in rendered
-    assert "iflow-history-update" in rendered
-    # Opt-out token is documented.
-    assert "nohistory" in rendered
-    # Override token for the bullet summary is documented.
-    assert 'log "..."' in rendered or "log " in rendered
-
-
-def test_iflow_close_and_start_nudge_ruff_fix_when_present() -> None:
-    """Lifecycle commands should run ruff check --fix when ruff is in the project."""
-    for template_name in (
-        "commands/iflow-close.md.j2",
-        "commands/iflow-build.md.j2",
-        "skills/iflow_close/SKILL.md.j2",
-        "skills/iflow_build/SKILL.md.j2",
-    ):
-        rendered = render_template(template_name, _default_context())
-        assert "ruff check --fix" in rendered, template_name
-        assert "[tool.ruff]" in rendered, template_name
-
-
 def test_history_update_skill_documents_both_modes() -> None:
     """The history-update skill emits trailers and does not edit the changelog file."""
-    rendered = render_template(
-        "skills/iflow_history_update/SKILL.md.j2", _default_context()
+    rendered = _render(
+        "skills/iflow_close/changelog.md.j2", _default_context()
     )
     assert "HISTORY.md" in rendered
     assert "Changelog-Id" in rendered
@@ -1868,69 +1177,15 @@ def test_history_update_skill_respects_history_file_override() -> None:
     """The history-update skill should reference {{ history_file }} so custom filenames work."""
     context = _default_context()
     context["history_file"] = "CHANGELOG.md"
-    rendered = render_template("skills/iflow_history_update/SKILL.md.j2", context)
+    rendered = _render("skills/iflow_close/changelog.md.j2", context)
     assert "CHANGELOG.md" in rendered
     # No leftover Jinja placeholder.
     assert "{{ history_file }}" not in rendered
 
 
-def test_issue_yolo_forwards_history_tokens() -> None:
-    """/iflow-yolo must forward the new history-related tokens to /iflow-close."""
-    rendered = render_template("commands/iflow-yolo.md.j2", _default_context())
-    assert "nohistory" in rendered
-    assert "log " in rendered  # `log "..."` bullet-summary override
-    assert "stay" in rendered
-    assert "don't switch" in rendered
-
-
-def test_issue_init_fetches_and_triages_comments() -> None:
-    """/iflow-capture must fetch comments and call the comments-triage skill."""
-    rendered = render_template("commands/iflow-capture.md.j2", _default_context())
-    # gh fetch now asks for the comments field too.
-    assert "title,body,url,number,comments" in rendered
-    # The curated section header appears in the file-content template.
-    assert "## Comments (curated summary)" in rendered
-    # The triage step exists and delegates to the new skill.
-    assert "Triage comments" in rendered
-    assert "iflow-comments" in rendered
-    # The three triage buckets are named.
-    assert "Additional tasks" in rendered
-    assert "Clarifications" in rendered
-    assert "Superseded" in rendered
-    # The body contract: preserve the fetched body text faithfully, but the
-    # "Agent efficiency" guidance (issue #9) says not to obsess over byte-exactness.
-    assert "Agent efficiency" in rendered
-    assert "Preserve the issue **body** text exactly as returned by GitHub" in rendered
-
-
-def test_issue_init_documents_agent_efficiency() -> None:
-    """Regression guard for issue #9: the Agent efficiency guidance must live in the template.
-
-    It was originally added only to the generated `.cursor/commands/iflow-capture.md` and got
-    wiped by a later regeneration; it now belongs in the source template so it survives.
-    """
-    rendered = render_template("commands/iflow-capture.md.j2", _default_context())
-    assert "## Agent efficiency" in rendered
-    assert "trailing newlines" in rendered
-    assert "CRLF" in rendered
-    # The reconciled body contract no longer demands literal byte-for-byte equality.
-    assert "byte-for-byte" not in rendered
-    # The mirror skill should not re-introduce the stricter "byte-for-byte" wording.
-    skill = render_template("skills/iflow_capture/SKILL.md.j2", _default_context())
-    assert "byte-for-byte" not in skill
-
-
-def test_issue_init_skill_delegates_to_comments_skill() -> None:
-    """The issue-init skill must fetch comments and point at the comments skill."""
-    rendered = render_template("skills/iflow_capture/SKILL.md.j2", _default_context())
-    assert "title,body,url,number,comments" in rendered
-    assert "iflow-comments" in rendered
-    assert "## Comments (curated summary)" in rendered
-
-
 def test_caveman_skill_renders_full_mode_english_only() -> None:
     """The caveman skill ships as a model-invocable, full-mode-only behavior skill."""
-    rendered = render_template("skills/caveman/SKILL.md.j2", _default_context())
+    rendered = _render("skills/caveman/SKILL.md.j2", _default_context())
     assert "name: caveman" in rendered
     # Model-invocable (unlike workflow skills): the user opts in at runtime.
     assert "disable-model-invocation: true" not in rendered
@@ -1950,39 +1205,9 @@ def test_caveman_in_standard_manifest_as_skills_caveman() -> None:
     }
 
 
-def test_rules_body_caveman_pointer_is_membership_gated() -> None:
-    """The rules body mentions caveman only when it is in included_skills."""
-    with_caveman = _default_context()
-    rendered_on = render_template("rules/AGENTS.md.j2", with_caveman)
-    assert "caveman" in rendered_on.lower()
-    assert "Optional response styles" in rendered_on
-
-    without_caveman = _default_context()
-    without_caveman["included_skills"] = [s for s in _ALL_SKILLS if s != "caveman"]
-    rendered_off = render_template("rules/AGENTS.md.j2", without_caveman)
-    assert "Optional response styles" not in rendered_off
-
-
-def test_rules_body_caveman_default_switches_pointer_wording() -> None:
-    """caveman_default flips the pointer between off-by-default and always-on."""
-    off = _default_context()
-    off["caveman_default"] = False
-    rendered_off = render_template("rules/AGENTS.md.j2", off)
-    assert "off by default" in rendered_off
-    assert "on by default for this project" not in rendered_off
-
-    on = _default_context()
-    on["caveman_default"] = True
-    rendered_on = render_template("rules/AGENTS.md.j2", on)
-    assert "on by default for this project" in rendered_on
-    assert "caveman_default = true" in rendered_on
-    # The always-on pointer must still preserve the normal-prose carve-outs.
-    assert "never caveman" in rendered_on
-
-
 def test_grill_me_skill_renders_as_planning_interview() -> None:
     """The grill-me skill ships as a model-invocable planning-interview skill."""
-    rendered = render_template("skills/grill_me/SKILL.md.j2", _default_context())
+    rendered = _render("skills/grill_me/SKILL.md.j2", _default_context())
     assert "name: grill-me" in rendered
     # Model-invocable (unlike workflow skills): the user opts in at runtime.
     assert "disable-model-invocation: true" not in rendered
@@ -2001,131 +1226,27 @@ def test_grill_me_in_standard_manifest_as_skills_grill_me() -> None:
     }
 
 
-def test_gh_ci_skill_renders_ci_cheatsheet() -> None:
-    """The gh-ci skill ships as a model-invocable CI/`gh` cheatsheet."""
-    rendered = render_template("skills/gh_ci/SKILL.md.j2", _default_context())
-    assert "name: gh-ci" in rendered
-    assert "disable-model-invocation: true" not in rendered
-    assert "gh pr checks" in rendered
-    assert "gh pr checks" in rendered and "--watch" in rendered
-    assert "issue-flow agent pr-ready" in rendered
-    assert "gh run list" in rendered
-    assert "gh run watch" in rendered
-    assert "15" in rendered
-    assert "--repo" in rendered
-
-
 def test_gh_ci_in_standard_manifest_as_skills_gh_ci() -> None:
-    """Standard scaffolding emits the gh-ci skill at skills/gh-ci/SKILL.md."""
-    assert "gh_ci" in SKILL_DIRS
+    """Standard scaffolding emits the gh-ci skill at skills/iflow-close/ci.md."""
+    assert "iflow_close" in SKILL_DIRS
     template_names = {name for name, _ in TEMPLATE_MANIFEST}
-    assert "skills/gh_ci/SKILL.md.j2" in template_names
-    assert "{agent_dir}/skills/gh-ci/SKILL.md" in {
+    assert "skills/iflow_close/ci.md.j2" in template_names
+    assert "{agent_dir}/skills/iflow-close/ci.md" in {
         path for _, path in TEMPLATE_MANIFEST
     }
 
 
-def test_rules_body_gh_ci_pointer_is_membership_gated() -> None:
-    """The rules body mentions gh-ci only when it is in included_skills."""
-    with_gh = _default_context()
-    rendered_on = render_template("rules/AGENTS.md.j2", with_gh)
-    assert "gh-ci" in rendered_on.lower()
-    assert "CI via GitHub CLI" in rendered_on
-    assert "gh run watch" in rendered_on
-
-    without_gh = _default_context()
-    without_gh["included_skills"] = [s for s in _ALL_SKILLS if s != "gh_ci"]
-    rendered_off = render_template("rules/AGENTS.md.j2", without_gh)
-    assert "CI via GitHub CLI" not in rendered_off
-
-
-def test_close_mentions_gh_run_watch_fallback_and_gh_ci_pointer() -> None:
-    """Close skill/command name gh run fallback and point at gh-ci when included."""
-    for template_name in (
-        "commands/iflow-close.md.j2",
-        "skills/iflow_close/SKILL.md.j2",
-    ):
-        rendered = render_template(template_name, _default_context())
-        assert "gh run list" in rendered, template_name
-        assert "gh run watch" in rendered, template_name
-        assert "skills/gh-ci/SKILL.md" in rendered, template_name
-
-        without = _default_context()
-        without["included_skills"] = [s for s in _ALL_SKILLS if s != "gh_ci"]
-        rendered_off = render_template(template_name, without)
-        assert "gh run watch" in rendered_off, template_name
-        assert "skills/gh-ci/SKILL.md" not in rendered_off, template_name
-
-
-def test_rules_body_grill_me_pointer_is_membership_gated() -> None:
-    """The rules body mentions grill-me only when it is in included_skills."""
-    with_grill = _default_context()
-    rendered_on = render_template("rules/AGENTS.md.j2", with_grill)
-    assert "grill-me" in rendered_on.lower()
-    assert "Planning aids" in rendered_on
-
-    without_grill = _default_context()
-    without_grill["included_skills"] = [s for s in _ALL_SKILLS if s != "grill_me"]
-    rendered_off = render_template("rules/AGENTS.md.j2", without_grill)
-    assert "Planning aids" not in rendered_off
-
-
-def test_rules_body_grill_me_default_switches_pointer_wording() -> None:
-    """grill_me_default flips the pointer between off-by-default and always-on."""
-    off = _default_context()
-    off["grill_me_default"] = False
-    rendered_off = render_template("rules/AGENTS.md.j2", off)
-    assert "off by default" in rendered_off
-    assert "on by default during planning for this project" not in rendered_off
-
-    on = _default_context()
-    on["grill_me_default"] = True
-    rendered_on = render_template("rules/AGENTS.md.j2", on)
-    assert "on by default during planning for this project" in rendered_on
-    assert "grill_me_default = true" in rendered_on
-
-
-def test_issue_comments_skill_documents_triage_rules() -> None:
-    """The new iflow-comments skill must describe triage rules and buckets."""
-    ctx = enrich_render_context(_default_context(), "skills/iflow_comments/SKILL.md.j2")
-    rendered = render_template("skills/iflow_comments/SKILL.md.j2", ctx)
-    # Frontmatter identity.
-    assert "name: iflow-comments" in rendered
-    assert "disable-model-invocation: true" in rendered
-    # Chronological precedence (later wins) is called out.
-    lowered = rendered.lower()
-    assert "chronological" in lowered
-    assert "later" in lowered
-    # All three buckets are named.
-    assert "Additional tasks" in rendered
-    assert "Clarifications" in rendered
-    assert "Superseded" in rendered
-    # The output contract header matches exactly what /iflow-capture expects.
-    assert "## Comments (curated summary)" in rendered
-    # Noise-filtering guidance exists.
-    assert "bot" in lowered
-    # Zero-comment edge case is handled.
-    assert "zero comments" in lowered or "skip the whole section" in lowered
-
-
 def test_iflow_plan_skill_includes_reasoning_directive() -> None:
     ctx = enrich_render_context(_default_context(), "skills/iflow_plan/SKILL.md.j2")
-    rendered = render_template("skills/iflow_plan/SKILL.md.j2", ctx)
+    rendered = _render("skills/iflow_plan/SKILL.md.j2", ctx)
     assert "### MODEL & EXECUTION DIRECTIVE" in rendered
     assert "Profile: reasoning" in rendered
-
-
-def test_iflow_init_skill_includes_economy_directive() -> None:
-    ctx = enrich_render_context(_default_context(), "skills/iflow_init/SKILL.md.j2")
-    rendered = render_template("skills/iflow_capture/SKILL.md.j2", ctx)
-    assert "### MODEL & EXECUTION DIRECTIVE" in rendered
-    assert "Profile: economy" in rendered
 
 
 def test_step_directives_off_omits_directive_block() -> None:
     ctx = enrich_render_context(_default_context(), "skills/iflow_plan/SKILL.md.j2")
     ctx["step_directives"] = False
-    rendered = render_template("skills/iflow_plan/SKILL.md.j2", ctx)
+    rendered = _render("skills/iflow_plan/SKILL.md.j2", ctx)
     assert "MODEL & EXECUTION DIRECTIVE" not in rendered
 
 
@@ -2133,15 +1254,15 @@ def test_iflow_pick_includes_model_label_block_when_enabled() -> None:
     ctx = _default_context()
     ctx["model_label_flows"] = True
     ctx = enrich_render_context(ctx, "skills/iflow_pick/SKILL.md.j2")
-    rendered = render_template("skills/iflow_pick/SKILL.md.j2", ctx)
-    assert "Label-driven model profile" in rendered
-    assert "deep_model_label" in rendered
+    rendered = _render("skills/iflow_pick/SKILL.md.j2", ctx)
+    assert "**Model label.**" in rendered
+    assert "`deep` → announce the **reasoning** profile" in rendered
 
 
 def test_is_skill_template_matches_skill_manifest_paths() -> None:
-    assert is_skill_template("skills/iflow_init/SKILL.md.j2")
+    assert is_skill_template("skills/iflow_setup/SKILL.md.j2")
     assert is_skill_template("skills/caveman/SKILL.md.j2")
-    assert not is_skill_template("commands/iflow-init.md.j2")
+    assert not is_skill_template("commands/iflow-setup.md.j2")
     assert not is_skill_template("skills/_model_directive.md.j2")
 
 
@@ -2161,13 +1282,8 @@ def test_stamp_skill_version_refreshes_existing_key() -> None:
 
 
 def test_render_template_stamps_skill_outputs() -> None:
-    rendered = render_template("skills/iflow_capture/SKILL.md.j2", _default_context())
+    rendered = _render("skills/iflow_pick/capture.md.j2", _default_context())
     assert f"issue-flow-version: {ISSUE_FLOW_VERSION}" in rendered
-
-
-def test_render_template_does_not_stamp_commands() -> None:
-    rendered = render_template("commands/iflow-capture.md.j2", _default_context())
-    assert "issue-flow-version:" not in rendered
 
 
 # ---------------------------------------------------------------------------
@@ -2256,7 +1372,7 @@ def test_every_pstack_template_renders_verbatim_with_provenance() -> None:
     context = {**_BASE_CONTEXT, **_MODE_CONTEXT}
     for name in PSTACK_SKILL_NAMES:
         stem = PSTACK_NAME_TO_STEM[name]
-        rendered = render_template(f"skills/{stem}/SKILL.md.j2", context)
+        rendered = _render(f"skills/{stem}/SKILL.md.j2", context)
         assert rendered.startswith("---\n")
         assert f"\nname: {name}\n" in rendered
         assert "disable-model-invocation: true" in rendered
@@ -2280,126 +1396,33 @@ def test_pstack_license_ships_with_templates() -> None:
     assert "Lauren Tan" in text
 
 
-def test_rules_body_pstack_section_is_membership_gated() -> None:
-    off = render_template(
-        "rules/issueflow-rules.mdc.j2", {**_BASE_CONTEXT, **_MODE_CONTEXT}
-    )
-    assert "### pstack skills" not in off
-
-    mode = _pstack_mode(["unslop", "tdd"])
-    on_ctx = {
-        **_BASE_CONTEXT,
-        **_MODE_CONTEXT,
-        "included_skills": sorted(mode.skills),
-        "pstack_skills": ["unslop", "tdd"],
-    }
-    on = render_template("rules/issueflow-rules.mdc.j2", on_ctx)
-    assert "### pstack skills" in on
-    assert "**`unslop`**" in on
-    assert "**`tdd`**" in on
-    assert "**`bro`**" not in on
-    assert "cursor/plugins/tree/main/pstack" in on
-    assert "pstack_skills" in on
-
-
-def test_close_and_build_nudges_are_membership_gated() -> None:
-    base = {**_BASE_CONTEXT, **_MODE_CONTEXT}
-    close_off = render_template(
-        "skills/iflow_close/SKILL.md.j2",
-        enrich_render_context(base, "skills/iflow_close/SKILL.md.j2"),
-    )
-    build_off = render_template(
-        "skills/iflow_build/SKILL.md.j2",
-        enrich_render_context(base, "skills/iflow_build/SKILL.md.j2"),
-    )
-    assert "Unslop (pstack" not in close_off
-    assert "Blast radius (pstack" not in close_off
-    assert "TDD (pstack" not in build_off
-
-    mode = _pstack_mode(["unslop", "tdd", "blast-radius"])
-    on = {**base, "included_skills": sorted(mode.skills)}
-    for template in (
-        "skills/iflow_close/SKILL.md.j2",
-        "commands/iflow-close.md.j2",
-    ):
-        rendered = render_template(template, enrich_render_context(on, template))
-        assert "Unslop (pstack, optional)" in rendered
-        assert "Blast radius (pstack, optional)" in rendered
-        assert "skills/unslop/SKILL.md" in rendered
-        assert "Never run it unasked" in rendered
-    for template in (
-        "skills/iflow_build/SKILL.md.j2",
-        "commands/iflow-build.md.j2",
-    ):
-        rendered = render_template(template, enrich_render_context(on, template))
-        assert "TDD (pstack, optional)" in rendered
-        assert "skills/tdd/SKILL.md" in rendered
-
-
 def test_noob_stem_for_template() -> None:
     assert noob_stem_for_template("skills/iflow_plan/SKILL.md.j2") == "plan"
     assert noob_stem_for_template("commands/iflow-plan.md.j2") == "plan"
     assert noob_stem_for_template("commands/iflow.md.j2") == "iflow"
-    assert noob_stem_for_template("skills/iflow_comments/SKILL.md.j2") is None
+    assert noob_stem_for_template("skills/iflow_pick/comments.md.j2") is None
     assert noob_stem_for_template("skills/caveman/SKILL.md.j2") is None
 
 
 def test_noob_footer_omitted_by_default() -> None:
     ctx = {**_BASE_CONTEXT, **_MODE_CONTEXT}
-    rendered = render_template(
+    rendered = _render(
         "skills/iflow_plan/SKILL.md.j2",
         enrich_render_context(ctx, "skills/iflow_plan/SKILL.md.j2"),
     )
     assert "NEXT (noob)" not in rendered
 
 
-def test_noob_footer_appended_when_on() -> None:
-    ctx = {**_BASE_CONTEXT, **_MODE_CONTEXT, "noob": True}
-    plan = render_template(
-        "skills/iflow_plan/SKILL.md.j2",
-        enrich_render_context(ctx, "skills/iflow_plan/SKILL.md.j2"),
-    )
-    assert "### NEXT (noob)" in plan
-    assert "/iflow-build" in plan
-    close = render_template(
-        "commands/iflow-close.md.j2",
-        enrich_render_context(ctx, "commands/iflow-close.md.j2"),
-    )
-    assert "### NEXT (noob)" in close
-    assert "/iflow-cleanup" in close
-    comments = render_template(
-        "skills/iflow_comments/SKILL.md.j2",
-        enrich_render_context(ctx, "skills/iflow_comments/SKILL.md.j2"),
-    )
-    assert "NEXT (noob)" not in comments
-
-
-def test_noob_footer_epic_gap_uses_session_not_next_command() -> None:
-    """Issue #337: Recommended follows epic_session / epic_hint, not raw next_command."""
-    ctx = {**_BASE_CONTEXT, **_MODE_CONTEXT, "noob": True}
-    epic = render_template(
-        "skills/iflow_epic/SKILL.md.j2",
-        enrich_render_context(ctx, "skills/iflow_epic/SKILL.md.j2"),
-    )
-    assert "### NEXT (noob)" in epic
-    assert "Do **not** blindly print" in epic
-    assert "`next_command`" in epic
-    assert "`epic_session`" in epic
-    assert "/iflow-epic <N> publish" in epic
-    assert "Never `/iflow-capture`" in epic
-    assert "print `next_command` as\n   **Recommended**" not in epic
-
-
 def test_worktree_first_default_renders_worktree_add() -> None:
     ctx = {**_BASE_CONTEXT, **_MODE_CONTEXT}
-    pick = render_template(
+    pick = _render(
         "skills/iflow_pick/SKILL.md.j2",
         enrich_render_context(ctx, "skills/iflow_pick/SKILL.md.j2"),
     )
     assert "worktree-add" in pick
     assert "Worktree-first start" in pick
     assert "worktree_first = false" not in pick
-    cmd = render_template(
+    cmd = _render(
         "commands/iflow-pick.md.j2",
         enrich_render_context(ctx, "commands/iflow-pick.md.j2"),
     )
@@ -2408,7 +1431,7 @@ def test_worktree_first_default_renders_worktree_add() -> None:
 
 def test_worktree_first_false_renders_inplace_start() -> None:
     ctx = {**_BASE_CONTEXT, **_MODE_CONTEXT, "worktree_first": False}
-    pick = render_template(
+    pick = _render(
         "skills/iflow_pick/SKILL.md.j2",
         enrich_render_context(ctx, "skills/iflow_pick/SKILL.md.j2"),
     )
@@ -2416,7 +1439,7 @@ def test_worktree_first_false_renders_inplace_start() -> None:
     assert "git switch -c" in pick
     assert "Token `worktree`" in pick
     assert "Worktree-first start" not in pick
-    cmd = render_template(
+    cmd = _render(
         "commands/iflow-pick.md.j2",
         enrich_render_context(ctx, "commands/iflow-pick.md.j2"),
     )

@@ -18,7 +18,7 @@ Machine index: [llms.txt](../llms.txt). Folder-of-repos detail:
 | The human said | That means | Not this |
 | --- | --- | --- |
 | Upgrade / latest version / update the tool | Upgrade the **package**, then refresh scaffolds | `issue-flow update` alone (that only rewrites skill files from the *already installed* CLI) |
-| Init globally / install for all projects | Plant the **user-global** `iflow-init` skill, then `iflow init` from a folder | `issue-flow init` on a parent folder of repos |
+| Init globally / install for all projects | Plant the **user-global** `iflow-setup` skill, then `iflow setup` from a folder | `issue-flow init` on a parent folder of repos |
 | Set up this workspace / folder of repos | `workspace bootstrap` / `init` / `update` from the **parent** | `issue-flow init` at the parent (no shared `.issueflows/` there) |
 | Refresh skills after an upgrade | `issue-flow update` (one repo) or `workspace update` (all members) | `uv tool upgrade` again |
 
@@ -81,11 +81,11 @@ same flags. Do not offer a bash heredoc as the only example.
 
 ## Initialize issue-flow globally
 
-User-global `iflow-init` is written on the first successful `issue-flow init`
+User-global `iflow-setup` is written on the first successful `issue-flow init`
 or `issue-flow update` (or `uvx issue-flow workspace bootstrap --yes …`) on
 that machine — into **every** harness path (`~/.cursor/skills/`,
 `~/.claude/skills/`, `~/.agents/skills/`, and opencode's XDG skills dir),
-not only the `--editor` you passed. After that, chat `iflow init` works in
+not only the `--editor` you passed. After that, chat `iflow setup` works in
 a folder with no project scaffold, including after you switch harness.
 
 First machine (CLI not installed yet):
@@ -98,7 +98,7 @@ issue-flow init .        # one repo
 issue-flow workspace bootstrap --yes --default <main-repo>
 ```
 
-Then, from any later folder, type **`iflow init`** (or `/iflow-init`). That
+Then, from any later folder, type **`iflow setup`** (or `/iflow-setup`). That
 skill classifies: single project vs parent folder. Follow it. Do not
 `issue-flow init` a parent that only holds sibling repos.
 
@@ -127,7 +127,7 @@ Full recipe: [Use issue-flow in a folder of repos](workspaces.md).
 
 ## After any of the above
 
-- One repo: `iflow pick` (or `iflow capture <N>`).
+- One repo: `iflow pick` (or `iflow pick <N>`).
 - Workspace: repeat lifecycle **per repo**. The toml `default` is only a
   fallback when a command runs from the parent.
 - After a non-yolo close: `issue-flow agent pr-ready [N] [--watch]` answers

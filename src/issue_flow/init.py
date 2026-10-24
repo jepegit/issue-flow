@@ -18,6 +18,12 @@ from issue_flow.dependencies import (
 )
 from issue_flow.editors import EditorProfile, resolve_editors
 from issue_flow.graphify import register_with_editor as graphify_register_with_editor
+from issue_flow.migrate import (
+    drop_stale_stamps,
+    migrate_config_stems,
+    prune_retired_canonical_skills,
+    prune_retired_user_global_skills,
+)
 from issue_flow.modes import Mode
 from issue_flow.surfaces import (
     ensure_editor_gitignore,
@@ -38,6 +44,7 @@ from issue_flow.templating import (
     build_manifest,
     render_template,
     resolve_output_path,
+    side_files_for_output_name,
     skill_output_name,
 )
 
@@ -566,12 +573,9 @@ def run_init(
             "[bold]gh auth login[/bold]) and walks you through it.[/dim]"
         )
     console_io.console.print(
-        "\n[dim]Run [bold]/iflow-capture <number>[/bold] or [bold]/iflow-pick[/bold] "
-        "in your editor to start tracking a GitHub issue "
-        "(or [bold]/iflow-capture[/bold] on a branch like [bold]42-slug[/bold], "
-        "after confirmation). [bold]/iflow-init[/bold] cold-starts the harness "
-        f"if needed. Optional Agent Skills live under [bold]{hint_dir}[/bold] "
-        "([bold]/iflow-capture[/bold], etc.).[/dim]\n"
+        "\n[dim]Run [bold]/iflow-pick[/bold] (or [bold]/iflow-pick <number>[/bold]) "
+        "in your editor to start tracking a GitHub issue. "
+        f"The skills live under [bold]{hint_dir}[/bold].[/dim]\n"
     )
     _register_project_root(project_root)
 
@@ -613,6 +617,10 @@ def run_update(
     except ValueError as exc:
         console_io.console.print(f"[red]error[/red]  {exc}")
         raise typer.Exit(code=2) from None
+
+    # Older configs may name skills that a newer release merged away; rewrite
+    # them before anything resolves the mode (issue #406).
+    migrate_config_stems(settings.config_path(project_root))
 
     try:
         mode_obj = settings.resolve_mode(project_root)
@@ -682,6 +690,9 @@ def run_update(
         overwrite_foreign=force,
     )
     written_files.extend(global_result.written)
+    pruned_count += prune_retired_canonical_skills(project_root, settings.issueflows_dir)
+    pruned_count += prune_retired_user_global_skills()
+    drop_stale_stamps(project_root, settings.issueflows_dir)
 
     console_io.console.print()
     maybe_ensure_linguist_gitattributes(project_root, settings)
@@ -866,10 +877,11 @@ def _prune_retired_files(
     """
     pruned_count = 0
 
-    # Prune command files. For command-emitting profiles this removes pre-v0.5.0
-    # command names. For skills-first Cursor, this also removes the known
-    # generated issue-flow commands from the old `.cursor/commands/` surface
-    # without touching arbitrary user commands.
+    # Prune command files. For command-emitting profiles this removes retired
+    # command names. For skills-first Cursor and Claude Code (Claude since
+    # #406), this also removes the known generated issue-flow commands from the
+    # old `<agent_dir>/commands/` surface without touching arbitrary user
+    # commands.
     if profile.commands_dir:
         pruned_count += _prune_command_files(
             project_root,
@@ -877,7 +889,7 @@ def _prune_retired_files(
             profile.commands_dir,
             RETIRED_COMMANDS,
         )
-    elif profile.id == "cursor":
+    elif profile.id in ("cursor", "claude"):
         pruned_count += _prune_command_files(
             project_root,
             profile.agent_dir,
@@ -964,7 +976,9 @@ def _prune_excluded_surfaces(
         if not folder.exists():
             continue
         reason = foreign_skill_reason(
-            folder, stamp=stamps.get(stamp_key(project_root, folder))
+            folder,
+            stamp=stamps.get(stamp_key(project_root, folder)),
+            side_files=side_files_for_output_name(folder.name),
         )
         if reason:
             console_io.console.print(
@@ -1022,7 +1036,7 @@ def _graphify_postinstall(
     skip registration entirely, so a mode that hides the integration does not
     quietly install its editor skill anyway.
     """
-    if mode is not None and "iflow_graphify" not in mode.skills:
+    if mode is not None and "iflow_status" not in mode.skills:
         return
 
     installable = [p for p in profiles if p.graphify_installer]

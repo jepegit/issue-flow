@@ -13,6 +13,12 @@ from issue_flow.dependencies import REQUIRED_DEPENDENCIES
 from issue_flow.init import run_init
 
 
+
+def _bundle(skill_dir: Path) -> str:
+    """Text of a rendered skill folder: SKILL.md plus its mode files (#406)."""
+    files = sorted(skill_dir.glob("*.md"), key=lambda f: (f.name != "SKILL.md", f.name))
+    return "\n".join(f.read_text(encoding="utf-8") for f in files)
+
 def test_init_creates_dotenv_with_commented_keys(tmp_path: Path) -> None:
     """init should create .env with commented ISSUEFLOW_* defaults when absent."""
     run_init(tmp_path)
@@ -204,9 +210,7 @@ def test_init_force_preserves_existing_tools_readme(tmp_path: Path) -> None:
 def test_init_start_skill_documents_toolbox_and_upfront_status(tmp_path: Path) -> None:
     """iflow-build skill should nudge toolbox reuse and up-front status seeding."""
     run_init(tmp_path)
-    content = (tmp_path / ".cursor" / "skills" / "iflow-build" / "SKILL.md").read_text(
-        encoding="utf-8"
-    )
+    content = _bundle(tmp_path / ".cursor" / "skills" / "iflow-build")
     assert "00-tools" in content
     # Status file is seeded before code, not just at close.
     assert "Seed the status file up front" in content
@@ -215,9 +219,7 @@ def test_init_start_skill_documents_toolbox_and_upfront_status(tmp_path: Path) -
 def test_init_plan_skill_documents_toolbox_prior_art(tmp_path: Path) -> None:
     """iflow-plan skill prior-art discovery should check the tools folder."""
     run_init(tmp_path)
-    content = (tmp_path / ".cursor" / "skills" / "iflow-plan" / "SKILL.md").read_text(
-        encoding="utf-8"
-    )
+    content = _bundle(tmp_path / ".cursor" / "skills" / "iflow-plan")
     assert "00-tools" in content
 
 
@@ -228,7 +230,7 @@ def test_init_cursor_is_skills_first(tmp_path: Path) -> None:
     assert not (tmp_path / ".cursor" / "commands").exists()
     skills_dir = tmp_path / ".cursor" / "skills"
     assert (skills_dir / "iflow" / "SKILL.md").is_file()
-    assert (skills_dir / "iflow-init" / "SKILL.md").is_file()
+    assert (skills_dir / "iflow-setup" / "SKILL.md").is_file()
     assert (skills_dir / "iflow-build" / "SKILL.md").is_file()
     assert (skills_dir / "iflow-close" / "SKILL.md").is_file()
 
@@ -240,11 +242,11 @@ def test_init_creates_cursor_skills(tmp_path: Path) -> None:
     skills = tmp_path / ".cursor" / "skills"
     for name in (
         "iflow",
-        "iflow-init",
+        "iflow-setup",
         "iflow-build",
         "iflow-close",
-        "iflow-version-bump",
-        "iflow-history-update",
+        "iflow-run",
+        "iflow-issue",
     ):
         skill_file = skills / name / "SKILL.md"
         assert skill_file.is_file(), f"expected {skill_file}"
@@ -261,7 +263,7 @@ def test_init_creates_cursor_rule(tmp_path: Path) -> None:
     content = rule.read_text(encoding="utf-8")
     assert "alwaysApply: false" in content
     assert "**/*" in content
-    assert ".issueflows" in content
+    assert "AGENTS.md" in content
 
 
 def test_init_creates_docs(tmp_path: Path) -> None:
@@ -269,7 +271,7 @@ def test_init_creates_docs(tmp_path: Path) -> None:
     doc = tmp_path / "docs" / "issue-workflow.md"
     assert doc.is_file()
     content = doc.read_text(encoding="utf-8")
-    assert "/iflow-capture" in content
+    assert "/iflow-pick" in content
     assert ".issueflows" in content
 
 
@@ -306,7 +308,7 @@ def test_init_templates_reference_issueflows_dir(tmp_path: Path) -> None:
     run_init(tmp_path)
 
     skills_dir = tmp_path / ".cursor" / "skills"
-    for name in ["iflow-capture", "iflow-build", "iflow-close"]:
+    for name in ["iflow-pick", "iflow-build", "iflow-close"]:
         content = (skills_dir / name / "SKILL.md").read_text(encoding="utf-8")
         assert ".issueflows/" in content, f"{name} should reference .issueflows/"
 
@@ -314,11 +316,9 @@ def test_init_templates_reference_issueflows_dir(tmp_path: Path) -> None:
 def test_init_issue_close_documents_version_bump(tmp_path: Path) -> None:
     """iflow-close skill should describe optional uv semver bump before commit/PR."""
     run_init(tmp_path)
-    content = (tmp_path / ".cursor" / "skills" / "iflow-close" / "SKILL.md").read_text(
-        encoding="utf-8"
-    )
+    content = _bundle(tmp_path / ".cursor" / "skills" / "iflow-close")
     assert "uv version --bump" in content
-    assert "iflow-version-bump" in content
+    assert "`version.md`" in content
 
 
 def test_init_version_bump_skill_documents_all_levels_and_default(
@@ -327,7 +327,7 @@ def test_init_version_bump_skill_documents_all_levels_and_default(
     """version-bump skill should list every uv level and the pre-release default."""
     run_init(tmp_path)
     content = (
-        tmp_path / ".cursor" / "skills" / "iflow-version-bump" / "SKILL.md"
+        tmp_path / ".cursor" / "skills" / "iflow-close" / "version.md"
     ).read_text(encoding="utf-8")
     for level in (
         "major",
@@ -352,7 +352,7 @@ def test_init_version_bump_skill_documents_release_strategies(
     """version-bump skill resolves the release strategy: brief, detection, tag path."""
     run_init(tmp_path)
     content = (
-        tmp_path / ".cursor" / "skills" / "iflow-version-bump" / "SKILL.md"
+        tmp_path / ".cursor" / "skills" / "iflow-close" / "version.md"
     ).read_text(encoding="utf-8")
     # Resolution order: the project brief's release section wins...
     assert "Release & version bump" in content
@@ -387,30 +387,25 @@ def test_init_project_brief_documents_release_section(tmp_path: Path) -> None:
 def test_init_close_skill_defers_tag_creation(tmp_path: Path) -> None:
     """iflow-close should plan (not create) tags for tag-derived projects."""
     run_init(tmp_path)
-    content = (tmp_path / ".cursor" / "skills" / "iflow-close" / "SKILL.md").read_text(
-        encoding="utf-8"
-    )
+    content = _bundle(tmp_path / ".cursor" / "skills" / "iflow-close")
     assert "release strategy" in content
-    assert "Git-tag derived" in content
+    assert "tag-derived" in content.lower()
     assert "planned tag" in content
 
 
 def test_init_cleanup_skill_offers_planned_tag(tmp_path: Path) -> None:
     """iflow-cleanup's consolidated confirm should cover the planned release tag."""
     run_init(tmp_path)
-    content = (
-        tmp_path / ".cursor" / "skills" / "iflow-cleanup" / "SKILL.md"
-    ).read_text(encoding="utf-8")
+    content = _bundle(tmp_path / ".cursor" / "skills" / "iflow-cleanup")
     assert "Planned release" in content
-    assert "git tag -l" in content
     assert "gh release create" in content
     assert "publish-on-success" in content.lower() or "publish label" in content.lower()
 
 
 def test_init_epic_skill_is_staged_and_gated(tmp_path: Path) -> None:
-    """iflow-epic skill: staged plan structure, yolo judgments, gated writes."""
+    """iflow-issue epic skill: staged plan structure, yolo judgments, gated writes."""
     run_init(tmp_path)
-    content = (tmp_path / ".cursor" / "skills" / "iflow-epic" / "SKILL.md").read_text(
+    content = (tmp_path / ".cursor" / "skills" / "iflow-issue" / "epic.md").read_text(
         encoding="utf-8"
     )
     # Drafting stays write-free; publish is the single gated exception.
@@ -425,13 +420,12 @@ def test_init_epic_skill_is_staged_and_gated(tmp_path: Path) -> None:
     assert "Status: draft" in content and "Status: confirmed" in content
     # Sizing + off-path discipline.
     assert "one issue = one branch = one PR" in content
-    assert "Off-path" in content
 
 
 def test_init_epic_skill_publish_action_contract(tmp_path: Path) -> None:
     """The publish action: confirmed-only, idempotent, label-checked, task list."""
     run_init(tmp_path)
-    content = (tmp_path / ".cursor" / "skills" / "iflow-epic" / "SKILL.md").read_text(
+    content = (tmp_path / ".cursor" / "skills" / "iflow-issue" / "epic.md").read_text(
         encoding="utf-8"
     )
     assert "## Action: publish" in content
@@ -451,24 +445,20 @@ def test_init_epic_skill_publish_action_contract(tmp_path: Path) -> None:
 def test_init_epic_surface_is_standard_mode_only(tmp_path: Path) -> None:
     """Simple mode must not install the epic surface."""
     run_init(tmp_path, mode="simple")
-    assert not (tmp_path / ".cursor" / "skills" / "iflow-epic").exists()
+    assert not (tmp_path / ".cursor" / "skills" / "iflow-issue").exists()
 
 
 def test_init_dispatcher_never_dispatches_to_epic(tmp_path: Path) -> None:
     """/iflow's constraint list must include the epic surface."""
     run_init(tmp_path)
-    content = (tmp_path / ".cursor" / "skills" / "iflow" / "SKILL.md").read_text(
-        encoding="utf-8"
-    )
-    assert "/iflow-epic" in content
+    content = _bundle(tmp_path / ".cursor" / "skills" / "iflow")
+    assert "/iflow-issue epic" in content
 
 
 def test_init_pick_skill_prefers_active_epic(tmp_path: Path) -> None:
     """iflow-pick should source an active epic's current-stage candidates."""
     run_init(tmp_path)
-    content = (tmp_path / ".cursor" / "skills" / "iflow-pick" / "SKILL.md").read_text(
-        encoding="utf-8"
-    )
+    content = _bundle(tmp_path / ".cursor" / "skills" / "iflow-pick")
     assert "Active epic" in content
     assert "issue-flow agent epic-status" in content
     assert "next_candidates" in content
@@ -477,13 +467,11 @@ def test_init_pick_skill_prefers_active_epic(tmp_path: Path) -> None:
 def test_init_pick_skill_documents_label_hard_filter(tmp_path: Path) -> None:
     """iflow-pick scaffold must document label:<L> hard filter (#228)."""
     run_init(tmp_path)
-    skill = (tmp_path / ".cursor" / "skills" / "iflow-pick" / "SKILL.md").read_text(
-        encoding="utf-8"
-    )
+    skill = _bundle(tmp_path / ".cursor" / "skills" / "iflow-pick")
     assert "`label:<L>`" in skill
     assert "hard filter" in skill.lower()
     assert "--label" in skill
-    assert "/iflow-cycle label:" in skill
+    assert "/iflow-run cycle label:" in skill
     docs = (tmp_path / "docs" / "issue-workflow.md").read_text(encoding="utf-8")
     assert "label:<L>" in docs
 
@@ -491,20 +479,18 @@ def test_init_pick_skill_documents_label_hard_filter(tmp_path: Path) -> None:
 def test_init_cleanup_skill_offers_stage_gate(tmp_path: Path) -> None:
     """iflow-cleanup should offer the epic stage gate on a completed stage."""
     run_init(tmp_path)
-    content = (
-        tmp_path / ".cursor" / "skills" / "iflow-cleanup" / "SKILL.md"
-    ).read_text(encoding="utf-8")
+    content = _bundle(tmp_path / ".cursor" / "skills" / "iflow-cleanup")
     assert "stage gate" in content.lower()
     assert "issue-flow agent epic-status" in content
     # Offer only — never auto-publish.
-    assert "never auto-publish" in content
-    assert "/iflow-epic" in content
+    assert "Never do either automatically" in content
+    assert "/iflow-issue epic" in content
 
 
 def test_init_cycle_skill_is_batch_yolo_with_stop_rule(tmp_path: Path) -> None:
-    """iflow-cycle skill: queue-driven batch yolo, one confirm, strict stop rule."""
+    """iflow-run cycle skill: queue-driven batch yolo, one confirm, strict stop rule."""
     run_init(tmp_path)
-    content = (tmp_path / ".cursor" / "skills" / "iflow-cycle" / "SKILL.md").read_text(
+    content = (tmp_path / ".cursor" / "skills" / "iflow-run" / "cycle.md").read_text(
         encoding="utf-8"
     )
     # Drives the deterministic queue planner.
@@ -512,7 +498,7 @@ def test_init_cycle_skill_is_batch_yolo_with_stop_rule(tmp_path: Path) -> None:
     # One up-front consolidated confirm, not per-issue.
     assert "consolidated confirm" in content
     # Reuses the yolo chain verbatim (safeguards stay in force).
-    assert "iflow-yolo/SKILL.md" in content
+    assert "skills/iflow-run/yolo.md" in content
     # The strictly-necessary-input rule and its stop conditions.
     assert "strictly necessary" in content.lower()
     assert "Strictly-necessary-input rule" in content
@@ -529,18 +515,18 @@ def test_init_cycle_skill_is_batch_yolo_with_stop_rule(tmp_path: Path) -> None:
 
 
 def test_init_review_skill_hints_cycle_yolo(tmp_path: Path) -> None:
-    """iflow-review report should point at /iflow-cycle yolo for batch runs."""
+    """iflow-issue review report should point at /iflow-run cycle yolo for batch runs."""
     run_init(tmp_path)
-    content = (tmp_path / ".cursor" / "skills" / "iflow-review" / "SKILL.md").read_text(
+    content = (tmp_path / ".cursor" / "skills" / "iflow-issue" / "review.md").read_text(
         encoding="utf-8"
     )
-    assert "/iflow-cycle yolo" in content
+    assert "/iflow-run cycle yolo" in content
 
 
 def test_init_scaffolds_iflow_auto_skeleton(tmp_path: Path) -> None:
-    """Standard init installs /iflow-auto with adversarial review + auto_status."""
+    """Standard init installs /iflow-run auto with adversarial review + auto_status."""
     run_init(tmp_path)
-    skill = tmp_path / ".cursor" / "skills" / "iflow-auto" / "SKILL.md"
+    skill = tmp_path / ".cursor" / "skills" / "iflow-run" / "auto.md"
     assert skill.is_file()
     content = skill.read_text(encoding="utf-8")
     assert "auto_status.md" in content
@@ -554,22 +540,22 @@ def test_init_scaffolds_iflow_auto_skeleton(tmp_path: Path) -> None:
     assert "Next-epoch gate" in content
     assert "epoch_gated" in content
     assert "dry-run" in content
-    assert "/iflow-cycle" in content
+    assert "/iflow-run cycle" in content
     assert "review" in content
     # Simple mode excludes the auto surface.
     run_init(tmp_path, mode="simple", force=True)
-    assert not (tmp_path / ".cursor" / "skills" / "iflow-auto").exists()
+    assert not (tmp_path / ".cursor" / "skills" / "iflow-run").exists()
 
 
 def test_init_scaffolds_iflow_drive_skeleton(tmp_path: Path) -> None:
-    """Standard init installs /iflow-drive compose path; simple mode excludes it."""
+    """Standard init installs /iflow-run drive compose path; simple mode excludes it."""
     run_init(tmp_path)
-    skill = tmp_path / ".cursor" / "skills" / "iflow-drive" / "SKILL.md"
+    skill = tmp_path / ".cursor" / "skills" / "iflow-run" / "drive.md"
     assert skill.is_file()
     content = skill.read_text(encoding="utf-8")
     assert "drive_status.md" in content
-    assert "/iflow-epic" in content
-    assert "/iflow-auto" in content
+    assert "/iflow-issue epic" in content
+    assert "/iflow-run auto" in content
     assert "local only" in content
     assert "git branch -d" in content
     # #386: drive carries through — -D on squash-landed under the drive confirm,
@@ -579,21 +565,21 @@ def test_init_scaffolds_iflow_drive_skeleton(tmp_path: Path) -> None:
     assert "abort" in content and "halt" in content
     assert "/iflow-status" in content
     run_init(tmp_path, mode="simple", force=True)
-    assert not (tmp_path / ".cursor" / "skills" / "iflow-drive").exists()
+    assert not (tmp_path / ".cursor" / "skills" / "iflow-run").exists()
 
 
 def test_init_cycle_surface_is_standard_mode_only(tmp_path: Path) -> None:
     """Simple mode must not install the cycle surface."""
     run_init(tmp_path, mode="simple")
-    assert not (tmp_path / ".cursor" / "skills" / "iflow-cycle").exists()
+    assert not (tmp_path / ".cursor" / "skills" / "iflow-run").exists()
 
 
 def test_init_cycle_skill_parallel_dispatch_is_opt_in_and_gated(
     tmp_path: Path,
 ) -> None:
-    """iflow-cycle skill: parallel:<n> opt-in, independent-only, serial merges."""
+    """iflow-run cycle skill: parallel:<n> opt-in, independent-only, serial merges."""
     run_init(tmp_path)
-    content = (tmp_path / ".cursor" / "skills" / "iflow-cycle" / "SKILL.md").read_text(
+    content = (tmp_path / ".cursor" / "skills" / "iflow-run" / "cycle.md").read_text(
         encoding="utf-8"
     )
     assert "parallel:<n>" in content
@@ -604,15 +590,18 @@ def test_init_cycle_skill_parallel_dispatch_is_opt_in_and_gated(
     assert "worktree" in content.lower()
     assert "Serialize merges" in content or "serial merge" in content.lower()
     assert "open-workspace" in content
-    assert "separate-workspaces.md" in content
     assert "--open" not in content
 
 
 def test_init_pick_issue_fix_use_worktree_start(tmp_path: Path) -> None:
     """Start-work skills: worktree-add, no open-window option, inplace opt-out."""
     run_init(tmp_path)
-    for name in ("iflow-pick", "iflow-issue", "iflow-fix"):
-        content = (tmp_path / ".cursor" / "skills" / name / "SKILL.md").read_text(
+    for name, side in (
+        ("iflow-pick", "SKILL.md"),
+        ("iflow-issue", "new.md"),
+        ("iflow-issue", "fix.md"),
+    ):
+        content = (tmp_path / ".cursor" / "skills" / name / side).read_text(
             encoding="utf-8"
         )
         assert "worktree-add" in content, name
@@ -623,27 +612,23 @@ def test_init_pick_issue_fix_use_worktree_start(tmp_path: Path) -> None:
 
 def test_init_cleanup_removes_worktree_before_branch_delete(tmp_path: Path) -> None:
     run_init(tmp_path)
-    content = (
-        tmp_path / ".cursor" / "skills" / "iflow-cleanup" / "SKILL.md"
-    ).read_text(encoding="utf-8")
+    content = _bundle(tmp_path / ".cursor" / "skills" / "iflow-cleanup")
     assert "worktree-remove" in content
     assert "before" in content.lower()
 
 
 def test_init_close_skill_skips_switchback_in_worktree(tmp_path: Path) -> None:
     run_init(tmp_path)
-    content = (tmp_path / ".cursor" / "skills" / "iflow-close" / "SKILL.md").read_text(
-        encoding="utf-8"
-    )
+    content = _bundle(tmp_path / ".cursor" / "skills" / "iflow-close")
     assert "in_worktree" in content
     assert "worktree-remove" in content
     assert "auto_remove_worktree" in content
 
 
 def test_init_cycle_skill_has_state_file_resume_and_onfail(tmp_path: Path) -> None:
-    """iflow-cycle skill: durable state file, resume action, onfail policy."""
+    """iflow-run cycle skill: durable state file, resume action, onfail policy."""
     run_init(tmp_path)
-    content = (tmp_path / ".cursor" / "skills" / "iflow-cycle" / "SKILL.md").read_text(
+    content = (tmp_path / ".cursor" / "skills" / "iflow-run" / "cycle.md").read_text(
         encoding="utf-8"
     )
     # Durable, resumable state file.
@@ -661,9 +646,7 @@ def test_init_cycle_skill_has_state_file_resume_and_onfail(tmp_path: Path) -> No
 def test_init_status_skill_mentions_in_flight_cycle(tmp_path: Path) -> None:
     """iflow-status skill should surface an in-flight cycle."""
     run_init(tmp_path)
-    content = (tmp_path / ".cursor" / "skills" / "iflow-status" / "SKILL.md").read_text(
-        encoding="utf-8"
-    )
+    content = _bundle(tmp_path / ".cursor" / "skills" / "iflow-status")
     assert "cycle_status.md" in content
     assert "cycle_active" in content
 
@@ -671,18 +654,14 @@ def test_init_status_skill_mentions_in_flight_cycle(tmp_path: Path) -> None:
 def test_init_dispatcher_never_dispatches_to_cycle(tmp_path: Path) -> None:
     """/iflow's constraint list must include the cycle surface."""
     run_init(tmp_path)
-    content = (tmp_path / ".cursor" / "skills" / "iflow" / "SKILL.md").read_text(
-        encoding="utf-8"
-    )
-    assert "/iflow-cycle" in content
+    content = _bundle(tmp_path / ".cursor" / "skills" / "iflow")
+    assert "Never auto-dispatch to any command other than" in content
 
 
 def test_init_close_skill_documents_prerelease_default(tmp_path: Path) -> None:
     """iflow-close skill should describe the pre-release-aware default bump."""
     run_init(tmp_path)
-    content = (tmp_path / ".cursor" / "skills" / "iflow-close" / "SKILL.md").read_text(
-        encoding="utf-8"
-    )
+    content = _bundle(tmp_path / ".cursor" / "skills" / "iflow-close")
     assert "pre-release-aware default" in content
     # The named-level list should include a pre-release level.
     assert "beta" in content
@@ -691,11 +670,9 @@ def test_init_close_skill_documents_prerelease_default(tmp_path: Path) -> None:
 def test_init_issue_close_documents_history_update_step(tmp_path: Path) -> None:
     """iflow-close skill should describe the HISTORY.md update step and opt-out token."""
     run_init(tmp_path)
-    content = (tmp_path / ".cursor" / "skills" / "iflow-close" / "SKILL.md").read_text(
-        encoding="utf-8"
-    )
+    content = _bundle(tmp_path / ".cursor" / "skills" / "iflow-close")
     assert "HISTORY.md" in content
-    assert "iflow-history-update" in content
+    assert "`changelog.md`" in content
     assert "[Unreleased]" in content
     assert "nohistory" in content
 
@@ -705,24 +682,19 @@ def test_init_issue_close_documents_uncommitted_and_branch_reminder(
 ) -> None:
     """iflow-close skill should flag unrelated changes and document post-PR switching."""
     run_init(tmp_path)
-    content = (tmp_path / ".cursor" / "skills" / "iflow-close" / "SKILL.md").read_text(
-        encoding="utf-8"
-    )
+    content = _bundle(tmp_path / ".cursor" / "skills" / "iflow-close")
     assert "git status" in content
     assert "not relevant" in content
     assert "issue branch" in content
     assert "stay on branch" in content
     assert "don't switch" in content
-    assert "git switch <default>" in content
-    assert "git status --porcelain" in content
+    assert "issue-flow agent switchback" in content
 
 
 def test_init_close_skill_mentions_switchback_fast_path(tmp_path: Path) -> None:
     """iflow-close skill should offer `issue-flow agent switchback` as fast path."""
     run_init(tmp_path)
-    content = (tmp_path / ".cursor" / "skills" / "iflow-close" / "SKILL.md").read_text(
-        encoding="utf-8"
-    )
+    content = _bundle(tmp_path / ".cursor" / "skills" / "iflow-close")
     assert "issue-flow agent switchback" in content
 
 
@@ -735,9 +707,7 @@ def test_init_close_skill_documents_sync_before_merge(tmp_path: Path) -> None:
     push it implies, and the merge retry on a conflicted refusal.
     """
     run_init(tmp_path)
-    content = (tmp_path / ".cursor" / "skills" / "iflow-close" / "SKILL.md").read_text(
-        encoding="utf-8"
-    )
+    content = _bundle(tmp_path / ".cursor" / "skills" / "iflow-close")
     assert "issue-flow agent sync-branch" in content
     assert "--force-with-lease" in content
     assert "CONFLICTING" in content
@@ -747,7 +717,7 @@ def test_init_history_skill_documents_keep_both_rule(tmp_path: Path) -> None:
     """The changelog skill owns the one documented keep-both ordering."""
     run_init(tmp_path)
     content = (
-        tmp_path / ".cursor" / "skills" / "iflow-history-update" / "SKILL.md"
+        tmp_path / ".cursor" / "skills" / "iflow-close" / "changelog.md"
     ).read_text(encoding="utf-8")
     assert "keep both" in content.lower()
     assert "last" in content
@@ -757,7 +727,7 @@ def test_init_history_skill_documents_keep_both_rule(tmp_path: Path) -> None:
 def test_init_cycle_skill_does_not_stop_on_changelog_conflict(tmp_path: Path) -> None:
     """A changelog-only merge refusal must not halt a cycle any more."""
     run_init(tmp_path)
-    content = (tmp_path / ".cursor" / "skills" / "iflow-cycle" / "SKILL.md").read_text(
+    content = (tmp_path / ".cursor" / "skills" / "iflow-run" / "cycle.md").read_text(
         encoding="utf-8"
     )
     assert "issue-flow agent sync-branch" in content
@@ -773,9 +743,7 @@ def test_init_cleanup_skill_documents_squash_landed_force_delete(
     confirm, and print tip SHAs so every delete stays recoverable.
     """
     run_init(tmp_path)
-    content = (
-        tmp_path / ".cursor" / "skills" / "iflow-cleanup" / "SKILL.md"
-    ).read_text(encoding="utf-8")
+    content = _bundle(tmp_path / ".cursor" / "skills" / "iflow-cleanup")
     assert "issue-flow agent local-branches" in content
     assert "squash_landed" in content
     assert "merged_pr_divergent" in content
@@ -794,9 +762,8 @@ def test_init_cleanup_command_matches_the_skill_on_force_delete(
     editor that renders slash commands.
     """
     run_init(tmp_path, editors=["claude"])
-    content = (tmp_path / ".claude" / "commands" / "iflow-cleanup.md").read_text(
-        encoding="utf-8"
-    )
+    assert not (tmp_path / ".claude" / "commands").exists()
+    content = _bundle(tmp_path / ".claude" / "skills" / "iflow-cleanup")
     assert "issue-flow agent local-branches" in content
     assert "Phase A2" in content
     assert "never `-D`" not in content
@@ -807,26 +774,21 @@ def test_init_docs_and_rules_drop_the_never_force_delete_claim(
 ) -> None:
     """The blanket "never -D" promise appeared in the rule and workflow doc too."""
     run_init(tmp_path)
-    rule = (tmp_path / ".cursor" / "rules" / "issueflow-rules.mdc").read_text(
-        encoding="utf-8"
-    )
+    rule = (tmp_path / "AGENTS.md").read_text(encoding="utf-8")
     workflow = (tmp_path / "docs" / "issue-workflow.md").read_text(encoding="utf-8")
     assert "Never `-D`" not in rule
     assert "never `-D`" not in rule
-    assert "squash-landed" in rule
     assert "Never `-D`" not in workflow
-    assert "second, dedicated confirm" in workflow
+    assert "separately, `-D`" in workflow
 
 
 def test_init_rule_documents_designs_folder(tmp_path: Path) -> None:
     """The generated rule file should mention the designs-and-guides folder."""
     run_init(tmp_path)
-    rule = (tmp_path / ".cursor" / "rules" / "issueflow-rules.mdc").read_text(
-        encoding="utf-8"
-    )
+    rule = (tmp_path / "AGENTS.md").read_text(encoding="utf-8")
     assert "04-designs-and-guides" in rule
     assert "05-epics" in rule
-    assert "Designs and guides" in rule
+    assert "design decisions" in rule
 
 
 def test_init_commands_reference_designs_folder(tmp_path: Path) -> None:
@@ -841,10 +803,10 @@ def test_init_commands_reference_designs_folder(tmp_path: Path) -> None:
 
 
 def test_init_issue_capture_documents_branch_inference(tmp_path: Path) -> None:
-    """iflow-capture skill should describe resolving an issue from the current branch when no args."""
+    """iflow-pick skill should describe resolving an issue from the current branch when no args."""
     run_init(tmp_path)
     content = (
-        tmp_path / ".cursor" / "skills" / "iflow-capture" / "SKILL.md"
+        tmp_path / ".cursor" / "skills" / "iflow-pick" / "capture.md"
     ).read_text(encoding="utf-8")
     assert "git -C <project_root> branch --show-current" in content
     assert "You have not provided an issue reference" in content
@@ -852,18 +814,15 @@ def test_init_issue_capture_documents_branch_inference(tmp_path: Path) -> None:
 
 
 def test_init_issue_init_is_harness_cold_start(tmp_path: Path) -> None:
-    """iflow-init skill is harness cold-start, not issue capture (#241)."""
+    """iflow-setup skill is harness cold-start, not issue capture (#241)."""
     run_init(tmp_path)
-    content = (tmp_path / ".cursor" / "skills" / "iflow-init" / "SKILL.md").read_text(
-        encoding="utf-8"
-    )
-    assert "cold-start" in content.lower() or "harness" in content.lower()
+    content = _bundle(tmp_path / ".cursor" / "skills" / "iflow-setup")
+    assert "harness" in content.lower()
     assert "issue-flow init" in content
     assert "workspace bootstrap" in content
     assert "https://issue-flow.readthedocs.io/en/latest/how-to/workspaces/" in content
     assert "https://issue-flow.readthedocs.io/en/latest/how-to/for-agents/" in content
-    assert "agent capture" not in content
-    assert (tmp_path / ".cursor" / "skills" / "iflow-capture" / "SKILL.md").is_file()
+    assert (tmp_path / ".cursor" / "skills" / "iflow-pick" / "capture.md").is_file()
 
 
 def test_init_proceeds_silently_when_all_dependencies_present(
@@ -881,7 +840,7 @@ def test_init_proceeds_silently_when_all_dependencies_present(
 
     run_init(tmp_path)
 
-    assert (tmp_path / ".cursor" / "skills" / "iflow-init" / "SKILL.md").is_file()
+    assert (tmp_path / ".cursor" / "skills" / "iflow-setup" / "SKILL.md").is_file()
 
 
 def test_init_continues_when_skip_dep_check_is_set(
@@ -899,7 +858,7 @@ def test_init_continues_when_skip_dep_check_is_set(
 
     run_init(tmp_path, skip_dep_check=True)
 
-    assert (tmp_path / ".cursor" / "skills" / "iflow-init" / "SKILL.md").is_file()
+    assert (tmp_path / ".cursor" / "skills" / "iflow-setup" / "SKILL.md").is_file()
 
 
 def test_init_continues_in_non_tty_when_deps_missing(
@@ -918,7 +877,7 @@ def test_init_continues_in_non_tty_when_deps_missing(
 
     run_init(tmp_path)
 
-    assert (tmp_path / ".cursor" / "skills" / "iflow-init" / "SKILL.md").is_file()
+    assert (tmp_path / ".cursor" / "skills" / "iflow-setup" / "SKILL.md").is_file()
 
 
 def test_init_aborts_cleanly_when_user_declines_prompt(
@@ -985,22 +944,20 @@ def test_init_skips_graphify_when_unavailable(
 
     run_init(tmp_path)
 
-    assert (tmp_path / ".cursor" / "skills" / "iflow-graphify" / "SKILL.md").is_file()
+    assert (tmp_path / ".cursor" / "skills" / "iflow-status" / "graph.md").is_file()
 
 
 def test_init_creates_graphify_skill(tmp_path: Path) -> None:
     """The /graphify skill must be scaffolded for Cursor."""
     run_init(tmp_path)
 
-    graphify_skill = tmp_path / ".cursor" / "skills" / "iflow-graphify" / "SKILL.md"
+    graphify_skill = tmp_path / ".cursor" / "skills" / "iflow-status" / "graph.md"
     assert not (tmp_path / ".cursor" / "commands").exists()
     assert graphify_skill.is_file()
 
     skill_content = graphify_skill.read_text(encoding="utf-8")
-    assert "name: iflow-graphify" in skill_content
     assert "issue-flow graphify" in skill_content
     assert "graphify-out" in skill_content
-    assert "disable-model-invocation: true" in skill_content
 
 
 def test_init_creates_status_skill(tmp_path: Path) -> None:
@@ -1014,7 +971,7 @@ def test_init_creates_status_skill(tmp_path: Path) -> None:
     assert "name: iflow-status" in skill_content
     assert "/iflow-status" in skill_content
     assert "read-only" in skill_content.lower()
-    assert "off-path" in skill_content.lower()
+    assert "`graph.md`" in skill_content
     assert "disable-model-invocation: true" in skill_content
 
 
@@ -1028,7 +985,7 @@ def test_init_creates_issue_pick_skill(tmp_path: Path) -> None:
     skill_content = pick_skill.read_text(encoding="utf-8")
     assert "name: iflow-pick" in skill_content
     assert "/iflow-pick" in skill_content
-    assert "/iflow-capture" in skill_content
+    assert "/iflow-pick" in skill_content
     assert ".issueflows/" in skill_content
     assert "disable-model-invocation: true" in skill_content
 
@@ -1036,12 +993,10 @@ def test_init_creates_issue_pick_skill(tmp_path: Path) -> None:
 def test_init_rule_documents_knowledge_graph_section(tmp_path: Path) -> None:
     """The generated rule file should mention the optional graphify knowledge graph."""
     run_init(tmp_path)
-    rule = (tmp_path / ".cursor" / "rules" / "issueflow-rules.mdc").read_text(
-        encoding="utf-8"
-    )
+    rule = (tmp_path / "AGENTS.md").read_text(encoding="utf-8")
     assert "Knowledge graph" in rule
     assert "graphify-out/GRAPH_REPORT.md" in rule
-    assert "/iflow-graphify" in rule
+    assert "/iflow-status graph" in rule
 
 
 _AGENTS_BEGIN = "<!-- BEGIN issue-flow (managed: do not edit this block) -->"
@@ -1057,7 +1012,7 @@ def test_init_creates_agents_md_with_managed_block(tmp_path: Path) -> None:
     content = agents.read_text(encoding="utf-8")
     assert _AGENTS_BEGIN in content
     assert _AGENTS_END in content
-    assert "Issue-flow best practices" in content
+    assert "# Issue-flow" in content
     # AGENTS.md is editor-neutral: no literal "Cursor".
     assert "Cursor" not in content
 
@@ -1074,7 +1029,7 @@ def test_init_preserves_existing_agents_md_user_content(tmp_path: Path) -> None:
     assert content.startswith("# My project")
     assert "Hand-written guidance that must survive." in content
     assert _AGENTS_BEGIN in content
-    assert "Issue-flow best practices" in content
+    assert "# Issue-flow" in content
 
 
 def test_init_agents_md_block_is_idempotent(tmp_path: Path) -> None:
@@ -1093,9 +1048,9 @@ def test_init_claude_editor_writes_claude_tree_and_claude_md(tmp_path: Path) -> 
     """--editor claude scaffolds under .claude/ with a CLAUDE.md rules file."""
     run_init(tmp_path, editors=["claude"])
 
-    assert (tmp_path / ".claude" / "commands" / "iflow-init.md").is_file()
-    assert (tmp_path / ".claude" / "skills" / "iflow-init" / "SKILL.md").is_file()
-    assert (tmp_path / "CLAUDE.md").is_file()
+    assert not (tmp_path / ".claude" / "commands").exists()
+    assert (tmp_path / ".claude" / "skills" / "iflow-setup" / "SKILL.md").is_file()
+    assert "@AGENTS.md" in (tmp_path / "CLAUDE.md").read_text(encoding="utf-8")
     assert (tmp_path / "AGENTS.md").is_file()
     # No Cursor scaffolding leaks in.
     assert not (tmp_path / ".cursor").exists()
@@ -1105,7 +1060,7 @@ def test_init_codex_editor_has_skills_but_no_commands(tmp_path: Path) -> None:
     """--editor codex scaffolds skills + AGENTS.md but no slash commands."""
     run_init(tmp_path, editors=["codex"])
 
-    assert (tmp_path / ".codex" / "skills" / "iflow-init" / "SKILL.md").is_file()
+    assert (tmp_path / ".codex" / "skills" / "iflow-setup" / "SKILL.md").is_file()
     assert not (tmp_path / ".codex" / "commands").exists()
     assert not (tmp_path / ".codex" / "command").exists()
     assert (tmp_path / "AGENTS.md").is_file()
@@ -1116,7 +1071,7 @@ def test_init_codex_editor_has_skills_but_no_commands(tmp_path: Path) -> None:
 def test_init_opencode_editor_uses_singular_command_dir(tmp_path: Path) -> None:
     run_init(tmp_path, editors=["opencode"])
 
-    assert (tmp_path / ".opencode" / "command" / "iflow-init.md").is_file()
+    assert (tmp_path / ".opencode" / "command" / "iflow-setup.md").is_file()
     assert not (tmp_path / ".opencode" / "commands").exists()
     assert (tmp_path / ".opencode" / "skills" / "iflow" / "SKILL.md").is_file()
 
@@ -1125,10 +1080,10 @@ def test_init_all_editors_scaffolds_every_agent_dir(tmp_path: Path) -> None:
     run_init(tmp_path, editors=["all"])
 
     assert not (tmp_path / ".cursor" / "commands").exists()
-    assert (tmp_path / ".cursor" / "skills" / "iflow-init" / "SKILL.md").is_file()
-    assert (tmp_path / ".claude" / "commands" / "iflow-init.md").is_file()
-    assert (tmp_path / ".opencode" / "command" / "iflow-init.md").is_file()
-    assert (tmp_path / ".codex" / "skills" / "iflow-init" / "SKILL.md").is_file()
+    assert (tmp_path / ".cursor" / "skills" / "iflow-setup" / "SKILL.md").is_file()
+    assert not (tmp_path / ".claude" / "commands").exists()
+    assert (tmp_path / ".opencode" / "command" / "iflow-setup.md").is_file()
+    assert (tmp_path / ".codex" / "skills" / "iflow-setup" / "SKILL.md").is_file()
     # Shared, neutral outputs exist exactly once.
     assert (tmp_path / "AGENTS.md").is_file()
     agents = (tmp_path / "AGENTS.md").read_text(encoding="utf-8")
@@ -1150,7 +1105,7 @@ def test_init_default_mode_is_full_and_writes_no_config(tmp_path: Path) -> None:
 
     skills = tmp_path / ".cursor" / "skills"
     assert (skills / "iflow-close" / "SKILL.md").is_file()
-    assert (skills / "iflow-yolo" / "SKILL.md").is_file()
+    assert (skills / "iflow-run" / "yolo.md").is_file()
     # Default mode leaves the persisted config untouched (back-compat).
     assert not (tmp_path / ".issueflows" / "config.toml").exists()
 
@@ -1161,8 +1116,8 @@ def test_init_mode_simple_scaffolds_subset(tmp_path: Path) -> None:
     skills = tmp_path / ".cursor" / "skills"
     for present in (
         "iflow",
-        "iflow-init",
-        "iflow-capture",
+        "iflow-setup",
+        "iflow-pick",
         "iflow-plan",
         "iflow-build",
         "iflow-pause",
@@ -1172,10 +1127,8 @@ def test_init_mode_simple_scaffolds_subset(tmp_path: Path) -> None:
     for absent in (
         "iflow-close",
         "iflow-cleanup",
-        "iflow-yolo",
-        "iflow-fix",
-        "iflow-graphify",
-        "iflow-pick",
+        "iflow-run",
+        "iflow-issue",
     ):
         assert not (skills / absent).exists(), absent
 
@@ -1192,7 +1145,7 @@ def test_init_switch_to_simple_prunes_excluded_skills(tmp_path: Path) -> None:
     run_init(tmp_path, mode="simple", force=True)
 
     assert not close.exists()
-    assert (tmp_path / ".cursor" / "skills" / "iflow-init" / "SKILL.md").is_file()
+    assert (tmp_path / ".cursor" / "skills" / "iflow-setup" / "SKILL.md").is_file()
 
 
 def test_init_unknown_mode_aborts_without_scaffold(tmp_path: Path) -> None:
@@ -1206,9 +1159,7 @@ def test_init_unknown_mode_aborts_without_scaffold(tmp_path: Path) -> None:
 def test_init_simple_mode_dispatcher_has_no_close_target(tmp_path: Path) -> None:
     """The /iflow dispatcher's done-state must not route to /iflow-close in simple mode."""
     run_init(tmp_path, mode="simple")
-    dispatcher = (tmp_path / ".cursor" / "skills" / "iflow" / "SKILL.md").read_text(
-        encoding="utf-8"
-    )
+    dispatcher = _bundle(tmp_path / ".cursor" / "skills" / "iflow")
     # The close-dispatch reason line is gated out; the markdown-only fallback is in.
     assert "status marks the issue" not in dispatcher
     assert "03-solved-issues" in dispatcher
@@ -1217,9 +1168,7 @@ def test_init_simple_mode_dispatcher_has_no_close_target(tmp_path: Path) -> None
 def test_init_standard_mode_dispatcher_routes_to_close(tmp_path: Path) -> None:
     """Standard mode keeps the /iflow-close dispatch in the done state."""
     run_init(tmp_path)
-    dispatcher = (tmp_path / ".cursor" / "skills" / "iflow" / "SKILL.md").read_text(
-        encoding="utf-8"
-    )
+    dispatcher = _bundle(tmp_path / ".cursor" / "skills" / "iflow")
     assert "status marks the issue" in dispatcher
 
 

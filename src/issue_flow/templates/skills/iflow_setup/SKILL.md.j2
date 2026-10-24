@@ -1,21 +1,24 @@
 ---
 name: iflow-setup
 description: >-
-  Guide a new user from an empty folder or an unprepared existing project to
-  a working issue-flow setup: uv project, git repo, GitHub remote, and scaffold.
+  Get a project ready for issue-flow: uv project, git repo, GitHub remote,
+  scaffold. Mode harness: cold-start or refresh the scaffold (init / update /
+  workspace bootstrap), also from a parent folder with no scaffold yet.
 disable-model-invocation: true
 ---
 
 # issue-flow — guided project setup (`/iflow-setup`)
 
-Follow this skill to get a project **ready to use issue-flow** — for someone who may never have driven an agentic workflow before.{% if commands_supported %} Matches `{{ agent_dir }}/{{ commands_dir }}/iflow-setup.md`.{% endif %}
+Follow this skill to get a project **ready to use issue-flow** — for someone who may never have driven an agentic workflow before.
 
 It covers both entry paths from a standing start:
 
 - **New project** — an empty (or nearly empty) folder that needs a Python project, a git repo, and a GitHub remote.
 - **Existing project** — real code already, but some piece is missing (no remote, `gh` not authenticated, no issue-flow scaffold).
 
-This is **not** the issue-capture step. Capturing a GitHub issue into `{{ issueflows_dir }}/{{ current_issues_folder }}/` is `/iflow-capture`; picking what to work on is `/iflow-pick`. `/iflow-init` only cold-starts the harness.
+This is **not** the issue-capture step; that is `/iflow-pick`.
+
+**Harness mode.** When the input is `harness`, or the user only wants to scaffold / refresh issue-flow (`issue-flow init` / `update` / `workspace bootstrap`, including from a parent folder of repos), read `harness.md` in this skill folder and follow it instead of the steps below.
 
 {% set iflow_step = "setup" %}
 {% include "skills/_invocation_forms.md.j2" %}
@@ -30,6 +33,7 @@ This is **not** the issue-capture step. Capturing a GitHub issue into `{{ issuef
 - **`new`** — treat this as a brand-new project (skip the new-vs-existing question).
 - **`existing`** — treat this as an existing project.
 - **`check`** — report readiness only; change nothing, run nothing, ask nothing.
+- **`harness`** — scaffold / refresh only (`harness.md`).
 
 ## Instructions
 
@@ -62,10 +66,10 @@ This is **not** the issue-capture step. Capturing a GitHub issue into `{{ issuef
    | no `origin` remote | Offer `gh repo create <name> --source=. --private --remote=origin --push`. Confirm the name and the private/public choice explicitly — this creates a repository on their GitHub account. |
    | no issue-flow scaffold | `issue-flow init` (see step 5 for the mode choice). |
 
-5. **Choose a starting mode when scaffolding.** For someone new to agentic coding, recommend **`issue-flow init --mode novice`**: it installs the linear lifecycle plus the safety nets (`/iflow`, `/iflow-setup`, `/iflow-pick`, `/iflow-init`, `/iflow-capture`, `/iflow-issue`, `/iflow-plan`, `/iflow-build`, `/iflow-pause`, `/iflow-close`, `/iflow-cleanup`, `/iflow-status`, `/iflow-doctor`) and leaves out the hands-off and batch machinery, and it seeds settings that ask before each step instead of chaining. Mention that `issue-flow init --mode standard` adds everything later — switching mode is just a re-run.
+5. **Choose a starting mode when scaffolding.** For someone new to agentic coding, recommend **`issue-flow init --mode novice`**: it installs the linear lifecycle plus the safety nets (`/iflow`, `/iflow-setup`, `/iflow-pick`, `/iflow-setup`, `/iflow-pick`, `/iflow-issue`, `/iflow-plan`, `/iflow-build`, `/iflow-pause`, `/iflow-close`, `/iflow-cleanup`, `/iflow-status`, `/iflow-status doctor`) and leaves out the hands-off and batch machinery, and it seeds settings that ask before each step instead of chaining. Mention that `issue-flow init --mode standard` adds everything later — switching mode is just a re-run.
 
 6. **Hand off — never auto-dispatch.** End with the single next thing to type:
-   - GitHub issues already exist → **`/iflow-pick`**{% if not commands_supported %} (`iflow pick` in chat){% endif %}.
+   - GitHub issues already exist → **`/iflow-pick`** (`iflow pick` in chat).
    - No issues yet → **`/iflow-issue`** to write a good first one.
    - Then the ordinary path: `/iflow-plan` → `/iflow-build` → `/iflow-close`.
 
@@ -77,5 +81,5 @@ This is **not** the issue-capture step. Capturing a GitHub issue into `{{ issuef
 - **Never run `gh auth login` yourself**, and never install `uv` or `gh` on the user's behalf — print the command and stop.
 - **Never run `uv init` in a directory that already holds a project.** When in doubt, ask.
 - **`check` is read-only.** With that token, report and stop: no prompts, no commands.
-- **Off-path.** Never auto-dispatch this skill from `/iflow`, `/iflow-plan`, or `/iflow-build`; the user invokes it. It never captures an issue, creates a branch, or opens a PR — that is `/iflow-capture` onward.
+- **Off-path.** Never auto-dispatch this skill from `/iflow`, `/iflow-plan`, or `/iflow-build`; the user invokes it. It never captures an issue, creates a branch, or opens a PR — that is `/iflow-pick` onward.
 - **Plain language.** Assume the user has not read the workflow doc. Explain what each command will do to their machine or their GitHub account before asking.

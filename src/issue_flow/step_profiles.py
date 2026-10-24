@@ -13,7 +13,12 @@ import tomllib
 from importlib import resources
 from typing import Literal
 
-from issue_flow.templating import COMMAND_NAMES, OPTIONAL_SKILL_DIRS, SKILL_DIRS
+from issue_flow.templating import (
+    COMMAND_NAMES,
+    OPTIONAL_SKILL_DIRS,
+    SKILL_DIRS,
+    rename_stem,
+)
 
 StepProfile = Literal["economy", "reasoning"]
 
@@ -21,12 +26,12 @@ _PROFILES_RESOURCE = "step_profiles.toml"
 _VALID_PROFILES: frozenset[str] = frozenset({"economy", "reasoning"})
 
 # Lifecycle skills that receive a MODEL & EXECUTION DIRECTIVE (excludes the
-# model-invoked helpers caveman / grill_me / gh_ci and the vendored optional
-# skills, whose bodies issue-flow does not edit).
+# behaviour skills caveman / grill_me and the vendored optional skills, whose
+# bodies issue-flow does not edit).
 LIFECYCLE_SKILL_STEMS: frozenset[str] = frozenset(
     stem
     for stem in SKILL_DIRS
-    if stem not in {"caveman", "grill_me", "gh_ci"} and stem not in OPTIONAL_SKILL_DIRS
+    if stem not in {"caveman", "grill_me"} and stem not in OPTIONAL_SKILL_DIRS
 )
 
 _COMMAND_TO_SKILL: dict[str, str] = {
@@ -75,7 +80,8 @@ def read_project_overrides(cfg_path) -> dict[str, StepProfile]:
     if not isinstance(raw, dict):
         return {}
     overrides: dict[str, StepProfile] = {}
-    for stem, value in raw.items():
+    for raw_stem, value in raw.items():
+        stem = rename_stem(str(raw_stem))
         profile = str(value).strip().lower()
         if profile not in _VALID_PROFILES:
             raise ValueError(f"Invalid step profile {profile!r} for {stem!r} in {path}")

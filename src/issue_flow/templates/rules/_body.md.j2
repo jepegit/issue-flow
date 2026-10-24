@@ -1,371 +1,65 @@
-# Issue-flow best practices
+# Issue-flow
 
+This project tracks GitHub issues with issue-flow. Each `iflow-*` skill holds its own instructions; read a skill only when it is invoked.
 
-## Running python
+## Running Python
 
-**Respect the project's existing toolchain first.** If this project already
-documents how to run Python and manage dependencies — in its `README`,
-`AGENTS.md`, `CLAUDE.md`, `.cursor/rules`, `environment.yml`, `pyproject.toml`,
-`Makefile`, CI config, etc. — **follow that**, even where it conflicts with the
-defaults below. These rules describe issue-flow's *default* assumptions, not a
-mandate to override a project that has already chosen differently.
+Follow the project's documented toolchain (README, `AGENTS.md`, `pyproject.toml`, `environment.yml`, CI). Never call bare `python`: use the project's runner (`uv run …` by default, `conda run -n <env> …` for conda projects, `poetry run …` for poetry). In a uv project, manage dependencies with `uv add` / `uv remove` / `uv sync`, not `pip`.
 
-The one tool-neutral principle: **don't call bare `python ...`** — invoke Python
-through the project's environment (its runner, or an activated virtualenv/conda
-env) so scripts and tests see the right interpreter and dependencies.
+## Tracking layout
 
-### If the project uses conda
+Under `{{ issueflows_dir }}/`:
 
-When the project documents a conda environment, run **all** Python commands —
-scripts **and `pytest`** — inside the **activated conda environment**. Do **not**
-substitute `uv run`.
+- `{{ tools_folder }}/` — reusable helper scripts; `README.md` is the index. Check it before writing a one-off helper, and add useful tools back.
+- `{{ current_issues_folder }}/` — the focus issue only: `issue<N>_original.md`, `issue<N>_plan.md`, `issue<N>_status.md`.
+- `{{ partly_solved_folder }}/` — parked work. `{{ solved_folder }}/` — finished work.
+- `{{ designs_folder }}/` — durable design docs; `this-project.md` is the project brief.
+- `{{ epics_folder }}/` — staged epic plans (`epic<N>_plan.md`).
 
-```bash
-# Either activate the environment first…
-conda activate <env-name>
-python run_script.py
-pytest
+- After each iteration, update `issue<N>_status.md` (done, current state, remaining work) with an explicit checkbox: `- [x] Done` when fully resolved, `- [ ] Done` otherwise. Other steps route files by that checkbox.
+- Finished issues move to `{{ solved_folder }}/`, unfinished ones to `{{ partly_solved_folder }}/`.
+- Before planning or building, read `{{ designs_folder }}/this-project.md` if present and skim `{{ designs_folder }}/` for relevant docs. Record non-trivial design decisions there (context, decision, alternatives, issue link).
 
-# …or run one-off commands inside it:
-conda run -n <env-name> pytest
-```
+## Commands
 
-### If the project uses uv (issue-flow's default)
+Invoke as `/iflow-<step>` or in chat as `iflow <step> [args]` (also `iflow-<step>` or `/iflow <step>`). A message that **starts with** one of these forms invokes the `iflow-<step>` skill with the trailing text as its arguments; plain `iflow` runs the dispatcher. Mid-sentence mentions are not invocations.
 
-For projects scaffolded fresh (and this is the default when nothing else is
-documented), use `uv`:
+| Command | Purpose |
+|---|---|
+{% for row in command_rows %}| `{{ row[0] }}` | {{ row[1] }} |
+{% endfor -%}
 
-```bash
-# ❌ BAD: bare interpreter
-python run_script.py
+The core loop is `pick → plan → build → close → cleanup`. `/iflow` detects the focus issue's state and dispatches to the next of capture / plan / build / close; it never dispatches to any other command. Never skip the plan confirmation in `/iflow-plan` unless a hands-off mode was confirmed.
+{%- if label_flows and "iflow_pick" in included_skills %}
 
-# ✅ GOOD: through uv
-uv run run_script.py
-```
+Issue labels can route `/iflow-pick`: `{{ yolo_label }}` → `/iflow-run yolo`, `{{ ops_label }}` → no-PR close (ops wins over yolo). A `{{ publish_label }}` label makes `/iflow-close` bump the version and release after merge.
+{%- endif %}
 
-**Package management with `uv`**
+## Branch hygiene
 
-- Install, synchronize, and lock dependencies with `uv`; don't reach for `pip`,
-  `pip-tools`, or `poetry` in a uv-managed project.
+- Work on an issue branch `<N>-<short-slug>`, never on the default branch.
+- Before continuing a branch, run `git fetch --prune` and check ahead/behind against `origin/<default>`. PRs are **{{ pr_merge_method }}**-merged, so a merged branch looks "ahead" and is stale.
+{% if auto_cleanup %}- `auto_cleanup = true`: after a PR merges, run `/iflow-cleanup`.
+{% elif remind_cleanup %}- After a PR merges, remind the user to run `/iflow-cleanup`. Do not run it automatically.
+{% endif %}- An issue already under `{{ partly_solved_folder }}/` or `{{ solved_folder }}/` has a stale branch. Re-open it only on purpose with `/iflow-pick <N>`.
 
-```bash
-# Add or upgrade dependencies
-uv add <package>
+## Multi-repo workspaces
 
-# Remove dependencies
-uv remove <package>
+When the workspace holds several repos with their own `{{ issueflows_dir }}/`, resolve the target repo first (`root:` / `repo:` hints, then `issue-flow agent resolve`, then the `issueflow-workspace.toml` default); ask when ambiguous. Pass `--repo <owner/repo>` to every `gh` call. Lifecycle state is per repository.
+{%- if "caveman" in included_skills or "grill_me" in included_skills or pstack_skills %}
 
-# Reinstall all dependencies from the lock file
-uv sync
-
-# Run a script with the right environment
-uv run script.py
-```
-
-### Other toolchains (plain venv / pip / poetry)
-
-If the project uses something else, use whatever it documents (e.g. activate its
-`.venv` and use `pip`, or run `poetry run`). Match the project; don't force `uv`.
-
-
-## Issue tracking structure
-
-```bash
-{{ project_name }}/
-    {{ issueflows_dir }}/
-        {{ tools_folder }}/
-        {{ current_issues_folder }}/
-            issueXX_original.md
-            issueXX_status.md
-        {{ partly_solved_folder }}/
-        {{ solved_folder }}/
-        {{ designs_folder }}/
-        {{ epics_folder }}/
-            epicXX_plan.md
-    pyproject.toml
-    readme.md
-    ...
-```
-
-
-## Development information
-
-
-### Working on issues
-
-After each iteration, update the documents in `{{ issueflows_dir }}/{{ current_issues_folder }}` (should contain one file labelled `_original` with the original issue description, a `_plan` file with the confirmed approach, and supplementary status files describing what has been done, current status, and remaining work).
-Use an explicit status checkbox in the status file:
-- `- [x] Done` when fully resolved
-- `- [ ] Done` when not fully resolved
-
-### Chat invocation (no slash)
-
-On keyboard layouts where `/` and `@` are awkward to type (for example Norwegian), invoke lifecycle skills in **chat** without special keys.
-
-**Primary form:** `iflow <step>` (space-separated) — e.g. `iflow plan`, `iflow pick`, `iflow close`. Plain `iflow` runs the smart dispatcher.
-
-**Also recognized** (same obligation as slash-menu invocation): hyphen form (`iflow-plan`), slash form (`/iflow-plan`), slash + space (`/iflow plan`).
-
-When the user message is **exactly** one of these forms, or **starts with** it followed by a space and trailing arguments, **read and follow** the matching skill immediately. Forward trailing text verbatim (e.g. `iflow pick fix` → `iflow-pick` with arg `fix`). Do **not** treat incidental mid-sentence mentions as commands — the message must **start with** the invocation.
-
-| Chat / slash form | Skill |
-|-------------------|-------|
-| `iflow` / `/iflow` | `iflow` (dispatcher) |
-{% for cmd in included_commands %}{% if cmd != "iflow" %}
-| `iflow {{ cmd[6:] }}`, `{{ cmd }}`, `/{{ cmd }}`, `/iflow {{ cmd[6:] }}` | `{{ cmd }}` |
-{% endif %}{% endfor %}
-{% if "iflow-workspace-git" in included_commands %}
-| `iflow git`, `/iflow git` | `iflow-workspace-git` |
-{% endif %}
-
-Skill `@` attachment is supported on some editors but is not the recommended keyboard-friendly path.
-
-### Command lifecycle
-{% if "iflow_setup" in included_skills %}
-
-If the project itself is not ready yet — no git repo, no remote, `gh` not authenticated, or no Python project — run **`/iflow-setup`** (or type **`iflow setup`** in chat) first. It reads `issue-flow agent setup-status`, works out whether this is a brand-new or an existing project, and walks the blockers one confirmation at a time. Off-path (never auto-dispatched).
-{% endif %}
-
-If you have not chosen an issue yet, run **`/iflow-pick`** (or type **`iflow pick`** in chat) — the front door that helps you select the next issue (parked work first, else ranked open GitHub issues), creates the branch, and runs `/iflow-capture`. It is off-path (never auto-dispatched).
-
-If you just want the next right step, run **`/iflow`** (or type **`iflow`** in chat) — it detects state (by file presence under `{{ issueflows_dir }}/{{ current_issues_folder }}/` and the status-file `- [x] Done` marker) and dispatches to `/iflow-capture`, `/iflow-plan`, `/iflow-build`, or `/iflow-close`. With no focus issue, it{% if "iflow_epic" in included_skills %} checks active-epic `next_candidates` (`agent state` → `epic_hint`) and{% endif %} **recommends** `/iflow-pick` instead of a blind capture{% if "iflow_epic" in included_skills %} — or, when an `epic_session` is present, **asks** continue / switch / stop (never silent-pick){% endif %} — it never auto-dispatches to the off-path commands (`/iflow-pick`, `/iflow-init`, `/iflow-pause`, `/iflow-cleanup`{% if "iflow_yolo" in included_skills %}, `/iflow-yolo`{% endif %}{% if "iflow_ops" in included_skills %}, `/iflow-ops`{% endif %}).
-
-The full slash-command lifecycle is:
-
-1. **`/iflow-capture`** — capture the GitHub issue as `issue<N>_original.md`.
-2. **`/iflow-plan`** — design the approach in `issue<N>_plan.md` and get explicit confirmation before any code changes.
-3. **`/iflow-build`** — implement the confirmed plan. Asks to run `/iflow-plan` first if the plan file is missing.
-4. **`/iflow-pause`** *(optional)* — park work mid-stream: update status, move the issue group to `{{ partly_solved_folder }}`, optional WIP commit.
-5. **`/iflow-close`** — tests, optional `uv version --bump`, **changelog trailers in the commit message** (do not write `{{ history_file }}` on the issue branch), status update, commit, push, PR. Does not delete branches. Never offer a HISTORY/CHANGELOG update after close finishes or after merge; use `nohistory` only to skip intentionally. (A draft opened earlier via `/iflow-build` early PR does not skip the close trailer step.) `issue-flow changelog release` prepends a version section on the default branch when a version is cut.
-
-6. **`/iflow-cleanup`** — post-merge: switch to default, `git pull --ff-only`, `git fetch --prune`, `git branch -d` on reachable local branches under a single consolidated confirm. If ff-only fails, classify with `issue-flow agent default-sync` (never rebase / force-push / push default to skip CI). Squash-landed branches (which `-d` always refuses) need `git branch -D`, offered only behind a **second** confirm that lists tip SHAs; branches with unique work are never deleted. Trailing `include GitHub` (or similar) adds a remote-branch audit with a further confirm for optional remote deletes / findings issue. Trailing `all` runs it for every scaffolded workspace member with the confirms consolidated per phase (`issue-flow workspace cleanup`).
-
-{% if "iflow_yolo" in included_skills %}
-`/iflow-yolo` chains `capture → plan → build → close yolo` for small, low-risk issues with up-front safeguards (clean tree, passing tests, single consolidated confirm). Its close step is hands-off: changelog decided without a prompt, PR merged (`gh pr merge --squash`; on pending checks may `gh pr checks --watch` then retry, with `--auto` as last resort), then default-branch switch + pull.
-{% endif %}
-{% if "iflow_ops" in included_skills %}
-`/iflow-ops` runs **ops / no-PR** work (staging→prod, flag flips, external deploys): execute the checklist, then `/iflow-close ops` — no push/PR. Product-code dirty trees are refused. Off-path (never auto-dispatched).
-{% endif %}
-{% if "iflow_init" in included_skills %}
-
-`/iflow-init` cold-starts or checks the issue-flow harness (guides `issue-flow init` / `update`). It does **not** capture GitHub issues — that is `/iflow-capture`. Off-path (never auto-dispatched).
-{% endif %}
-{% if label_flows and "iflow-yolo" in included_commands and "iflow-pick" in included_commands %}
-
-Issue labels can select the flow: when an issue picked via `/iflow-pick` carries the **`{{ yolo_label }}`** label, it is routed through `/iflow-yolo` (one combined confirmation).{% if "iflow-ops" in included_commands %} The **`{{ ops_label }}`** label routes to `/iflow-ops` (no PR); when both labels are present, **ops wins**.{% endif %} A **`{{ publish_label }}`** label (or `{{ publish_label }}:<level|version>`) does not change pick routing — on `/iflow-close` it requests a version bump (default patch) and a post-merge `gh release create`. Controlled by `label_flows` (default `true`), `yolo_label` (default `"yolo"`){% if "iflow-ops" in included_commands %}, `ops_label` (default `"ops"`){% endif %}, and `publish_label` (default `"{{ publish_label }}"`) under `[issueflow]` in `{{ issueflows_dir }}/config.toml`; re-run `issue-flow update` after changing them.
-{% elif label_flows and "iflow-ops" in included_commands and "iflow-pick" in included_commands %}
-
-Issue labels can select the flow: when an issue picked via `/iflow-pick` carries the **`{{ ops_label }}`** label, it is routed through `/iflow-ops` (no-PR close). A **`{{ publish_label }}`** label still drives bump + release on close when `label_flows` is on. Controlled by `label_flows` (default `true`), `ops_label` (default `"ops"`), and `publish_label` (default `"{{ publish_label }}"`) under `[issueflow]` in `{{ issueflows_dir }}/config.toml`; re-run `issue-flow update` after changing them.
-{% elif label_flows %}
-
-When `label_flows` is on, a **`{{ publish_label }}`** label (or `{{ publish_label }}:<level|version>`) on the focus issue makes `/iflow-close` bump (default patch) and create a GitHub release after merge. Controlled by `publish_label` (default `"{{ publish_label }}"`) under `[issueflow]` in `{{ issueflows_dir }}/config.toml`; re-run `issue-flow update` after changing.
-{% endif %}
-{% if step_directives %}
-
-Lifecycle skills include a **`### MODEL & EXECUTION DIRECTIVE`** section that tells agents whether to prioritize **economy** (speed) or **reasoning** (depth) for that step. Toggle with `step_directives` under `[issueflow]`; override per step via `[issueflow.step_profiles]`; optional label hints during `/iflow-pick` via `model_label_flows`, `deep_model_label`, and `fast_model_label`. Re-run `issue-flow update` after changing any of these.
-{% endif %}
-
-{% if "iflow_fix" in included_skills %}
-`/iflow-fix` opens an interactive iterative-fixes session: it creates one GitHub issue + long-lived branch, then loops over many small fixes (each gets a short plan and is implemented only on confirmation, recorded as a dated bullet in `issue<N>_status.md`), and ends with `/iflow-close`. It is off-path (never auto-dispatched); while a session is active, drive it with `/iflow-fix` + `/iflow-close`, not `/iflow`.{% if fix_auto_name %} With `fix_auto_name = true`, the agent invents the session title/slug without a separate naming confirm (create issue+branch still confirms).{% else %} With `fix_auto_name = false` (default), inventing a non-default slug asks once before the create confirm.{% endif %} Toggle via `fix_auto_name` under `[issueflow]` in `{{ issueflows_dir }}/config.toml`; re-run `issue-flow update` after changing.
-{% endif %}
-{% if "iflow_issue" in included_skills %}
-`/iflow-issue` creates **one well-specified normal GitHub issue** (context / spec / acceptance criteria), then optionally branches and runs `/iflow-capture` into the standard lifecycle.{% if "iflow_fix" in included_skills and "iflow_epic" in included_skills %} It fills the gap between `/iflow-fix` (iterative small-fixes) and `/iflow-epic` (multi-issue staged work).{% endif %} Off-path (never auto-dispatched).{% if "iflow_epic" in included_skills %} For an epic anchor: `/iflow-issue epic <intent>`.{% endif %}
-{% endif %}
-{% if "iflow_split" in included_skills %}
-`/iflow-split` cuts **one over-large existing issue** into 2–5 flat GitHub native sub-issues behind one consolidated confirm (parent stays open as the tracker). Off-path (never auto-dispatched). Staged work with dependencies still goes through `/iflow-epic`. `/iflow-pick` / `/iflow-issue` / `/iflow-plan` may *offer* split; they never create children themselves.
-{% endif %}
-{% if "iflow_status" in included_skills %}
-`/iflow-status` prints a **read-only** overview of where every issue stands — the local tracking state under `{{ issueflows_dir }}/` (focus / parked / solved) plus open GitHub issues cross-referenced against it. It is off-path (never auto-dispatched) and changes nothing.
-{% endif %}
-{% if "iflow_workspace_git" in included_skills %}
-`/iflow-workspace-git` (chat: `iflow git`) prints a **git** snapshot for every workspace member (branch, dirty paths, ahead/behind). Optional `fetch` runs `git fetch --prune` first. Not the same as `/iflow-status`. Off-path (never auto-dispatched).
-{% endif %}
-{% if "iflow_doctor" in included_skills %}
-`/iflow-doctor` audits `{{ issueflows_dir }}/` for **dirty** conditions (ambiguous multi-focus, leftovers in `{{ current_issues_folder }}/`, duplicates across folders, and similar) and can apply **safe repairs** on confirmation (`issue-flow doctor` / `agent audit` + `repair`). It is off-path and never auto-dispatched.
-{% endif %}
-{% if "iflow_review" in included_skills %}
-`/iflow-review` reviews open GitHub issues and applies labels (extendable kinds; v1: **yolo** → configured `yolo_label`). Off-path; consolidated confirm before any label create/apply; never auto-dispatched. CLI helpers: `issue-flow agent label-candidates` / `label-apply`.
-{% endif %}
-{% if "iflow_epic" in included_skills %}
-`/iflow-epic <N>` plans a change **too large for one issue** as a staged epic: it drafts `{{ issueflows_dir }}/{{ epics_folder }}/epic<N>_plan.md` (anchored to GitHub issue `<N>`), dividing the work into sequential stages of manageable issue specs with explicit dependencies and a per-issue yolo-fitness judgment. Drafting writes nothing on GitHub; **`/iflow-epic <N> publish [stage <k>]`** creates a confirmed stage's issues behind one consolidated confirm (yolo labels per the recorded judgment, task list maintained on the anchor issue, `Published: #<M>` recorded back into the plan so re-runs are idempotent). **`/iflow-epic start [N]`** writes a one-and-ask `epic_session.md`; **`/iflow-epic stop`** clears it — `/iflow` then asks before the next child (never silent-pick). Off-path (never auto-dispatched); epics decompose into the normal single-issue lifecycle, never around it.
-{% endif %}
-{% if "iflow_cycle" in included_skills %}
-`/iflow-cycle <queue-spec>` processes **many issues hands-off in a row** under a single up-front confirmation — the batch equivalent of `/iflow-yolo`. It resolves a queue via `issue-flow agent queue` (explicit numbers, `label:<L>`, or `epic <N> [stage <k>]`), then runs each issue through the full yolo chain (PR auto-merged), interrupting you only when input is **strictly necessary** (unfixable failure, refused merge / non-fast-forward pull, ambiguous or not-actually-small spec, or anything outside the confirmed queue). It stops the whole cycle on the first such condition, leaving the repo clean on the default branch. **All yolo-labelled issues:** `/iflow-cycle yolo` (alias for `label:{{ yolo_label }}`). Off-path (never auto-dispatched); never weakens a yolo safeguard to keep moving.
-{% endif %}
-{% if "iflow_auto" in included_skills %}
-`/iflow-auto <N>` runs an **unattended large-change** path over a confirmed epic: select a stage, drive it via `/iflow-cycle`, record `auto_status.md`, then adversarial inter-epoch review (`review` token; may reopen/create issues under the overnight confirm). On findings, honour the loop budget (re-queue + re-review, or **stop and ask**: accept / grant N more loops / abort). Advance to stage `k+1` only when stage `k` is clear (`epic-status` done + no open blockers); otherwise `epoch_gated`. Budget baked as **{{ auto_adversarial_loops }}** (`loops:<n>` overrides). Off-path (never auto-dispatched). See `{{ issueflows_dir }}/{{ designs_folder }}/advanced-auto-mode.md`.
-{% endif %}
-{% if "iflow_drive" in included_skills %}
-`/iflow-drive <N>` runs a **compose-only** path from an existing GitHub issue: draft epic (auto-confirm unless grill-me) → publish every stage → `/iflow-auto` each epoch → final review (create leftover findings) → local cleanup **`-d` only** → `/iflow-status`. One confirm covers draft-accept, publish-all, auto-all, final-review creates, and reachable-only cleanup. User `abort` / `stop` / `cancel` / `halt` stops at the next boundary. Off-path (never auto-dispatched). See `{{ issueflows_dir }}/{{ designs_folder }}/drive-mode.md`.
-{% if hands_off %}
-When `hands_off` is on, `/iflow-drive` skips that confirm. A short description creates one epic anchor after grill-me, then drives it. A spent auto loop budget records accept and continues.
-{% endif %}
-{% endif %}
-{% if "iflow_archive" in included_skills %}
-`/iflow-archive` condenses old solved issue groups under `{{ issueflows_dir }}/{{ solved_folder }}/` into a single dated `YYYY-MM-DD_archived_issues.md` summary file (recording the pre-archive git ref for recovery via `git show <ref>:<path>`), then deletes the original `issue<N>_*` files. It is off-path and destructive: nothing is deleted before one consolidated confirmation.
-
-{% if "iflow_pr_sync" in included_skills %}
-`/iflow-pr-sync` refreshes **open** PR heads that went `DIRTY` after another merge (usually `{{ history_file }}`): worktree → `issue-flow agent sync-branch` keep-both → `git push --force-with-lease`. Off-path; see `{{ issueflows_dir }}/{{ designs_folder }}/pr-queue-sync.md` (issue #260).
-{% endif %}
-{% endif %}
-
-> On tools without project slash commands (e.g. Codex CLI), invoke the mirrored Agent Skills instead (for example `iflow-capture` in place of `/iflow-capture`).
-
-### When finishing an issue
-
-If the issue is fully resolved (no additional subtasks present), move the original, plan, and status markdown files to `{{ issueflows_dir }}/{{ solved_folder }}`. Else, move them to `{{ issueflows_dir }}/{{ partly_solved_folder }}`.
-
-### Scripts that can help us when working on issues
-
-`{{ issueflows_dir }}/{{ tools_folder }}/` is the project's durable toolbox of reusable helper scripts, with a `README.md` index describing each one.
-
-- **Check it first.** Before writing a new one-off helper for an issue, skim the `{{ tools_folder }}/README.md` index and the folder — a suitable tool may already exist.
-- **Contribute back.** If you build something during an issue that could help on a future one, save it into `{{ issueflows_dir }}/{{ tools_folder }}/` and add a one-line entry to the index (name, what it does, when to use it) so the next agent knows whether to reach for it.
-
-
+## Optional skills
 {% if "caveman" in included_skills %}
-### Optional response styles
-{% if caveman_default %}
-A **caveman** Agent Skill is installed under `{{ agent_dir }}/skills/caveman/` and
-is **on by default for this project**: reply in the terse, "token-greedy" caveman
-style — keep all technical substance, drop filler, articles, and pleasantries —
-from the first message of every session, re-arming each new session. Turn it off
-for the rest of a session with **"stop caveman"** or **"normal mode"**. Code,
-commits, PRs, security warnings, and destructive-action confirmations are always
-written in normal prose, never caveman. (This default comes from
-`caveman_default = true` under `[issueflow]` in `{{ issueflows_dir }}/config.toml`;
-set it to `false` and re-run `issue-flow update` to make caveman opt-in per
-session instead.)
-{% else %}
-A **caveman** Agent Skill is installed under `{{ agent_dir }}/skills/caveman/`. It
-is a terse, "token-greedy" response style that keeps all technical substance
-while dropping filler, articles, and pleasantries. It is **off by default** and
-only kicks in when the user asks for it (e.g. "caveman", "token greedy", "be
-terse"). Turn it off with **"stop caveman"** or **"normal mode"**. Code,
-commits, PRs, security warnings, and destructive-action confirmations are always
-written in normal prose, never caveman. (To make caveman on by default for this
-project, set `caveman_default = true` under `[issueflow]` in
-`{{ issueflows_dir }}/config.toml` and re-run `issue-flow update`.)
+- **caveman** — terse response style.{% if caveman_default %} **On by default here**: reply in caveman style from the first message of every session.{% else %} Off until the user asks ("caveman", "be terse").{% endif %} Off with "stop caveman" / "normal mode". Code, commits, PRs, security warnings, and destructive-action confirmations are always normal prose.
+{%- endif %}{% if "grill_me" in included_skills %}
+- **grill-me** — relentless one-question-at-a-time planning interview.{% if grill_me_default %} **On by default during `/iflow-plan` here.**{% else %} Off until the user asks ("grill me").{% endif %} Off with "stop grilling".
+{%- endif %}{% if pstack_skills %}
+- **pstack** ({{ pstack_skills | join(", ") }}) — user-invoked only (`/<name>`); lifecycle skills may suggest them, never run them.
+{%- endif %}
+{%- endif %}
+{%- if suggest_graphify %}
+
+## Knowledge graph
+
+If `graphify-out/GRAPH_REPORT.md` exists, skim it before grepping. Run `graphify query` / `path` / `explain` only when `graphify-out/graph.json` exists. `/iflow-status graph` rebuilds the graph; nothing runs it automatically.
 {% endif %}
-
-{% endif %}
-{% if "grill_me" in included_skills %}
-### Planning aids
-{% if grill_me_default %}
-A **grill-me** Agent Skill is installed under `{{ agent_dir }}/skills/grill-me/`
-and is **on by default during planning for this project**: when running
-`/iflow-plan`, run a relentless interview (one question at a time, each with a
-recommended answer; explore the code/issue instead of asking when answerable) to
-resolve every branch of the design tree before drafting `issue<N>_plan.md`. Turn
-it off for the rest of a session with **"stop grilling"** or **"normal mode"**.
-(This default comes from `grill_me_default = true` under `[issueflow]` in
-`{{ issueflows_dir }}/config.toml`; set it to `false` and re-run `issue-flow
-update` to make grilling opt-in per session instead.)
-{% else %}
-A **grill-me** Agent Skill is installed under `{{ agent_dir }}/skills/grill-me/`.
-It runs a relentless planning interview that stress-tests a plan or design —
-one question at a time, each with a recommended answer — until every branch of
-the decision tree is resolved. It is **off by default** and only kicks in when
-you ask for it (e.g. "grill me", "poke holes in this"). Turn it off with **"stop
-grilling"** or **"normal mode"**. (To make grilling on by default during planning
-for this project, set `grill_me_default = true` under `[issueflow]` in
-`{{ issueflows_dir }}/config.toml` and re-run `issue-flow update`.)
-{% endif %}
-
-{% endif %}
-{% if "gh_ci" in included_skills %}
-### CI via GitHub CLI
-
-A **gh-ci** Agent Skill is installed under `{{ agent_dir }}/skills/gh-ci/`. Use
-it whenever you need to know if CI finished: prefer `gh pr checks` /
-`gh pr checks --watch --fail-fast` (budget: `checks_watch_minutes`, default
-{{ checks_watch_minutes }}); fall back to `gh run list` / `gh run watch` when PR
-checks are empty. Always pass `--repo <owner/repo>`. `/iflow-close` owns the
-merge sequence; this skill is the shared command cheatsheet.
-
-{% endif %}
-{% if pstack_skills %}
-### pstack skills
-
-This project opted into a curated subset of Lauren Tan's (poteto) **pstack**
-skills library ([cursor/plugins/pstack](https://github.com/cursor/plugins/tree/main/pstack),
-MIT), vendored verbatim by issue-flow under `{{ agent_dir }}/skills/<name>/`.
-They are **user-invoked** (`/<name>` or `<name>` in chat) and never auto-run by
-the `iflow-*` lifecycle; the lifecycle skills only *suggest* them where they fit.
-
-{% for name in pstack_skills -%}
-{% if name == "unslop" -%}
-- **`unslop`** — cut AI tells from prose: PR bodies, `{{ history_file }}` bullets, issue specs, docs.
-{% elif name == "tdd" -%}
-- **`tdd`** — bug fixes with a cheap local test path: failing regression test first, then the fix.
-{% elif name == "blast-radius" -%}
-- **`blast-radius`** — before a PR, find what a small-looking change could break elsewhere and prove the one fact it is safe because of by running code.
-{% elif name == "technical-writing" -%}
-- **`technical-writing`** — layered standard (Diátaxis, Google developer style, STE, Global English) for docs, READMEs, RFCs, PR descriptions, commit messages.
-{% elif name == "bro" -%}
-- **`bro`** — restate the last message in plain human language, no jargon.
-{% elif name == "principle-prove-it-works" -%}
-- **`principle-prove-it-works`** — verify against the real artifact before declaring done (before ticking `- [x] Done`).
-{% elif name == "principle-subtract-before-you-add" -%}
-- **`principle-subtract-before-you-add`** — remove or simplify before adding; planning discipline.
-{% elif name == "principle-fix-root-causes" -%}
-- **`principle-fix-root-causes`** — fix the cause, not the symptom; build / fix discipline.
-{% elif name == "principle-test-behavior-not-implementation" -%}
-- **`principle-test-behavior-not-implementation`** — tests assert observable behaviour, not internals.
-{% else -%}
-- **`{{ name }}`** — see `{{ agent_dir }}/skills/{{ name }}/SKILL.md`.
-{% endif -%}
-{% endfor %}
-
-Selection lives in `pstack_skills` under `[issueflow]` in
-`{{ issueflows_dir }}/config.toml` (a list of upstream names or `"all"`); re-run
-`issue-flow update` after changing it — removed skills are pruned. If the full
-pstack Cursor plugin is also installed, the same-named skills coexist.
-
-{% endif %}
-### Designs and guides
-
-Long-lived design docs, design decisions, and project "good practices" live under `{{ issueflows_dir }}/{{ designs_folder }}/`. Unlike the issue folders, content here is **not** tied to a single issue and is **not** archived when an issue closes — it is the project's durable memory.
-
-- **Project brief:** if `{{ issueflows_dir }}/{{ designs_folder }}/this-project.md` exists, read it early for project-specific context (what the repo is, stack/runtime, how to run/test, conventions, entry points, and known limitations).
-- **Before planning or implementing**, skim `{{ issueflows_dir }}/{{ designs_folder }}/` for existing docs relevant to the current issue and follow them (cite them in the plan when they influence the approach).
-- **When a non-trivial design decision is made** during `/iflow-plan` or `/iflow-build`, add or update a markdown file here. Keep entries terse: context, the decision, alternatives considered, and a link back to the issue.
-- **Never overwritten by `issue-flow update`.** The folder is recreated if missing, but existing files are left alone.
-
-
-### Multi-root workspaces
-
-When an editor workspace contains **multiple sibling repositories**, each with its own `{{ issueflows_dir }}/` scaffold:
-
-- **Resolve the target repo first** — explicit `root:` / `repo:` hints, then `issue-flow agent resolve`, then branch/single-scaffold heuristics, then the **workspace default** from `issueflow-workspace.toml` at the workspace root (create it with `issue-flow workspace init`); **ask** when still ambiguous. Never let `git` or `gh` infer the repo from cwd alone.
-- **Scoped rules** — this repo's `issueflow-rules` apply under this project root only (path globs). Put **toolchain-specific** run/test commands in `{{ issueflows_dir }}/{{ designs_folder }}/this-project.md`, not in shared boilerplate that every repo merges.
-- **Per-repo lifecycle** — `/iflow-cleanup`, branch hygiene, and focus issue folders are **per repository**; repeat commands in each repo when needed (`/iflow-cleanup all` is the one opt-in workspace-wide pass).
-- **Design doc** — see `{{ issueflows_dir }}/{{ designs_folder }}/multi-repo-workspaces.md` when present (issue #67).
-
-
-### Branch hygiene
-
-- Do issue work on an **issue branch** named like `<N>-<short-slug>`, not on the default branch.
-- Before starting or continuing work on an issue branch, run `git fetch --prune` and check where the branch sits relative to `origin/<default>` (ahead/behind). A branch that is "several commits ahead" after a merged PR usually means the PR was merged (this project uses **`{{ pr_merge_method }}`**) and the local branch is stale.
-{% if auto_cleanup %}- **Assume `{{ pr_merge_method }}` merges on GitHub.** `auto_cleanup = true`: after a PR exists, **watch** until it merges (budget `checks_watch_minutes`), then run `/iflow-cleanup`. Do not merge from this knob. `cleanup_yes_a1` / `cleanup_yes_a2` decide whether cleanup still asks.
-{% elif remind_cleanup %}- **Assume `{{ pr_merge_method }}` merges on GitHub.** After a PR merges, **remind** the user to run **`/iflow-cleanup`** (switch to default, `git pull --ff-only`, `git fetch --prune`, `git branch -d` on reachable locals under one confirm{% if pr_merge_method == "squash" %}, plus a second confirm for the squash-landed branches that `-d` can never take{% endif %}). Do **not** auto-run cleanup from close/yolo/cycle; `/iflow-close` no longer does this step itself.
-{% else %}- **Assume `{{ pr_merge_method }}` merges on GitHub.** `/iflow-close` does not delete branches and does not nudge cleanup; use `/iflow-cleanup` only when you want post-merge hygiene.
-{% endif %}
-- If an issue is already archived under `{{ issueflows_dir }}/{{ partly_solved_folder }}` or `{{ issueflows_dir }}/{{ solved_folder }}`, the matching local branch is stale; don't resume work on it silently — switch back to the default branch and, if the issue really needs re-opening, do it deliberately through `/iflow-capture` (which will ask for a second confirmation).
-
-
-### Folder hygiene for `{{ issueflows_dir }}/{{ current_issues_folder }}`
-
-- Only the **focus issue** (the one currently being worked on) should live in `{{ issueflows_dir }}/{{ current_issues_folder }}`.
-- `/iflow-capture` and `/iflow-build` both sweep that folder automatically: every `issue<n>_*` group **other than the focus issue** is moved to `{{ issueflows_dir }}/{{ solved_folder }}` if a status file contains `- [x] Done`, otherwise to `{{ issueflows_dir }}/{{ partly_solved_folder }}`. Keep status files accurate so the sweep routes them correctly.
-
-
-### Knowledge graph (optional, via [graphify](https://graphify.net))
-
-If a `graphify-out/` folder exists in the project root, the project has the optional [graphify](https://graphify.net) integration enabled and a knowledge graph is available alongside the source.
-
-{% if suggest_graphify %}- **Before grepping**, skim `graphify-out/GRAPH_REPORT.md`. It surfaces god-nodes (most-connected concepts), surprising cross-module connections, and suggested questions the graph can answer — often a faster way to locate the files an issue actually touches than full-text search.
-{% endif %}- **`/iflow-graphify`** (slash command) or **`issue-flow graphify`** (CLI) rebuild the graph. With no extra args this runs `graphify update <project>` — AST-only, **no LLM API key needed**. For richer semantic relationships (cross-file links surfaced by an LLM pass), run `issue-flow graphify extract` after setting `GEMINI_API_KEY` / `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `MOONSHOT_API_KEY` (or pass `--backend ollama` for a local LLM). Other subcommands: `watch` (live), `cluster-only --no-viz` (re-cluster). Trailing flags pass through verbatim. Your agent's own LLM cannot be reused by subprocesses; graphify needs its own backend.
-- `/iflow-graphify` is **off-path**: never auto-dispatched by `/iflow`, `/iflow-build`, or `/iflow-close`. It is the user's call.{% if suggest_graphify %} `/iflow-build` may *suggest* skimming `GRAPH_REPORT.md`; `/iflow-close` may *suggest* a rebuild after large structural changes — neither runs `graphify` automatically.{% endif %}
-- A separate `graphify` rule may tell you to run `graphify query` / `path` / `explain` first. Those need `graphify-out/graph.json`; check for that file (not only the folder) before running them, and fall back to `GRAPH_REPORT.md` / normal search when it is missing — a partial or stale `graphify-out/` must not derail an issue.
-- If `graphify-out/` is not present, ignore graph-related guidance entirely. The integration is opt-in (install with `uv tool install graphifyy`, then `issue-flow update` to register the graphify skill).

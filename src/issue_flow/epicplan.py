@@ -1,6 +1,6 @@
 """Parser for staged epic plan files (``epic<N>_plan.md``).
 
-The ``/iflow-epic`` skill drafts a plan whose structure is a deliberate
+The ``/iflow-issue epic`` skill drafts a plan whose structure is a deliberate
 machine-readable contract (stages, ``### Issue:`` specs, ``Depends on:`` /
 ``yolo:`` / ``Published: #<M>`` / optional ``Goal:`` / ``Model:`` lines). This
 module encodes that contract once, so ``issue-flow agent epic-status`` (and

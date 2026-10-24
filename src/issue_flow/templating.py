@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import functools
 import re
 from importlib import resources
 from pathlib import Path
@@ -18,7 +19,7 @@ _ISSUE_FLOW_VERSION_KEY = "issue-flow-version"
 _SKILL_TEMPLATE_RE = re.compile(r"^skills/[^/]+/SKILL\.md\.j2$")
 _NOOB_SKILL_RE = re.compile(r"^skills/iflow_([^/]+)/SKILL\.md\.j2$")
 _NOOB_CMD_RE = re.compile(r"^commands/iflow(?:-([^/]+))?\.md\.j2$")
-_NOOB_SKIP_STEMS = frozenset({"comments", "history_update", "version_bump"})
+_NOOB_SKIP_STEMS: frozenset[str] = frozenset()
 
 
 def noob_stem_for_template(template_name: str) -> str | None:
@@ -140,39 +141,31 @@ def stamp_skill_version(content: str, version: str) -> str:
 # same surface description works for any editor.
 # ---------------------------------------------------------------------------
 
-# Slash-command template stems (emitted only for editors with a commands_dir).
-COMMAND_NAMES: list[str] = [
-    "iflow",
-    "iflow-setup",
-    "iflow-pick",
-    "iflow-init",
-    "iflow-capture",
-    "iflow-plan",
-    "iflow-build",
-    "iflow-pause",
-    "iflow-close",
-    "iflow-cleanup",
-    "iflow-pr-sync",
-    "iflow-yolo",
-    "iflow-ops",
-    "iflow-fix",
-    "iflow-issue",
-    "iflow-split",
-    "iflow-status",
-    "iflow-workspace-git",
-    "iflow-doctor",
-    "iflow-review",
-    "iflow-archive",
-    "iflow-epic",
-    "iflow-cycle",
-    "iflow-auto",
-    "iflow-drive",
-    "iflow-graphify",
+# The lifecycle command surface (issue #406): eleven merged commands, each
+# with modes. ``(name, purpose, modes)`` rows feed the always-on rule and the
+# workflow doc; the names double as skill folder names and command stems.
+COMMANDS: list[tuple[str, str, str]] = [
+    ("iflow", "Dispatcher: run the next of capture / plan / build / close.", "—"),
+    ("iflow-setup", "Get a project ready (uv, git, GitHub, scaffold).", "`harness`, `check`"),
+    ("iflow-pick", "Choose an issue, branch, and capture it.", "`<N>`, `capture`, `fix`, `label:<L>`"),
+    ("iflow-plan", "Write the plan and stop for approval.", "—"),
+    ("iflow-build", "Implement the approved plan.", "—"),
+    ("iflow-pause", "Park unfinished work with resume notes.", "—"),
+    ("iflow-close", "Tests, bump, changelog trailers, commit, push, PR.", "`yolo`, `ops`, `draft`, `bump`"),
+    ("iflow-cleanup", "After merge: default branch, pull, delete landed branches.", "`all`, `github`, `prs`, `archive`"),
+    ("iflow-run", "Hands-off runs under one up-front confirm.", "`yolo`, `cycle`, `auto`, `drive`"),
+    ("iflow-issue", "Create and shape GitHub issues.", "`fix`, `epic`, `split`, `review`"),
+    ("iflow-status", "Read-only overview of every issue.", "`doctor`, `git`, `graph`"),
 ]
 
+# Command stems (emitted as thin wrappers only for editors with a commands_dir).
+COMMAND_NAMES: list[str] = [name for name, _purpose, _modes in COMMANDS]
+
 # Skill template sub-directories (underscored). Output folder name is the same
-# with underscores swapped for hyphens (``iflow_iflow`` -> ``iflow-iflow``).
-# Skills are the portable core and are emitted for every editor.
+# with underscores swapped for hyphens (``iflow_pick`` -> ``iflow-pick``).
+# Skills are the portable core and are emitted for every editor. A skill folder
+# may hold mode files next to ``SKILL.md`` (progressive disclosure); see
+# :func:`skill_side_templates`.
 #
 # ``DEFAULT_SKILL_DIRS`` is what a mode's ``skills = "all"`` expands to; the
 # optional pstack stems below are appended into ``SKILL_DIRS`` (every packaged
@@ -181,49 +174,92 @@ DEFAULT_SKILL_DIRS: list[str] = [
     "iflow_iflow",
     "iflow_setup",
     "iflow_pick",
-    "iflow_init",
-    "iflow_capture",
-    "iflow_comments",
     "iflow_plan",
     "iflow_build",
     "iflow_pause",
     "iflow_close",
     "iflow_cleanup",
-    "iflow_pr_sync",
-    "iflow_yolo",
-    "iflow_ops",
-    "iflow_fix",
+    "iflow_run",
     "iflow_issue",
-    "iflow_split",
     "iflow_status",
-    "iflow_workspace_git",
-    "iflow_doctor",
-    "iflow_review",
-    "iflow_archive",
-    "iflow_epic",
-    "iflow_cycle",
-    "iflow_auto",
-    "iflow_drive",
-    "iflow_version_bump",
-    "iflow_history_update",
-    "iflow_graphify",
     # Behavior skill (not a workflow command): a terse "caveman" response style.
-    # Part of the "all"/standard surface; excluded by the explicit "simple" list.
     "caveman",
-    # Planning skill (not a workflow command): a relentless "grill-me" design
-    # interview. Like caveman it is part of the "all"/standard surface, excluded
-    # by the explicit "simple" list, and dormant until invoked / turned on.
+    # Planning skill (not a workflow command): a "grill-me" design interview.
     "grill_me",
-    # Model-invoked CI/`gh` cheatsheet (not a lifecycle slash command). Ships in
-    # standard via "all"; omitted by simple (no PR/CI automation).
-    "gh_ci",
 ]
 
+# Retired skill and command stems (issue #406) mapped to the merged stem that
+# absorbed them. ``update`` rewrites old stems in ``config.toml`` with this map,
+# and mode / step-profile resolution applies it on read so an old config never
+# breaks the CLI.
+STEM_RENAMES: dict[str, str] = {
+    "iflow_capture": "iflow_pick",
+    "iflow_comments": "iflow_pick",
+    "iflow_init": "iflow_setup",
+    "iflow_ops": "iflow_close",
+    "iflow_version_bump": "iflow_close",
+    "iflow_history_update": "iflow_close",
+    "gh_ci": "iflow_close",
+    "iflow_pr_sync": "iflow_cleanup",
+    "iflow_archive": "iflow_cleanup",
+    "iflow_yolo": "iflow_run",
+    "iflow_cycle": "iflow_run",
+    "iflow_auto": "iflow_run",
+    "iflow_drive": "iflow_run",
+    "iflow_fix": "iflow_issue",
+    "iflow_epic": "iflow_issue",
+    "iflow_split": "iflow_issue",
+    "iflow_review": "iflow_issue",
+    "iflow_doctor": "iflow_status",
+    "iflow_workspace_git": "iflow_status",
+    "iflow_graphify": "iflow_status",
+}
+# Merged skills that did not exist before #406 (every part was a retired skill).
+_NEW_PARENT_STEMS = frozenset({"iflow_run"})
+
+COMMAND_RENAMES: dict[str, str] = {
+    "iflow-" + old.removeprefix("iflow_").replace("_", "-"): "iflow-"
+    + new.removeprefix("iflow_").replace("_", "-")
+    for old, new in STEM_RENAMES.items()
+    if old.startswith("iflow_")
+}
+
+
+def rename_stem(stem: str) -> str:
+    """Map a retired skill or command stem to its merged replacement."""
+    return STEM_RENAMES.get(stem) or COMMAND_RENAMES.get(stem) or stem
+
+
+def rename_removed_stems(stems: list[str]) -> list[str]:
+    """Map a mode's ``remove`` list, where a retired stem is only part of a skill.
+
+    Removing a retired stem must not remove more than it used to. When the
+    merged skill existed before #406 (``iflow_close`` absorbed ``gh_ci``), the
+    stem is dropped: the parent stays. When the merged skill is new
+    (``iflow_run``), it is removed only once *every* stem merged into it is
+    listed; otherwise the stem is dropped too.
+    """
+    listed = set(stems)
+    renamed: list[str] = []
+    for stem in stems:
+        new = rename_stem(stem)
+        if new == stem:
+            if stem not in renamed:
+                renamed.append(stem)
+            continue
+        renames = STEM_RENAMES if stem in STEM_RENAMES else COMMAND_RENAMES
+        siblings = {old for old, parent in renames.items() if parent == new}
+        is_new_parent = new.replace("-", "_") in _NEW_PARENT_STEMS
+        if is_new_parent and siblings <= listed and new not in renamed:
+            renamed.append(new)
+    return renamed
+
+
 # Stems that also install into the editor's user-global skill dir
-# (placement ``both``). Project copy stays; local wins. See
-# ``global-vs-local-skills.md``. ``iflow_init`` is the one lifecycle
-# exception (chicken-egg: the skill must exist before a project scaffold).
-BOTH_SKILL_STEMS: tuple[str, ...] = ("caveman", "grill_me", "gh_ci", "iflow_init")
+# (placement ``both``). Project copy stays; local wins. See the
+# global-vs-local section of ``scaffolding-and-editors.md``. ``iflow_setup`` is
+# the one lifecycle exception (it must work before a project scaffold exists).
+BOTH_SKILL_STEMS: tuple[str, ...] = ("caveman", "grill_me", "iflow_setup")
 
 # Curated subset of Lauren Tan's (poteto) pstack skills library
 # (https://github.com/cursor/plugins/tree/main/pstack, MIT), vendored verbatim
@@ -285,6 +321,8 @@ RETIRED_COMMANDS: list[str] = [
     "graphify",
     # Renamed in #183: iflow-start → iflow-build
     "iflow-start",
+    # Merged in #406
+    *COMMAND_RENAMES,
 ]
 
 # Retired skill folder names (pre-v0.5.0 rename) to be removed on update.
@@ -307,6 +345,8 @@ RETIRED_SKILLS: list[str] = [
     "iflow-iflow",
     # Renamed in #183: iflow-start → iflow-build
     "iflow-start",
+    # Merged in #406
+    *(old.replace("_", "-") for old in STEM_RENAMES),
 ]
 
 # Editor-neutral human-readable workflow doc, emitted for every editor.
@@ -328,6 +368,68 @@ def _selected_skill_dirs(mode: Mode | None) -> list[str]:
     return [skill_dir for skill_dir in SKILL_DIRS if skill_dir in mode.skills]
 
 
+COMMAND_WRAPPER_TEMPLATE = "commands/_wrapper.md.j2"
+
+
+@functools.cache
+def skill_side_templates(skill_dir: str) -> tuple[str, ...]:
+    """Mode-file template names packaged next to ``skills/<skill_dir>/SKILL.md.j2``.
+
+    Side files (``yolo.md.j2``, ``capture.md.j2``, ...) render to plain markdown
+    in the same output folder; a skill's ``SKILL.md`` tells the agent which one
+    to read for a given mode, so only that file enters the context.
+    """
+    try:
+        root = resources.files(f"{_TEMPLATES_PACKAGE}.skills.{skill_dir}")
+        names = [
+            entry.name
+            for entry in root.iterdir()
+            if entry.name.endswith(".md.j2") and entry.name != "SKILL.md.j2"
+        ]
+    except (ModuleNotFoundError, FileNotFoundError, NotADirectoryError):
+        return ()
+    return tuple(sorted(names))
+
+
+def skill_side_output_names(skill_dir: str) -> frozenset[str]:
+    """Rendered file names of a skill's mode files (``yolo.md``, ...)."""
+    return frozenset(name.removesuffix(".j2") for name in skill_side_templates(skill_dir))
+
+
+def side_files_for_output_name(output_name: str) -> frozenset[str]:
+    """Mode files that legitimately live in an output skill folder."""
+    for stem in SKILL_DIRS:
+        if skill_output_name(stem) == output_name:
+            return skill_side_output_names(stem)
+    return frozenset()
+
+
+def skill_output_name(skill_dir: str) -> str:
+    """Map a skill template stem to its output folder name (underscores->hyphens)."""
+    return SKILL_OUTPUT_NAMES.get(skill_dir, skill_dir.replace("_", "-"))
+
+
+def command_wrapper_context(command_name: str) -> dict[str, str]:
+    """Per-file render values for a thin command wrapper (``commands_dir`` editors)."""
+    for name, purpose, _modes in COMMANDS:
+        if name == command_name:
+            return {"command_name": name, "command_description": purpose}
+    return {"command_name": command_name, "command_description": command_name}
+
+
+def _skill_entries(skill_dir: str, base: str) -> list[tuple[str, str]]:
+    output_name = skill_output_name(skill_dir)
+    entries = [(f"skills/{skill_dir}/SKILL.md.j2", f"{base}/{output_name}/SKILL.md")]
+    for name in skill_side_templates(skill_dir):
+        entries.append(
+            (
+                f"skills/{skill_dir}/{name}",
+                f"{base}/{output_name}/{name.removesuffix('.j2')}",
+            )
+        )
+    return entries
+
+
 def build_canonical_manifest(
     mode: Mode | None = None, skill_level: str | None = None
 ) -> list[tuple[str, str]]:
@@ -339,13 +441,7 @@ def build_canonical_manifest(
     entries: list[tuple[str, str]] = []
 
     for skill_dir in _selected_skill_dirs(mode):
-        output_name = SKILL_OUTPUT_NAMES.get(skill_dir, skill_dir.replace("_", "-"))
-        entries.append(
-            (
-                f"skills/{skill_dir}/SKILL.md.j2",
-                "{issueflows_dir}/agent/skills/" + f"{output_name}/SKILL.md",
-            )
-        )
+        entries.extend(_skill_entries(skill_dir, "{issueflows_dir}/agent/skills"))
 
     if skill_level == "advanced":
         entries.append(
@@ -386,17 +482,11 @@ def build_manifest(
             if commands_filter is not None and name not in commands_filter:
                 continue
             entries.append(
-                (f"commands/{name}.md.j2", "{agent_dir}/{commands_dir}/" + f"{name}.md")
+                (COMMAND_WRAPPER_TEMPLATE, "{agent_dir}/{commands_dir}/" + f"{name}.md")
             )
 
     for skill_dir in _selected_skill_dirs(mode):
-        output_name = SKILL_OUTPUT_NAMES.get(skill_dir, skill_dir.replace("_", "-"))
-        entries.append(
-            (
-                f"skills/{skill_dir}/SKILL.md.j2",
-                "{agent_dir}/skills/" + f"{output_name}/SKILL.md",
-            )
-        )
+        entries.extend(_skill_entries(skill_dir, "{agent_dir}/skills"))
 
     if profile.rules_extra:
         entries.append(profile.rules_extra)
@@ -412,11 +502,6 @@ def build_manifest(
         )
 
     return entries
-
-
-def skill_output_name(skill_dir: str) -> str:
-    """Map a skill template stem to its output folder name (underscores->hyphens)."""
-    return SKILL_OUTPUT_NAMES.get(skill_dir, skill_dir.replace("_", "-"))
 
 
 def packaged_skill_output_names() -> frozenset[str]:

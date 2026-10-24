@@ -7,7 +7,7 @@ title: Work in a sibling worktree (or stay inplace)
 ## Goal
 
 Understand the default **worktree-first** start for `/iflow-pick`,
-`/iflow-issue`, and `/iflow-fix`, how to **opt out for one run**, and
+`/iflow-issue`, and `/iflow-issue fix`, how to **opt out for one run**, and
 how to make inplace the **project default**.
 
 Default is worktree-first (`worktree_first = true`). Set
@@ -84,7 +84,7 @@ sibling worktree when the knob is false:
 iflow pick inplace
 iflow pick 42 no worktree
 iflow issue inplace fix the login timeout
-iflow fix inplace
+iflow issue fix inplace
 iflow pick worktree
 ```
 
@@ -108,5 +108,5 @@ still removes any leftover worktree (reachable / squash-landed) **before**
 - [After a squash merge](after-squash-merge.md) — prune branches / worktrees
 - [Command reference](../issue-workflow.md) — `/iflow-pick` worktree start
 - [Use issue-flow in a folder of repos](workspaces.md) — parent folder + sibling repos (not the same as `../repo-N` worktrees)
-- Design notes: [separate-workspaces.md](https://github.com/jepegit/issue-flow/blob/main/.issueflows/04-designs-and-guides/separate-workspaces.md)
+- Design notes: [workspaces notes](https://github.com/jepegit/issue-flow/blob/main/.issueflows/04-designs-and-guides/workspaces.md#separate-workspaces)
   (issue-flow repository)

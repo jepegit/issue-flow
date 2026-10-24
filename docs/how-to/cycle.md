@@ -16,7 +16,7 @@ returns to a clean default before the next.
 1. Prerequisites: clean default branch, green project tests, issues that are
    actually small and well-specified. Label them for batching if you use the
    yolo path (`yolo` by default), or note their numbers.
-2. Pick a queue spec and run `iflow cycle <spec>` (or `/iflow-cycle`):
+2. Pick a queue spec and run `iflow run cycle <spec>` (or `/iflow-run cycle`):
 
    | Spec | Meaning |
    | --- | --- |
@@ -45,12 +45,12 @@ instead.
 ## Example
 
 ```text
-iflow review yolo          # optional: label candidates first
-iflow cycle yolo           # confirm list → batch merge
-iflow cycle label:docs
-iflow cycle 12 15 18
-iflow cycle epic 42 stage 1
-iflow cycle yolo max:5
+iflow issue review yolo          # optional: label candidates first
+iflow run cycle yolo           # confirm list → batch merge
+iflow run cycle label:docs
+iflow run cycle 12 15 18
+iflow run cycle epic 42 stage 1
+iflow run cycle yolo max:5
 iflow cleanup              # once, after the batch
 ```
 
@@ -60,4 +60,4 @@ iflow cleanup              # once, after the batch
 - [Use auto mode](auto-mode.md) — cycle a stage + adversarial review
 - [Create and run epics](epics.md) — `epic <N> [stage <k>]` queues
 - [After a squash merge](after-squash-merge.md) — post-batch cleanup
-- [Command reference](../issue-workflow.md) — `/iflow-cycle`
+- [Command reference](../issue-workflow.md) — `/iflow-run cycle`

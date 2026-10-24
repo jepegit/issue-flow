@@ -152,10 +152,10 @@ pages do not repeat these flags.
 | Replace generated scaffolds without upgrading logic | `issue-flow init --force` |
 | Rebuild the graphify knowledge graph | `issue-flow graphify` |
 | See where every issue stands (focus / parked / solved / GitHub) | `issue-flow status` |
-| Audit or repair dirty `.issueflows/` folders | `issue-flow doctor` (or `/iflow-doctor`) |
+| Audit or repair dirty `.issueflows/` folders | `issue-flow doctor` (or `/iflow-status doctor`) |
 | Tab-complete subcommands in your shell | `issue-flow --install-completion` |
 | Let an agent resolve lifecycle state / sweep / capture deterministically | `issue-flow agent ...` |
-| Condense old solved issues into a dated summary (recoverable via git) | `/iflow-archive` (summary is agent-written; `issue-flow agent archive …` for the delete step) |
+| Condense old solved issues into a dated summary (recoverable via git) | `/iflow-cleanup archive` (summary is agent-written; `issue-flow agent archive …` for the delete step) |
 
 ## `issue-flow init` { #issue-flow-init }
 
@@ -217,6 +217,18 @@ recreates the starter brief; if it exists, user content is preserved. `update`
 also respects the project's persisted [mode](configuration.md#modes): it
 refreshes only that mode's surfaces (and prunes any that the mode excludes). To
 change mode, re-run `issue-flow init --mode <id>`.
+
+**Upgrading across the command merge (#406).** One `update` run brings a
+project scaffolded with the older 30-command surface up to date. It removes
+every retired skill folder and generated command file that issue-flow wrote
+(per editor, in the canonical store, and stamped user-global copies), rewrites
+retired stems in `config.toml` (`[modes.*]` lists and
+`[issueflow.step_profiles]` keys, for example `iflow_yolo` → `iflow_run`),
+refreshes the managed Linguist block, and forgets stale skill stamps. A retired
+skill folder you edited is left in place and reported; `issue-flow doctor`
+lists it as `retired_editor_skill`. In a mode's `remove` list, removing part
+of a merged command (say `gh_ci`) no longer removes anything; removing all four
+of `yolo` / `cycle` / `auto` / `drive` removes `iflow-run`.
 
 ## `issue-flow graphify` { #issue-flow-graphify }
 
@@ -288,14 +300,14 @@ project never installs `issue-flow`.
 | `agent pr-ready` | **Read-only** merge-ready classifier for an open PR (`[N]`, or the current-branch PR). Reports `ready` / `pending` / `blocked` / `unknown` from draft, review, mergeability, and **required** checks (optional noise such as Cursor Approval does not block `UNSTABLE` + `MERGEABLE`). Exit 0 only when `ready`. `--watch` polls until ready, blocked, or `checks_watch_minutes` elapses. Never merges — yolo still owns `gh pr merge` / `gh pr checks --watch`. |
 | `agent branches` | **Read-only** remote audit for `/iflow-cleanup include GitHub`: classifies `origin/*` into `deletable` (tip fully in the default branch, no open PR), `unique_work` (unique commits and/or an open PR, with commit onelines + shortstat), and `skipped` (default, protected, uncomparable). Never deletes a remote — that stays in the skill's Phase B confirm. |
 | `agent local-branches` | **Read-only** local audit for `/iflow-cleanup` Phase A. `git branch -d` applies a *reachability* test, so in a squash-merging repo it refuses every landed branch; this reports what is actually safe to remove: `reachable` (plain `-d` works), `squash_landed` (unreachable but every commit patch-equivalent to the default), `merged_pr_divergent` (merged PR, tip still differs, and **no** unique commit newer than the merge — a squash rewrite rather than new work), `unique_work` (never delete), and `skipped` (current, default, protected, uncomparable). Every entry carries a `tip` short SHA so a delete is recoverable with `git branch <name> <tip>`. One batched `gh pr list` supplies the PR evidence. Never deletes a branch. |
-| `agent version-plan` | **Read-only** next-version planning for the `iflow-version-bump` skill: detects the release strategy from `pyproject.toml` (static `[project] version` → uv; `dynamic = ["version"]` + setuptools-scm/hatch-vcs/versioningit → git tag), reads the current version (static field or latest tag), applies the PEP 440 bump arithmetic (`--bump` repeatable; omitted → the pre-release-aware default), and prints the exact commands. Never edits files or creates tags; a filled `this-project.md` release section is flagged (`brief_release_section`) and wins over detection. |
-| `agent epic-status` | **Read-only** progress for a staged epic: parses `.issueflows/05-epics/epic<N>_plan.md` (the structure `/iflow-epic` writes) and cross-references published issue states via `gh` — stages with per-issue state and blockers, the current stage, and the next open, unblocked candidates. `--local` skips the GitHub lookups. Exit 1 when no plan file exists. |
+| `agent version-plan` | **Read-only** next-version planning for the version step of `/iflow-close`: detects the release strategy from `pyproject.toml` (static `[project] version` → uv; `dynamic = ["version"]` + setuptools-scm/hatch-vcs/versioningit → git tag), reads the current version (static field or latest tag), applies the PEP 440 bump arithmetic (`--bump` repeatable; omitted → the pre-release-aware default), and prints the exact commands. Never edits files or creates tags; a filled `this-project.md` release section is flagged (`brief_release_section`) and wins over detection. |
+| `agent epic-status` | **Read-only** progress for a staged epic: parses `.issueflows/05-epics/epic<N>_plan.md` (the structure `/iflow-issue epic` writes) and cross-references published issue states via `gh` — stages with per-issue state and blockers, the current stage, and the next open, unblocked candidates. `--local` skips the GitHub lookups. Exit 1 when no plan file exists. |
 | `agent queue` | **Read-only** execution-queue planner for the cycling workflow. Exactly one source — explicit issue numbers, `--label L`, or `--epic N` (the epic's current stage). Parses `Depends on #N` / `Blocked by #N` lines, topologically orders the queue, and reports `blocked` (open deps outside the queue), `skipped_closed`, and `independent` (no dependency relation to any other member — parallel-safe). A dependency cycle aborts with exit 1, naming the members; the explicit-numbers source refuses a partial fetch so a typo never shrinks the queue silently. |
 | `agent resolve` | Resolve project root, owner/repo, branch, and sibling scaffolds — for [multi-root workspaces](editors.md#multi-root-workspaces). When no scaffold is found walking up, falls back to the **default member** from a workspace-root `issueflow-workspace.toml` (reported as `resolved_via_workspace_default: true`); explicit hints and the nearest scaffold always win. |
 | `agent sweep` | Archive `issue<N>_*` groups out of `01-current-issues/` to `03-solved-issues/` (Done) or `02-partly-solved-issues/` (not Done). Use `--except N` to keep the focus issue and `--dry-run` to preview. |
 | `agent audit` | Audit `.issueflows/` for dirty conditions (alias for `issue-flow doctor`). Exit `1` on error-level findings. |
 | `agent repair` | Apply safe repairs (alias for `issue-flow doctor --fix`). Use `--except N` and `--dry-run` like `agent sweep`. |
-| `agent archive` | Mechanical deletion half of `/iflow-archive`: remove the chosen groups' files from `03-solved-issues/` and report the pre-archive HEAD sha (for the recovery ref in the summary file). Summarising into `YYYY-MM-DD_archived_issues.md` stays agent-side. Refuses when a requested issue has no solved group. `--dry-run` to preview. |
+| `agent archive` | Mechanical deletion half of `/iflow-cleanup archive`: remove the chosen groups' files from `03-solved-issues/` and report the pre-archive HEAD sha (for the recovery ref in the summary file). Summarising into `YYYY-MM-DD_archived_issues.md` stays agent-side. Refuses when a requested issue has no solved group. `--dry-run` to preview. |
 | `agent capture N` | Fetch GitHub issue `N` with `gh` and write `issue<N>_original.md` (the `## Original issue text` body). Prints the comments payload so the agent can triage them; comment triage stays agent-side. Use `--repo`, `--force`, `-C`. |
 
 All `agent` commands accept `--json` and degrade gracefully: read-only commands
@@ -362,7 +374,7 @@ With `--yes` it runs `issue-flow init` on unscaffolded members, then
 | `--editor`, `-e`  | Forwarded to each member `init`. |
 | `--json`          | Emit a machine-readable JSON object. |
 
-`/iflow-init` (also installed user-global) is the agent-facing counterpart:
+`/iflow-setup` (also installed user-global) is the agent-facing counterpart:
 classify, confirm, then `workspace bootstrap --yes`. Step-by-step:
 [Use issue-flow in a folder of repos](how-to/workspaces.md).
 
@@ -411,7 +423,7 @@ one repo at a time with `issue-flow doctor --fix -C <member>`.
 | `WORKSPACE_DIR`   | Start directory. Defaults to `.`. Walks up for `issueflow-workspace.toml`. |
 | `--json`          | Emit `{workspace_root, members:[{name,path,audit}]}`. |
 
-`/iflow-doctor workspace` is the agent path.
+`/iflow-status doctor workspace` is the agent path.
 
 ## `issue-flow workspace dirty` { #issue-flow-workspace-dirty }
 
@@ -439,7 +451,7 @@ Distinct from `workspace status` (issue-flow lifecycle) and
 | `WORKSPACE_DIR`   | Start directory. Defaults to `.`. Walks up for `issueflow-workspace.toml`. |
 | `--json`          | Emit `{workspace_root, members:[…]}`. |
 
-`/iflow-workspace-git` (chat: `iflow git`) is the agent path.
+`/iflow-status git` (chat: `iflow status git`) is the agent path.
 
 ## `issue-flow workspace cleanup` { #issue-flow-workspace-cleanup }
 

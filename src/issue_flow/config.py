@@ -68,6 +68,7 @@ from issue_flow.modes import (
     normalize_test_runner,
 )
 from issue_flow import step_profiles as step_profiles_module
+from issue_flow.templating import COMMANDS
 
 
 # Load .env from the current working directory (the user's project root).
@@ -603,7 +604,7 @@ class Settings:
         return DEFAULT_PR_MERGE_METHOD
 
     def resolve_cycle_onfail(self, project_root: Path) -> str:
-        """Resolve the default ``/iflow-cycle`` onfail policy (stop/skip)."""
+        """Resolve the default ``/iflow-run cycle`` onfail policy (stop/skip)."""
         persisted = modes_module.read_cycle_onfail(self.config_path(project_root))
         if persisted:
             return persisted
@@ -633,7 +634,7 @@ class Settings:
         return DEFAULT_CYCLE_NONYOLO
 
     def resolve_cycle_max_issues(self, project_root: Path) -> int:
-        """Resolve the default ``/iflow-cycle`` queue safety cap.
+        """Resolve the default ``/iflow-run cycle`` queue safety cap.
 
         Order: persisted ``.issueflows/config.toml [issueflow].cycle_max_issues`` >
         ``ISSUEFLOW_CYCLE_MAX_ISSUES`` env/``.env`` > ``10``. Non-positive or
@@ -656,7 +657,7 @@ class Settings:
         return DEFAULT_CYCLE_MAX_ISSUES
 
     def resolve_auto_adversarial_loops(self, project_root: Path) -> int:
-        """Resolve the default ``/iflow-auto`` adversarial loop budget.
+        """Resolve the default ``/iflow-run auto`` adversarial loop budget.
 
         Order: persisted ``[issueflow].auto_adversarial_loops`` >
         ``ISSUEFLOW_AUTO_ADVERSARIAL_LOOPS`` env > ``2``. Non-positive or
@@ -775,7 +776,7 @@ class Settings:
         return DEFAULT_LOCKED
 
     def resolve_fix_auto_name(self, project_root: Path) -> bool:
-        """Resolve whether ``/iflow-fix`` lets the agent invent the session name."""
+        """Resolve whether ``/iflow-issue fix`` lets the agent invent the session name."""
         persisted = modes_module.read_fix_auto_name(self.config_path(project_root))
         if persisted is not None:
             return persisted
@@ -1185,6 +1186,12 @@ class Settings:
             "mode_name": mode.name,
             "included_skills": sorted(mode.skills),
             "included_commands": sorted(mode.commands),
+            # (command, purpose, modes) rows for the commands this mode installs,
+            # in lifecycle order; the rule body and workflow doc render them.
+            "command_rows": [
+                row for row in COMMANDS if row[0] in mode.commands
+            ],
+            "all_command_rows": list(COMMANDS),
             "command_modes": modes_module.command_mode_membership(
                 self.config_path(project_root)
             ),

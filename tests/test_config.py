@@ -53,6 +53,8 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "included_skills",
         "included_commands",
         "command_modes",
+        "command_rows",
+        "all_command_rows",
         "caveman_default",
         "grill_me_default",
         "label_flows",
@@ -776,7 +778,7 @@ def test_step_profiles_override_in_context(tmp_path: Path) -> None:
     )
     settings = Settings()
     profiles = settings.template_context(tmp_path)["step_profiles"]
-    assert profiles["iflow_init"] == "reasoning"
+    assert profiles["iflow_setup"] == "reasoning"
     assert profiles["iflow_plan"] == "reasoning"
 
 

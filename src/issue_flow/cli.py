@@ -789,7 +789,7 @@ def agent_pr_sync(
 
     For each candidate head: worktree → sync-branch → optional
     ``git push --force-with-lease``. Never bare ``--force``. Used by
-    ``/iflow-pr-sync`` when a merge left sibling PRs DIRTY (issue #260).
+    ``/iflow-cleanup prs`` when a merge left sibling PRs DIRTY (issue #260).
     """
     from issue_flow.agent import run_pr_sync
 
@@ -951,7 +951,7 @@ def agent_version_plan(
     backend -> git tag), reads the current version (static field or latest
     tag), applies the PEP 440 bump arithmetic, and prints the exact commands.
     Never edits files, never creates tags — the doing stays with the agent
-    and the user, per the iflow-version-bump skill.
+    and the user, per the version step of the iflow-close skill.
     """
     from issue_flow.agent import run_version_plan
 
@@ -1023,7 +1023,7 @@ def agent_epic_status(
     """Deterministic epic progress (read-only).
 
     Parses ``.issueflows/05-epics/epic<N>_plan.md`` (the structure written by
-    the /iflow-epic skill) and cross-references published issue states via
+    the /iflow-issue epic skill) and cross-references published issue states via
     ``gh``: stages with per-issue state and blockers, the current stage, and
     the next open, unblocked candidates. Exit 1 when no plan file exists.
     """
@@ -1103,7 +1103,7 @@ def agent_label_candidates(
 
     For ``--kind yolo``, uses the project's resolved ``yolo_label``. Every open
     issue is returned with ``has_label`` true/false. Agents still decide
-    yolo-fitness in ``/iflow-review``; this command only lists candidates.
+    yolo-fitness in ``/iflow-issue review``; this command only lists candidates.
     """
     from issue_flow.agent import run_label_candidates
 
@@ -1354,7 +1354,7 @@ def agent_archive(
         False, "--json", help="Emit a machine-readable JSON object."
     ),
 ) -> None:
-    """Remove solved issue<N>_* files (the mechanical half of /iflow-archive).
+    """Remove solved issue<N>_* files (the mechanical half of /iflow-cleanup archive).
 
     Reports the pre-archive HEAD sha so the agent-written summary file can
     record a recovery point (``git show <sha>:<path>``). Summarising the

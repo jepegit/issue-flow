@@ -96,9 +96,9 @@ def test_pr_sync_template_renders() -> None:
     from tests.test_templating import _default_context
 
     rendered = render_template(
-        "skills/iflow_pr_sync/SKILL.md.j2",
-        {**_default_context(), "included_skills": ["iflow_pr_sync", "iflow_cleanup"]},
+        "skills/iflow_cleanup/prs.md.j2",
+        {**_default_context(), "included_skills": ["iflow_cleanup", "iflow_cleanup"]},
     )
-    assert "name: iflow-pr-sync" in rendered
+    assert "/iflow-cleanup prs" in rendered
     assert "pr-sync" in rendered
     assert "force-with-lease" in rendered

@@ -74,9 +74,9 @@ Key behaviour:
   after merge.
 - **Commits:** only commit when explicitly asked.
 - **Issue workflow:** this repo follows the issue-flow lifecycle it ships —
-  `/iflow-init` → `/iflow-plan` → `/iflow-build` → `/iflow-close` →
+  `/iflow-setup` → `/iflow-plan` → `/iflow-build` → `/iflow-close` →
   `/iflow-cleanup` (with `/iflow` as the smart dispatcher, `/iflow-pick` /
-  `/iflow-pause` / `/iflow-yolo` off-path). Keep status files accurate with an
+  `/iflow-pause` / `/iflow-run yolo` off-path). Keep status files accurate with an
   explicit `- [x] Done` / `- [ ] Done` checkbox.
 - **Config:** reads a `.env` from the project root (`ISSUEFLOW_DIR`,
   `ISSUEFLOW_AGENT_DIR`, `ISSUEFLOW_DOCS_DIR`, `ISSUEFLOW_HISTORY_FILE`).
@@ -104,7 +104,15 @@ Key behaviour:
   modes), `editors.py` (editor profiles), `templating.py` (Jinja2 helpers),
   `dependencies.py` (git/gh/graphify checks), `gitutils.py`, `agent.py`,
   `graphify.py`.
-- **Templates:** `src/issue_flow/templates/` (`commands/`, `skills/`, `rules/`).
+- **Templates:** `src/issue_flow/templates/` (`skills/`, `rules/`, `docs/`,
+  plus the one-line `commands/_wrapper.md.j2`). Each `skills/iflow_<cmd>/`
+  folder holds `SKILL.md.j2` (the router) and one `<mode>.md.j2` per mode.
+- **Migrations:** `migrate.py` holds what `issue-flow update` does to older
+  scaffolds (retired folders, config stems). Add to it, and to
+  `STEM_RENAMES` / `RETIRED_*` in `templating.py`, when a surface is renamed.
+- **Noise budgets:** `tests/test_command_surface.py` caps the rule body,
+  every `SKILL.md`, and every mode file in words. New mode-specific text goes
+  in a mode file, not the rule body.
 - **Tests:** `tests/` (pytest). **Read first:** `AGENTS.md`, this file, then the
   module matching the area you're changing.
 

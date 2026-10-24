@@ -17,16 +17,16 @@ Label a batch of small issues and ship them hands-off
 ([Run a cycle of issues](cycle.md)):
 
 ```text
-iflow review yolo    # propose yolo labels; confirm once; apply
-iflow cycle yolo     # process every open yolo-labelled issue
+iflow issue review yolo    # propose yolo labels; confirm once; apply
+iflow run cycle yolo     # process every open yolo-labelled issue
 ```
 
 Plan a large change as an epic ([Create and run epics](epics.md)):
 
 ```text
-iflow epic 42                 # draft .issueflows/05-epics/epic42_plan.md
-iflow epic 42 publish         # or: publish stage 1
-iflow cycle epic 42 stage 1   # optional: batch the published stage
+iflow issue epic 42                 # draft .issueflows/05-epics/epic42_plan.md
+iflow issue epic 42 publish         # or: publish stage 1
+iflow run cycle epic 42 stage 1   # optional: batch the published stage
 ```
 
 Not sure what to work on? `iflow pick` shows parked work first, then open

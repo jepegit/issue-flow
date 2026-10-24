@@ -107,12 +107,12 @@ def test_init_mode_simple_scaffolds_subset_and_persists(
     assert result.exit_code == 0, result.output
 
     skills = tmp_path / ".cursor" / "skills"
-    assert (skills / "iflow-init" / "SKILL.md").is_file()
+    assert (skills / "iflow-setup" / "SKILL.md").is_file()
     assert (skills / "iflow-plan" / "SKILL.md").is_file()
     # Excluded by simple mode.
     assert not (skills / "iflow-close").exists()
-    assert not (skills / "iflow-yolo").exists()
-    assert not (skills / "iflow-fix").exists()
+    assert not (skills / "iflow-run").exists()
+    assert not (skills / "iflow-issue").exists()
 
     config = tmp_path / ".issueflows" / "config.toml"
     assert config.is_file()
@@ -157,7 +157,7 @@ def test_mode_hands_off_yes_renders_skip_confirm(
     cfg = tmp_path / ".issueflows" / "config.toml"
     data = tomllib.loads(cfg.read_text(encoding="utf-8"))
     assert data["issueflow"]["hands_off"] is True
-    skill = (tmp_path / ".cursor" / "skills" / "iflow-drive" / "SKILL.md").read_text(
+    skill = (tmp_path / ".cursor" / "skills" / "iflow-run" / "drive.md").read_text(
         encoding="utf-8"
     )
     assert "No drive confirm" in skill
@@ -171,7 +171,7 @@ def test_mode_hands_off_yes_renders_skip_confirm(
     assert off.exit_code == 0, off.output
     data = tomllib.loads(cfg.read_text(encoding="utf-8"))
     assert data["issueflow"]["hands_off"] is False
-    skill = (tmp_path / ".cursor" / "skills" / "iflow-drive" / "SKILL.md").read_text(
+    skill = (tmp_path / ".cursor" / "skills" / "iflow-run" / "drive.md").read_text(
         encoding="utf-8"
     )
     assert "No drive confirm" not in skill
@@ -569,7 +569,7 @@ def test_agent_state_no_epic_hint_falls_back_to_init(
     assert payload["focus"] is None
     assert payload["epic_hint"] == {"epics": []}
     assert payload["epic_session"] is None
-    assert payload["next_command"] == "/iflow-capture"
+    assert payload["next_command"] == "/iflow-pick"
 
 
 def test_agent_sweep_dry_run_does_not_move(runner: CliRunner, tmp_path: Path) -> None:
@@ -746,7 +746,7 @@ def test_doctor_flags_editor_dir_without_scaffold(
 
 def test_doctor_skips_scaffolded_editor_dir(runner: CliRunner, tmp_path: Path) -> None:
     _seed_clean_tree(tmp_path)
-    marker = tmp_path / ".claude" / "skills" / "iflow-init" / "SKILL.md"
+    marker = tmp_path / ".claude" / "skills" / "iflow-setup" / "SKILL.md"
     marker.parent.mkdir(parents=True)
     marker.write_text("scaffolded\n", encoding="utf-8")
 
@@ -772,7 +772,7 @@ def test_doctor_reports_unmanaged_editor_skill(
 ) -> None:
     _seed_clean_tree(tmp_path)
     skills = tmp_path / ".cursor" / "skills"
-    for name in ("iflow-init", "iflow-plan", "unslop"):
+    for name in ("iflow-setup", "iflow-plan", "unslop"):
         folder = skills / name
         folder.mkdir(parents=True)
         (folder / "SKILL.md").write_text("packaged\n", encoding="utf-8")
@@ -2867,7 +2867,7 @@ def test_workspace_bootstrap_yes_inits_and_writes_toml(
     text = (workspace / "issueflow-workspace.toml").read_text(encoding="utf-8")
     assert 'default = "alpha"' in text
     assert (
-        workspace / "alpha" / ".cursor" / "skills" / "iflow-init" / "SKILL.md"
+        workspace / "alpha" / ".cursor" / "skills" / "iflow-setup" / "SKILL.md"
     ).is_file()
 
 
