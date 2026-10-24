@@ -74,9 +74,8 @@ Prefer `gh issue reopen <M>` (+ comment) when a stage issue still owns the gap; 
 8. **Run the stage via `/iflow-run cycle`.** Follow
    `.cursor/skills/iflow-run/cycle.md` for `epic <N>` (the CLI queues
    the current stage; forward `nonyolo:<policy>` when given). The overnight
-   confirm above covers cycle's consolidated confirm and the non-yolo lane —
-   do not re-ask, and do not stop at a `yolo: no` issue (only `nonyolo:stop`
-   halts there). Honour cycle stop conditions and `onfail:stop`. A merge that
+   confirm above covers cycle's consolidated confirm and the non-yolo lane for
+   the whole stage; a `yolo: no` issue halts only under `nonyolo:stop`. Honour cycle stop conditions and `onfail:stop`. A merge that
    reports the PR is **already merged** is a success. Update `auto_status.md`
    with the cycle outcome.
 
@@ -123,12 +122,12 @@ Bash accepts the same `--body-file` / `-F` flags. Use that pattern for every mul
        blockers still open (from the findings list / `epic-status`).
     c. If open work remains and `loop_count` **<** `budget`: re-queue those
        issue numbers via `/iflow-run cycle` (explicit numbers; overnight confirm
-       already covers cycle confirms — do not re-ask), then **return to step 9**
+       already covers cycle confirms), then **return to step 9**
        (adversarial procedure). Keep yolo/cycle safeguards.
     d. If open work remains and `loop_count` **>=** `budget`: set
        `last_outcome: budget_ask` and **stop and ask** in normal prose — three
        options only:
-       - **accept** current implementation (record `accepted`; do not re-queue)
+       - **accept** current implementation (record `accepted`; the open work stays unqueued)
        - **grant N more loops** (raise effective `budget` by N for this run;
          clear `budget_ask`; continue from 10c)
        - **abort** (record `aborted`; stop)
@@ -144,23 +143,23 @@ Bash accepts the same `--body-file` / `-F` flags. Use that pattern for every mul
        only when that stage's `done` is true **and** no open inter-epoch
        blocker numbers remain in `auto_status.md` findings.
     b. If **not** clear: set `last_outcome: epoch_gated`, list open numbers /
-       blockers, **do not** start stage `k+1`, go to step 12.
+       blockers, stay on stage `k`, go to step 12.
     c. If clear and a later unfinished published stage exists: under the same
        overnight authorization, set `auto_status.md` stage to that index,
        reset `loop_count` to `0`, `last_outcome: pending`, and **return to
-       step 2** (select/run that stage). Do not re-ask overnight confirm.
+       step 2** (select/run that stage). The overnight confirm still covers it.
     d. If every published stage is done: set `last_outcome: complete`.
 
 12. **Report.** Epic, stage, cycle results (if any), adversarial outcome +
     issue numbers, `loop_count` / `budget`, gate result, `auto_status.md`
     path. Remind `/iflow-cleanup` after merges
-    (do not auto-run it).
+    (the user runs it).
 
 ## Constraints
 
-- Do not weaken yolo/cycle safeguards. The non-yolo lane changes how a PR
-  lands, never which safeguards run.
+- Never weaken yolo/cycle safeguards: the non-yolo lane changes how a PR
+  lands; the same safeguards always run.
 - A `yolo: no` issue is not a stop unless `nonyolo:stop`.
-- Do not run `/iflow-cleanup` from this skill.
-- Never start stage `k+1` while stage `k` is not clear (`epoch_gated`).
-- Compose `/iflow-issue epic` + `/iflow-run cycle` + `/iflow-run yolo`; do not fork them.
+- Never run `/iflow-cleanup` from this skill; the user runs it after merges.
+- Start stage `k+1` only once stage `k` is clear (else `epoch_gated`).
+- Compose `/iflow-issue epic` + `/iflow-run cycle` + `/iflow-run yolo` as they are.

@@ -23,7 +23,7 @@ groups** when the user confirms repair — using the same safe sweep rules as
    If the user passed `workspace` / `all`, or cwd is the workspace root (toml
    present, not a member), run `issue-flow workspace doctor` and present each
    member. Repair stays per-repo: `issue-flow doctor --fix -C <member>` after
-   they name members. Do not `--fix` the whole workspace in one shot.
+   they name members, one member at a time.
 
 2. **Audit** — run `issue-flow doctor`. Without the CLI, check by hand:
    more than one `issue<N>_*` group in `{{ current_issues_folder }}/` with no `<N>-slug` branch (error);
@@ -38,12 +38,12 @@ groups** when the user confirms repair — using the same safe sweep rules as
 3. **Repair (only on explicit user confirm)** — run
    `issue-flow doctor --fix` with `--dry-run` first when anything will move;
    pass `--except N` when multiple groups sit in `{{ current_issues_folder }}/`
-   and focus is ambiguous. Never repair duplicate-across-folders automatically.
+   and focus is ambiguous. Duplicate-across-folders stays a manual merge (step 2).
 
 4. **Re-audit** after repair and report what changed.
 
 5. **Housekeeping commit (default when issueflows-only dirty)** — Doctor repair
-   is filesystem-only; it never runs `git commit`. After a successful repair,
+   is filesystem-only. After a successful repair,
    check the working tree (`issue-flow agent preflight --json` when available,
    else `git status --porcelain`):
    - If **clean** — done.
@@ -54,8 +54,7 @@ groups** when the user confirms repair — using the same safe sweep rules as
      and ask for **one confirm** with **yes as the recommended default**.
      On yes: `git add` **only** those paths and commit (no push). If the
      current branch is the **default**, commit on a chore branch (or a tiny
-     PR) instead — do not leave housekeeping unpushed on home default
-    . On no: leave dirty and note that `/iflow-pick` will
+     PR) instead, so home default stays even with origin. On no: leave dirty and note that `/iflow-pick` will
      offer the same commit again.
    - If dirty with any path **outside** `{{ issueflows_dir }}/` — report mixed
      dirt; do **not** offer the housekeeping default (user must sort code
@@ -77,7 +76,7 @@ groups** when the user confirms repair — using the same safe sweep rules as
      created outside issue-flow.
    - Present a consolidated proposal (mark / unmark / registry edits). Apply
      only after one confirm. Prefer graphify when available to name code under
-     test; never silently rewrite unrelated tests.
+     test; edit only the tests in the confirmed proposal.
    - Marker name: `{{ essential_marker }}`.
    {%- endif %}
 {%- endif %}
@@ -88,7 +87,7 @@ groups** when the user confirms repair — using the same safe sweep rules as
   from `{{ current_issues_folder }}/` to `{{ partly_solved_folder }}/` or
   `{{ solved_folder }}/` by Done status. No deletes, no duplicate merges.
 - **Gated moves** — nothing moves without a consolidated user confirm.
-- **No CLI auto-commit** — `doctor --fix` never commits; the agent commits
-  only after the step-5 confirm, and never stages paths outside
+- **No CLI auto-commit** — `doctor --fix` only touches files; the agent commits
+  only after the step-5 confirm, and stages only paths under
   `{{ issueflows_dir }}/`.
 - Degrade gracefully when the CLI is absent (manual checklist + sweep steps).

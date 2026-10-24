@@ -106,11 +106,24 @@ def test_surface_is_eleven_lifecycle_commands() -> None:
         ("iflow_status", {"doctor.md.j2", "git.md.j2", "graph.md.j2"}),
         (
             "iflow_close",
-            {"ci.md.j2", "changelog.md.j2", "merge.md.j2", "ops.md.j2", "sync.md.j2", "version.md.j2"},
+            {
+                "ci.md.j2",
+                "changelog.md.j2",
+                "merge.md.j2",
+                "ops.md.j2",
+                "sync.md.j2",
+                "version.md.j2",
+            },
         ),
         (
             "iflow_cleanup",
-            {"archive.md.j2", "classify.md.j2", "github.md.j2", "prs.md.j2", "workspace.md.j2"},
+            {
+                "archive.md.j2",
+                "classify.md.j2",
+                "github.md.j2",
+                "prs.md.j2",
+                "workspace.md.j2",
+            },
         ),
     ],
 )
@@ -151,6 +164,28 @@ def test_skill_and_side_word_budgets(loud_context: dict[str, object]) -> None:
         for side in skill_side_templates(stem):
             text = render_template(f"skills/{stem}/{side}", loud_context)
             assert _words(text) <= SIDE_BUDGET, (stem, side, _words(text))
+
+
+# Ratchet for the #410 negation pass: mode files state the positive target and
+# keep "never" only as a guardrail. Lower the cap when a pass removes more.
+MODE_PROHIBITION_CAP = 48
+PROHIBITION_RE = re.compile(r"\b(?:do not|don't|never|must not)\b", re.IGNORECASE)
+
+
+def test_mode_file_prohibitions_do_not_creep_back() -> None:
+    templates = Path(__file__).resolve().parents[1] / "src/issue_flow/templates"
+    hits = {
+        f"{stem}/{side}": len(
+            PROHIBITION_RE.findall(
+                (templates / "skills" / stem / side).read_text(encoding="utf-8")
+            )
+        )
+        for stem in LIFECYCLE_STEMS
+        for side in skill_side_templates(stem)
+    }
+    assert sum(hits.values()) <= MODE_PROHIBITION_CAP, sorted(
+        (n, name) for name, n in hits.items() if n
+    )
 
 
 def test_workflow_doc_word_budget(loud_context: dict[str, object]) -> None:
@@ -349,7 +384,7 @@ def test_removing_part_of_a_merged_skill_keeps_the_skill() -> None:
     assert rename_removed_stems(
         ["iflow_yolo", "iflow_cycle", "iflow_auto", "iflow_drive"]
     ) == ["iflow_run"]
-    assert rename_removed_stems(["iflow-yolo", "iflow-cycle", "iflow-auto", "iflow-drive"]) == [
-        "iflow-run"
-    ]
+    assert rename_removed_stems(
+        ["iflow-yolo", "iflow-cycle", "iflow-auto", "iflow-drive"]
+    ) == ["iflow-run"]
     assert rename_removed_stems(["caveman", "iflow_epic"]) == ["caveman"]

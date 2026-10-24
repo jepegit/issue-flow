@@ -27,9 +27,9 @@ If you only have raw comment text, ask for the structured form (author + date ma
 2. **Three buckets, pick exactly one per surviving point.**
    - **Additional tasks** — new, concrete work that is not already in the issue body. Phrase as imperatives ("also update X", "add Y to Z"). If the point is vague ("maybe do something about caching"), either sharpen it into a task or drop it.
    - **Clarifications / constraints** — guidance on *how* to do the existing work: scope boundaries, non-goals, must-keep behaviors, stylistic or architectural preferences, acceptance criteria. Useful phrase: "when doing X, make sure Y".
-   - **Superseded / retracted** — earlier tasks, preferences, or decisions that a later comment explicitly or implicitly walked back. Keep these visible (don't silently delete them) so the agent doesn't redo retracted work.
+   - **Superseded / retracted** — earlier tasks, preferences, or decisions that a later comment explicitly or implicitly walked back. Keep these visible so the agent skips retracted work.
 
-3. **Drop the noise.** Do not include:
+3. **Drop the noise.** Leave these out:
    - Bot comments (CI, coverage bots, auto-assign bots, etc.).
    - Pure chit-chat, "LGTM", "+1", emoji-only reactions.
    - Status pings ("any update?") without new content.
@@ -39,7 +39,7 @@ If you only have raw comment text, ask for the structured form (author + date ma
 
 5. **Paraphrase; quote sparingly.** Short direct quotes are fine when exact wording matters (e.g. a feature name, an error message). Otherwise rewrite in your own words so the summary is scannable.
 
-6. **Handle open disagreement honestly.** If two authors openly disagree and no later comment resolves it, record the disagreement under *Clarifications* (for example: "author A prefers option X, author B prefers option Y — no resolution in thread"). Do not guess a winner.
+6. **Handle open disagreement honestly.** If two authors openly disagree and no later comment resolves it, record the disagreement under *Clarifications* (for example: "author A prefers option X, author B prefers option Y — no resolution in thread").
 
 7. **Respect maintainer authority when obvious.** If the repo owner or a maintainer explicitly overrides an earlier suggestion, treat that as the winning position and move the overridden suggestion to *Superseded*.
 
@@ -60,19 +60,19 @@ _Note: this section is an interpretive summary of the comment thread, not a verb
 Formatting rules:
 
 - Each bucket's bullet is itself a list if there is more than one item — nest concrete bullets under the bold label.
-- **Drop any bucket that is empty** — do not leave `- **Additional tasks**: ` with no content.
+- **Drop any bucket that is empty.**
 - **Always keep the `_Note: ..._` footer** when the section exists. Use the total `comments` length for `<count>` and the `author.login` + date of the most recent non-dropped comment for `@<login>` / `<date>`.
 
 ## Edge cases
 
-- **Zero comments** — skip the whole section. Do not write an empty `## Comments (curated summary)` header.
+- **Zero comments** — skip the whole section, header included.
 - **All comments are noise** (bot-only, pure chit-chat, emoji) — skip the whole section. Note this in the command's final report ("N comments fetched, all filtered as noise — section omitted").
 - **Every surviving point lands in a single bucket** — that's fine; just emit that one bucket.
-- **Multi-author thread with heated disagreement** — log the disagreement under *Clarifications*, do not invent a resolution.
-- **Comments reference external PRs, gists, or linked issues** — keep the reference (shortened URL or `owner/repo#N`) in the bullet, but do not fetch the linked content; it's out of scope for this skill.
-- **Comments include code blocks the agent will need later** — summarize the intent in the bullet and mention that the full snippet is in the linked comment; do not paste large blocks into the summary.
+- **Multi-author thread with heated disagreement** — log the disagreement under *Clarifications* and leave it unresolved.
+- **Comments reference external PRs, gists, or linked issues** — keep the reference (shortened URL or `owner/repo#N`) in the bullet; the linked content stays unfetched (out of scope for this skill).
+- **Comments include code blocks the agent will need later** — summarize the intent in the bullet and point at the linked comment for the full snippet.
 
 ## Constraints
 
-- This skill only writes into the `## Comments (curated summary)` section of `issue<N>_original.md`. It never touches the issue body, the status file, or the plan file.
-- It never calls `gh` or the network itself — it expects the caller (`capture.md` or similar) to provide the comments JSON.
+- This skill only writes into the `## Comments (curated summary)` section of `issue<N>_original.md`.
+- It works from the comments JSON the caller (`capture.md` or similar) provides; fetching is the caller's job.

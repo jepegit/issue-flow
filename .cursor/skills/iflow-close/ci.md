@@ -1,7 +1,7 @@
 # Close — CI with `gh`
 
 Teach agents the concrete `gh` commands for **listing** and **watching** CI.
-Always pass `--repo <owner/repo>` (never rely on `gh`'s cwd default).
+Always pass `--repo <owner/repo>`.
 
 ## Merge-ready (preferred)
 
@@ -52,7 +52,7 @@ run to surface failing job logs.
 |--------|---------|--------------|
 | Exit 0 / all `pass` or `skipping` | CI green | Proceed (merge, report green, etc.) |
 | Fail / `--fail-fast` | CI red | Stop hands-off paths; report failing check/run URLs |
-| Still pending past budget | Unknown | Do not hang; report pending and follow the calling skill (e.g. close yolo may fall back to `--auto`) |
+| Still pending past budget | Unknown | Report pending and follow the calling skill (e.g. close yolo may fall back to `--auto`) |
 
 ## Where this fits
 

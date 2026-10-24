@@ -13,11 +13,11 @@ from issue_flow.dependencies import REQUIRED_DEPENDENCIES
 from issue_flow.init import run_init
 
 
-
 def _bundle(skill_dir: Path) -> str:
     """Text of a rendered skill folder: SKILL.md plus its mode files (#406)."""
     files = sorted(skill_dir.glob("*.md"), key=lambda f: (f.name != "SKILL.md", f.name))
     return "\n".join(f.read_text(encoding="utf-8") for f in files)
+
 
 def test_init_creates_dotenv_with_commented_keys(tmp_path: Path) -> None:
     """init should create .env with commented ISSUEFLOW_* defaults when absent."""
@@ -586,7 +586,7 @@ def test_init_cycle_skill_parallel_dispatch_is_opt_in_and_gated(
     assert "experimental" in content.lower()
     # Only independent issues; harness gate; serialized merges; coordinator HISTORY.
     assert "independent" in content
-    assert "refuse `parallel:<n>` and run sequentially" in content
+    assert "refuse `parallel:<n>`, say so, and run sequentially" in content
     assert "worktree" in content.lower()
     assert "Serialize merges" in content or "serial merge" in content.lower()
     assert "open-workspace" in content
@@ -635,7 +635,7 @@ def test_init_cycle_skill_has_state_file_resume_and_onfail(tmp_path: Path) -> No
     assert "cycle_status.md" in content
     # Resume without re-asking the original confirm.
     assert "## Resuming" in content
-    assert "without" in content and "re-ask" in content.lower()
+    assert "Reuse the original consolidated confirm" in content
     # Both failure policies.
     assert "onfail:stop" in content
     assert "onfail:skip" in content
@@ -805,9 +805,9 @@ def test_init_commands_reference_designs_folder(tmp_path: Path) -> None:
 def test_init_issue_capture_documents_branch_inference(tmp_path: Path) -> None:
     """iflow-pick skill should describe resolving an issue from the current branch when no args."""
     run_init(tmp_path)
-    content = (
-        tmp_path / ".cursor" / "skills" / "iflow-pick" / "capture.md"
-    ).read_text(encoding="utf-8")
+    content = (tmp_path / ".cursor" / "skills" / "iflow-pick" / "capture.md").read_text(
+        encoding="utf-8"
+    )
     assert "git -C <project_root> branch --show-current" in content
     assert "You have not provided an issue reference" in content
     assert "issue-style branch" in content

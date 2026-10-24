@@ -1,11 +1,11 @@
 # Close step 3 — changelog trailers
 
-Read this to decide the changelog bullet as part of `/iflow-close`. It never runs on its own schedule; it is driven by the "update HISTORY" step, and does not run when the user passed `nohistory` / `skip history`. The bullet lands in the close commit as trailers. **Do not edit** `{{ history_file }}` on the issue branch — `issue-flow changelog release` writes that file later, on the default branch, when a version is cut.
+Read this to decide the changelog bullet as part of `/iflow-close`. It runs only from the "update HISTORY" step, and is skipped when the user passed `nohistory` / `skip history`. The bullet lands in the close commit as trailers; `issue-flow changelog release` writes `{{ history_file }}` later, on the default branch, when a version is cut.
 
 ## Preconditions
 
-1. Compose the bullet even if `{{ history_file }}` is missing at the project root. Never create the file from this skill.
-2. Do **not** open or edit `{{ history_file }}`. A version bump in step 2 of `/iflow-close` does **not** promote or append a heading.
+1. Compose the bullet even if `{{ history_file }}` is missing at the project root.
+2. Leave `{{ history_file }}` closed. A version bump in step 2 of `/iflow-close` does **not** promote or append a heading.
 
 ## Inputs from `/iflow-close`
 
@@ -24,9 +24,9 @@ Read this to decide the changelog bullet as part of `/iflow-close`. It never run
    <summary>. (#<N>)
    ```
 
-   Summary = `log "..."` override if provided, else the issue title with sentence case, trailing period trimmed before the `.` we add. Do not prefix the trailer value with `- `.
+   Summary = `log "..."` override if provided, else the issue title with sentence case, trailing period trimmed before the `.` we add. The trailer value starts with the summary itself (no `- `).
 
-2. Generate `Changelog-Id` with 12 lowercase hex characters (one per bullet; do not invent it by hand and do not reuse the issue number or the commit SHA):
+2. Generate `Changelog-Id` with 12 lowercase hex characters (one fresh random id per bullet, from this command — not the issue number or the commit SHA):
 
    ```bash
    uv run python -c "import secrets; print(secrets.token_hex(6))"
@@ -41,16 +41,16 @@ Read this to decide the changelog bullet as part of `/iflow-close`. It never run
    ```
 
    The same issue may emit several blocks (several ids). `nohistory` emits none.
-{% if confirm_changelog_update %}4. Show the proposed bullet and confirm once before writing it into the commit message. If declined, **stop** — do not continue `/iflow-close`. Offer exactly: **write as proposed** / **revise bullet** / **`nohistory` (explicit skip)** / **abort close**. Never silent-skip and continue.
+{% if confirm_changelog_update %}4. Show the proposed bullet and confirm once before writing it into the commit message. If declined, **stop** `/iflow-close` and offer exactly: **write as proposed** / **revise bullet** / **`nohistory` (explicit skip)** / **abort close**. Never silent-skip and continue.
 {% else %}4. Put the trailers in the commit without a confirm prompt (`confirm_changelog_update` is false) so the bullet is in the PR commit. Still report the text.
 {% endif %}
-5. Do this **even when a draft PR already exists** from `/iflow-build` early PR — the trailers must land in the close commit that updates that PR. **Never** propose a changelog update after close has finished or after merge.
+5. Do this **even when a draft PR already exists** from `/iflow-build` early PR — the trailers must land in the close commit that updates that PR.
 
 `{{ history_file }}` is rebuilt only by `issue-flow changelog release <version>` on the default branch. That command prepends one `## [<version>] - <date>` section from the trailers (and, the first time, folds any leftover `## [Unreleased]` bullets). It does not run during `/iflow-close`.
 
 ## Conflict resolution — keep both bullet sets
 
-Repos that still have `## [Unreleased]` can still conflict when two PRs edit it. That repair path stays. New closes do not add bullets there, so they do not create that conflict. When an unrelated PR lands on the default branch while this issue is in flight and both sides did append, git cannot merge it. That is bookkeeping, not a design decision, so it has exactly one documented answer — used by `/iflow-close`'s sync step and by `/iflow-run cycle`'s parallel coordinator.
+Repos that still have `## [Unreleased]` can still conflict when two PRs edit it. That repair path stays. New closes write trailers instead, so only old bullets meet there. When an unrelated PR lands on the default branch while this issue is in flight and both sides did append, git cannot merge it. That is bookkeeping, not a design decision, so it has exactly one documented answer — used by `/iflow-close`'s sync step and by `/iflow-run cycle`'s parallel coordinator.
 
 **Resolvable only when all of these hold:**
 
@@ -64,21 +64,20 @@ Repos that still have `## [Unreleased]` can still conflict when two PRs edit it.
 
 **Fast path:** `issue-flow agent sync-branch --json` applies exactly this rule during the rebase in `/iflow-close` and aborts on anything else. Prefer it over hand-editing conflict markers.
 
-**Same rule, other bookkeeping files.** The keep-both resolver also covers `{{ issueflows_dir }}/{{ designs_folder }}/*.md` and `issue<N>_status.md` files — additive **bullets and table rows** only. `sync-branch` picks the resolver per path (payload `resolvers`); product code is never touched.
+**Same rule, other bookkeeping files.** The keep-both resolver also covers `{{ issueflows_dir }}/{{ designs_folder }}/*.md` and `issue<N>_status.md` files — additive **bullets and table rows** only. `sync-branch` picks the resolver per path (payload `resolvers`); product-code conflicts are left for a human.
 
 ## Staging
 
 When `/iflow-close` reaches its commit step:
 
-- Do **not** stage `{{ history_file }}`. The trailers are in the commit message, not in the diff.
+- Stage everything except `{{ history_file }}`: the trailers are in the commit message, not in the diff.
 - If a version bump also ran, stage `pyproject.toml` (and `uv.lock` if it changed) without promoting `{{ history_file }}`.
 
 ## Constraints
 
-- Do **not** read or write `{{ history_file }}` from this skill. Compose the trailers only.
-- `defer_changelog` no longer selects a write path. Do not record `### Deferred changelog` and do not run `issue-flow agent apply-changelog` from close or cleanup. That command remains for a status file that already has the old block.
-- Never create `{{ history_file }}` from scratch.
-- **Timing:** this skill runs only from `/iflow-close` step 3 (before commit / push / PR update), including when a draft was opened earlier via early PR. **Never** propose updating `{{ history_file }}` after close has finished or after merge.
-{% if confirm_changelog_update %}- If the confirm prompt is declined, **stop** `/iflow-close` until the user chooses write / revise / `nohistory` / abort. Do not continue to commit or PR without an explicit choice.
+- Compose the trailers only; never edit, stage, or create `{{ history_file }}` from this skill.
+- `defer_changelog` no longer selects a write path. `issue-flow agent apply-changelog` remains only for a status file that already has an old `### Deferred changelog` block; close and cleanup write trailers instead.
+- **Timing:** this skill runs only from `/iflow-close` step 3 (before commit / push / PR update), including when a draft was opened earlier via early PR. After close or merge, the changelog is settled; never propose updating it then.
+{% if confirm_changelog_update %}- If the confirm prompt is declined, **stop** `/iflow-close` until the user chooses write / revise / `nohistory` / abort; commit and PR wait for that explicit choice.
 {% endif %}
 - The bullet's `(#<N>)` suffix is the focus issue's GitHub number.

@@ -12,7 +12,7 @@ Opt-in only: no other step runs it automatically.
    issue-flow graphify
    ```
 
-   With no extra args this runs `graphify update <project>` — AST-only, **no LLM API key required**, produces the full `graphify-out/`. To pick a different graphify subcommand, pass it as the first arg: `issue-flow graphify extract` (adds the slower semantic LLM pass for richer relationships — needs an API key), `issue-flow graphify watch` (live), `issue-flow graphify cluster-only --no-viz`, etc. Use `-C <dir>` to scan a project other than the current directory. Trailing flags pass through verbatim. Do not invent new wrapper flags.
+   With no extra args this runs `graphify update <project>` — AST-only, **no LLM API key required**, produces the full `graphify-out/`. To pick a different graphify subcommand, pass it as the first arg: `issue-flow graphify extract` (adds the slower semantic LLM pass for richer relationships — needs an API key), `issue-flow graphify watch` (live), `issue-flow graphify cluster-only --no-viz`, etc. Use `-C <dir>` to scan a project other than the current directory. Trailing flags pass through verbatim.
 
 2. **Fallback to `graphify` directly** when `issue-flow` is unavailable:
 
@@ -40,14 +40,14 @@ Opt-in only: no other step runs it automatically.
 
 5. **Verify and report.**
    - Confirm `graphify-out/graph.json`, `graphify-out/graph.html`, and `graphify-out/GRAPH_REPORT.md` exist after a successful run.
-   - Surface non-zero exit codes verbatim; do not silently retry.
+   - Surface non-zero exit codes verbatim and stop.
    - When the user asks "what changed?", skim `GRAPH_REPORT.md` (god nodes, surprising connections) for a short summary.
 
 ## Constraints
 
 - Never auto-dispatch `/iflow-status graph` from another slash command. The user opts in explicitly.
-- Never commit `graphify-out/cost.json` or `graphify-out/manifest.json`; they are local-only.
-{% if graphify_gitignored %}- `graphify_gitignored = true`: do not commit `graphify-out/` at all. Rebuild with `issue-flow graphify` when a plan needs the graph.
+- `graphify-out/cost.json` and `graphify-out/manifest.json` are local-only: leave them out of commits.
+{% if graphify_gitignored %}- `graphify_gitignored = true`: keep all of `graphify-out/` out of commits. Rebuild with `issue-flow graphify` when a plan needs the graph.
 {% endif %}
 - Long-running modes (`watch`) keep the process alive; ask the user before launching them in an agent context.
 - Forward extra arguments verbatim. Do **not** translate or rewrite graphify's flag set inside issue-flow.

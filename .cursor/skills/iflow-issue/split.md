@@ -5,7 +5,7 @@ Read this to **cut one over-large GitHub issue into 2–5 flat child issues**, l
 **Coexists** with:
 
 - **`/iflow-issue`** — creates *one* new issue. Use split when an *existing* issue is too big for one PR.
-- **`/iflow-issue epic`** — staged multi-issue work with `Depends on` and publish. If the cut needs stages or explicit deps, **stop** and point at `/iflow-issue epic` (create an anchor with `/iflow-issue epic` when missing). Do not create children here.
+- **`/iflow-issue epic`** — staged multi-issue work with `Depends on` and publish. If the cut needs stages or explicit deps, **stop** and point at `/iflow-issue epic` (create an anchor with `/iflow-issue epic` when missing).
 
 ## Input
 
@@ -24,11 +24,11 @@ Read this to **cut one over-large GitHub issue into 2–5 flat child issues**, l
    - **Acceptance criteria**
    - **Out of scope** (optional; omit the heading when empty)
    Each body **ends with** `Sub-issue of #<N>.` Refine until the user confirms the set.
-4. **Size gate.** If the cut wants sequential stages or explicit `Depends on` lines → **stop**. Recommend `/iflow-issue epic`. Do not create.
+4. **Size gate.** If the cut wants sequential stages or explicit `Depends on` lines → **stop**. Recommend `/iflow-issue epic`.
 
 ### Phase 2 — create and link
 
-5. **Consolidated confirm** (normal prose, never shortened). One prompt covering: parent `#N` stays **open** as the tracker; each listed child title will be created; each will be linked as a GitHub native sub-issue; a `- [ ] #<M>` task-list block will be appended on the parent under `## Sub-issues`. No yes → stop.
+5. **Consolidated confirm** (full normal prose). One prompt covering: parent `#N` stays **open** as the tracker; each listed child title will be created; each will be linked as a GitHub native sub-issue; a `- [ ] #<M>` task-list block will be appended on the parent under `## Sub-issues`. No yes → stop.
 6. **Create + link (idempotent).** For each unpublished child:
    1. `gh issue create --repo <owner/repo>` (labels/milestones only if the user asked this turn). Capture number `M`.
 
@@ -51,7 +51,7 @@ Bash accepts the same `--body-file` / `-F` flags. Use that pattern for every mul
    2. Link as a native sub-issue. Prefer the CLI fast path:
       `issue-flow agent sub-issue-add <N> <M> -C <project_root> [--repo owner/repo] --json`
       Fields: `linked`, `skipped` (already a child), `error`. On CLI missing or `error` set, fall back to the REST recipe below — then if that also fails (404 / permission / plan), **keep the created issue** and rely on the parent task list.
-   3. **REST recipe** (single source — other skills point here; do not copy):
+   3. **REST recipe** (single source — other skills point here):
       `sub_issue_id` is the child's numeric **database id**, not the issue number. `gh api -f` stringifies and **422s**. Send JSON:
 
       ```bash
@@ -61,7 +61,7 @@ Bash accepts the same `--body-file` / `-F` flags. Use that pattern for every mul
       ```
 
       Re-runs: `GET repos/<owner>/<repo>/issues/<N>/sub_issues` (or the CLI `skipped` field) — skip children already linked.
-   4. Append `- [ ] #<M>` under a `## Sub-issues` heading on the parent (`gh issue edit <N> --body-file`, append/patch only — never rewrite the user's own body). Task list is the fallback when the sub-issue API is unavailable.
+   4. Append `- [ ] #<M>` under a `## Sub-issues` heading on the parent (`gh issue edit <N> --body-file`, append/patch only; the user's own body stays as written). Task list is the fallback when the sub-issue API is unavailable.
    5. Record created numbers in the parent's local status file (create it if missing) so a later re-run can skip them.
 7. **Local parent.** If `issue<N>_*` is in `.issueflows/01-current-issues/`, move the whole group to `.issueflows/02-partly-solved-issues/`. Status checkbox stays `- [ ] Done`. Do **not** close the GitHub parent. Do **not** write `issue<M>_*` groups for children.
 
@@ -73,6 +73,6 @@ Bash accepts the same `--body-file` / `-F` flags. Use that pattern for every mul
 
 - Never create a GitHub issue or sub-issue link without the consolidated confirm; show titles and bodies first.
 - GitHub only (`gh` / `gh api`); GitLab is not supported.
-- Parent stays open. Do not convert the parent into an epic plan file.
-- Do not merge with `/iflow-issue epic` publish or `/iflow-issue` — different intents.
-- Do not park generated children under `02-partly-solved-issues/`.
+- Parent stays open as a plain tracker issue; epic plan files belong to `/iflow-issue epic`.
+- Keep split separate from `/iflow-issue epic` publish and plain `/iflow-issue`: different intents.
+- Generated children stay GitHub-only until someone picks one: no local `issue<M>_*` groups in any folder.

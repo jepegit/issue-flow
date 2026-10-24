@@ -24,11 +24,11 @@ Also: https://issue-flow.readthedocs.io/llms.txt
 
 If they asked to **init globally**, plant user-global `iflow-setup` with one
 `issue-flow init` / `update` / `workspace bootstrap --yes` on this machine,
-then follow the classify steps below. Do not `init` a parent folder of repos.
+then follow the classify steps below. `init` goes into each member repo, not the parent folder.
 
 ## Parent-folder recipe
 
-When the start dir is a **folder of git sibling repos**, follow this public how-to — do **not** invent a different command order:
+When the start dir is a **folder of git sibling repos**, follow this public how-to and its command order:
 
 https://issue-flow.readthedocs.io/en/latest/how-to/workspaces/
 
@@ -57,8 +57,8 @@ Show the user those commands (or the how-to URL) when explaining the path. The c
        (add `--skip-dep-check` / `--editor <id>` / `--force` only when the user asked).
      - After success: remind `/iflow-pick` **per repo** (or open the default member). Stop.
    - If fewer than two git members, continue with the single-project path below.
-   - Never `git init` children; point non-git folders at `/iflow-setup`.
-   - Never write `{{ issueflows_dir }}/` on the parent.
+   - Point non-git child folders at `/iflow-setup` (it owns `git init`).
+   - The parent folder gets only `issueflow-workspace.toml`; `{{ issueflows_dir }}/` lives in each member.
 
 3. **Single-project detect** under `<project_root>` (now resolve is fine):
    - `{{ issueflows_dir }}/` present?
@@ -68,7 +68,7 @@ Show the user those commands (or the how-to URL) when explaining the path. The c
 4. **Scaffold missing** (no `{{ issueflows_dir }}/` and/or no issue-flow skills):
    - Tell the user the harness is not initialised.
    - Show the exact cold-start command from the project root, e.g. `issue-flow init .` or `uvx issue-flow init .` (add `--editor <id>` when they named an editor).
-   - If `issue-flow` is on `PATH`, **offer** to run it after a yes; never run without confirm. Do **not** re-implement scaffolding in this skill.
+   - If `issue-flow` is on `PATH`, **offer** to run it, and run it only after a yes.
    - After a successful init, remind them to pick an issue with `/iflow-pick` or capture one with `/iflow-pick <N>`.
 
 5. **Harness already present**:
@@ -78,13 +78,12 @@ Show the user those commands (or the how-to URL) when explaining the path. The c
      - `issue-flow update --editor <id>` / `/iflow-status doctor` — add a missing editor scaffold (`missing_editor_scaffold`).
      - **`/iflow-pick <N>`** — pull a GitHub issue into `{{ issueflows_dir }}/{{ current_issues_folder }}/`.
      - `/iflow-pick` — front door when no issue is chosen yet.
-   - Do not run `init --force` unless the user explicitly asks to re-scaffold.
 
 6. **Report** — workspace vs single-project path, missing vs present, commands shown or run, and the next suggested lifecycle step (usually `/iflow-pick`).
 
 ## Constraints
 
-- Never capture a GitHub issue, write `issue<N>_*.md`, or create an issue branch from this skill — that is `/iflow-pick`.
-- Never invent a second scaffolder; only guide or confirm-run `issue-flow init` / `update` / `workspace bootstrap`.
+- Capturing a GitHub issue, writing `issue<N>_*.md`, and creating an issue branch belong to `/iflow-pick`.
+- Scaffold only through `issue-flow init` / `update` / `workspace bootstrap`: guide, or run after a yes.
 - Never `init --force`, rewrite `issueflow-workspace.toml`, or delete scaffold files without an explicit user request.
-- If a scaffold / update commit is needed, do not leave it unpushed on home default — use a chore branch or a tiny PR.
+- If a scaffold / update commit is needed, put it on a chore branch or a tiny PR so home default stays even with origin.

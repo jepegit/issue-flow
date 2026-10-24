@@ -29,7 +29,7 @@ Do **not** use this to park or close an active issue — that is `/iflow-pause` 
 
 2. **Select candidates.** List every `issue<N>_*` group in `.issueflows/03-solved-issues/` with its number and title (from the `# Issue #N: <title>` heading of `issue<N>_original.md`). Apply the input rule (default: all except the 5 most recent by issue number). Show the resulting candidate list — number, title, file names — and let the user add/remove issues.
 
-3. **Consolidated confirm** (destructive — written in normal prose, never shortened). One prompt covering exactly: which issues get summarised, that their files will be **deleted**, and that recovery relies on git history via the recorded ref. Do not proceed without a clear yes.
+3. **Consolidated confirm** (destructive — written in full normal prose). One prompt covering exactly: which issues get summarised, that their files will be **deleted**, and that recovery relies on git history via the recorded ref. Delete only after a clear yes.
 
 4. **Summarise (before deleting).** Append to `.issueflows/03-solved-issues/YYYY-MM-DD_archived_issues.md` (today's date; create the file if missing). Structure:
 
@@ -47,17 +47,17 @@ Do **not** use this to park or close an active issue — that is `/iflow-pause` 
      what the issue was, what was done, and the outcome.
    ```
 
-   One `## Issue` section per archived issue. If the dated file already exists (same-day rerun), append a `---` separator followed by a fresh `Pre-archive git ref:` line for this run, then the new issue sections. The dated filename deliberately does **not** match `issue<N>_*`, so it never interferes with issue grouping.
+   One `## Issue` section per archived issue. If the dated file already exists (same-day rerun), append a `---` separator followed by a fresh `Pre-archive git ref:` line for this run, then the new issue sections. The dated filename deliberately does **not** match `issue<N>_*`, so issue grouping skips it.
 
 5. **Delete.** Remove the archived groups' files — CLI fast path (`issue-flow agent archive ...`), or manually `git rm .issueflows/03-solved-issues/issue<N>_*` per issue.
 
-6. **Commit offer.** Propose a single commit, e.g. `chore(iflow): archive <count> solved issues (pre-archive ref <short-sha>)`, including the new/updated dated file and the deletions. Ask before committing; never push from this skill.
+6. **Commit offer.** Propose a single commit, e.g. `chore(iflow): archive <count> solved issues (pre-archive ref <short-sha>)`, including the new/updated dated file and the deletions. Ask before committing; pushing stays with the user.
 
 7. **Report.** Summarise: how many issues were archived, the dated file path, the pre-archive ref, and the one-line recovery recipe.
 
 ## Constraints
 
 - **Destructive, so gated.** Never delete anything before the consolidated confirm in step 3, and never delete files that were not summarised in step 4.
-- Only `.issueflows/03-solved-issues/` is touched — never `01-current-issues/`, `02-partly-solved-issues/`, `00-tools/`, or `04-designs-and-guides/`.
+- Only `.issueflows/03-solved-issues/` is touched.
 - Requires a clean working tree; the deletion should land as its own commit so `git show <ref>:<path>` recovery always works.
 - Summaries are interpretive (agent judgment); the CLI only ever does the mechanical deletion.

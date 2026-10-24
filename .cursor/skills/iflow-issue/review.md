@@ -20,7 +20,7 @@ tokens with a warning rather than inventing behaviour.
 | `yolo` | resolved `[issueflow].yolo_label` (default `"yolo"`) | Same as `/iflow-issue epic`: well-specified, mechanical or pattern-following, low blast radius, guarded by existing tests — umbrella work, design decisions, and flag-day changes are **no**. |
 
 Future kinds (e.g. model-profile labels) add a row here + optional CLI
-`--kind` support — do not rename this skill.
+`--kind` support, keeping this mode's name.
 
 ## Instructions
 
@@ -28,7 +28,7 @@ Future kinds (e.g. model-profile labels) add a row here + optional CLI
 > - **List:** `issue-flow agent label-candidates [--kind yolo] [--json]`
 > - **Apply (after confirm):** `issue-flow agent label-apply <N> [<N>…] --label <name> [--dry-run] [--json]`
 >
-> The CLI never judges fitness. Judgment stays in this skill. If the CLI is
+> The CLI only lists and applies; fitness judgment stays in this skill. If the CLI is
 > missing or errors, fall back to the manual instructions below
 > (`gh issue list` / `gh issue edit --add-label` with `--repo <owner/repo>`).
 
@@ -55,12 +55,12 @@ Future kinds (e.g. model-profile labels) add a row here + optional CLI
 5. **Judge.** For each open issue, decide **add** / **keep** / **skip**:
    - **add** — fitness yes, label absent → propose `--add-label`.
    - **keep** — fitness yes, label already present → no write.
-   - **skip** — fitness no → no write. Never auto-remove the label in v1 even
-     if the issue looks unfit.
+   - **skip** — fitness no → no write. v1 only adds labels: an unfit issue
+     keeps any label it already has.
    Present a short table: `#N`, title, current labels, action, one-line reason.
 
-6. **Consolidated confirm** (writes; normal prose, never shortened). One prompt
-   covering exactly which issues get the label. Do not proceed without a clear
+6. **Consolidated confirm** (writes; full normal prose). One prompt
+   covering exactly which issues get the label. Apply only after a clear
    yes. Empty **add** set → report and stop (no confirm needed).
 
 7. **Apply.** `issue-flow agent label-apply <N>… --label <yolo_label>` (or
@@ -78,6 +78,6 @@ Future kinds (e.g. model-profile labels) add a row here + optional CLI
 - **Confirm before writes** — label create and label apply each need explicit
   user confirmation (may be one combined confirm when both are needed).
 - **No removals / no issue create** in v1.
-- Always pass `--repo <owner/repo>` to `gh`; never rely on cwd defaults.
+- Always pass `--repo <owner/repo>` to `gh`.
 - Degrade gracefully when `gh` is missing (report and stop; suggest
   `gh auth login`).

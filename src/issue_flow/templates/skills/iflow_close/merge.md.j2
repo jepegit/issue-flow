@@ -18,4 +18,4 @@ Pull the default branch from **home** (not the issue worktree). Then:
 - **Planned release tag** (tag-derived version strategy only): if step 2 planned a tag, create it on the merge commit with `git tag <planned>` and `git push origin <planned>`. When the merge was only queued via `--auto`, leave the tag to `/iflow-cleanup` and say so.
 - **Publish label release**: if step 2 recorded a publish label or planned version, run `gh release create "v<version>" --generate-notes` with the version that landed on default. Skip when the release already exists. When the merge was only queued, leave it to `/iflow-cleanup`.
 
-Do not chain `/iflow-cleanup` automatically.
+The user runs `/iflow-cleanup` afterwards.
