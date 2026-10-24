@@ -6,7 +6,7 @@ description: >-
   confirm). Optional GitHub remote audit (include github). Modes: all (workspace),
   prs (refresh DIRTY PRs), archive (condense solved issues). Never --force.
 disable-model-invocation: true
-issue-flow-version: 0.6.0
+issue-flow-version: 0.7.0
 ---
 
 # issue-flow — cleanup (`/iflow-cleanup`)

@@ -4,7 +4,7 @@ description: >-
   Front door: choose the next issue (or take <N> directly), create the issue
   branch or worktree, and capture the issue locally as issue<N>_original.md.
 disable-model-invocation: true
-issue-flow-version: 0.6.0
+issue-flow-version: 0.7.0
 ---
 
 # issue-flow — pick and capture (`/iflow-pick`)

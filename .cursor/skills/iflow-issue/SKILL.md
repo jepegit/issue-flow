@@ -5,7 +5,7 @@ description: >-
   fix (iterative small-fixes session), epic (staged multi-issue plan, publish,
   session), split (cut an issue into sub-issues), review (label triage).
 disable-model-invocation: true
-issue-flow-version: 0.6.0
+issue-flow-version: 0.7.0
 ---
 
 # issue-flow — issues (`/iflow-issue`)

@@ -5,7 +5,7 @@ description: >-
   issue), cycle <queue> (many issues), auto <epic> (an epic stage by stage
   with review), drive <N> (compose an epic from an issue and run all of it).
 disable-model-invocation: true
-issue-flow-version: 0.6.0
+issue-flow-version: 0.7.0
 ---
 
 # issue-flow — run hands-off (`/iflow-run`)

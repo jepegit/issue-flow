@@ -5,7 +5,7 @@ description: >-
   (audit and repair .issueflows/), git (workspace git snapshot), graph
   (rebuild the graphify knowledge graph).
 disable-model-invocation: true
-issue-flow-version: 0.6.0
+issue-flow-version: 0.7.0
 ---
 
 # issue-flow — status (`/iflow-status`)
