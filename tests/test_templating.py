@@ -27,6 +27,7 @@ from issue_flow.templating import (
     stamp_skill_version,
 )
 
+
 def _skill_bundle(stem: str, context: dict) -> str:
     """Render a skill folder: ``SKILL.md`` plus every mode file (issue #406)."""
     parts = [render_template(f"skills/{stem}/SKILL.md.j2", context)]
@@ -42,7 +43,9 @@ def _render(template_name: str, context: dict) -> str:
     became thin wrappers, so content assertions read the skill folder as a
     bundle.
     """
-    match = re.fullmatch(r"commands/(iflow(?:-[a-z]+)?)(?: [a-z]+)?\.md\.j2", template_name)
+    match = re.fullmatch(
+        r"commands/(iflow(?:-[a-z]+)?)(?: [a-z]+)?\.md\.j2", template_name
+    )
     if match:
         name = match.group(1)
         stem = "iflow_iflow" if name == "iflow" else name.replace("-", "_")
@@ -371,12 +374,8 @@ def test_iflow_setup_points_at_capture_not_init() -> None:
     command = _render("commands/iflow-setup.md.j2", _default_context())
     skill = _render("skills/iflow_setup/SKILL.md.j2", _default_context())
     for rendered in (command, skill):
-        assert (
-            "that is `/iflow-pick`" in rendered or "is `/iflow-pick`" in rendered
-        )
-        assert (
-            "Capturing a GitHub issue" not in rendered or "/iflow-pick" in rendered
-        )
+        assert "that is `/iflow-pick`" in rendered or "is `/iflow-pick`" in rendered
+        assert "Capturing a GitHub issue" not in rendered or "/iflow-pick" in rendered
         assert "that is `/iflow-setup`" not in rendered
         assert "is `/iflow-setup`;" not in rendered
 
@@ -620,7 +619,9 @@ def test_iflow_dispatcher_epic_gap_contract() -> None:
         assert "/iflow-pick" in rendered, template_name
         assert "epic_session" in rendered, template_name
         assert "one-and-ask" in rendered, template_name
-        assert "the user chooses the candidate every time" in rendered.lower(), template_name
+        assert "the user chooses the candidate every time" in rendered.lower(), (
+            template_name
+        )
 
 
 def test_cycle_bakes_max_issues() -> None:
@@ -1157,18 +1158,15 @@ def test_iflow_plan_skill_documents_slashless_invoke_line() -> None:
 
 def test_history_update_skill_documents_both_modes() -> None:
     """The history-update skill emits trailers and does not edit the changelog file."""
-    rendered = _render(
-        "skills/iflow_close/changelog.md.j2", _default_context()
-    )
+    rendered = _render("skills/iflow_close/changelog.md.j2", _default_context())
     assert "HISTORY.md" in rendered
     assert "Changelog-Id" in rendered
     assert "[Unreleased]" in rendered
-    assert "do not" in rendered.lower() and "edit" in rendered.lower()
+    assert "never edit, stage, or create" in rendered
     # Keep-both still documents the leftover [Unreleased] repair.
     assert "append" in rendered.lower()
     assert "promote" in rendered.lower()
     assert "skip" in rendered.lower()
-    assert "Never create" in rendered or "never create" in rendered.lower()
 
 
 def test_history_update_skill_respects_history_file_override() -> None:

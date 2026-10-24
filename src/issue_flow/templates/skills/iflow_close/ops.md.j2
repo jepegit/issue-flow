@@ -24,7 +24,7 @@ Do **not** use this for product code changes — those go through the normal lif
 3. **Ops checklist confirm (always).** Show what ran, where, the result, and residual risk. Include the intent to `gh issue close <N>` and whether to commit `{{ issueflows_dir }}/` tracking updates. Require an explicit yes.
 4. Skip the test suite (no product change), the version bump, and the changelog unless the user passed `log "..."` / `note "..."`.
 5. **Tracking.** Update `issue<N>_status.md` and move the group to `{{ solved_folder }}/` or `{{ partly_solved_folder }}/` per the Done checkbox.
-6. **Optional commit** of `{{ issueflows_dir }}/` changes on the current branch after confirm (default branch allowed). Never open a PR.
+6. **Optional commit** of `{{ issueflows_dir }}/` changes on the current branch after confirm (default branch allowed).
 7. **Close on GitHub.** `gh issue close <N> --repo <owner/repo>`.
 8. If on `<N>-*` with no unique commits, offer a switch to default (no delete).
 9. **Output.** Checklist, archive path, tracking commit (if any), GitHub close result, and that **no PR** was opened.

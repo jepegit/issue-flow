@@ -47,7 +47,7 @@ Bash accepts the same `--body-file` / `-F` flags. Use that pattern for every mul
 
 
    On a non-default home branch → **ask** whether to FF/switch home to default first or use `inplace`.
-5. **Capture locally.** Follow `capture.md` in the `iflow-pick` skill for `<N>`: write `.issueflows/01-current-issues/issue<N>_original.md` and run its archive sweep. Do not duplicate that logic.
+5. **Capture locally.** Follow `capture.md` in the `iflow-pick` skill for `<N>`: write `.issueflows/01-current-issues/issue<N>_original.md` and run its archive sweep.
 6. **Seed the status file.** Create `.issueflows/01-current-issues/issue<N>_status.md` with a short header (interactive `/iflow-issue fix` session), an unchecked `- [ ] Done`, and an empty **`## Iterative fixes log`** section.
 
 ### Phase 2 — the fix loop (repeat)
@@ -55,7 +55,7 @@ Bash accepts the same `--body-file` / `-F` flags. Use that pattern for every mul
 For each proposed fix:
 
 1. **Restate** the fix in one line.
-2. **Short plan** — a few lines (intent + file(s)); never a full `issue<N>_plan.md`.
+2. **Short plan** — a few lines (intent + file(s)) in chat; a full `issue<N>_plan.md` is `/iflow-plan`'s job.
 3. **Ask to proceed** — implement **only on confirmation**; otherwise revise or drop.
 4. **Implement** the confirmed fix, focused on that one change.
 5. **Record** it: append a dated bullet to **`## Iterative fixes log`** in `issue<N>_status.md`. Offer proactively; always update when asked.
@@ -64,7 +64,7 @@ If a "fix" is really a substantial feature or sprawls across unrelated areas, sa
 
 ### Phase 3 — finish
 
-Tell the user to run **`/iflow-close`** to land the session (tests, optional bump, status update, commit, push, PR). Do not auto-run it. Remind them to run `/iflow-cleanup` after the PR merges.
+Tell the user to run **`/iflow-close`** to land the session (tests, optional bump, status update, commit, push, PR); the user runs it. Remind them to run `/iflow-cleanup` after the PR merges.
 
 ## Constraints
 

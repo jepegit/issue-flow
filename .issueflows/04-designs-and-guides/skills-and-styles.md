@@ -101,8 +101,13 @@ source of truth; edit `SKILL.md.j2`, then re-render with `issue-flow update`.
     surface, and doctor already audits editor skill dirs.
   - PyYAML for frontmatter: rejected. It is a new runtime dependency for three
     shapes we can parse by hand.
-  - The same pass over all 26 mode files (195 more prohibitions): deferred to #410
-    so this diff stays reviewable.
+  - The same pass over all 26 mode files: deferred to #410 so this diff stays
+    reviewable. **Done in #410.** It counted 204 hits (word-bounded `do not` /
+    `don't` / `never` / `must not`): 113 converted, 43 removed as duplicates or
+    no-ops, and 48 kept as guardrails (destructive git, split confirms, silent
+    picks, merge/force-push scope, `HISTORY.md`, no auto-cleanup, plus four
+    descriptive uses). Mode-file words went from 20,067 to 19,655.
+    `test_mode_file_prohibitions_do_not_creep_back` caps the total at 48.
   - Flattening mode-to-mode delegation (`drive` → `epic` → `auto` → `cycle` →
     `yolo`): rejected. That is composition, and flattening means a restructure.
 - **Not reviewed.** The YouTube talk linked on #268 was dropped at the user's

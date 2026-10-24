@@ -20,7 +20,7 @@ Read this to **author and create one well-specified GitHub issue** (a single del
    - **Acceptance criteria**
    - **Out of scope** (optional; omit the heading when empty)
    Refine with the user until they confirm the text. If the draft is clearly over-large for one PR, **offer** `/iflow-issue split` (flat parent/child) or `/iflow-issue epic` (staged) — do **not** auto-create sub-issues.
-4. **Create (confirm first).** Show the final title and body (and, in epic-anchor mode, the planned `epic` label when present). On yes: `gh issue create --repo <owner/repo>` (add `--label epic` only when epic-anchor mode is on **and** `gh label list` shows `epic`). Capture number `N`. Set the chat tab title to `Issue <N> <short title>`. Optional labels/milestones other than the epic-anchor label: only if the user asked for them in this turn — do not invent them.
+4. **Create (confirm first).** Show the final title and body (and, in epic-anchor mode, the planned `epic` label when present). On yes: `gh issue create --repo <owner/repo>` (add `--label epic` only when epic-anchor mode is on **and** `gh label list` shows `epic`). Capture number `N`. Set the chat tab title to `Issue <N> <short title>`. Optional labels/milestones other than the epic-anchor label: only if the user asked for them in this turn.
 
 {% include "skills/_gh_body_file.md.j2" %}
 
@@ -30,7 +30,7 @@ Read this to **author and create one well-specified GitHub issue** (a single del
    - Slug from the title (kebab-case); branch `<N>-<slug>`. Confirm a non-obvious slug.
 {% include "skills/_worktree_start.md.j2" %}
    - On a non-default **home** branch → **ask** whether to FF/switch home to default first (required for worktree-add) or use `inplace` from current.
-   - Capture `<N>` by following `capture.md` in the `iflow-pick` skill folder, with `-C <worktree>` (or home if `inplace`). Do not duplicate its fetch/archive logic.
+   - Capture `<N>` by following `capture.md` in the `iflow-pick` skill folder, with `-C <worktree>` (or home if `inplace`).
    - **Ask** whether to continue with `/iflow-plan`. Do **not** auto-run it.
 6. **Create-only.** If the user declines Phase 2, stop after create. Remind them they can start it later with `/iflow-pick <N>`.
 
@@ -39,4 +39,4 @@ Read this to **author and create one well-specified GitHub issue** (a single del
 - Never create a GitHub issue or branch without explicit confirmation; show what will be created first.
 - GitHub only (`gh`); GitLab is not supported.
 - Branch off the detected default (or the current branch when chosen); never force-push or delete branches from this skill.
-- Do not write `issue<N>_plan.md` here.
+- Planning (`issue<N>_plan.md`) is `/iflow-plan`'s step.

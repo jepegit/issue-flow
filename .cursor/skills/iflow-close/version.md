@@ -8,7 +8,7 @@ Read this to **bump the project version** before landing work (step 2 of `/iflow
 > `issue-flow agent version-plan [--bump <level>] --json`. It detects the
 > strategy from `pyproject.toml`, reads the latest tag, does the PEP 440
 > next-version arithmetic, and returns the exact commands — read-only, it
-> never edits files or creates tags. The `this-project.md` release section
+> only reports. The `this-project.md` release section
 > still wins over its detection: when the payload says
 > `brief_release_section: "filled"`, read the section and follow it. If the
 > CLI is missing or errors, fall back to the manual steps below.
@@ -22,7 +22,7 @@ When the focus issue carries the **`publish`** label (exact, or `publish:<level>
 - Exit code **2**, `logical: false`, or `conflict: true` → **stop and ask** (even under `yolo`): show `suggestion` and `notes`.
 - An explicit bump token on the command line **wins** over the label; announce which one you used.
 - Record `Publish label: <raw>` and the planned version in `issue<N>_status.md`.
-- After the merge, the GitHub release is created by `merge.md` (yolo) or `/iflow-cleanup`, never on the issue branch.
+- After the merge, the GitHub release is created on the default branch by `merge.md` (yolo) or `/iflow-cleanup`.
 
 
 ## Resolve the release strategy first
@@ -35,7 +35,7 @@ In order — stop at the first that answers:
    - a static `version = "..."` under `[project]` → **static version (uv)** strategy.
 3. **Neither** (no `pyproject.toml`, or no version at all) → **skip** the bump, explain why, and continue the rest of the flow (for example `/iflow-close`) without failing.
 
-**Record what you learn (self-healing).** When the strategy came from detection or from the user explaining it — i.e. *not* from `this-project.md` — add or fill in the **"Release & version bump"** section of `.issueflows/04-designs-and-guides/this-project.md` with a short description of the strategy and the exact commands, so no future session has to rediscover it. The brief is user-owned and never overwritten by `issue-flow update`, so the note is durable.
+**Record what you learn (self-healing).** When the strategy came from detection or from the user explaining it — i.e. *not* from `this-project.md` — add or fill in the **"Release & version bump"** section of `.issueflows/04-designs-and-guides/this-project.md` with a short description of the strategy and the exact commands, so no future session has to rediscover it. The brief is user-owned and `issue-flow update` leaves it alone, so the note is durable.
 
 ## Bump levels (both strategies)
 
@@ -79,16 +79,16 @@ uv version --bump minor --bump alpha   # combine: 0.4.1a4 -> 0.5.0a1
 
 Tip: preview without writing using `uv version --dry-run --bump <level> --short`.
 
-3. Afterwards: confirm the new version in `pyproject.toml` (or the `uv` output). When committing later, stage **`pyproject.toml`**; if **`uv.lock`** changed as well, stage it too — otherwise do not assume it changed.
+3. Afterwards: confirm the new version in `pyproject.toml` (or the `uv` output). When committing later, stage **`pyproject.toml`**; if **`uv.lock`** changed as well, stage it too.
 
 ## Strategy: git-tag derived
 
-For projects whose built version comes from the **latest git tag** (setuptools-scm, hatch-vcs, versioningit, …). Here bumping means **planning a tag**, and the tag is created **after the PR merges** — never before.
+For projects whose built version comes from the **latest git tag** (setuptools-scm, hatch-vcs, versioningit, …). Here bumping means **planning a tag**, and the tag is created **after the PR merges**.
 
-1. **Never edit a version into `pyproject.toml`** — the backend derives it.
+1. **Leave the version out of `pyproject.toml`** — the backend derives it.
 2. **Find the current version**: latest tag via `git describe --tags --abbrev=0` (or `git tag --sort=-v:refname` and take the first). Keep the project's existing tag style (e.g. a leading `v`).
 3. **Compute the planned next version** from the level table above (e.g. latest `v1.0.4a2` + `alpha` → planned `v1.0.4a3`).
-4. **Do not create the tag during `/iflow-close`.** In a squash-merge world the issue-branch commit never lands on the default branch, so a pre-merge tag would point at an orphan. Instead:
+4. **Create the tag only after the merge.** In a squash-merge world the squash commit replaces the issue-branch commit on the default branch, so a pre-merge tag would point at an orphan. So:
    - report the **planned tag** in the close output and record it in the issue's status file,
    - let `HISTORY.md` promotion use the planned version,
    - create the tag **after the merge**, standing on the updated default branch (this is offered by `/iflow-cleanup`, or happens right after the post-merge pull in a `yolo` close):
@@ -102,6 +102,6 @@ gh release create v1.0.4a3 --generate-notes
 
 ## Constraints
 
-- Do not substitute `pip` or hand-edit versions unless the strategy's own tool fails and the user agrees to an alternative.
-- Never silently jump release channels: don't promote an alpha to stable (or bump major/minor) just because no level was given — the default keeps you on the current pre-release channel.
+- Use the strategy's own tool; switch to `pip` or hand-edited versions only when that tool fails and the user agrees.
+- Never silently jump release channels: without a named level, stay on the current pre-release channel (no alpha → stable, no major/minor bump).
 - Tag-derived projects: never tag an issue-branch commit; the tag is created on the merged default branch only.

@@ -21,7 +21,7 @@ Non-yolo merge policy:
 - **`pr-only`** — open the PR (normal `/iflow-close`, no merge), record `- [~] #<N> — <title> — PR open <url> (pr-only)` in `cycle_status.md`, and **continue**. The next queued issue branches from the **default branch**, not the open PR; if it depends on the open one (`Depends on #N`), branch from that PR's head instead and note `stacked on #N` in `cycle_status.md` so close can pass `issue-flow agent sync-branch --base <parent>` when the parent squash-lands first.
 - **`stop`** — halt at the first `yolo: false` issue before starting it (the pre-`nonyolo` behaviour). Record `stopped: non-yolo lane disabled` and the not-reached issues; leave the repo clean on default.
 
-The lane never changes a **stop condition** (step 6): tests failing, a scope check aborting, or an action outside the confirmed queue stops the cycle on either lane.
+Both lanes share the same **stop conditions** (step 6): tests failing, a scope check aborting, or an action outside the confirmed queue stops the cycle on either lane.
 
 ## Input — queue spec
 
@@ -39,11 +39,11 @@ The lane never changes a **stop condition** (step 6): tests failing, a scope che
 
 0. **Expand aliases.** If the queue spec is exactly `yolo` (case-insensitive), treat it as `label:{{ yolo_label }}` (the baked config value; if `{{ issueflows_dir }}/config.toml` has a different `yolo_label` than this skill's bake, prefer the live config). Keep the original token in `cycle_status.md` for humans (`queue: yolo` → resolved `label:{{ yolo_label }}`).
 
-1. **Resolve the queue.** Run `issue-flow agent queue --label {{ yolo_label }} --json` when the alias applied, else `issue-flow agent queue <spec> --json` (numbers, `--label`, or `--epic`). Use its `queue` (ordered), `blocked`, and `skipped_closed` output as the source of truth — do not re-derive the order by hand. If it reports a dependency `cycle`, **stop** and show it; nothing runs. If the CLI is unavailable, fall back to reading the issues and ordering by `Depends on #N` lines yourself, but prefer the CLI. An empty queue → report “nothing to queue” and stop (no confirm needed).
+1. **Resolve the queue.** Run `issue-flow agent queue --label {{ yolo_label }} --json` when the alias applied, else `issue-flow agent queue <spec> --json` (numbers, `--label`, or `--epic`). Use its `queue` (ordered), `blocked`, and `skipped_closed` output as the source of truth; its order wins over a hand-derived one. If it reports a dependency `cycle`, **stop** and show it; nothing runs. If the CLI is unavailable, fall back to reading the issues and ordering by `Depends on #N` lines yourself, but prefer the CLI. An empty queue → report “nothing to queue” and stop (no confirm needed).
 
 2. **Cap check.** If the ordered queue is longer than **{{ cycle_max_issues }}** and the input did not pass `max:<n>` raising the limit, **stop** and ask the user to confirm a larger run explicitly. Long unattended runs compound risk.
 
-3. **One consolidated confirm**{% if hands_off %} — hands-off mode is on. Print the ordered queue, skipped and blocked issues, the non-yolo lane and its policy, and the `onfail` policy. This confirm is already authorized. Do not ask. Then continue at step 4.{% else %} (the only planned interruption). Present, in normal prose:
+3. **One consolidated confirm**{% if hands_off %} — hands-off mode is on. Print the ordered queue, skipped and blocked issues, the non-yolo lane and its policy, and the `onfail` policy. This confirm is already authorized. Continue at step 4.{% else %} (the only planned interruption). Present, in normal prose:
    - the **ordered** queue (numbers + titles), and which issues are **skipped** (closed) or **blocked** (open dependency outside the queue) with the reason;
    - that each issue runs the **full chain** and — on the yolo lane — its PR is **auto-merged**;
    - the **non-yolo lane**: list the `nonyolo` issues from the queue payload (numbers + titles, or “none”) and the policy that applies to them (`nonyolo:merge|pr-only|stop`; default **`{{ cycle_nonyolo }}`** unless a token overrides). With `merge`, say explicitly that these PRs are auto-merged too;
@@ -52,15 +52,15 @@ The lane never changes a **stop condition** (step 6): tests failing, a scope che
    Require an explicit yes; anything else aborts before any work.
 {% endif %}
 
-4. **Write the cycle state file.** After the confirm, write `{{ issueflows_dir }}/{{ current_issues_folder }}/cycle_status.md` — the durable record that makes the run resumable and visible to `/iflow-status`. Include: the queue spec, the `onfail` policy, the `nonyolo` policy, an ISO timestamp, and the ordered queue as a checklist with one line per issue (`- [ ] #<N> — <title> — pending` — append ` (non-yolo)` for `yolo: false` items). Update this file as the loop progresses (see step 5); it is a normal tracking file (not an `issue<N>_*` group), so the folder sweep never touches it.
+4. **Write the cycle state file.** After the confirm, write `{{ issueflows_dir }}/{{ current_issues_folder }}/cycle_status.md` — the durable record that makes the run resumable and visible to `/iflow-status`. Include: the queue spec, the `onfail` policy, the `nonyolo` policy, an ISO timestamp, and the ordered queue as a checklist with one line per issue (`- [ ] #<N> — <title> — pending` — append ` (non-yolo)` for `yolo: false` items). Update this file as the loop progresses (see step 5).
 
 5. **Per-issue loop.** For each issue in order, from a clean default branch:
    - mark it `in-progress` in `cycle_status.md`, then create/switch to its `<N>-<slug>` branch.
-   - **yolo lane** (`yolo: true`): follow `{{ agent_dir }}/skills/iflow-run/yolo.md` **verbatim** — including its own preflight (refuse on default branch, refuse with dirty unrelated changes, tests pass up front) and its consolidated-confirm step, which the up-front batch confirm in step 3 satisfies (do not re-ask per issue).
+   - **yolo lane** (`yolo: true`): follow `{{ agent_dir }}/skills/iflow-run/yolo.md` **verbatim** — including its own preflight (refuse on default branch, refuse with dirty unrelated changes, tests pass up front) and its consolidated-confirm step, which the up-front batch confirm in step 3 satisfies for every issue.
    - **non-yolo lane** (`yolo: false`): apply the `nonyolo` policy. `stop` → step 7 with reason `non-yolo lane disabled`, before any work on the issue. Otherwise run the same chain as yolo (`capture → plan → build`, the batch confirm standing in for the plan's confirm) and then `close yolo` (policy `merge`) or plain `close` (policy `pr-only`). Same preflight, same scope check, same test gate — the lane changes nothing about safeguards.
    - after close merges (or, for `pr-only`, opens the PR) and the working copy is back on the default branch, record the outcome in `cycle_status.md` (`- [x] #<N> — <title> — merged <PR-url>` / `- [~] … — PR open <url> (pr-only)`) and continue to the next issue.
    - A merge attempt that reports the PR is **already merged** (someone landed it while checks ran) is a **success**: pull the default branch and record `merged` normally.
-   - Every yolo safeguard stays in force. A safeguard that trips is a **stop condition** (step 6), never a guard to skip.
+   - Every yolo safeguard stays in force. A safeguard that trips is a **stop condition** (step 6).
 
 6. **Strictly-necessary-input rule.** Between issues the cycle runs unattended. **Stop and ask only** when:
    a. tests or lint fail in a way you cannot fix within the current issue's scope;
@@ -70,8 +70,8 @@ The lane never changes a **stop condition** (step 6): tests failing, a scope che
    Anything else — routine implementation choices, passing tests, clean merges — proceeds without asking.
 
 7. **Failure policy** (from the `onfail:` token when present; otherwise config **`{{ cycle_onfail }}`**). When a stop condition (step 6) trips on an issue:
-   - **`onfail:stop`** — **halt the cycle**: finish no further issues, leave the repo on the **default branch, clean** (the in-flight issue's branch stays as-is for the user to inspect), record the stop reason and the not-reached issues in `cycle_status.md`, and report. Do not attempt the rest of the queue.
-   - **`onfail:skip`** — **park and continue**: record the failure against that issue in `cycle_status.md` (`- [~] #<N> — <title> — failed: <reason>`), park its work per `{{ agent_dir }}/skills/iflow-pause/SKILL.md` conventions (status note + move to `{{ partly_solved_folder }}/`), return to a clean default branch, and proceed to the next queued issue. A skip never bypasses a yolo safeguard — it records the trip and moves on.
+   - **`onfail:stop`** — **halt the cycle**: finish no further issues, leave the repo on the **default branch, clean** (the in-flight issue's branch stays as-is for the user to inspect), record the stop reason and the not-reached issues in `cycle_status.md`, and report.
+   - **`onfail:skip`** — **park and continue**: record the failure against that issue in `cycle_status.md` (`- [~] #<N> — <title> — failed: <reason>`), park its work per `{{ agent_dir }}/skills/iflow-pause/SKILL.md` conventions (status note + move to `{{ partly_solved_folder }}/`), return to a clean default branch, and proceed to the next queued issue. A skip still runs every yolo safeguard: it records the trip and moves on.
 
 8. **Finish.** When the queue is exhausted (or halted), finalize `cycle_status.md` (mark it `- [x] Done`) and move it to `{{ issueflows_dir }}/{{ solved_folder }}/cycle_status_<YYYY-MM-DD>.md` so it is archived, not re-detected as in-flight.
 
@@ -83,17 +83,17 @@ The lane never changes a **stop condition** (step 6): tests failing, a scope che
 
 1. Read `{{ issueflows_dir }}/{{ current_issues_folder }}/cycle_status.md`. If it is missing, tell the user there is no in-flight cycle and stop.
 2. Take the **remaining** issues (those still `pending` / `in-progress`) and **re-verify** them with `issue-flow agent queue <original-spec> --json` — an issue that has since closed, or become blocked, is dropped/deferred with a note (state can move while a cycle is paused).
-3. **Do not re-ask the original consolidated confirm** for the unchanged remaining items — the batch was already authorized. Ask again only if the re-verified queue differs materially from what was confirmed (new blockers, added issues), and only about the delta.
+3. **Reuse the original consolidated confirm** for the unchanged remaining items — the batch was already authorized. Ask again only if the re-verified queue differs materially from what was confirmed (new blockers, added issues), and only about the delta.
 4. Continue the per-issue loop (step 5) with the same `onfail` and `nonyolo` policies recorded in the file.
 
 ## Parallel dispatch (experimental, opt-in)
 
-By default the cycle is **sequential** — one issue fully lands before the next starts. When the input passes **`parallel:<n>`** *and* the harness supports background execution, provably independent issues may run concurrently (up to `n` at a time). This is experimental; the sequential path above is always the default and is never weakened to enable it.
+By default the cycle is **sequential** — one issue fully lands before the next starts. When the input passes **`parallel:<n>`** *and* the harness supports background execution, provably independent issues may run concurrently (up to `n` at a time). This is experimental; the sequential path above is always the default and stays fully intact.
 
 - **Only independent issues qualify.** Use `issue-flow agent queue`'s **`independent`** list — issues with *no* dependency relation (either direction) to any other queue member. Everything else runs sequentially.
-- **Harness gate.** If you cannot confirm the harness supports background execution (worktrees + parallel agents/subagents), **refuse `parallel:<n>` and run sequentially** — never pretend to parallelize.
+- **Harness gate.** If you cannot confirm the harness supports background execution (worktrees + parallel agents/subagents), **refuse `parallel:<n>`, say so, and run sequentially**.
 - **Worktree per issue.** `issue-flow agent worktree-add <N> --slug <slug> --json` so each issue has an isolated tree (its `path` honours `worktrees_dir`; default `../<repo>-<N>`); run the yolo work there.
-- **Print the worktree path.** After each `worktree add`, run `issue-flow agent open-workspace <worktree-path> --json` (print-only) and show the path. Do not launch a window. Continue with worktree-only parallel.
+- **Print the worktree path.** After each `worktree add`, run `issue-flow agent open-workspace <worktree-path> --json` (print-only) and show the path; opening a window is the user's call. Continue with worktree-only parallel.
 - **Serialize merges.** Never merge PRs concurrently — the coordinating session merges them one at a time on the default branch, pulling between merges and rebasing/retrying on a non-fast-forward or CI refusal.
 - **Shared files via the coordinator only.** Parallel workers must **not** each edit `{{ history_file }}`. Each close puts its bullet in commit-message trailers (`Changelog` / `Changelog-Date` / `Changelog-Id`); the coordinator does not append changelog bullets at merge time. `issue-flow changelog release` on the default branch collects them. If a worker PR does go `DIRTY` on a leftover `[Unreleased]` section, the coordinator resolves it with `issue-flow agent sync-branch` rather than hand-editing markers.
 
@@ -126,7 +126,7 @@ landed). Everything else still trips step 6b. For experimental concurrent work, 
 ## Constraints
 
 - **Sequential is the default and floor.** Parallelism (`parallel:<n>`) is opt-in and experimental; refusing it must always leave a working sequential run.
-- Never weaken a yolo safeguard to keep the cycle moving — safeguards are stop conditions, not obstacles. The non-yolo lane changes *how a PR lands*, never which safeguards run.
+- Never weaken a yolo safeguard to keep the cycle moving — safeguards are stop conditions, not obstacles. The non-yolo lane changes *how a PR lands*; the same safeguards always run.
 - A `yolo: false` issue is **not** a stop condition by itself unless the policy is `nonyolo:stop`; list the non-yolo issues in the confirm so the operator sees the lane before the run starts.
 {% if auto_cleanup %}- When the batch finished with every reached PR merged, run `/iflow-cleanup` once (`auto_cleanup = true`). A queued merge is not merged: stop and report.
 {% else %}- Never run `/iflow-cleanup` from this skill; batch branch deletion still needs the user to see the merged PRs first.

@@ -14,7 +14,7 @@ those skills; this one only sequences them and records `drive_status.md`.
 
 
 - **`<N>`** — existing GitHub issue that becomes the epic anchor
-  (required). Drive never creates the anchor; if none exists, stop and
+  (required). Drive needs an existing anchor; if none exists, stop and
   point at `/iflow-issue epic <intent>`.
 
 - **`grill` / `grill-me`** — run grill-me on the epic goal before
@@ -68,8 +68,8 @@ those skills; this one only sequences them and records `drive_status.md`.
    plainly that their PRs are auto-merged like the yolo ones. Require
    explicit yes. This confirm **covers** epic's plan-accept, per-stage
    publish confirms, auto's overnight confirm, the non-yolo lane,
-   final-review creates, and the local cleanup (both `-d` and `-D`) —
-   do not re-ask those mid-run.
+   final-review creates, and the local cleanup (both `-d` and `-D`) for
+   the whole run.
 
 
 4. **Write / update `drive_status.md`** at
@@ -83,7 +83,7 @@ those skills; this one only sequences them and records `drive_status.md`.
    the latest user message is (or starts with) `abort` / `stop` /
    `cancel` / `halt` (case-insensitive, optional leading `/`): set
    `last_outcome: aborted` in `drive_status.md`, leave the repo on the
-   default branch clean, **stop**. Do not start the next stage or
+   default branch clean, and **stop** before the next stage or
    issue.
 
 6. **Draft epic.** Follow `.cursor/skills/iflow-issue/epic.md`
@@ -100,7 +100,7 @@ those skills; this one only sequences them and records `drive_status.md`.
 7. **Publish all stages.** Loop `/iflow-issue epic <N> publish` (same skill)
    until no unpublished specs remain. Honour `Published: #<M>`
    idempotency. The drive confirm replaces each per-stage publish
-   confirm — do not re-ask. Commit `Published:` lines on a chore/issue
+   confirm. Commit `Published:` lines on a chore/issue
    branch or tiny PR — **not** unpushed on default. Mark
    `publish` done in `drive_status.md`.
 
@@ -109,8 +109,8 @@ those skills; this one only sequences them and records `drive_status.md`.
    `.cursor/skills/iflow-run/auto.md` for `/iflow-run auto <N>`
    (forward `loops:<n>` and `nonyolo:<policy>` when given). The drive
    confirm covers auto's overnight authorization and the non-yolo lane
-   — do not re-ask, and do not stop at a `yolo: no` issue (cycle runs it
-   on the non-yolo lane; only `nonyolo:stop` halts there). Honour
+   for every stage; a `yolo: no` issue runs on cycle's non-yolo lane
+   and halts only under `nonyolo:stop`. Honour
    `epoch_gated` and cycle/yolo stop conditions. Auto's **budget ask**
    (accept / grant N more loops / abort) stays a **planned pause**, not a
    drive failure. A merge that reports the PR is **already merged** is a
@@ -143,7 +143,7 @@ those skills; this one only sequences them and records `drive_status.md`.
     deletes, no findings issue). Print the tip SHAs of everything
     deleted with `-D` in the report so the user can `git branch <name>
     <sha>` to recover. This is the carry-through the drive confirm
-    authorized — do not re-ask. Mark `cleanup` done.
+    authorized. Mark `cleanup` done.
 
 11. **Report + status.** Summarize stages published, PRs merged,
     findings issues (created/reopened numbers), cleanup counts
@@ -155,7 +155,7 @@ those skills; this one only sequences them and records `drive_status.md`.
 ## Constraints
 
 - Compose `/iflow-issue epic` + `/iflow-run auto` + `/iflow-run cycle` +
-  `/iflow-run yolo` + `/iflow-cleanup` + `/iflow-status`; do not fork them.
+  `/iflow-run yolo` + `/iflow-cleanup` + `/iflow-status` as they are.
 - Never rebase / force-push / push the **default branch**. Issue
   branches are different: close / pr-sync may rebase them onto
   `origin/<default>` (`issue-flow agent sync-branch`, optionally
@@ -167,8 +167,7 @@ those skills; this one only sequences them and records `drive_status.md`.
   overrides). Only `nonyolo:stop` halts there.
 - Cleanup: `-d` on reachable, `-D` on squash-landed (and
   merged-PR-divergent with nothing newer than the merge) — both under
-  the drive confirm; never `unique_work`, never Phase B.
-- Do not leave `Published: #<M>` unpushed on home default.
+  the drive confirm; `unique_work` and Phase B stay out of scope.
 
 - Auto's budget ask remains a planned pause (accept / grant / abort).
 

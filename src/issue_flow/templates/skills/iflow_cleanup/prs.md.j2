@@ -11,8 +11,8 @@ Sibling of the default cleanup (post-merge local hygiene) and of `issue-flow age
 - **(nothing)** — refresh every open PR GitHub marks as needing update (DIRTY /
   BEHIND / CONFLICTING).
 - **PR numbers** — e.g. `/iflow-cleanup prs 259 261` — only those heads.
-- **`dry-run` / `dryrun`** — list candidates; do not sync or push.
-- **`nopush` / `no-push`** — sync locally but do not push.
+- **`dry-run` / `dryrun`** — list candidates only.
+- **`nopush` / `no-push`** — sync locally only.
 - **`all`** — every open PR, not only dirty ones (rare).
 
 ## Instructions
