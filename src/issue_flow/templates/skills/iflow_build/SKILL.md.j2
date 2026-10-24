@@ -1,7 +1,7 @@
 ---
 name: iflow-build
 description: >-
-  Implement the confirmed plan for the focus issue using the project's
+  Implements the confirmed plan for the focus issue using the project's
   documented conventions.
 disable-model-invocation: true
 ---
@@ -28,18 +28,17 @@ Follow this skill to **begin implementation** from issue notes and project rules
 > `issue-flow agent preflight` for the branch status preflight (step 2) and
 > `issue-flow agent sweep --except <N>` for the stale sweep (step 3; add
 > `--dry-run` to preview). The CLI is optional: if it is missing or errors,
-> fall back to the manual instructions below. (`issue-flow` is only present
-> when the user installed it, e.g. `uv tool install issue-flow`.)
+> fall back to the manual instructions below.
 
 1. **Select the issue** — Read `{{ issueflows_dir }}/{{ current_issues_folder }}/`. If there is no `*_original.md` (or multiple ambiguous groups), **stop** and ask which issue to use.
 
-2. **Branch status preflight** (non-destructive) — Detect the default branch (prefer `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`, else `git symbolic-ref --quiet --short refs/remotes/origin/HEAD`, else `main`). Run `git fetch --prune`. Report current branch, clean/dirty working tree, and ahead/behind counts vs `origin/<default>`. If on the default branch, propose creating an issue branch (`git switch -c <N>-<short-slug>`); ask before running. If the current branch matches `^(\d+)-.+` and files for that issue now live in `{{ issueflows_dir }}/{{ partly_solved_folder }}/` or `{{ issueflows_dir }}/{{ solved_folder }}/`, warn the branch looks stale and ask whether to switch back before continuing. If the branch is neither default nor an issue-style branch, warn and ask whether to continue. Never delete a branch from `/iflow-build`.
+2. **Branch status preflight** (non-destructive) — Detect the default branch (prefer `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`, else `git symbolic-ref --quiet --short refs/remotes/origin/HEAD`, else `main`). Run `git fetch --prune`. Report current branch, clean/dirty working tree, and ahead/behind counts vs `origin/<default>`. If on the default branch, propose creating an issue branch (`git switch -c <N>-<short-slug>`); ask before running. If the current branch matches `^(\d+)-.+` and files for that issue now live in `{{ issueflows_dir }}/{{ partly_solved_folder }}/` or `{{ issueflows_dir }}/{{ solved_folder }}/`, warn the branch looks stale and ask whether to switch back before continuing. If the branch is neither default nor an issue-style branch, warn and ask whether to continue.
 
-3. **Sweep stale current issues** (auto-safe) — Group files in `{{ issueflows_dir }}/{{ current_issues_folder }}/` by `issueNN_` prefix. For every group **other than the focus issue**, move the whole group to `{{ issueflows_dir }}/{{ solved_folder }}/` if any of its status files contains `- [x] Done` (case-insensitive on `done`), otherwise move it to `{{ issueflows_dir }}/{{ partly_solved_folder }}/`. Never move the focus issue's files. Report every move.
+3. **Sweep stale current issues** (auto-safe) — Group files in `{{ issueflows_dir }}/{{ current_issues_folder }}/` by `issueNN_` prefix. For every group **other than the focus issue**, move the whole group to `{{ issueflows_dir }}/{{ solved_folder }}/` if any of its status files contains `- [x] Done` (case-insensitive on `done`), otherwise move it to `{{ issueflows_dir }}/{{ partly_solved_folder }}/`. Report every move.
 
 4. **Plan precondition** — Look for `issue<N>_plan.md` in `{{ issueflows_dir }}/{{ current_issues_folder }}/`.
    - **Plan present:** read it and treat it as the source of truth for scope and approach. Before writing new modules, read **`### Prior art`** under **`## Constraints`** if present (skip if absent or it says "None found").
-   - **Plan missing:** do **not** hard-stop. Ask the user to choose one of:
+   - **Plan missing:** ask the user to choose one of:
      - **Run `/iflow-plan` now**, then continue into implementation after they confirm the plan.
      - **Proceed without a plan** — add a short `- Skipped /iflow-plan on <date>` note to `issue<N>_status.md` and continue.
      - **Abort.**
@@ -53,29 +52,27 @@ Follow this skill to **begin implementation** from issue notes and project rules
 {% if ruff_autofix %}   - **Ruff (when present).** If the project uses ruff (`[tool.ruff]` in `pyproject.toml`, ruff in dev dependencies, or `{{ issueflows_dir }}/{{ designs_folder }}/python-quality-tools.md` exists), run auto-fix lint after substantive code changes — e.g. `uv run ruff check --fix …` then `uv run ruff format …` (match paths to what the project documents).
 {% endif %}   - **Toolbox** — Before writing a one-off helper script, check `{{ issueflows_dir }}/{{ tools_folder }}/` (start with its `README.md` index) for an existing tool. If you build something reusable during this issue, save it into `{{ issueflows_dir }}/{{ tools_folder }}/` and add a one-line entry to that README's index (name, what it does, when to use it) for the next agent.
    - If `{{ issueflows_dir }}/{{ designs_folder }}/this-project.md` exists, read it for project-specific context before implementing; then skim relevant design docs under `{{ issueflows_dir }}/{{ designs_folder }}/`.
-{% if "pstack_tdd" in included_skills %}   - **TDD (pstack, optional).** When the issue is a bug with a cheap local test path, *suggest* the `tdd` skill (`{{ agent_dir }}/skills/tdd/SKILL.md`): a failing regression test first, then the fix. Do not force it when the test path is unclear or expensive; never run it unasked.
-{% endif %}{% if suggest_graphify %}   - **Knowledge graph (optional).** If `graphify-out/GRAPH_REPORT.md` exists, skim it before grepping — god-nodes and surprising connections often point at the files you'll touch. If structure changed materially since the last build, *suggest* `/iflow-status graph` (do not run it automatically). If `graphify-out/` is absent, ignore this bullet.
+{% if "pstack_tdd" in included_skills %}   - **TDD (pstack, optional).** When the issue is a bug with a cheap local test path, *suggest* the `tdd` skill (`{{ agent_dir }}/skills/tdd/SKILL.md`): a failing regression test first, then the fix. Run it only when the user agrees.
+{% endif %}{% if suggest_graphify %}   - **Knowledge graph (optional).** If `graphify-out/GRAPH_REPORT.md` exists, skim it before grepping — god-nodes and surprising connections often point at the files you'll touch. If structure changed materially since the last build, *suggest* `/iflow-status graph` for the user to run. If `graphify-out/` is absent, ignore this bullet.
 {% endif %}{%- if essential_tests and essential_review in ("build", "both") %}
    - **Essential tests** (`essential_tests = true`, `essential_review = {{ essential_review }}`): when adding or changing tests, follow the review below before hand-off.
 {% include "skills/_essential_tests_review.md.j2" %}
 {%- endif %}   - As you iterate, re-read and keep `issue<N>_status.md` current — move items between **What's done** and **Remaining work**, leaving `- [ ] Done` unchecked until fully resolved.
 
 8. **Early pull request (optional)** — After the **first successful push** of the issue branch (or when the branch already has a remote tip and no open PR), decide whether to open a PR now using the Early PR tokens above. When early PR is on:
-   - Require an issue-style branch matching `^\d+-.+` (never the default branch) with a remote tracking ref.
+   - Require an issue-style branch matching `^\d+-.+` with a remote tracking ref.
    - Always pass `--repo <owner/repo>`. **List before create:** `gh pr list --repo <owner/repo> --head <branch> --state open --json number,url,title,isDraft`. If an open PR exists, note it and skip creating a second one.
-   - Otherwise create a **draft**: `gh pr create --draft --repo <owner/repo> …` with a WIP-friendly body and **`Refs #N`** (not `Closes #N` yet).
-
-{% include "skills/_gh_body_file.md.j2" %}
+   - Otherwise create a **draft**: `gh pr create --draft --repo <owner/repo> …` with a WIP-friendly body and **`Refs #N`** (not `Closes #N` yet). {% include "skills/_gh_body_file_short.md.j2" %}
    - Record `PR: <url> (#<n>, draft)` in `issue<N>_status.md`.
-   - Do **not** write `{{ history_file }}` here — `/iflow-close` owns the changelog bullet (even while a draft PR exists).
+   - Leave `{{ history_file }}` to `/iflow-close`, which owns the changelog bullet (even while a draft PR exists).
 
-9. **Hand off** — When the implementation is ready to ship:{% if auto_close and "iflow_close" in included_skills %} follow `{{ agent_dir }}/skills/iflow-close/SKILL.md` immediately (forward any trailing `bump`/`patch`/`minor`/`major` / `stay` / `nohistory` / `draft` tokens). Close keeps its own confirms — this flag only skips the "please run `/iflow-close`" pause. If work is **not** ready (failing tests, open remaining work, user asked to park), do **not** chain — use `/iflow-pause` or stop and report.{% else %} tell the user to run `/iflow-close` (optionally with `bump`/`patch`/`minor`/`major`).{% endif %} Parking work mid-stream goes through `/iflow-pause`.
+9. **Hand off** — When the implementation is ready to ship:{% if auto_close and "iflow_close" in included_skills %} follow `{{ agent_dir }}/skills/iflow-close/SKILL.md` immediately (forward any trailing `bump`/`patch`/`minor`/`major` / `stay` / `nohistory` / `draft` tokens). Close keeps its own confirms — this flag only skips the "please run `/iflow-close`" pause. If work is **not** ready (failing tests, open remaining work, user asked to park), stop and report, or use `/iflow-pause`, instead of chaining.{% else %} tell the user to run `/iflow-close` (optionally with `bump`/`patch`/`minor`/`major`).{% endif %} Parking work mid-stream goes through `/iflow-pause`.
 
 10. **Reporting** — Summarize what changed, what remains, and where the issue docs live. Include any branch warnings from step 2, any group moves from step 3, whether an early PR was opened/reused, and whether the plan was followed or explicitly skipped.
 
 ## Constraints
 
-- Do not invent issue text; treat `*_original.md` as a read-only source of requirements unless the user asks to edit it.
-- The stale sweep in step 3 is the **only** automatic folder move `/iflow-build` performs, and it never touches the focus issue's own files.
-- Never delete or force-update git branches from `/iflow-build`.
-- Do not write or modify `issue<N>_plan.md` from here — changes to the plan go through `/iflow-plan`.
+- Treat `*_original.md` as the read-only source of requirements unless the user asks to edit it.
+- The stale sweep in step 3 is the **only** automatic folder move `/iflow-build` performs, and it moves only non-focus groups.
+- Leave git branches in place: never delete or force-update them from `/iflow-build`.
+- Read `issue<N>_plan.md` only; plan changes go through `/iflow-plan`.

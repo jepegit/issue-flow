@@ -263,6 +263,16 @@ unmanaged skill folders under an in-use `<agent_dir>/skills/`. Optionally apply
 non-focus groups using the same rules as `issue-flow agent sweep`. Unmanaged
 skill dirs are never deleted or imported.
 
+Doctor also lints every skill folder under each editor's `<agent_dir>/skills/`
+against the [Agent Skills spec](https://agentskills.io/specification)
+(`skill_spec_*` codes): `name` is lowercase-hyphenated and matches its folder,
+`description` is present, at most 1024 characters, with no XML-style tags such
+as `<N>`. A broken packaged skill is an **error**; the same problem in your own
+skill is a **warning**. Unknown frontmatter keys warn (issue-flow's own
+`disable-model-invocation` and `issue-flow-version` are known). Two authoring
+hints are **info**: a `SKILL.md` body over 500 lines, and a side file over 100
+lines without a `Contents` list.
+
 | Argument / Option | Description |
 | ----------------- | ----------- |
 | `PROJECT_DIR`     | Project root directory. Defaults to `.` (current directory). |

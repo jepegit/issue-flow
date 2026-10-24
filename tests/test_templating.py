@@ -421,7 +421,7 @@ def test_worktree_start_does_not_require_home_ff() -> None:
     shared = _render("skills/_worktree_start.md.j2", _default_context())
     for rendered in (pick, shared):
         assert "default-sync" in rendered
-        assert "must not wait for home to be ff-able" in rendered
+        assert "proceeds whether or not home is ff-able" in rendered
         assert "origin/<default>" in rendered
     cleanup = _render("skills/iflow_cleanup/SKILL.md.j2", _default_context())
     assert (
@@ -453,7 +453,7 @@ def test_iflow_plan_auto_graphify_on_plan_gated() -> None:
     assert "auto_graphify_on_plan = true" in on_skill
     assert on_cmd.count("issue-flow graphify -C <project_root>") == 1
     assert on_skill.count("issue-flow graphify -C <project_root>") == 1
-    assert "Do **not** auto-run `extract`" in on_skill
+    assert "Leave `extract` to the user" in on_skill
 
 
 def test_hands_off_bakes_graphify_and_skips_confirms() -> None:
@@ -615,14 +615,12 @@ def test_iflow_dispatcher_epic_gap_contract() -> None:
         rendered = _render(template_name, _default_context())
         assert "epic_hint" in rendered, template_name
         assert "next_candidates" in rendered, template_name
-        assert "never pick silently" in rendered.lower() or (
-            "Never silent-pick" in rendered or "never silent-pick" in rendered.lower()
-        ), template_name
-        assert "Never auto-dispatch" in rendered or "never auto-dispatch" in rendered
+        assert "no silent pick" in rendered.lower(), template_name
+        assert "Dispatch only to the four targets above" in rendered
         assert "/iflow-pick" in rendered, template_name
         assert "epic_session" in rendered, template_name
         assert "one-and-ask" in rendered, template_name
-        assert "never silent-pick" in rendered.lower(), template_name
+        assert "the user chooses the candidate every time" in rendered.lower(), template_name
 
 
 def test_cycle_bakes_max_issues() -> None:
@@ -691,7 +689,7 @@ def test_iflow_dispatcher_warns_on_version_drift() -> None:
     skill = _render("skills/iflow_iflow/SKILL.md.j2", ctx)
     assert "`version_drift`" in skill
     assert "**Version drift.**" in skill
-    assert "Never run `issue-flow update` yourself" in skill
+    assert "Leave running `issue-flow update` to the user" in skill
     cmd = _render("commands/iflow.md.j2", ctx)
     assert "`version_drift`" in cmd
 

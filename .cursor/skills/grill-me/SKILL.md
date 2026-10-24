@@ -24,7 +24,7 @@ assumptions and edge cases **before** they get encoded in code or written into
 
 ## How to grill
 
-- **One question at a time.** Never batch questions. Wait for the answer before
+- **One question at a time.** Ask exactly one, then wait for the answer before
   moving to the next branch.
 - **Always recommend an answer.** For each question, give your recommended option
   and a one-line rationale, so the user can accept quickly or push back.

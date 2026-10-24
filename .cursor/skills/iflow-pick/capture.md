@@ -10,8 +10,7 @@ Read this to **capture a GitHub issue locally** under `.issueflows/01-current-is
 > - **Archive (step 4):** `issue-flow agent sweep --except <N> -C <project_root>` (add `--dry-run` to preview).
 >
 > The CLI is optional: if it is missing or errors, fall back to the manual
-> instructions below. (`issue-flow` is only present when the user installed it,
-> e.g. `uv tool install issue-flow`.)
+> instructions below.
 
 1. **Folders** — Ensure `.issueflows/00-tools/`, `.issueflows/01-current-issues/`, `.issueflows/02-partly-solved-issues/`, and `.issueflows/03-solved-issues/` exist (create only if the user allows; never delete issue markdown).
 
@@ -23,7 +22,7 @@ Read this to **capture a GitHub issue locally** under `.issueflows/01-current-is
 
 3. **Fetch** — `gh issue view <n> --repo owner/repo --json title,body,url,number,comments`. The `comments` field returns an array of `{author.login, body, createdAt, ...}` that step 3a consumes. On failure, report the error and suggest `gh auth login`. After confirming `owner/repo`, change the chat/agent tab title to reflect the issue topic on the form "Issue <issue number> <short description of issue>" (e.g. "Issue 74 cell info").
 
-3a. **Triage comments** (skip if `comments` is empty). Read `comments.md` in this skill folder — it owns the triage rules (chronological precedence, three buckets, noise filtering) and the exact shape of the `## Comments (curated summary)` section.
+3a. **Triage comments** (skip if `comments` is empty). Triage per `comments.md` in this skill folder (read it alongside this file; read it now if you have not). It owns the triage rules (chronological precedence, three buckets, noise filtering) and the exact shape of the `## Comments (curated summary)` section.
 
 3.5 **Branch status preflight** (report only) — Run `git fetch --prune`. Report current branch, clean/dirty working tree, and ahead/behind counts vs `origin/<default>` (detect default via `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`, else `git symbolic-ref --quiet --short refs/remotes/origin/HEAD`, else `main`). If the current branch matches `^(\d+)-.+` and files for that issue already live in `.issueflows/02-partly-solved-issues/` or `.issueflows/03-solved-issues/`, note that the branch looks stale. Never delete or move anything at this step.
 

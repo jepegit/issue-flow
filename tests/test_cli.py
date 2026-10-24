@@ -748,7 +748,9 @@ def test_doctor_skips_scaffolded_editor_dir(runner: CliRunner, tmp_path: Path) -
     _seed_clean_tree(tmp_path)
     marker = tmp_path / ".claude" / "skills" / "iflow-setup" / "SKILL.md"
     marker.parent.mkdir(parents=True)
-    marker.write_text("scaffolded\n", encoding="utf-8")
+    marker.write_text(
+        "---\nname: iflow-setup\ndescription: Scaffolded.\n---\n", encoding="utf-8"
+    )
 
     result = runner.invoke(app, ["doctor", str(tmp_path), "--json"])
 
@@ -775,7 +777,9 @@ def test_doctor_reports_unmanaged_editor_skill(
     for name in ("iflow-setup", "iflow-plan", "unslop"):
         folder = skills / name
         folder.mkdir(parents=True)
-        (folder / "SKILL.md").write_text("packaged\n", encoding="utf-8")
+        (folder / "SKILL.md").write_text(
+            f"---\nname: {name}\ndescription: Packaged.\n---\n", encoding="utf-8"
+        )
     extra = skills / "my-notes"
     extra.mkdir()
     (extra / "notes.md").write_text("mine\n", encoding="utf-8")

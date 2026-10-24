@@ -1,16 +1,16 @@
 ---
 name: iflow-close
 description: >-
-  Finish and land the focus issue: tests, optional version bump, changelog
-  trailers, status update, commit, push, and PR. Modes: yolo (merge too),
-  ops (no PR).
+  Finishes and lands the focus issue: tests, optional version bump,
+  changelog trailers, status update, commit, push, and PR. Modes: yolo (merge
+  too), ops (no PR).
 disable-model-invocation: true
 issue-flow-version: 0.7.0
 ---
 
 # issue-flow — close (`/iflow-close`)
 
-Finish and land the focus issue: tests, optional version bump, tracking updates, commit, push, PR. This skill never deletes branches; that is `/iflow-cleanup`.
+Finish and land the focus issue: tests, optional version bump, tracking updates, commit, push, PR. Branch deletion belongs to `/iflow-cleanup`.
 
 
 **Invoke:** type `iflow close` in chat, or `/iflow-close` from the slash menu (`iflow-close` also works).
@@ -41,7 +41,7 @@ Before any `git`, `gh`, or `.issueflows/` operation, settle `<project_root>` and
 
 | Token | Effect |
 |---|---|
-| `bump` / `patch` / `minor` / `major` / `stable` / `alpha` / `beta` / `rc` / `post` / `dev` | Version bump (step 2). Natural language works too; ask once if unclear; never auto-pick `major`. |
+| `bump` / `patch` / `minor` / `major` / `stable` / `alpha` / `beta` / `rc` / `post` / `dev` | Version bump (step 2). Natural language works too; ask once if unclear; use `major` only when the user names it. |
 | `nohistory` / `skip history` | Skip the changelog trailers (step 3). |
 | `log "..."` / `note "..."` | Use this text as the changelog bullet. |
 | `stay` / `stay on branch` / `don't switch` | Stay on the issue branch after the PR step. |
@@ -67,8 +67,8 @@ Before any `git`, `gh`, or `.issueflows/` operation, settle `<project_root>` and
  documented runner) as the required local sanity gate; *remind* that the full
  suite belongs on schedule/release CI when dual workflows exist (see
  `.issueflows/04-designs-and-guides/essential-tests.md`). If the project
- has no essential CI yet, still run essential locally and note the gap. Never
- skip a failing essential suite without explicit user agreement. If the project uses ruff, run `ruff check --fix` and `ruff format` through the project's runner before committing. Skim the diff and avoid bundling unrelated changes. Record any design decision from this issue under `.issueflows/04-designs-and-guides/`. After a large structural change, when `graphify-out/` exists, *suggest* `/iflow-status graph`.
+ has no essential CI yet, still run essential locally and note the gap. A failing
+ essential suite blocks the close unless the user explicitly agrees to skip it. If the project uses ruff, run `ruff check --fix` and `ruff format` through the project's runner before committing. Skim the diff and avoid bundling unrelated changes. Record any design decision from this issue under `.issueflows/04-designs-and-guides/`. After a large structural change, when `graphify-out/` exists, *suggest* `/iflow-status graph`.
 
 1a. **Essential tests review.**
 
@@ -83,12 +83,12 @@ Marker: `@pytest.mark.essential`. Contract:
 2. List tests **added or changed by this issue** only (diff / status). For each:
    recommend mark vs leave unmarked; update the registry row; get confirm before
    editing many files.
-3. Do **not** reclassify the whole suite here — that is `/iflow-status doctor`.
+3. Leave whole-suite reclassification to `/iflow-status doctor`.
 
 
 2. **Version bump (optional).** When a bump was requested or the issue carries a `publish` label, read `version.md` and follow it. Run the bump from the project root after step 1 and before the commit.
 
-3. **Changelog trailers.** Unless `nohistory`, read `changelog.md` and put `Changelog`, `Changelog-Date`, and `Changelog-Id` trailers at the end of the commit message. **Never edit or stage `HISTORY.md` on the issue branch.** Do not ask for confirmation. Do this even when an early draft PR exists. Never offer a changelog update after close has finished or after merge.
+3. **Changelog trailers.** Unless `nohistory`, read `changelog.md` and put `Changelog`, `Changelog-Date`, and `Changelog-Id` trailers at the end of the commit message. **Never edit or stage `HISTORY.md` on the issue branch.** Write the trailers without a confirm prompt. Do this even when an early draft PR exists. Changelog changes happen only in this step, before the commit.
 
 4. **Issue tracking.** Update `issue<N>_status.md` (what is done, what remains). Tick `- [x] Done` only when fully resolved. Then move the `issue<N>_*` group to `.issueflows/03-solved-issues/` (done) or `.issueflows/02-partly-solved-issues/` (not done).
 
@@ -102,7 +102,7 @@ Marker: `@pytest.mark.essential`. Contract:
    - Run `gh pr list --repo <owner/repo> --head <branch> --state open --json number,url,isDraft` first. Update an existing PR (including an early draft) instead of opening a second one.
    - Else `gh pr create` (`--draft` with the `draft` token). The body explains the change, how to test it, and links the issue (`Closes #N`).
    - When the PR is a draft and the user did not pass `draft`, run `gh pr ready <number> --repo <owner/repo>`.
-   - Report a one-shot `gh pr checks <number> --repo <owner/repo>` snapshot. Offer `issue-flow agent pr-ready <number> --watch` when the user wants to wait; do not run it unasked.
+   - Report a one-shot `gh pr checks <number> --repo <owner/repo>` snapshot. Offer `issue-flow agent pr-ready <number> --watch` when the user wants to wait, and run it only when they ask.
 **Multi-line GitHub text (PowerShell-safe).** Bash `<<'EOF'` heredocs fail in Windows PowerShell (`Missing file specification after redirection operator`). Write the text to a file and pass that file:
 
 - `gh issue create`, `gh issue edit`, and `gh pr create` take `--body-file <path>`.
@@ -134,13 +134,13 @@ If `git pull --ff-only` fails on default (or home default is ahead of origin), r
    - Never delete the issue branch here. Continue from **home**.
 
 
-10. **After review.** Without `yolo`, address feedback, push, and merge when approved and checks are green. Remind the user to run `/iflow-cleanup` once the PR has merged. Do not run it from here.
+10. **After review.** Without `yolo`, address feedback, push, and merge when approved and checks are green. Remind the user to run `/iflow-cleanup` once the PR has merged; they run it.
 
 11. **Output.** Commit, push result, PR URL, final branch, worktree removal, merge result (with `yolo`), and the next step. When `epic_session.md` exists, hint `/iflow` for the next epic child.
 
 ## Constraints
 
-- Do not skip failing tests without the user's explicit agreement.
-- Never delete branches here. Never `gh pr merge --admin`, never skip CI, never force-push anything but the issue branch (`--force-with-lease`).
+- Failing tests block the close unless the user explicitly agrees to skip them.
+- Guardrails: never `gh pr merge --admin`, never skip CI, and force-push only the issue branch (`--force-with-lease`).
 - Only additive bookkeeping conflicts are resolved automatically (step 6). Every other conflict stops the flow.
-- The `ops` token never opens a PR.
+- The `ops` token closes without a PR.

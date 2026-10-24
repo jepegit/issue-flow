@@ -1,9 +1,9 @@
 {% if noob %}
 ### NEXT (noob)
 
-`noob` is on. After this step, tell the user what to run next, with a one-line why. Do **not** run it unless this skill already chains it (`auto_plan` / `auto_build` / `auto_close` / yolo).
+`noob` is on. After this step, tell the user what to run next, with a one-line why. Run it only when this skill already chains it (`auto_plan` / `auto_build` / `auto_close` / yolo).
 
-**Recommended** — from `issue-flow agent state --json`; do **not** blindly print `next_command` when there is no focus:
+**Recommended** — from `issue-flow agent state --json`; `next_command` applies only with a focus, so follow the first matching line:
 
 - Focus exists → `next_command` (plan / build / close).
 - No focus, `epic_hint.epics` non-empty → `/iflow` when `epic_session` is set (name the first `next_candidates` number), else `/iflow-pick`.
@@ -23,5 +23,5 @@
 {% elif stem == "issue" %}`/iflow` (next epic child when a session is on), `/iflow-pick`, `/iflow-issue epic <N> publish`, `/iflow-status`.
 {% else %}`/iflow-status`, `/iflow-pause`, `/iflow-cleanup` (after a merged PR).
 {% endif %}
-Never invent steps outside these lists.
+Recommend only steps from these lists.
 {% endif %}

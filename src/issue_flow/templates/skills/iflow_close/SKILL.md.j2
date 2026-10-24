@@ -1,15 +1,15 @@
 ---
 name: iflow-close
 description: >-
-  Finish and land the focus issue: tests, optional version bump, changelog
-  trailers, status update, commit, push, and PR. Modes: yolo (merge too),
-  ops (no PR).
+  Finishes and lands the focus issue: tests, optional version bump,
+  changelog trailers, status update, commit, push, and PR. Modes: yolo (merge
+  too), ops (no PR).
 disable-model-invocation: true
 ---
 
 # issue-flow — close (`/iflow-close`)
 
-Finish and land the focus issue: tests, optional version bump, tracking updates, commit, push, PR. This skill never deletes branches; that is `/iflow-cleanup`.
+Finish and land the focus issue: tests, optional version bump, tracking updates, commit, push, PR. Branch deletion belongs to `/iflow-cleanup`.
 
 {% set iflow_step = "close" %}
 {% include "skills/_invocation_forms.md.j2" %}
@@ -22,7 +22,7 @@ Finish and land the focus issue: tests, optional version bump, tracking updates,
 
 | Token | Effect |
 |---|---|
-| `bump` / `patch` / `minor` / `major` / `stable` / `alpha` / `beta` / `rc` / `post` / `dev` | Version bump (step 2). Natural language works too; ask once if unclear; never auto-pick `major`. |
+| `bump` / `patch` / `minor` / `major` / `stable` / `alpha` / `beta` / `rc` / `post` / `dev` | Version bump (step 2). Natural language works too; ask once if unclear; use `major` only when the user names it. |
 | `nohistory` / `skip history` | Skip the changelog trailers (step 3). |
 | `log "..."` / `note "..."` | Use this text as the changelog bullet. |
 | `stay` / `stay on branch` / `don't switch` | Stay on the issue branch after the PR step. |
@@ -52,7 +52,7 @@ Finish and land the focus issue: tests, optional version bump, tracking updates,
 
 2. **Version bump (optional).** When a bump was requested{% if label_flows %} or the issue carries a `{{ publish_label }}` label{% endif %}, read `version.md` and follow it. Run the bump from the project root after step 1 and before the commit.{% if confirm_version_bump %} Without `yolo`, when no bump was requested and there is no publish label, ask once whether to bump.{% endif %}
 
-3. **Changelog trailers.** Unless `nohistory`, read `changelog.md` and put `Changelog`, `Changelog-Date`, and `Changelog-Id` trailers at the end of the commit message. **Never edit or stage `{{ history_file }}` on the issue branch.**{% if confirm_changelog_update %} Without `yolo`, show the bullet and confirm once; if declined, stop and offer revise / `nohistory` / abort.{% else %} Do not ask for confirmation.{% endif %} Do this even when an early draft PR exists. Never offer a changelog update after close has finished or after merge.
+3. **Changelog trailers.** Unless `nohistory`, read `changelog.md` and put `Changelog`, `Changelog-Date`, and `Changelog-Id` trailers at the end of the commit message. **Never edit or stage `{{ history_file }}` on the issue branch.**{% if confirm_changelog_update %} Without `yolo`, show the bullet and confirm once; if declined, stop and offer revise / `nohistory` / abort.{% else %} Write the trailers without a confirm prompt.{% endif %} Do this even when an early draft PR exists. Changelog changes happen only in this step, before the commit.
 
 4. **Issue tracking.** Update `issue<N>_status.md` (what is done, what remains). Tick `- [x] Done` only when fully resolved. Then move the `issue<N>_*` group to `{{ issueflows_dir }}/{{ solved_folder }}/` (done) or `{{ issueflows_dir }}/{{ partly_solved_folder }}/` (not done).
 
@@ -66,7 +66,7 @@ Finish and land the focus issue: tests, optional version bump, tracking updates,
    - Run `gh pr list --repo <owner/repo> --head <branch> --state open --json number,url,isDraft` first. Update an existing PR (including an early draft) instead of opening a second one.
    - Else `gh pr create` (`--draft` with the `draft` token). The body explains the change, how to test it, and links the issue (`Closes #N`).
    - When the PR is a draft and the user did not pass `draft`, run `gh pr ready <number> --repo <owner/repo>`.
-   - Report a one-shot `gh pr checks <number> --repo <owner/repo>` snapshot. Offer `issue-flow agent pr-ready <number> --watch` when the user wants to wait; do not run it unasked.
+   - Report a one-shot `gh pr checks <number> --repo <owner/repo>` snapshot. Offer `issue-flow agent pr-ready <number> --watch` when the user wants to wait, and run it only when they ask.
 {% include "skills/_gh_body_file.md.j2" %}
 {% if "pstack_unslop" in included_skills %}   - *Offer* the `unslop` skill for the PR body (skip under `yolo`).
 {% endif %}
@@ -79,13 +79,13 @@ Finish and land the focus issue: tests, optional version bump, tracking updates,
 
 9a. **Remove the issue worktree.** {% include "skills/_worktree_close_remove.md.j2" %}
 
-10. **After review.** Without `yolo`, address feedback, push, and merge when approved and checks are green.{% if auto_cleanup %} `auto_cleanup = true`: once the PR is `MERGED`, follow the `iflow-cleanup` skill. If still open after a `gh pr checks --watch --fail-fast` of at most {{ checks_watch_minutes }} minutes, stop and report. Never merge because of this knob.{% elif remind_cleanup %} Remind the user to run `/iflow-cleanup` once the PR has merged. Do not run it from here.{% endif %}
+10. **After review.** Without `yolo`, address feedback, push, and merge when approved and checks are green.{% if auto_cleanup %} `auto_cleanup = true`: once the PR is `MERGED`, follow the `iflow-cleanup` skill. If still open after a `gh pr checks --watch --fail-fast` of at most {{ checks_watch_minutes }} minutes, stop and report. The knob acts only after a merge; merging stays with the review step.{% elif remind_cleanup %} Remind the user to run `/iflow-cleanup` once the PR has merged; they run it.{% endif %}
 
 11. **Output.** Commit, push result, PR URL, final branch, worktree removal, merge result (with `yolo`), and the next step. When `epic_session.md` exists, hint `/iflow` for the next epic child.
 
 ## Constraints
 
-- Do not skip failing tests without the user's explicit agreement.
-- Never delete branches here. Never `gh pr merge --admin`, never skip CI, never force-push anything but the issue branch (`--force-with-lease`).
+- Failing tests block the close unless the user explicitly agrees to skip them.
+- Guardrails: never `gh pr merge --admin`, never skip CI, and force-push only the issue branch (`--force-with-lease`).
 - Only additive bookkeeping conflicts are resolved automatically (step 6). Every other conflict stops the flow.
-- The `ops` token never opens a PR.
+- The `ops` token closes without a PR.

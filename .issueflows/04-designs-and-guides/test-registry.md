@@ -61,3 +61,5 @@ current issue**. `/iflow-doctor` may audit the whole suite against this table.
 - **Code under test** — modules/symbols (graphify can help).
 - **Issue** — GitHub number that introduced or last reviewed the test.
 - **Notes / demote?** — why essential, or candidate for demotion.
+| `tests/test_skill_lint.py` parser + per-check tests (`test_parse_*`, `test_*_name*`, `test_description_*`, `test_unknown_key_warns`, …) | yes | yes | `skill_lint.parse_frontmatter` / `lint_skill` | #268 | Pure, tmp-dir only; spec rules for every skill |
+| `tests/test_skill_lint.py` guard + doctor tests (`test_every_packaged_skill_is_spec_clean`, `test_side_files_keep_references_one_level_deep`, `test_pick_router_points_at_capture_and_comments`, `test_doctor_*`) | no | no | rendered packaged skills (all editors, pstack all), `agent.audit_skill_spec` | #268 | Scaffolds via `run_init` / invokes the CLI |

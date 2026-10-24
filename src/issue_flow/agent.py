@@ -36,6 +36,7 @@ from issue_flow import (
     modes,
     project,
     readiness,
+    skill_lint,
     tracking,
 )
 from issue_flow.config import Settings
@@ -5269,6 +5270,53 @@ def audit_unmanaged_editor_skills(
     return findings
 
 
+def audit_skill_spec(
+    project_root: Path, settings: Settings
+) -> list[tracking.DirtyFinding]:
+    """Lint every editor skill folder against the Agent Skills spec (#268).
+
+    Spec errors in a packaged skill are ``error`` (the render or a local edit
+    broke it); in a user's own skill they are ``warn``, so doctor flags them
+    without failing on files issue-flow does not own. Authoring hints stay
+    ``info``. Skipped when ``ISSUEFLOW_AGENT_DIR`` overrides the layout.
+    """
+    if settings.agent_dir_override:
+        return []
+
+    packaged = packaged_skill_output_names()
+    severity_for = {
+        skill_lint.LINT_WARN: tracking.SEVERITY_WARN,
+        skill_lint.LINT_INFO: tracking.SEVERITY_INFO,
+    }
+    findings: list[tracking.DirtyFinding] = []
+    seen: set[Path] = set()
+    for profile in EDITORS.values():
+        skills_dir = project_root / profile.agent_dir / "skills"
+        if not skills_dir.is_dir() or skills_dir.resolve() in seen:
+            continue
+        seen.add(skills_dir.resolve())
+        for hit in skill_lint.lint_skills_root(skills_dir):
+            if hit.severity == skill_lint.LINT_ERROR:
+                skill_name = (hit.path if hit.path.is_dir() else hit.path.parent).name
+                severity = (
+                    tracking.SEVERITY_ERROR
+                    if skill_name in packaged
+                    else tracking.SEVERITY_WARN
+                )
+            else:
+                severity = severity_for[hit.severity]
+            rel = hit.path.relative_to(project_root).as_posix()
+            findings.append(
+                tracking.DirtyFinding(
+                    code=f"skill_spec_{hit.check}",
+                    severity=severity,
+                    message=f"{rel}: {hit.message}",
+                    repairable=False,
+                )
+            )
+    return findings
+
+
 def _audit_payload(project_root: Path) -> dict[str, Any]:
     """JSON-shaped doctor audit for one project root."""
     settings = Settings()
@@ -5283,6 +5331,7 @@ def _audit_payload(project_root: Path) -> dict[str, Any]:
     )
     findings.extend(audit_editor_scaffolds(project_root, settings))
     findings.extend(audit_unmanaged_editor_skills(project_root, settings))
+    findings.extend(audit_skill_spec(project_root, settings))
     has_error = any(f.severity == tracking.SEVERITY_ERROR for f in findings)
     return {
         "findings": [_finding_payload(f) for f in findings],

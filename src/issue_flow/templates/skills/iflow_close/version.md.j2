@@ -1,5 +1,7 @@
 # Close step 2 — version bump
 
+**Contents:** Publish-on-success label · Resolve the release strategy first · Bump levels · Choosing the level · Strategy: static version (uv) · Strategy: git-tag derived · Constraints
+
 Read this to **bump the project version** before landing work (step 2 of `/iflow-close`) — either at a specific level, or with the default rule below when none is given. What "bump" means depends on the **release strategy**, so resolve that first.
 
 > **CLI fast path (optional).** If the `issue-flow` CLI is on `PATH`, run

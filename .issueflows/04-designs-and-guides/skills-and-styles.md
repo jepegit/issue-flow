@@ -7,9 +7,12 @@ How the skills are written, and the optional behaviour skills. Each section belo
 ## Skill authoring — house rules
 
 Context: issue [#117](https://github.com/jepegit/issue-flow/issues/117). We adopted
-mattpocock's **writing-great-skills** reference (vendored verbatim, MIT, at
-`.cursor/skills/writing-great-skills/` — `SKILL.md` + `GLOSSARY.md`) as the
-standard for every skill issue-flow ships. Read it before editing any template
+mattpocock's **writing-great-skills** reference as the standard for every skill
+issue-flow ships. Issue [#268](https://github.com/jepegit/issue-flow/issues/268)
+refreshed it: upstream renamed it **writing-for-agents** (`1fc6573`,
+2026-07-31). It is now vendored verbatim (MIT) from `5beb35b` at
+`.cursor/skills/writing-for-agents/`, as `SKILL.md` + `SKILL-MECHANICS.md`, with
+`disable-model-invocation: true` added. Read it before editing any template
 under `src/issue_flow/templates/skills/`.
 
 ### Decision
@@ -33,6 +36,34 @@ source of truth; edit `SKILL.md.j2`, then re-render with `issue-flow update`.
 - **Prune no-ops and sediment.** Sentence-level test: does the line change
   behavior versus the model's default? If not, delete the sentence (e.g.
   "Use UTF-8 for markdown output").
+- **Positive target over prohibition** (#268, writing-for-agents *Negation*).
+  A "do not X" primes X. State what to do instead. Keep a "never" only as a hard
+  guardrail (destructive git, a skipped confirm, a silent pick), next to its
+  positive target. Tests pin the positive wording.
+- **Do not cache the environment** (#268). A line that restates `--help`,
+  config, or the directory layout goes stale. Point at the lookup unless it is
+  expensive, e.g. the dropped "`issue-flow` is only present when the user
+  installed it" aside.
+- **Reference one hop from the router** (#268, Agent Skills spec + Anthropic
+  best practices). A mode file must not send the agent to read another mode
+  file for reference: the router names both (`iflow-pick` → `capture.md` and
+  `comments.md`). Delegating a whole procedure to another mode ("follow
+  `yolo.md`") is fine; that is composition, not nested reference.
+  `tests/test_skill_lint.py` pins this.
+- **Branch-only reference stays on its branch.** A block only one mode uses
+  goes in that mode file, or shrinks to a one-liner inside the step it serves
+  (`_gh_body_file_short.md.j2` in the `pick` and `build` routers).
+- **Contents list on long side files.** A mode file over 100 rendered lines
+  opens with a `**Contents:**` line, so a partial read still sees the whole
+  shape.
+- **Third-person, tag-free descriptions.** User-invoked descriptions stay one
+  human-facing line, written "Drafts…", "Implements…". Avoid `<N>`-style
+  placeholders: they read as XML tags, which Anthropic's validator rejects.
+- **The lint is the gate.** `issue-flow doctor` lints every editor skill
+  folder (`skill_lint.py`: name regex + folder match, description ≤1024 with no
+  tags, known keys, length hints). `test_every_packaged_skill_is_spec_clean`
+  renders every packaged skill for every editor and requires zero errors or
+  warnings.
 - **Sharpen completion criteria.** Prefer checkable, exhaustive bounds
   ("every group moved and reported") over vague ones ("handle the folder").
 - **Behavior is sacred.** Pruning must preserve workflow semantics:
@@ -49,6 +80,33 @@ source of truth; edit `SKILL.md.j2`, then re-render with `issue-flow update`.
 - Plain doc under `04-designs-and-guides/` instead of a vendored skill:
   rejected — placing it under `.cursor/skills/` keeps it reachable while an
   agent edits skill templates, at zero context load (user-invoked).
+
+### Decision record — #268 refresh (2026-10-24)
+
+- **Context.** The upstream reference was renamed and restructured. It gained
+  *Negation*, *environment as source of truth*, and sharper completion
+  criteria. The Agent Skills spec and Anthropic's best practices add checkable
+  rules: name/folder match, description limits, no XML tags, one-level
+  references, a contents list for files over 100 lines. The #275 survey asked
+  for a mechanical lint.
+- **Decision.** Vendor `writing-for-agents`. Lint inside `issue-flow doctor`
+  (packaged = error, user skill = warn, hints = info) plus a pytest guard. One
+  template pass: positive phrasing on the 13 routers, caveman, grill-me and the
+  shared partials; third-person tag-free descriptions; capture/comments flattened
+  to one hop; contents lists; short body-file line in pick/build; CLI-install
+  sediment dropped. Router prohibitions went from 102 to 32; what remains are
+  guardrails.
+- **Alternatives.**
+  - A separate `issue-flow lint-skills` command: rejected. #406 just cut
+    surface, and doctor already audits editor skill dirs.
+  - PyYAML for frontmatter: rejected. It is a new runtime dependency for three
+    shapes we can parse by hand.
+  - The same pass over all 26 mode files (195 more prohibitions): deferred to #410
+    so this diff stays reviewable.
+  - Flattening mode-to-mode delegation (`drive` → `epic` → `auto` → `cycle` →
+    `yolo`): rejected. That is composition, and flattening means a restructure.
+- **Not reviewed.** The YouTube talk linked on #268 was dropped at the user's
+  request; its captions were rate-limited.
 
 ### Known debt
 
@@ -124,7 +182,7 @@ files remain **scannable** only (`LEGACY_HARNESS_PATTERNS` in
 | Personal library + project copies | `~/.skillbook` ↔ `.skillbook` + push/pull | Packaged Jinja + `update` | **Later / cite #269** — user-global config + update-all + lock is the same product space. Do not build a second library here. |
 | Lockfile hash + version | `skillbook.lock.json` | pstack SHA pin only; no hash of rendered output | **Candidate** — detect local edits that `update` will overwrite |
 | `verify` | Hash mismatch, missing, unlocked, harness drift | `issue-flow doctor` = dirty `.issueflows/` folders only | **Candidate** — fold wording into doctor or a sibling `agent` check |
-| `lint` Agent Skills spec | Name `^[a-z0-9]+(-[a-z0-9]+)*$`, required `name`+`description`, dir match, description ≤1024, body >500 warn, unknown frontmatter warn | writing-great-skills + [skill-authoring.md](./skill-authoring.md); no CLI linter | **Candidate / cite #268** |
+| `lint` Agent Skills spec | Name `^[a-z0-9]+(-[a-z0-9]+)*$`, required `name`+`description`, dir match, description ≤1024, body >500 warn, unknown frontmatter warn | writing-great-skills + [skill-authoring.md](./skill-authoring.md); no CLI linter | **Done in #268** — `skill_spec_*` findings in `issue-flow doctor` |
 | `scan` unmanaged skills | TUI walk of harness dirs | None | **Candidate** — list `.cursor/skills/*` (etc.) not in `SKILL_DIRS` |
 | Harness symlink vs copy | Default symlink; copy fallback persisted in lock | Always render/copy | **Skip** — Jinja must render; symlink would skip templates |
 | Multi-file skill trees | First-class | Almost all single `SKILL.md`; pstack vendor refuses multi-file | **Later** — only if we vendor a multi-file skill |
@@ -191,7 +249,7 @@ Filled in during Task 2. Until then: plan defaults from #275.
 | --- | --- | --- |
 | [#276](https://github.com/jepegit/issue-flow/issues/276) | update: warn or skip when a packaged skill path is not last render | implemented: warn+skip, `--force` overwrites |
 | [#277](https://github.com/jepegit/issue-flow/issues/277) | doctor: report unmanaged editor skills | `yolo` |
-| [#268](https://github.com/jepegit/issue-flow/issues/268) | Improve skills | lint folded in via [comment](https://github.com/jepegit/issue-flow/issues/268#issuecomment-5718825658) |
+| [#268](https://github.com/jepegit/issue-flow/issues/268) | Improve skills | lint folded in via [comment](https://github.com/jepegit/issue-flow/issues/268#issuecomment-5718825658); implemented as doctor `skill_spec_*` |
 | [#269](https://github.com/jepegit/issue-flow/issues/269) | system wide settings and update | cited only |
 
 ### Alternatives considered

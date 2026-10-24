@@ -30,7 +30,9 @@ groups** when the user confirms repair — using the same safe sweep rules as
    a non-focus group in `{{ current_issues_folder }}/` (sweep it); the same number in two
    lifecycle folders (error, manual merge); a focus group marked `- [x] Done`
    (run close); a plan or status file without `issue<N>_original.md`; missing
-   `{{ issueflows_dir }}/` subfolders (create them).
+   `{{ issueflows_dir }}/` subfolders (create them). The CLI also lints editor
+   skill folders (`skill_spec_*`): report them; a packaged one is fixed by
+   `issue-flow update` (`--force` when it was edited locally).
    Present every finding: code, severity, message, suggested next step.
 
 3. **Repair (only on explicit user confirm)** — run

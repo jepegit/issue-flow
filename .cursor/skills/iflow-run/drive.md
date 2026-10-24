@@ -1,5 +1,7 @@
 # Run — drive (`/iflow-run drive`)
 
+**Contents:** Input · Instructions · Constraints
+
 Read this to run a **compose-only** path from an existing GitHub
 issue `<N>`: draft epic (auto-accept unless grill-me) → publish every
 stage → `/iflow-run auto` each epoch → final review (create leftover findings)

@@ -1,10 +1,11 @@
 ---
 name: iflow-cleanup
 description: >-
-  Post-merge branch hygiene: switch to the default branch and delete landed
-  local branches (reachable via -d; squash-landed via -D behind its own
-  confirm). Optional GitHub remote audit (include github). Modes: all (workspace),
-  prs (refresh DIRTY PRs), archive (condense solved issues). Never --force.
+  Post-merge branch hygiene: switches to the default branch and deletes
+  landed local branches (reachable via -d; squash-landed via -D behind its own
+  confirm). Optional GitHub remote audit (include github). Modes: all
+  (workspace), prs (refresh DIRTY PRs), archive (condense solved issues).
+  Deletes branches only by name, without --force.
 disable-model-invocation: true
 issue-flow-version: 0.7.0
 ---
@@ -70,11 +71,11 @@ Before any `git`, `gh`, or `.issueflows/` operation, settle `<project_root>` and
 5. **Consolidated confirm (Phase A1 — local)** — one yes/no prompt listing every action:
    - `git switch <default>` (home only; skip if already on default)
    - `git pull --ff-only` — if it fails, **stop** A1 steps that assume default is current (release tag, self-update) and recover via `default-sync` (see below).
-   - **Self-update (when enabled).** After a successful pull, on **home**: `issue-flow agent self-update --json -C <home>`. Report a skip or failure; never roll back branch deletes.
+   - **Self-update (when enabled).** After a successful pull, on **home**: `issue-flow agent self-update --json -C <home>`. Report a skip or failure; branch deletes stand either way.
    - `git fetch --prune`
    - `issue-flow agent worktree-list --json`, then `issue-flow agent worktree-remove <path>` for each linked worktree on a **`reachable`** branch, **before** deleting the branch. Never remove a worktree whose branch is `unique_work`.
    - `git branch -d <branch>` for each **`reachable`** branch, listed explicitly by name first. If `-d` still refuses, report that branch and move on.
-   - **Planned release.** When `/iflow-close` planned a tag or recorded a publish label (status file) and the tag or GitHub release is missing, create it **after** the pull: `gh release create "v<version>" --generate-notes`, or `git tag <planned>` + `git push origin <planned>` for tag-only projects. Never invent a release for an ordinary bump.
+   - **Planned release.** When `/iflow-close` planned a tag or recorded a publish label (status file) and the tag or GitHub release is missing, create it **after** the pull: `gh release create "v<version>" --generate-notes`, or `git tag <planned>` + `git push origin <planned>` for tag-only projects. An ordinary bump gets no release.
 
 If `git pull --ff-only` fails on default (or home default is ahead of origin), run `issue-flow agent default-sync --json` (classify-only) and print ahead/behind, the unique commits, and its `action`: `even` / `ff_only` → retry the pull; `report_ahead` → show the commits, never silent-push; `tracking_pr` / `replay_tracking` → move the commits to a chore branch and open a small PR; `stop_product` → stop, the user decides. Never rebase default, force-push default, or push default to skip CI.
 
@@ -88,11 +89,11 @@ If `git pull --ff-only` fails on default (or home default is ahead of origin), r
 
 7. **Optional folder sweep** (safe; no destructive git). In `.issueflows/01-current-issues/`, for each `issue<N>_*` group whose status file contains `- [x] Done` (case-insensitive on `done`), move the group to `.issueflows/03-solved-issues/`. Leave groups without a checked `Done` in place — routing them to `.issueflows/02-partly-solved-issues/` is `/iflow-pause`'s job.
 
-8. **Epic stage gate (offer only).** If the merged issue is a `- Published: #<N>` child in an `epic<M>_plan.md` and `issue-flow agent epic-status <M> --json` shows its stage has no open issues left, **offer** a stage-summary comment on the anchor and `/iflow-issue epic <M> publish` for the next stage. Never do either automatically.
+8. **Epic stage gate (offer only).** If the merged issue is a `- Published: #<N>` child in an `epic<M>_plan.md` and `issue-flow agent epic-status <M> --json` shows its stage has no open issues left, **offer** a stage-summary comment on the anchor and `/iflow-issue epic <M> publish` for the next stage; both wait for the user's yes.
 
 9. **Phase B — GitHub remote audit** (only when enabled per the Input rule): read `github.md` in this skill folder and follow it. It is read-only until its own confirm.
 
-10. **Report.** Default branch, PR state, A1 commands and `-d` deletions, A2 `-D` deletions with tip SHAs, branches kept as unique work, folder sweep, epic offer, self-update result, and Phase B results when run. In workspace mode, report each member. Otherwise, when `issue-flow agent resolve --json` lists `sibling_roots`, remind the user that each repo needs its own cleanup; do not loop unless invoked with `all`. If other open PRs still show `DIRTY` / CONFLICTING (often `HISTORY.md`), **offer** `/iflow-cleanup prs` — do not auto-run it.
+10. **Report.** Default branch, PR state, A1 commands and `-d` deletions, A2 `-D` deletions with tip SHAs, branches kept as unique work, folder sweep, epic offer, self-update result, and Phase B results when run. In workspace mode, report each member. Otherwise, when `issue-flow agent resolve --json` lists `sibling_roots`, remind the user that each repo needs its own cleanup; loop over them only when invoked with `all`. If other open PRs still show `DIRTY` / CONFLICTING (often `HISTORY.md`), **offer** `/iflow-cleanup prs` for the user to run.
 
 ## Constraints
 

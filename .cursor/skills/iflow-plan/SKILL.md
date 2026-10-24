@@ -1,7 +1,7 @@
 ---
 name: iflow-plan
 description: >-
-  Draft a structured plan in issue<N>_plan.md and get explicit user
+  Drafts a structured plan in issueN_plan.md and gets explicit user
   confirmation before any implementation starts.
 disable-model-invocation: true
 issue-flow-version: 0.7.0
@@ -45,14 +45,13 @@ Before any `git`, `gh`, or `.issueflows/` operation, settle `<project_root>` and
 > **CLI fast path (optional).** If the `issue-flow` CLI is on `PATH`, run
 > `issue-flow agent preflight` for the branch status preflight (step 2). The
 > CLI is optional: if it is missing or errors, fall back to the manual commands
-> below. (`issue-flow` is only present when the user installed it, e.g.
-> `uv tool install issue-flow`.)
+> below.
 
 1. **Find the focus issue.** Look in `.issueflows/01-current-issues/` for `issue<N>_original.md`. If it is missing or multiple groups are ambiguous, **stop** and ask. Suggest `/iflow-pick` first.
 
-2. **Branch status preflight** (non-destructive). Detect the default branch (prefer `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`, else `git symbolic-ref --quiet --short refs/remotes/origin/HEAD`, else `main`). Run `git fetch --prune`. Report current branch, clean/dirty working tree, and ahead/behind vs `origin/<default>`. If on the default branch, suggest creating an issue branch (`git switch -c <N>-<short-slug>`) but do **not** auto-run it — planning itself does not require a branch switch.
+2. **Branch status preflight** (non-destructive). Detect the default branch (prefer `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`, else `git symbolic-ref --quiet --short refs/remotes/origin/HEAD`, else `main`). Run `git fetch --prune`. Report current branch, clean/dirty working tree, and ahead/behind vs `origin/<default>`. If on the default branch, suggest creating an issue branch (`git switch -c <N>-<short-slug>`) for the user to run — planning itself does not require a branch switch.
 
-2.5 **Refresh knowledge graph (configured).** `graphify_gitignored = true`: `graphify-out/` is gitignored, so rebuild before prior-art. Before prior-art discovery, run `issue-flow graphify -C <project_root>` (default AST `update`, no LLM key). If `graphify` is missing or the command exits non-zero, **report the failure and continue** — do not block planning; fall back to grep-only prior art. Do **not** auto-run `extract` (needs an API key).
+2.5 **Refresh knowledge graph (configured).** `graphify_gitignored = true`: `graphify-out/` is gitignored, so rebuild before prior-art. Before prior-art discovery, run `issue-flow graphify -C <project_root>` (default AST `update`, no LLM key). If `graphify` is missing or the command exits non-zero, **report the failure and continue** with grep-only prior art. Leave `extract` to the user (needs an API key).
 
 3. **Read context.** Load `issue<N>_original.md` and any existing `issue<N>_status.md`. If `.issueflows/04-designs-and-guides/this-project.md` exists, read it for project-specific context, then skim `.issueflows/04-designs-and-guides/` for relevant design docs.
 
@@ -79,20 +78,19 @@ Before any `git`, `gh`, or `.issueflows/` operation, settle `<project_root>` and
 
    Keep it terse but specific. Use markdown links to files when useful.
 
-7. **Scope check.** If the plan is broad (many unrelated files, mixes refactors with feature work, multiple independent deliverables), propose `/iflow-issue split` (flat 2–5 children) or `/iflow-issue epic` (staged) before finalizing. Do not create children from this skill.
+7. **Scope check.** If the plan is broad (many unrelated files, mixes refactors with feature work, multiple independent deliverables), propose `/iflow-issue split` (flat 2–5 children) or `/iflow-issue epic` (staged) before finalizing; creating children is `/iflow-issue`'s job.
 
 8. **Confirm with the user.** Present the plan and **stop**. Accept one of: **Accept** (ready for `/iflow-build`), **Revise** (update `issue<N>_plan.md` in place and re-confirm), or **Abort**.
 
    On **Accept** (and no trailing **`nobuild`**), follow the `iflow-build` skill immediately — briefly note that `auto_build` chained the handoff. Still write no code *before* Accept. With **`nobuild`**, or when the user only wants to park the accepted plan, tell them to run `/iflow-build` later instead of chaining.
 
 
-9. **Conflict on existing `issue<N>_plan.md`.** Do not overwrite silently. Offer: update in place (after review), keep both (`issue<N>_plan.v2.md`), or leave as is.
+9. **Conflict on existing `issue<N>_plan.md`.** Ask before overwriting. Offer: update in place (after review), keep both (`issue<N>_plan.v2.md`), or leave as is.
 
 ## Constraints
 
 - `/iflow-plan` is **read-only on source code** until Accept. The only file it writes before Accept is `.issueflows/01-current-issues/issue<N>_plan.md`.
-- Do not move files between `01-` / `02-` / `03-` folders from `/iflow-plan`.
-- Do not run tests or package managers from planning itself; that belongs to `/iflow-build` and `/iflow-close`.
+- Folder moves between `01-` / `02-` / `03-`, tests, and package managers belong to `/iflow-build` and `/iflow-close`, not planning.
 
 - `auto_build` only skips the post-Accept pause; Accept / Revise / Abort stay gated. Trailing `nobuild` skips the chain once.
 
