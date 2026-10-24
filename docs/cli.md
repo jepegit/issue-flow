@@ -16,6 +16,7 @@ synopsis of every command is in the collapsible block below the tables.
 | [`init`](#issue-flow-init) | First-time scaffold, or add missing files only |
 | [`update`](#issue-flow-update) | Refresh generated files after upgrading the package |
 | `register` / `unregister` | Add or remove a root in the user-global registry ([`update`](#issue-flow-update) documents this) |
+| [`hooks`](#issue-flow-hooks) | Opt-in git `pre-commit` hook that routes done issue groups on commit |
 
 ### Workspace
 
@@ -167,6 +168,7 @@ pages do not repeat these flags.
 | `--editor`, `-e`   | AI coding tool(s) to scaffold for: `cursor` (default), `claude`, `opencode`, `codex`, or `all`. Repeatable (`-e cursor -e claude`). See [Editor support](editors.md). |
 | `--mode`, `-m`     | Scaffolding mode — which workflow surfaces to install: `standard` (default, full workflow), `novice` (guided setup + linear lifecycle, and seeds settings that stop at each step), or `simple` (markdown-only lifecycle). Persisted to `.issueflows/config.toml`; `update` honours it. See [Modes](configuration.md#modes). |
 | `--skill-level`    | Skill level — controls quality-tooling recommendations: `basic` (minimal), `standard` (default), `advanced` (opinionated type checking / linting / pre-commit guidance). Persisted to `.issueflows/config.toml`; `update` honours it. See [Skill levels](configuration.md#skill-levels). |
+| `--install-hooks`  | Also install the opt-in git `pre-commit` hook. See [`issue-flow hooks`](#issue-flow-hooks). |
 
 Running `init` again without `--force` is safe: generated scaffold files that
 already exist are skipped, and **issue markdown under `.issueflows/` is never
@@ -229,6 +231,46 @@ skill folder you edited is left in place and reported; `issue-flow doctor`
 lists it as `retired_editor_skill`. In a mode's `remove` list, removing part
 of a merged command (say `gh_ci`) no longer removes anything; removing all four
 of `yolo` / `cycle` / `auto` / `drive` removes `iflow-run`.
+
+## `issue-flow hooks` { #issue-flow-hooks }
+
+An opt-in git `pre-commit` hook. On each commit it moves every `issue<N>_*`
+group whose status file says `- [x] Done` from `01-current-issues/` to
+`03-solved-issues/`, and stages exactly those paths, so the move lands in the
+same commit. Unfinished groups stay where they are: a commit mid-work is
+normal, and parking is `/iflow-pause`'s job.
+
+```bash
+issue-flow hooks install     # or: issue-flow init --install-hooks
+issue-flow hooks status
+issue-flow hooks uninstall
+issue-flow hooks run pre-commit   # what the hook calls; safe to run by hand
+```
+
+- The script lives at `.issueflows/hooks/pre-commit` (commit it if your team
+  wants it) and is symlinked into the directory `git rev-parse --git-path hooks`
+  reports, so `core.hooksPath` (Husky) and linked worktrees work. Where
+  symlinks are unavailable (Windows without developer mode) it is copied.
+- An existing hook that is not issue-flow's is never replaced; `install`
+  refuses and prints the line to add to it (`--force` replaces it).
+- With the [pre-commit framework](https://pre-commit.com/), skip `install` and
+  add a local hook instead:
+
+  ```yaml
+  - repo: local
+    hooks:
+      - id: issue-flow-route
+        name: issue-flow route done issues
+        entry: issue-flow hooks run pre-commit
+        language: system
+        pass_filenames: false
+        always_run: true
+  ```
+
+- The hook never blocks a commit: if `issue-flow` is not on `PATH`, or the run
+  fails, it prints one line and exits 0. Skip it once with
+  `git commit --no-verify` or `ISSUEFLOW_SKIP_HOOKS=1`.
+- `issue-flow update` re-renders an installed script; it never installs one.
 
 ## `issue-flow graphify` { #issue-flow-graphify }
 

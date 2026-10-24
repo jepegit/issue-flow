@@ -228,12 +228,13 @@ https://issue-flow.readthedocs.io/
 ## CLI overview
 
 ```
-issue-flow init [PROJECT_DIR] [--force] [--skip-dep-check] [--editor EDITOR] [--mode MODE] [--skill-level LEVEL]
+issue-flow init [PROJECT_DIR] [--force] [--skip-dep-check] [--editor EDITOR] [--mode MODE] [--skill-level LEVEL] [--install-hooks]
 issue-flow update [PROJECT_DIR] [--skip-dep-check] [--editor EDITOR]
 issue-flow graphify [-C PROJECT_DIR] [...graphify subcommand + args]
 issue-flow status [PROJECT_DIR] [--local] [--json]
 issue-flow agent state|preflight|switchback|resolve|sweep|archive|capture [...]
 issue-flow config add [-C PROJECT_DIR] [--force] [--json]
+issue-flow hooks install|uninstall|status|run [pre-commit] [-C PROJECT_DIR]
 issue-flow workspace bootstrap|init|update [WORKSPACE_DIR] [...]
 ```
 
@@ -241,6 +242,7 @@ issue-flow workspace bootstrap|init|update [WORKSPACE_DIR] [...]
 - `update` refreshes generated files after upgrading the package (overwrites scaffolds, never your issue markdown).
 - `workspace bootstrap` / `init` / `update` cover a **parent folder of sibling repos** (see [how-to](docs/how-to/workspaces.md)).
 - `status` / `agent ...` give agents (and you) **deterministic** answers about lifecycle state — focus issue, stage, branch hygiene — instead of having the agent re-derive it by hand.
+- `hooks install` (or `init --install-hooks`) adds an **opt-in** git `pre-commit` hook that moves issue groups marked `- [x] Done` to `03-solved-issues/` and stages the move in the same commit. It never blocks a commit; see the [CLI reference](https://github.com/jepegit/issue-flow/blob/main/docs/cli.md#issue-flow-hooks) for Husky / pre-commit setups and how to disable it.
 - `issue-flow --install-completion` enables Tab completion for subcommands (bash / zsh / fish).
 
 Full option tables and the `agent` subcommand reference live in the [CLI reference](https://github.com/jepegit/issue-flow/blob/main/docs/cli.md).
@@ -341,7 +343,6 @@ with `install_mode: workspace` via [`.github/workflows/issueflow-sync.yml`](.git
 
 - **More editors** — extend `--editor` coverage to further AI coding tools (e.g. Windsurf) on top of the current Cursor / Claude Code / opencode / Codex support.
 - **Custom templates** — let users supply their own Jinja2 templates to tailor slash commands and rules to their team's conventions.
-- **Git hook integration** — optionally move issue files on commit based on status markers.
 
 ## Acknowledgements
 

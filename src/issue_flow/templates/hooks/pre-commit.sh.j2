@@ -1,0 +1,19 @@
+#!/bin/sh
+# issue-flow managed hook (issue #101). Remove with: issue-flow hooks uninstall
+#
+# Moves issue groups whose status file says "- [x] Done" from
+# {{ issueflows_dir }}/{{ current_issues_folder }}/ to {{ issueflows_dir }}/{{ solved_folder }}/
+# and stages the move. Never blocks a commit: every failure exits 0.
+# Skip once with `git commit --no-verify` or ISSUEFLOW_SKIP_HOOKS=1.
+
+[ -n "$ISSUEFLOW_SKIP_HOOKS" ] && exit 0
+
+if ! command -v issue-flow >/dev/null 2>&1; then
+    echo "issue-flow: pre-commit hook skipped (issue-flow not on PATH)" >&2
+    exit 0
+fi
+
+root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+issue-flow hooks run pre-commit -C "$root/{{ project_rel }}" || \
+    echo "issue-flow: pre-commit hook failed; commit continues" >&2
+exit 0

@@ -167,6 +167,14 @@ def init(
             "local editor directories."
         ),
     ),
+    install_hooks: bool = typer.Option(
+        False,
+        "--install-hooks",
+        help=(
+            "Also install the opt-in git pre-commit hook that moves issue groups "
+            "marked '- [x] Done' to solved-issues (see `issue-flow hooks`)."
+        ),
+    ),
 ) -> None:
     """Scaffold issue-flow directories and editor config files in a project."""
     from issue_flow.init import run_init
@@ -179,6 +187,7 @@ def init(
         mode=mode,
         skill_level=skill_level,
         canonical=canonical,
+        install_hooks=install_hooks,
     )
 
 
@@ -2274,9 +2283,117 @@ def changelog_check(
         raise typer.Exit(code=1)
 
 
+hooks_app = typer.Typer(
+    name="hooks",
+    add_completion=False,
+    help=(
+        "Opt-in git hooks. pre-commit moves issue groups marked "
+        "'- [x] Done' to solved-issues and stages the move. Never blocks a commit."
+    ),
+)
+
+_HOOK_NAME_ARGUMENT = typer.Argument(
+    "pre-commit", help="Hook name (only pre-commit today)."
+)
+
+
+def _hook_name(name: str) -> str:
+    from issue_flow.hooks import HOOK_NAMES
+
+    if name not in HOOK_NAMES:
+        _console.print(
+            f"[red]unknown hook[/red] {name} (known: {', '.join(HOOK_NAMES)})"
+        )
+        raise typer.Exit(code=2)
+    return name
+
+
+def _print_hook_result(result, json_output: bool) -> None:
+    if json_output:
+        _console.print_json(
+            data={
+                "hook": result.name,
+                "action": result.action,
+                "script": str(result.script) if result.script else None,
+                "target": str(result.target) if result.target else None,
+                "message": result.message,
+            }
+        )
+        return
+    color = {"foreign": "yellow", "not_repo": "red", "absent": "dim"}.get(
+        result.action, "green"
+    )
+    where = f"  {result.target}" if result.target else ""
+    _console.print(f"[{color}]{result.action}[/{color}]  {result.name}{where}")
+    if result.message:
+        _console.print(f"  {result.message}", markup=False)
+
+
+@hooks_app.command("install")
+def hooks_install(
+    name: str = _HOOK_NAME_ARGUMENT,
+    project_dir: Path = _PROJECT_DIR_OPTION,
+    force: bool = typer.Option(
+        False, "--force", help="Replace a hook that is not issue-flow's."
+    ),
+    json_output: bool = typer.Option(False, "--json", help="Emit JSON."),
+) -> None:
+    """Write .issueflows/hooks/<name> and link it into git's hooks directory."""
+    from issue_flow.hooks import install
+
+    result = install(project_dir, _hook_name(name), force=force)
+    _print_hook_result(result, json_output)
+    if result.action in ("foreign", "not_repo"):
+        raise typer.Exit(code=1)
+
+
+@hooks_app.command("uninstall")
+def hooks_uninstall(
+    name: str = _HOOK_NAME_ARGUMENT,
+    project_dir: Path = _PROJECT_DIR_OPTION,
+    json_output: bool = typer.Option(False, "--json", help="Emit JSON."),
+) -> None:
+    """Remove the issue-flow hook from git's hooks directory (foreign hooks stay)."""
+    from issue_flow.hooks import uninstall
+
+    result = uninstall(project_dir, _hook_name(name))
+    _print_hook_result(result, json_output)
+    if result.action in ("foreign", "not_repo"):
+        raise typer.Exit(code=1)
+
+
+@hooks_app.command("status")
+def hooks_status(
+    name: str = _HOOK_NAME_ARGUMENT,
+    project_dir: Path = _PROJECT_DIR_OPTION,
+    json_output: bool = typer.Option(False, "--json", help="Emit JSON."),
+) -> None:
+    """Show whether the issue-flow hook is installed, and where."""
+    from issue_flow.hooks import status
+
+    _print_hook_result(status(project_dir, _hook_name(name)), json_output)
+
+
+@hooks_app.command("run")
+def hooks_run(
+    name: str = _HOOK_NAME_ARGUMENT,
+    project_dir: Path = _PROJECT_DIR_OPTION,
+) -> None:
+    """Run a hook's work now (what the installed git hook calls)."""
+    from issue_flow.hooks import run_pre_commit
+
+    _hook_name(name)
+    for move in run_pre_commit(project_dir):
+        _console.print(
+            f"issue-flow: moved #{move.number} (done): {move.source} -> {move.destination}",
+            markup=False,
+        )
+
+
 app.add_typer(agent_app)
 app.add_typer(config_app)
 app.add_typer(changelog_app)
+app.add_typer(hooks_app)
 workspace_app.add_typer(workspace_git_app)
 app.add_typer(workspace_app)
 
