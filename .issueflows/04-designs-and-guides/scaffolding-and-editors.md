@@ -622,8 +622,9 @@ Two new core modules back them:
 - **Grouping everything top-level** vs an `agent` namespace — chose hybrid:
   `status` is generally useful (top-level), the rest are agent-oriented and
   grouped under `agent`.
-- **A git-hook/daemon to move issue files** — out of scope; `agent sweep` keeps
-  it explicit and previewable (`--dry-run`).
+- **A git-hook/daemon to move issue files** — out of scope here; `agent sweep`
+  keeps it explicit and previewable (`--dry-run`). Revisited in #101 as an
+  **opt-in** done-only `pre-commit` hook (see "Git hooks (#101)" below).
 
 ### Follow-up: `agent archive` (#84)
 
@@ -700,3 +701,38 @@ is not installed.
    hard stop (commit/stash/abort), never “commit everything”.
 3. Never fold `src/` (or other non-issueflows paths) into the housekeeping
    commit.
+
+## Git hooks (#101)
+
+**Context.** Done issue groups only move when an agent runs a lifecycle step
+(`/iflow-close` step 4, `/iflow-cleanup` sweep, `agent sweep`). Ticking
+`- [x] Done` by hand and committing left the group in `01-current-issues/`.
+
+**Decision.** An opt-in `pre-commit` hook (`issue-flow hooks install` or
+`init --install-hooks`), off by default:
+
+- **Done-only.** It runs `plan_sweep(done_only=True)`: `- [x] Done` groups go to
+  `03-solved-issues/`, the focus issue included; unfinished groups never move.
+- **Same commit.** It stages exactly the moved paths (`git rm --cached` the old,
+  `git add` the new), never anything else.
+- **Fail open.** Missing `issue-flow`, errors, `--no-verify`, and
+  `ISSUEFLOW_SKIP_HOOKS=1` all let the commit through.
+- **Coexist.** The script lives at `.issueflows/hooks/pre-commit` and is
+  symlinked (copied where symlinks fail) into `git rev-parse --git-path hooks`,
+  which honours `core.hooksPath` and linked worktrees. A foreign hook is never
+  replaced without `--force`; install prints the line to chain it. The
+  pre-commit framework uses a `repo: local` entry calling
+  `issue-flow hooks run pre-commit`.
+- `update` re-renders an installed script and never installs one. No
+  `config.toml` knob in v1: the script's presence is the record.
+
+**Alternatives.**
+
+- `post-commit`: leaves a dirty tree after every commit, which
+  `agent switchback` refuses.
+- Two-way routing (unfinished → `02`): would park the focus issue on every
+  mid-work commit; parking stays with `/iflow-pause`.
+- `--chain` wrapping a foreign hook: deferred; printing the chain line is enough
+  for v1.
+- The #23 phase-2 editor hooks (`post-checkout` / `pre-push`) can reuse
+  `issue_flow.hooks` (one name, one template) but are not part of #101.

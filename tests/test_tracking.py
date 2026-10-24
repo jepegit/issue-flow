@@ -239,6 +239,18 @@ def test_apply_sweep_moves_files(tmp_path: Path) -> None:
     assert (partly / "issue2_original.md").exists()
 
 
+def test_plan_sweep_done_only_skips_unfinished(tmp_path: Path) -> None:
+    """The pre-commit hook's sweep (#101) moves done groups only, focus included."""
+    cur, partly, solved = _current(tmp_path), _partly(tmp_path), _solved(tmp_path)
+    _write(cur / "issue1_status.md", "- [x] Done\n")
+    _write(cur / "issue2_status.md", "- [ ] Done\n")
+    _write(cur / "issue3_original.md")
+
+    moves = tracking.plan_sweep(cur, partly, solved, done_only=True)
+
+    assert [(m.number, m.destination) for m in moves] == [(1, solved.name)]
+
+
 def test_plan_sweep_excepts_focus(tmp_path: Path) -> None:
     cur, partly, solved = _current(tmp_path), _partly(tmp_path), _solved(tmp_path)
     _write(cur / "issue5_original.md")

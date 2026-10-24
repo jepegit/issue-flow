@@ -218,18 +218,25 @@ def plan_sweep(
     partly_dir: Path,
     solved_dir: Path,
     except_number: int | None = None,
+    done_only: bool = False,
 ) -> list[SweepMove]:
     """Plan archive moves for every group in ``current_dir`` except the focus.
 
     Done groups (a status file with ``- [x] Done``) go to the solved folder;
     everything else goes to the partly-solved folder. The focus issue
     (``except_number``) is never moved.
+
+    With ``done_only`` (the git pre-commit hook, issue #101), only done groups
+    are planned: an unfinished group stays in ``current_dir`` because a commit
+    mid-work is normal, and parking is ``/iflow-pause``'s job.
     """
     moves: list[SweepMove] = []
     for number, group in sorted(group_issue_files(current_dir).items()):
         if except_number is not None and number == except_number:
             continue
         done = group.is_done
+        if done_only and not done:
+            continue
         destination = solved_dir if done else partly_dir
         moves.append(
             SweepMove(

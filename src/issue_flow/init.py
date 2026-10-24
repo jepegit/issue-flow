@@ -339,6 +339,7 @@ def run_init(
     mode: str | None = None,
     skill_level: str | None = None,
     canonical: bool = False,
+    install_hooks: bool = False,
 ) -> None:
     """Scaffold .issueflows/ directories and editor config (commands, rules, skills).
 
@@ -378,6 +379,8 @@ def run_init(
             ``.issueflows/agent/`` instead of per-editor trees, persist
             ``canonical_format = true``, and append a managed ``.gitignore``
             block for local editor directories.
+        install_hooks: When True, also install the opt-in git ``pre-commit``
+            hook (:mod:`issue_flow.hooks`, issue #101).
     """
     settings = Settings()
     try:
@@ -577,7 +580,22 @@ def run_init(
         "in your editor to start tracking a GitHub issue. "
         f"The skills live under [bold]{hint_dir}[/bold].[/dim]\n"
     )
+    if install_hooks:
+        _install_hooks(project_root)
     _register_project_root(project_root)
+
+
+def _install_hooks(project_root: Path) -> None:
+    """Install the opt-in pre-commit hook (``init --install-hooks``, issue #101)."""
+    from issue_flow.hooks import install
+
+    result = install(project_root)
+    if result.action in ("installed", "copied", "already"):
+        console_io.console.print(f"  [green]hook[/green]  pre-commit ({result.action})")
+    else:
+        console_io.console.print(
+            f"  [yellow]skip[/yellow]  pre-commit hook: {result.message}"
+        )
 
 
 def run_update(
@@ -690,9 +708,14 @@ def run_update(
         overwrite_foreign=force,
     )
     written_files.extend(global_result.written)
-    pruned_count += prune_retired_canonical_skills(project_root, settings.issueflows_dir)
+    pruned_count += prune_retired_canonical_skills(
+        project_root, settings.issueflows_dir
+    )
     pruned_count += prune_retired_user_global_skills()
     drop_stale_stamps(project_root, settings.issueflows_dir)
+    from issue_flow.hooks import refresh_installed
+
+    written_files.extend(refresh_installed(project_root))
 
     console_io.console.print()
     maybe_ensure_linguist_gitattributes(project_root, settings)
