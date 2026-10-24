@@ -7,7 +7,11 @@ Release tags live on GitHub: <https://github.com/jepegit/issue-flow/releases>.
 Pre-0.2.2 entries are reconstructed from git history and PR titles and may be less precise
 than the GitHub release notes they link to.
 
-## [Unreleased]
+## [0.7.0] - 2026-10-24
+
+<!-- changelog-ids: 69b526926973 -->
+
+- Merge the 30 lifecycle commands into 11 commands with modes, shrink the always-on rule to about 680 words, and make `issue-flow update` migrate older scaffolds in one run. (#406)
 
 ## [0.6.0] - 2026-10-05
 
