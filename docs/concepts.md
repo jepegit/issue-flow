@@ -129,7 +129,7 @@ starts it for you. That includes:
   files;
 - `pause` and `cleanup` (including `cleanup archive` and `cleanup prs`), which
   move or delete things;
-- `run` (`yolo`, `cycle`, `auto`, `drive`), which runs hands-off;
+- `run` (`yolo`, `direct`, `cycle`, `auto`, `drive`), which runs hands-off;
 - `status` (with `doctor`, `git`, `graph`), which is read-only or a helper.
 
 `iflow` may *mention* an off-path command (for example "run `iflow cleanup`

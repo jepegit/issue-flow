@@ -1,0 +1,43 @@
+# Run — direct (`/iflow-run direct`)
+
+Read this to **finish one issue with a capable model**: implement, keep the bookkeeping, open the PR, and stop. The invocation is the authorization, whether or not `hands_off` is on. There is no second confirm and no plan Accept.
+
+## Preflight (stop on any failure)
+
+1. **Resolve `<N>`.** Use the argument when it is an issue number. Otherwise run `issue-flow agent state --json` and use `focus`. Stop when the number is missing or the repo is ambiguous.
+
+2. **Branch.** When the current branch is the default branch and `git status --porcelain` is empty, create the issue worktree with `issue-flow agent worktree-add <N> --slug <slug> -C <home> --json` and continue in the `path` it returns. Stop when the tree is dirty. Stop when the current branch is neither the default branch nor `<N>-<slug>`.
+
+3. **Archived issue.** Stop when `issue<N>_*` already lives under `{{ partly_solved_folder }}/` or `{{ solved_folder }}/`. Re-open only through `/iflow-pick <N>`.
+
+4. **Tests up front.**{% if essential_tests and test_runner == "pytest" %} Run `pytest -m {{ essential_marker }}` through the project's runner.{% elif essential_tests %} Run the project's documented test command (`test_runner={{ test_runner }}` is outside the essential-tests gate).{% else %} Run the project's documented test command.{% endif %} Stop when the suite fails.
+
+## Chain
+
+1. **Capture.** When `issue<N>_original.md` is missing, follow `capture.md` in the `iflow-pick` skill. Skip capture when that file already exists.
+
+2. **Status, not a plan.** Skip `issue<N>_plan.md`. Record decisions in `issue<N>_status.md` as the work proceeds, with `- [ ] Done` until the issue is fully resolved.
+
+3. **Implement.** Read the design note under `{{ issueflows_dir }}/{{ designs_folder }}/` that matches the area. When `graphify-out/graph.json` exists, run `graphify query`, `graphify path`, or `graphify explain` before a broad search. After code edits, run `issue-flow graphify -C <project_root>` (AST `update` only). When graphify is missing or the command exits non-zero, report that once and continue with grep. Prefer `issue-flow agent … --json` when a helper already answers the question.
+
+4. **Tests again.** Same gate as preflight. Stop when the suite fails.
+{%- if essential_tests and test_runner == "pytest" %}
+   **Registry.** For tests this issue added or changed, write the row in `{{ issueflows_dir }}/{{ designs_folder }}/test-registry.md` (`@pytest.mark.{{ essential_marker }}` or leave unmarked). Whole-suite reclassification stays with `/iflow-status doctor`.
+{%- endif %}
+
+5. **Close.** Follow `/iflow-close` with the yolo token absent, and follow `changelog.md` in the `iflow-close` skill for the trailers. Update the status checkbox, move the `issue<N>_*` group by that checkbox, and add `Changelog`, `Changelog-Date`, and `Changelog-Id` trailers. Leave `{{ history_file }}` unedited and unstaged on the issue branch. Commit, run `issue-flow agent sync-branch --json`, push, and open or update the PR (`Closes #<N>`). Stop with the PR URL. Stay on the issue branch. `/iflow-cleanup` waits for the user.
+
+## Stops
+
+Stop and report, with no menu, when any of these hold:
+
+- The test gate fails.
+- `issue-flow agent sync-branch` exits 1.
+- The workspace repo is ambiguous.
+- A product-code conflict remains after sync.
+- A step outside `/iflow-close`'s sync would delete a branch, force-push, or rewrite the default branch.
+- The work is several independent deliverables. Name `/iflow-issue epic` or `/iflow-issue split` and stop. This mode creates no children.
+
+## Post-run
+
+Report the PR URL and that the PR is open. The issue branch is still checked out.

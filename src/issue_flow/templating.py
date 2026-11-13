@@ -146,15 +146,39 @@ def stamp_skill_version(content: str, version: str) -> str:
 # workflow doc; the names double as skill folder names and command stems.
 COMMANDS: list[tuple[str, str, str]] = [
     ("iflow", "Dispatcher: run the next of capture / plan / build / close.", "—"),
-    ("iflow-setup", "Get a project ready (uv, git, GitHub, scaffold).", "`harness`, `check`"),
-    ("iflow-pick", "Choose an issue, branch, and capture it.", "`<N>`, `capture`, `fix`, `label:<L>`"),
+    (
+        "iflow-setup",
+        "Get a project ready (uv, git, GitHub, scaffold).",
+        "`harness`, `check`",
+    ),
+    (
+        "iflow-pick",
+        "Choose an issue, branch, and capture it.",
+        "`<N>`, `capture`, `fix`, `label:<L>`",
+    ),
     ("iflow-plan", "Write the plan and stop for approval.", "—"),
     ("iflow-build", "Implement the approved plan.", "—"),
     ("iflow-pause", "Park unfinished work with resume notes.", "—"),
-    ("iflow-close", "Tests, bump, changelog trailers, commit, push, PR.", "`yolo`, `ops`, `draft`, `bump`"),
-    ("iflow-cleanup", "After merge: default branch, pull, delete landed branches.", "`all`, `github`, `prs`, `archive`"),
-    ("iflow-run", "Hands-off runs under one up-front confirm.", "`yolo`, `cycle`, `auto`, `drive`"),
-    ("iflow-issue", "Create and shape GitHub issues.", "`fix`, `epic`, `split`, `review`"),
+    (
+        "iflow-close",
+        "Tests, bump, changelog trailers, commit, push, PR.",
+        "`yolo`, `ops`, `draft`, `bump`",
+    ),
+    (
+        "iflow-cleanup",
+        "After merge: default branch, pull, delete landed branches.",
+        "`all`, `github`, `prs`, `archive`",
+    ),
+    (
+        "iflow-run",
+        "Hands-off runs under one up-front confirm.",
+        "`yolo`, `direct`, `cycle`, `auto`, `drive`",
+    ),
+    (
+        "iflow-issue",
+        "Create and shape GitHub issues.",
+        "`fix`, `epic`, `split`, `review`",
+    ),
     ("iflow-status", "Read-only overview of every issue.", "`doctor`, `git`, `graph`"),
 ]
 
@@ -393,7 +417,9 @@ def skill_side_templates(skill_dir: str) -> tuple[str, ...]:
 
 def skill_side_output_names(skill_dir: str) -> frozenset[str]:
     """Rendered file names of a skill's mode files (``yolo.md``, ...)."""
-    return frozenset(name.removesuffix(".j2") for name in skill_side_templates(skill_dir))
+    return frozenset(
+        name.removesuffix(".j2") for name in skill_side_templates(skill_dir)
+    )
 
 
 def side_files_for_output_name(output_name: str) -> frozenset[str]:

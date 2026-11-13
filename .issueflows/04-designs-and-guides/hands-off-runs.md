@@ -1,6 +1,6 @@
 # Hands-off runs and epics
 
-`/iflow-run` (yolo, cycle, auto, drive), epics, and the confirm contracts behind them. Each section below was a separate design note; they are grouped here so the folder stays small (issue #406).
+`/iflow-run` (yolo, direct, cycle, auto, drive), epics, and the confirm contracts behind them. Each section below was a separate design note; they are grouped here so the folder stays small (issue #406).
 
 <a id="hands-off-mode"></a>
 
@@ -76,6 +76,39 @@ registered repo.
 Drive: [drive-mode.md](./drive-mode.md).
 Knobs: [skill-behaviour-knobs.md](./skill-behaviour-knobs.md).
 Graphify: [graphify-integration.md](./graphify-integration.md).
+
+<a id="direct-mode"></a>
+
+## Direct mode
+
+**Issue:** [#415](https://github.com/jepegit/issue-flow/issues/415)
+**Status:** decided 2026-11-13.
+
+### Context
+
+Capable models can implement one normal issue without a planning interview.
+Yolo still writes a short plan and squash-merges, and it is only for a small
+change. `hands_off` skips the up-front confirm on yolo, cycle, auto, and
+drive; the interactive plan Accept still runs. Auto and drive are the epic
+path.
+
+### Decision
+
+`/iflow-run direct [<N>]` is a run mode, not a scaffolding mode id and not a
+config knob. The invocation is the authorization. The mode skips
+`issue<N>_plan.md`, records decisions in the status file, and uses graphify
+(`query` / `path` / `explain`, then AST `update`) plus `issue-flow agent`
+when those tools exist. Status movement, essential tests (when the knob is
+on), and changelog trailers stay. `HISTORY.md` stays unedited on the issue
+branch. The run opens or updates the PR and stops on the issue branch.
+
+### Alternatives
+
+- Name the command `fable`. Rejected: the name would track one model.
+- Auto-merge like yolo. Rejected: the work is ordinary issue size, so the PR
+  stays open for a person.
+- A `[modes.direct]` scaffolding id. Rejected: the same skills stay installed;
+  only the run posture changes.
 
 <a id="advanced-auto-mode"></a>
 
