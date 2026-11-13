@@ -98,7 +98,10 @@ def test_surface_is_eleven_lifecycle_commands() -> None:
     [
         ("iflow_setup", {"harness.md.j2"}),
         ("iflow_pick", {"capture.md.j2", "comments.md.j2"}),
-        ("iflow_run", {"yolo.md.j2", "cycle.md.j2", "auto.md.j2", "drive.md.j2"}),
+        (
+            "iflow_run",
+            {"yolo.md.j2", "direct.md.j2", "cycle.md.j2", "auto.md.j2", "drive.md.j2"},
+        ),
         (
             "iflow_issue",
             {"new.md.j2", "fix.md.j2", "epic.md.j2", "split.md.j2", "review.md.j2"},
@@ -323,7 +326,7 @@ def test_close_cleanup_reminder_and_auto_cleanup_are_gated(
 
 def test_run_router_and_modes(loud_context: dict[str, object]) -> None:
     router = render_template("skills/iflow_run/SKILL.md.j2", loud_context)
-    for mode in ("yolo", "cycle", "auto", "drive"):
+    for mode in ("yolo", "direct", "cycle", "auto", "drive"):
         assert f"`{mode}.md`" in router
     cycle = render_template(
         "skills/iflow_run/cycle.md.j2", {**loud_context, "cycle_onfail": "skip"}
@@ -331,6 +334,18 @@ def test_run_router_and_modes(loud_context: dict[str, object]) -> None:
     assert "Default from config **`skip`**" in cycle
     yolo = render_template("skills/iflow_run/yolo.md.j2", loud_context)
     assert "nohistory" in yolo and "stay" in yolo
+    direct = render_template("skills/iflow_run/direct.md.j2", loud_context)
+    assert "graphify query" in direct
+    assert "issue-flow graphify" in direct
+    assert "Changelog" in direct
+    assert "close yolo" not in direct
+    assert "gh pr merge" not in direct
+    essential = render_template(
+        "skills/iflow_run/direct.md.j2",
+        {**loud_context, "essential_tests": True, "test_runner": "pytest"},
+    )
+    assert "pytest -m essential" in essential
+    assert "test-registry.md" in essential
 
 
 def test_issue_router_sends_epic_text_to_anchor_creation(

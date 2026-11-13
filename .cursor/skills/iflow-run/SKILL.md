@@ -2,15 +2,16 @@
 name: iflow-run
 description: >-
   Runs issues hands-off under one up-front confirm. Modes: yolo N (one
-  small issue), cycle QUEUE (many issues), auto EPIC (an epic stage by stage
-  with review), drive N (compose an epic from an issue and run all of it).
+  small issue), direct N (one issue, no plan gate, PR left open), cycle
+  QUEUE (many issues), auto EPIC (an epic stage by stage with review),
+  drive N (compose an epic from an issue and run all of it).
 disable-model-invocation: true
 issue-flow-version: 0.7.0
 ---
 
 # issue-flow — run hands-off (`/iflow-run`)
 
-Run the normal lifecycle (pick → plan → build → close) without per-step checkpoints. Every mode asks **once** up front, then stops only when input is strictly necessary. No mode weakens a safeguard to keep moving.
+Run the normal lifecycle without per-step checkpoints. `yolo`, `cycle`, `auto`, and `drive` ask **once** up front. `direct` treats the invocation as that confirm and skips the plan file. Each mode then stops only when input is strictly necessary. No mode weakens a safeguard to keep moving.
 
 
 **Invoke:** type `iflow run` in chat, or `/iflow-run` from the slash menu (`iflow-run` also works).
@@ -44,6 +45,7 @@ The first word after `run` selects the mode. Read **only** that mode's file in t
 | Input | Mode file | Scope |
 |---|---|---|
 | `yolo [<N>]` or a single issue number | `yolo.md` | One small, low-risk issue: capture → plan → build → `close yolo` (PR merged). |
+| `direct [<N>]` | `direct.md` | One issue for a capable model: capture, implement, bookkeeping, PR left open. |
 | `cycle <spec>`, or several numbers / `label:<L>` / `yolo` / `epic <N> [stage <k>]` | `cycle.md` | A queue of issues, each through the yolo chain. |
 | `auto <N>` | `auto.md` | Confirmed epic `<N>`: run each stage as a cycle, review between stages. |
 | `drive <N>` | `drive.md` | Issue `<N>` → draft epic → publish → auto every stage → final review. |
@@ -54,5 +56,5 @@ With no input, ask which mode (and which issue or queue) the user means.
 
 - Never run on a dirty tree with unrelated changes, and never start on a failing test baseline.
 - Branch deletion and `/iflow-cleanup` wait for the user (except the narrowed `drive` cleanup described in `drive.md`).
-- Stop on the first condition that needs a human: unfixable failure, refused merge, non-fast-forward pull, an ambiguous or not-actually-small spec, or anything outside the confirmed scope.
-- Leave the repo clean on the default branch when stopping.
+- Stop on the first condition that needs a human: unfixable failure, refused merge, non-fast-forward pull, an ambiguous spec, a yolo issue that is not actually small, or anything outside the confirmed scope.
+- `yolo`, `cycle`, `auto`, and `drive` leave the repo clean on the default branch when stopping. `direct` stops on the issue branch with the PR open.

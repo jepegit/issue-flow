@@ -21,7 +21,7 @@ Merged commands take a **mode** as their first word, for example `iflow run cycl
 | `/iflow-pause` | — | Park unfinished work with resume notes. | standard, novice, simple |
 | `/iflow-close` | `yolo`, `ops`, `draft`, `bump` | Tests, bump, changelog trailers, commit, push, PR. | standard, novice |
 | `/iflow-cleanup` | `all`, `github`, `prs`, `archive` | After merge: default branch, pull, delete landed branches. | standard, novice |
-| `/iflow-run` | `yolo`, `cycle`, `auto`, `drive` | Hands-off runs under one up-front confirm. | standard |
+| `/iflow-run` | `yolo`, `direct`, `cycle`, `auto`, `drive` | Hands-off runs under one up-front confirm. | standard |
 | `/iflow-issue` | `fix`, `epic`, `split`, `review` | Create and shape GitHub issues. | standard, novice |
 | `/iflow-status` | `doctor`, `git`, `graph` | Read-only overview of every issue. | standard, novice, simple |
 
@@ -42,6 +42,7 @@ Merged commands take a **mode** as their first word, for example `iflow run cycl
 - After drafting a plan (`/iflow-plan`).
 - Before deleting anything: local branches (`-d` and, separately, `-D` for squash-landed branches), remote branches, archived issue files.
 - Hands-off modes (`/iflow-run …`) ask **once** up front and then stop only when a human decision is needed.
+- `/iflow-run direct` treats the invocation as its confirm, skips the plan gate, and opens a PR without merging.
 
 ## Status file contract
 

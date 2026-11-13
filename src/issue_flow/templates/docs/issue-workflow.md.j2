@@ -37,6 +37,7 @@ Merged commands take a **mode** as their first word, for example `iflow run cycl
 - After drafting a plan (`/iflow-plan`).
 - Before deleting anything: local branches (`-d` and, separately, `-D` for {{ pr_merge_method }}-landed branches), remote branches, archived issue files.
 - Hands-off modes (`/iflow-run …`) ask **once** up front{% if hands_off %} (`hands_off = true` pre-authorizes that confirm){% endif %} and then stop only when a human decision is needed.
+- `/iflow-run direct` treats the invocation as its confirm, skips the plan gate, and opens a PR without merging.
 
 ## Status file contract
 

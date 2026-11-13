@@ -64,7 +64,7 @@ The Agent Skills give agents a repeatable flow and appear in the slash menu. In 
 | `/iflow-pause` | — | Park unfinished work with resume notes. |
 | `/iflow-close` | `yolo`, `ops`, `draft`, `bump` | Tests, bump, changelog trailers, commit, push, PR. |
 | `/iflow-cleanup` | `all`, `github`, `prs`, `archive` | After merge: default branch, pull, delete landed branches. |
-| `/iflow-run` | `yolo`, `cycle`, `auto`, `drive` | Hands-off runs under one up-front confirm. |
+| `/iflow-run` | `yolo`, `direct`, `cycle`, `auto`, `drive` | Hands-off runs under one up-front confirm. |
 | `/iflow-issue` | `fix`, `epic`, `split`, `review` | Create and shape GitHub issues. |
 | `/iflow-status` | `doctor`, `git`, `graph` | Read-only overview of every issue. |
 
