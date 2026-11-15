@@ -29,7 +29,7 @@ Invoke as `/iflow-<step>` or in chat as `iflow <step> [args]` (also `iflow-<step
 {% for row in command_rows %}| `{{ row[0] }}` | {{ row[1] }} |
 {% endfor -%}
 
-The core loop is `pick → plan → build → close → cleanup`. `/iflow` detects the focus issue's state and dispatches to the next of capture / plan / build / close; it never dispatches to any other command. Never skip the plan confirmation in `/iflow-plan` unless a hands-off mode was confirmed.
+The core loop is `pick → plan → build → close → cleanup`. `/iflow` detects the focus issue's state and dispatches to the next of capture / plan / build / close; it never dispatches to any other command. {% if capable_model %}`/iflow-plan` waits for Accept. Skip that wait when a hands-off mode was confirmed, or when the run is `/iflow-run direct`.{% else %}Never skip the plan confirmation in `/iflow-plan` unless a hands-off mode was confirmed.{% endif %}
 {%- if label_flows and "iflow_pick" in included_skills %}
 
 Issue labels can route `/iflow-pick`: `{{ yolo_label }}` → `/iflow-run yolo`, `{{ ops_label }}` → no-PR close (ops wins over yolo). A `{{ publish_label }}` label makes `/iflow-close` bump the version and release after merge.
@@ -62,4 +62,14 @@ When the workspace holds several repos with their own `{{ issueflows_dir }}/`, r
 ## Knowledge graph
 
 If `graphify-out/GRAPH_REPORT.md` exists, skim it before grepping. Run `graphify query` / `path` / `explain` only when `graphify-out/graph.json` exists. `/iflow-status graph` rebuilds the graph; nothing runs it automatically.
+{% endif %}
+{%- if capable_model %}
+
+## Capable model
+
+This repo is prepared for Claude Fable 5.2 and similar models.
+
+Finish the work the user asked for. A status note is welcome. Continue any part that is independent of an open question. On an ordinary obstacle (an error, a timeout, a locked file, an empty result, or a failing tool), diagnose it, and when it is not a real blocker, work through it: wait and retry, fix the request, or use another tool. A deliberate blocker stays untouched. Say what you found, then look for another safe way to finish. Risky or destructive actions still wait for confirmation.
+
+Before the first tool call, say in one line what you are about to do. Every few tool calls, give a one-line update. End a long turn with a recap that stands alone: what you found, what you did, and what is next. Write that recap in short sentences for a reader who missed the tool calls. Put the key points in the first sentences. Use the same word for the same thing.
 {% endif %}

@@ -27,6 +27,7 @@ A few settings are environment variables only (folder names, editor); see
 | Stop labels from choosing the flow (yolo / ops) | `label_flows` | `issue-flow config set label_flows false` |
 | Merge yolo PRs with a merge commit or rebase | `pr_merge_method` | `issue-flow config set pr_merge_method merge` |
 | Get a "what next" hint after every step | `noob` | `issue-flow config set noob true` |
+| Prepare skills for Claude Fable 5.2 and similar models | `capable_model` | `issue-flow prep fable` |
 
 Run `issue-flow update` after any of these (`config set` reminds you).
 
@@ -79,6 +80,7 @@ an environment-variable fallback, `ISSUEFLOW_<KEY>` (for example
 | `auto_plan` | bool | `true` | `/iflow-pick` chains into `/iflow-plan` after the pick and branch; trailing `noplan` skips once. |
 | `auto_build` | bool | `true` | `/iflow-plan` chains into `/iflow-build` when you accept the plan; trailing `nobuild` skips once. |
 | `hands_off` | bool | `false` | Unattended chain (`/iflow-run drive`, `/iflow-run yolo`, `/iflow-run cycle`, `/iflow-run auto`) skips its up-front confirm. `/iflow-run drive` also accepts a short description (grill-me, then one epic anchor). AST graphify runs before the epic draft and each child plan. A spent auto loop budget records accept and continues. Set with `issue-flow mode hands-off` (re-renders skills) or `issue-flow mode standard` to turn off. |
+| `capable_model` | bool | `false` | Render skills for Claude Fable 5.2 and similar models: finish the task, one-line progress during long turns, a recap that stands alone, and bookkeeping steps that leave effort at the editor setting. `issue-flow prep fable` sets this, turns `caveman_default` off, and re-renders. `issue-flow prep off` clears it and re-renders. Plan Accept stays for `/iflow-plan`. |
 | `early_pr` | bool | `false` | `/iflow-build` opens a draft PR after the first push; trailing `early` / `pr` / `noearly` override per run. |
 | `fix_auto_name` | bool | `false` | `/iflow-issue fix` invents the session name without asking (creating the issue and branch still asks). |
 | `locked` | bool | `false` | `issue-flow update --all` skips this repo. Project only. See [Per-repo lock](#per-repo-lock). |

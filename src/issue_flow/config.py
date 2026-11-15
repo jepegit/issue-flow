@@ -17,6 +17,7 @@ from issue_flow.modes import (
     DEFAULT_AUTO_CLEANUP,
     DEFAULT_AUTO_CLOSE,
     DEFAULT_AUTO_PLAN,
+    DEFAULT_CAPABLE_MODEL,
     DEFAULT_HANDS_OFF,
     DEFAULT_CHECKS_WATCH_MINUTES,
     DEFAULT_CONFIRM_CHANGELOG_UPDATE,
@@ -751,6 +752,16 @@ class Settings:
             "hands_off", _env_flag("ISSUEFLOW_HANDS_OFF", default=DEFAULT_HANDS_OFF)
         )
 
+    def resolve_capable_model(self, project_root: Path) -> bool:
+        """Resolve the Fable-class prompting posture (``issue-flow prep fable``)."""
+        persisted = modes_module.read_capable_model(self.config_path(project_root))
+        if persisted is not None:
+            return persisted
+        return self.user_global_or(
+            "capable_model",
+            _env_flag("ISSUEFLOW_CAPABLE_MODEL", default=DEFAULT_CAPABLE_MODEL),
+        )
+
     def resolve_early_pr(self, project_root: Path) -> bool:
         """Resolve whether ``/iflow-build`` opens a draft PR after the first push."""
         persisted = modes_module.read_early_pr(self.config_path(project_root))
@@ -1052,6 +1063,9 @@ class Settings:
             "auto_plan": _env_flag("ISSUEFLOW_AUTO_PLAN", default=DEFAULT_AUTO_PLAN),
             "auto_build": _env_flag("ISSUEFLOW_AUTO_BUILD", default=DEFAULT_AUTO_BUILD),
             "hands_off": _env_flag("ISSUEFLOW_HANDS_OFF", default=DEFAULT_HANDS_OFF),
+            "capable_model": _env_flag(
+                "ISSUEFLOW_CAPABLE_MODEL", default=DEFAULT_CAPABLE_MODEL
+            ),
             "early_pr": _env_flag("ISSUEFLOW_EARLY_PR", default=DEFAULT_EARLY_PR),
             "fix_auto_name": _env_flag(
                 "ISSUEFLOW_FIX_AUTO_NAME", default=DEFAULT_FIX_AUTO_NAME
@@ -1125,6 +1139,7 @@ class Settings:
             "auto_plan": self.resolve_auto_plan(project_root),
             "auto_build": self.resolve_auto_build(project_root),
             "hands_off": self.resolve_hands_off(project_root),
+            "capable_model": self.resolve_capable_model(project_root),
             "early_pr": self.resolve_early_pr(project_root),
             "fix_auto_name": self.resolve_fix_auto_name(project_root),
             "locked": self.resolve_locked(project_root),
@@ -1237,6 +1252,7 @@ class Settings:
             "auto_plan": self.resolve_auto_plan(project_root),
             "auto_build": self.resolve_auto_build(project_root),
             "hands_off": self.resolve_hands_off(project_root),
+            "capable_model": self.resolve_capable_model(project_root),
             "early_pr": self.resolve_early_pr(project_root),
             "fix_auto_name": self.resolve_fix_auto_name(project_root),
             "confirm_changelog_update": self.resolve_confirm_changelog_update(

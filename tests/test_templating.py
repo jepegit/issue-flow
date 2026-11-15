@@ -101,6 +101,7 @@ _MODE_CONTEXT = {
     "auto_plan": True,
     "auto_build": True,
     "hands_off": False,
+    "capable_model": False,
     "early_pr": False,
     "fix_auto_name": False,
     "confirm_changelog_update": True,

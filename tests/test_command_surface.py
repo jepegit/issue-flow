@@ -160,6 +160,34 @@ def test_rule_body_word_budget(loud_context: dict[str, object]) -> None:
     assert _words(rule) <= RULE_BUDGET, _words(rule)
 
 
+def test_capable_model_rule_stays_inside_the_word_budget(tmp_path: Path) -> None:
+    """The Fable-class section fits the always-on rule even with every other section on."""
+    cfg = tmp_path / ".issueflows" / "config.toml"
+    cfg.parent.mkdir(parents=True)
+    cfg.write_text(
+        "[issueflow]\n"
+        'pstack_skills = "all"\n'
+        "caveman_default = true\n"
+        "grill_me_default = true\n"
+        "label_flows = true\n"
+        "suggest_graphify = true\n"
+        "remind_cleanup = true\n"
+        "noob = true\n"
+        "capable_model = true\n",
+        encoding="utf-8",
+    )
+    ctx = Settings().template_context(tmp_path, EDITORS["cursor"])
+    rule = render_template("rules/AGENTS.md.j2", ctx)
+    assert "## Capable model" in rule
+    assert "what you found, what you did, and what is next" in rule
+    assert "Never skip the plan confirmation" not in rule
+    assert _words(rule) <= RULE_BUDGET, _words(rule)
+    close = render_template("skills/iflow_close/SKILL.md.j2", ctx)
+    assert "Bookkeeping step" in close
+    assert "token economy over deep reasoning" not in close
+    assert _words(close) <= SKILL_BUDGET, _words(close)
+
+
 def test_skill_and_side_word_budgets(loud_context: dict[str, object]) -> None:
     for stem in LIFECYCLE_STEMS:
         skill = render_template(f"skills/{stem}/SKILL.md.j2", loud_context)

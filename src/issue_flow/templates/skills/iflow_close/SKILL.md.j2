@@ -56,7 +56,7 @@ Finish and land the focus issue: tests, optional version bump, tracking updates,
 
 4. **Issue tracking.** Update `issue<N>_status.md` (what is done, what remains). Tick `- [x] Done` only when fully resolved. Then move the `issue<N>_*` group to `{{ issueflows_dir }}/{{ solved_folder }}/` (done) or `{{ issueflows_dir }}/{{ partly_solved_folder }}/` (not done).
 
-5. **Commit.** Check `git status`. If any change is not relevant to this issue, name it and ask whether to include it. Stage intentionally (include `pyproject.toml` / `uv.lock` after a bump). Write the message in full sentences: what changed and why.
+5. **Commit.** Check `git status`. {% if capable_model %}When a change is outside this issue, stop and name the path. Leave that path unstaged.{% else %}If any change is not relevant to this issue, name it and ask whether to include it.{% endif %} Stage intentionally (include `pyproject.toml` / `uv.lock` after a bump). Write the message in full sentences: what changed and why.
 
 6. **Sync with the default branch.** Run `issue-flow agent sync-branch --json`. It replays the branch onto `origin/<default>` and resolves additive bookkeeping conflicts. On exit 1, report its `notes` and **stop**. Read `sync.md` for stacked branches or when the CLI is missing.
 
@@ -66,7 +66,7 @@ Finish and land the focus issue: tests, optional version bump, tracking updates,
    - Run `gh pr list --repo <owner/repo> --head <branch> --state open --json number,url,isDraft` first. Update an existing PR (including an early draft) instead of opening a second one.
    - Else `gh pr create` (`--draft` with the `draft` token). The body explains the change, how to test it, and links the issue (`Closes #N`).
    - When the PR is a draft and the user did not pass `draft`, run `gh pr ready <number> --repo <owner/repo>`.
-   - Report a one-shot `gh pr checks <number> --repo <owner/repo>` snapshot. Offer `issue-flow agent pr-ready <number> --watch` when the user wants to wait, and run it only when they ask.
+   - {% if capable_model %}Report a one-shot `gh pr checks <number> --repo <owner/repo>` snapshot and the PR URL. Leave `issue-flow agent pr-ready <number> --watch` in that report for the user.{% else %}Report a one-shot `gh pr checks <number> --repo <owner/repo>` snapshot. Offer `issue-flow agent pr-ready <number> --watch` when the user wants to wait, and run it only when they ask.{% endif %}
 {% include "skills/_gh_body_file.md.j2" %}
 {% if "pstack_unslop" in included_skills %}   - *Offer* the `unslop` skill for the PR body (skip under `yolo`).
 {% endif %}

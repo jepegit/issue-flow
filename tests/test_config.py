@@ -92,6 +92,7 @@ def test_template_context_keys(tmp_path: Path) -> None:
         "auto_plan",
         "auto_build",
         "hands_off",
+        "capable_model",
         "early_pr",
         "fix_auto_name",
         "confirm_changelog_update",
@@ -253,6 +254,45 @@ def test_hands_off_config_beats_env(
     monkeypatch.setenv("ISSUEFLOW_HANDS_OFF", "true")
     settings = Settings()
     assert settings.resolve_hands_off(tmp_path) is False
+
+
+def test_capable_model_off_by_default(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    """With no config and no env, the Fable-class posture stays off."""
+    monkeypatch.delenv("ISSUEFLOW_CAPABLE_MODEL", raising=False)
+    settings = Settings()
+    assert settings.resolve_capable_model(tmp_path) is False
+    assert settings.template_context(tmp_path)["capable_model"] is False
+
+
+def test_capable_model_from_config(tmp_path: Path) -> None:
+    """A persisted [issueflow].capable_model=true is honored."""
+    _write_config(tmp_path, "[issueflow]\ncapable_model = true\n")
+    settings = Settings()
+    assert settings.resolve_capable_model(tmp_path) is True
+
+
+def test_capable_model_from_env(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    """ISSUEFLOW_CAPABLE_MODEL is used when config does not set the key."""
+    monkeypatch.setenv("ISSUEFLOW_CAPABLE_MODEL", "true")
+    settings = Settings()
+    assert settings.resolve_capable_model(tmp_path) is True
+
+
+def test_capable_model_config_beats_env(
+    tmp_path: Path,
+    monkeypatch: "pytest.MonkeyPatch",  # noqa: F821
+) -> None:
+    """The persisted config value wins over a conflicting env var."""
+    _write_config(tmp_path, "[issueflow]\ncapable_model = false\n")
+    monkeypatch.setenv("ISSUEFLOW_CAPABLE_MODEL", "true")
+    settings = Settings()
+    assert settings.resolve_capable_model(tmp_path) is False
 
 
 def test_label_flows_on_by_default(

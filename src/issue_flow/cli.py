@@ -399,6 +399,88 @@ def execution_mode(
     )
 
 
+@app.command("prep")
+def prep_capable_model(
+    target: str | None = typer.Argument(
+        None,
+        help="fable to enable the capable-model posture, or off to disable. Omit to print.",
+    ),
+    yes: bool = typer.Option(
+        False,
+        "--yes",
+        "-y",
+        help="Skip the confirm when turning the posture on.",
+    ),
+    project_dir: Path = typer.Option(
+        Path("."),
+        "--project-dir",
+        "-C",
+        help="Project root (defaults to the current directory).",
+        exists=True,
+        file_okay=False,
+        resolve_path=True,
+    ),
+    skip_dep_check: bool = typer.Option(
+        False,
+        "--skip-dep-check",
+        help="Skip the git/gh check while re-rendering skills.",
+    ),
+) -> None:
+    """Prepare rendered skills for Claude Fable 5.2 and similar models.
+
+    Sets ``[issueflow].capable_model`` and re-renders skills. ``fable`` also
+    turns ``caveman_default`` off. ``off`` clears the posture and leaves
+    caveman as it is.
+    """
+    from issue_flow.config import Settings
+    from issue_flow.config_ops import upsert_config_value
+    from issue_flow.init import run_update
+
+    settings = Settings()
+    if target is None or not target.strip():
+        current = settings.resolve_capable_model(project_dir)
+        _console.print(f"capable_model = {'true' if current else 'false'}")
+        return
+
+    token = target.strip().lower()
+    if token in {"fable", "capable", "on"}:
+        enabled = True
+    elif token in {"off", "standard"}:
+        enabled = False
+    else:
+        _console.print(
+            "[red]error[/red]  unknown prep target "
+            f"{target!r}. Use fable or off."
+        )
+        raise typer.Exit(code=2)
+
+    if enabled and not yes:
+        _console.print(
+            "Prep re-renders skills for Claude Fable 5.2 and similar models. "
+            "Long runs finish the task, post a one-line update every few tool "
+            "calls, and end with a recap that stands alone. Bookkeeping steps "
+            "leave effort at the editor setting. [bold]caveman_default[/bold] "
+            "is set to false. Plan Accept stays for [bold]/iflow-plan[/bold]. "
+            "[bold]/iflow-run direct[/bold] still skips the plan file."
+        )
+        if not typer.confirm("Turn on capable-model prep and re-render skills?"):
+            raise typer.Exit(code=1)
+
+    cfg_path = settings.config_path(project_dir)
+    upsert_config_value(cfg_path, "capable_model", enabled)
+    if enabled:
+        upsert_config_value(cfg_path, "caveman_default", False)
+    _console.print(f"capable_model = {'true' if enabled else 'false'}")
+    if enabled:
+        _console.print("caveman_default = false")
+    run_update(
+        project_root=project_dir,
+        skip_dep_check=skip_dep_check,
+        editors=None,
+        force=False,
+    )
+
+
 @app.command()
 def sync(
     project_dir: Path = typer.Argument(
@@ -1483,7 +1565,7 @@ def config_add(
     ``cycle_nonyolo``, ``auto_adversarial_loops``,
     ``confirm_version_bump``,
     ``ruff_autofix``, ``auto_close``, ``auto_cleanup``, ``auto_plan``, ``auto_build``,
-    ``hands_off``,
+    ``hands_off``, ``capable_model``,
     ``early_pr``, ``fix_auto_name``, ``confirm_changelog_update``,
     ``defer_changelog``,
     ``essential_tests``, ``test_runner``, ``essential_marker``,

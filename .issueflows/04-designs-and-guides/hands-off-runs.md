@@ -110,6 +110,45 @@ branch. The run opens or updates the PR and stops on the issue branch.
 - A `[modes.direct]` scaffolding id. Rejected: the same skills stay installed;
   only the run posture changes.
 
+<a id="capable-model-prep"></a>
+
+## Capable-model prep
+
+**Status:** decided 2026-11-15.
+
+### Context
+
+`/iflow-run direct` is the run that skips the plan gate. Claude Fable 5.2
+still needs prompt text the default skills leave out: finish the whole task,
+one-line progress on long turns, and a recap that stands alone. A hard style
+rule (caveman on by default) and a bookkeeping line that says to prefer token
+economy over reasoning fight that model. Those lines should be opt-in. Most
+repos stay on the default skills.
+
+### Decision
+
+`issue-flow prep fable` sets `[issueflow].capable_model` and re-renders.
+`issue-flow prep off` clears it. The command also sets `caveman_default` false
+when turning the posture on, and leaves that flag alone when turning it off.
+
+While the knob is on, the always-on rule carries the finish / progress / recap
+text. `/iflow-plan` still waits for Accept. The plan line names `/iflow-run
+direct` as the run that already confirmed, so a bare "never skip plan
+confirmation" is absent from that render. Economy step directives tell the
+model to leave effort at the editor setting. Close names an unrelated path
+and stops, and it reports the CI snapshot with the watch command left for the
+user.
+
+The ownership sentence stays out. Scope stays tight to the issue.
+
+### Alternatives
+
+- Bake the Fable text into every scaffold. Rejected: it changes turns for
+  repos that are not on this model class.
+- Name the config key `fable`. Rejected: the posture is the model class, and
+  the next model in that class would inherit a stale id. The CLI argument
+  `fable` is the switch a person types.
+
 <a id="advanced-auto-mode"></a>
 
 ## Advanced auto mode

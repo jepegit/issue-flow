@@ -44,6 +44,7 @@ synopsis of every command is in the collapsible block below the tables.
 | Command | What it does |
 | --- | --- |
 | [`config add`](#issue-flow-config-add) | Create `.issueflows/config.toml` |
+| [`prep`](#issue-flow-prep) | Render skills for Claude Fable 5.2 and similar models |
 | `config show` / `config set` | Read or write a setting (see [Configuration](configuration.md)) |
 
 ### Changelog
@@ -97,6 +98,7 @@ synopsis of every command is in the collapsible block below the tables.
     issue-flow agent archive N [N ...] [-C PROJECT_DIR] [--dry-run] [--json]
     issue-flow agent capture N [-C PROJECT_DIR] [--repo OWNER/REPO]
       [--force] [--json]
+    issue-flow prep [fable|off] [-C PROJECT_DIR] [--yes] [--skip-dep-check]
     issue-flow config add [-C PROJECT_DIR] [--force] [--json]
     issue-flow config show [KEY] [-C PROJECT_DIR] [--persisted] [--global] [--json]
     issue-flow config set KEY VALUE [-C PROJECT_DIR] [--global] [--json]
@@ -374,6 +376,28 @@ default branch". `agent sync-branch` is the one command that rewrites history
 aborts the rebase on any conflict it is not allowed to resolve, and never
 pushes — so exit 0 means "the branch now contains the default branch" and
 exit 1 means "nothing changed, a human decides".
+
+## `issue-flow prep` { #issue-flow-prep }
+
+Prepare a scaffolded repo for Claude Fable 5.2 and similar capable models.
+This is a behaviour knob, separate from scaffolding `mode`.
+
+```bash
+issue-flow prep            # print capable_model
+issue-flow prep fable      # turn the posture on and re-render
+issue-flow prep off        # turn it off and re-render
+```
+
+`fable` (aliases `capable`, `on`) sets `capable_model = true`, sets
+`caveman_default = false`, and runs the same render as `issue-flow update`.
+The rendered rule tells the agent to finish the task, post a one-line update
+every few tool calls, and end a long turn with a recap that stands alone.
+Bookkeeping steps leave the model's effort at the editor setting. `/iflow-plan`
+still waits for Accept. `/iflow-run direct` still skips the plan file.
+
+`off` (alias `standard`) sets `capable_model = false` and re-renders. It
+leaves `caveman_default` as it is. Turning the posture on asks once unless
+`--yes`.
 
 ## `issue-flow config add` { #issue-flow-config-add }
 

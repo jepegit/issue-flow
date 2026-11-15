@@ -8,6 +8,13 @@ In Cursor: switch to a thinking-capable model before invoking this step (not Aut
 {% else %}
 Choose a reasoning-capable model where your editor allows manual selection.
 {% endif %}
+{% elif capable_model %}
+**Profile: economy** — Bookkeeping step. Leave the capable model's effort at the editor setting.
+{% if editor == "cursor" %}
+In Cursor: use **Auto** or a fast model before invoking this step.
+{% else %}
+Choose a faster model where your editor allows manual selection.
+{% endif %}
 {% else %}
 **Profile: economy** — Prioritize speed and token economy over deep reasoning.
 {% if editor == "cursor" %}

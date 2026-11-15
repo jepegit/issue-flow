@@ -197,6 +197,74 @@ def test_mode_unknown_target_exits_2(runner: CliRunner, tmp_path: Path) -> None:
     assert not (tmp_path / ".issueflows" / "config.toml").exists()
 
 
+def test_prep_prints_capable_model(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("ISSUEFLOW_CAPABLE_MODEL", raising=False)
+    result = runner.invoke(app, ["prep", "-C", str(tmp_path)])
+    assert result.exit_code == 0, result.output
+    assert "capable_model = false" in result.stdout
+
+
+def test_prep_fable_yes_renders_and_turns_caveman_off(
+    runner: CliRunner, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import tomllib
+
+    monkeypatch.delenv("ISSUEFLOW_CAPABLE_MODEL", raising=False)
+    monkeypatch.delenv("ISSUEFLOW_CAVEMAN_DEFAULT", raising=False)
+    result = runner.invoke(
+        app,
+        ["prep", "fable", "-C", str(tmp_path), "--yes", "--skip-dep-check"],
+    )
+    assert result.exit_code == 0, result.output
+    cfg = tmp_path / ".issueflows" / "config.toml"
+    data = tomllib.loads(cfg.read_text(encoding="utf-8"))
+    assert data["issueflow"]["capable_model"] is True
+    assert data["issueflow"]["caveman_default"] is False
+    rule = (tmp_path / "AGENTS.md").read_text(encoding="utf-8")
+    assert "## Capable model" in rule
+    assert "Never skip the plan confirmation" not in rule
+    direct = (tmp_path / ".cursor" / "skills" / "iflow-run" / "direct.md").read_text(
+        encoding="utf-8"
+    )
+    assert "Capable model section" in direct
+    close = (tmp_path / ".cursor" / "skills" / "iflow-close" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    assert "Leave that path unstaged" in close
+    assert "Bookkeeping step" in close
+    assert "token economy over deep reasoning" not in close
+
+    off = runner.invoke(
+        app,
+        ["prep", "off", "-C", str(tmp_path), "--yes", "--skip-dep-check"],
+    )
+    assert off.exit_code == 0, off.output
+    data = tomllib.loads(cfg.read_text(encoding="utf-8"))
+    assert data["issueflow"]["capable_model"] is False
+    assert data["issueflow"]["caveman_default"] is False
+    rule = (tmp_path / "AGENTS.md").read_text(encoding="utf-8")
+    assert "## Capable model" not in rule
+    assert "Never skip the plan confirmation" in rule
+
+
+def test_prep_fable_decline_does_not_write(runner: CliRunner, tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        ["prep", "fable", "-C", str(tmp_path), "--skip-dep-check"],
+        input="n\n",
+    )
+    assert result.exit_code == 1
+    assert not (tmp_path / ".issueflows" / "config.toml").exists()
+
+
+def test_prep_unknown_target_exits_2(runner: CliRunner, tmp_path: Path) -> None:
+    result = runner.invoke(app, ["prep", "opus", "-C", str(tmp_path)])
+    assert result.exit_code == 2
+    assert not (tmp_path / ".issueflows" / "config.toml").exists()
+
+
 def test_graphify_help_describes_passthrough(runner: CliRunner) -> None:
     result = runner.invoke(app, ["graphify", "--help"])
     assert result.exit_code == 0
