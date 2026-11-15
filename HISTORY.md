@@ -7,6 +7,17 @@ Release tags live on GitHub: <https://github.com/jepegit/issue-flow/releases>.
 Pre-0.2.2 entries are reconstructed from git history and PR titles and may be less precise
 than the GitHub release notes they link to.
 
+## [0.8.0] - 2026-11-15
+
+<!-- changelog-ids: 7b8cd812ee43 0dfd670b9a63 c4ad52bc1ecf 5116c3c08a00 6746ff786c52 e33fba2b51f3 -->
+
+- Lint every editor skill folder against the Agent Skills spec in `issue-flow doctor`, refresh the vendored skill-writing reference to writing-for-agents, and rewrite the lifecycle skills with third-person descriptions, positive phrasing, and one-hop references. (#268)
+- Refresh verify_scaffold.py so it checks the eleven-command surface again. (#409)
+- Positive-phrasing pass over the lifecycle mode files (follow-up to #268). (#410)
+- Opt-in git pre-commit hook that moves done issue groups to solved-issues on commit. (#101)
+- Add `/iflow-run direct` for capable models. (#415)
+- Add `issue-flow prep fable`, which re-renders skills for Claude Fable 5.2 and similar models.
+
 ## [0.7.0] - 2026-10-24
 
 <!-- changelog-ids: 69b526926973 -->
