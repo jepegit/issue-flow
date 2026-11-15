@@ -7,7 +7,7 @@ description: >-
   (workspace), prs (refresh DIRTY PRs), archive (condense solved issues).
   Deletes branches only by name, without --force.
 disable-model-invocation: true
-issue-flow-version: 0.7.0
+issue-flow-version: 0.8.0
 ---
 
 # issue-flow — cleanup (`/iflow-cleanup`)

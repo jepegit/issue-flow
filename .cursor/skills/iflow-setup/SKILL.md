@@ -6,7 +6,7 @@ description: >-
   update / workspace bootstrap), also from a parent folder with no scaffold
   yet.
 disable-model-invocation: true
-issue-flow-version: 0.7.0
+issue-flow-version: 0.8.0
 ---
 
 # issue-flow — guided project setup (`/iflow-setup`)

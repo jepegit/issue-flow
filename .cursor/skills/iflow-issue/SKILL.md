@@ -6,7 +6,7 @@ description: >-
   publish, session), split (cut an issue into sub-issues), review (label
   triage).
 disable-model-invocation: true
-issue-flow-version: 0.7.0
+issue-flow-version: 0.8.0
 ---
 
 # issue-flow — issues (`/iflow-issue`)

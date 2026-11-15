@@ -5,7 +5,7 @@ description: >-
   changelog trailers, status update, commit, push, and PR. Modes: yolo (merge
   too), ops (no PR).
 disable-model-invocation: true
-issue-flow-version: 0.7.0
+issue-flow-version: 0.8.0
 ---
 
 # issue-flow — close (`/iflow-close`)

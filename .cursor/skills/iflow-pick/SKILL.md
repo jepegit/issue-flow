@@ -5,7 +5,7 @@ description: >-
   the issue branch or worktree, and captures the issue locally as
   issueN_original.md.
 disable-model-invocation: true
-issue-flow-version: 0.7.0
+issue-flow-version: 0.8.0
 ---
 
 # issue-flow — pick and capture (`/iflow-pick`)
