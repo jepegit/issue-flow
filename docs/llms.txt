@@ -11,6 +11,7 @@
 
 - [Getting started](https://issue-flow.readthedocs.io/en/latest/getting-started/): install uv + issue-flow, first `init`, `iflow setup`.
 - [How-to index](https://issue-flow.readthedocs.io/en/latest/how-to/): pick, worktrees, yolo, cycle, epics, cleanup.
+- [Prepare for a capable model](https://issue-flow.readthedocs.io/en/latest/how-to/capable-model/): `issue-flow prep fable` re-renders skills for Claude Fable 5.2 and similar models.
 - [Command reference](https://issue-flow.readthedocs.io/en/latest/issue-workflow/): every command in detail (one table, then one section per command).
 - [CLI reference](https://issue-flow.readthedocs.io/en/latest/cli/): `init`, `update`, `workspace`, `agent`, completion.
 - After `/iflow-close` (non-yolo): `issue-flow agent pr-ready [N] [--watch]` classifies merge-ready; never merges.

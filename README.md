@@ -249,7 +249,8 @@ Full option tables and the `agent` subcommand reference live in the [CLI referen
 
 ## Going further
 
-- **[Configuration](https://github.com/jepegit/issue-flow/blob/main/docs/configuration.md)** — `.env` variables and `.issueflows/config.toml`; **modes** (`standard` vs the markdown-only `simple`), **skill levels** (`basic` / `standard` / `advanced` quality-tooling guidance), the optional **caveman** and **grill-me** skills, the opt-in vendored **pstack** skills (`pstack_skills`), and **label-driven flows** (a `yolo` label routes an issue through the hands-off chain).
+- **[Configuration](https://github.com/jepegit/issue-flow/blob/main/docs/configuration.md)** — `.env` variables and `.issueflows/config.toml`; **modes** (`standard` vs the markdown-only `simple`), **skill levels** (`basic` / `standard` / `advanced` quality-tooling guidance), the optional **caveman** and **grill-me** skills, the opt-in vendored **pstack** skills (`pstack_skills`), **label-driven flows** (a `yolo` label routes an issue through the hands-off chain), and **`issue-flow prep fable`** for Claude Fable 5.2 and similar models.
+- **[Prepare for a capable model](https://github.com/jepegit/issue-flow/blob/main/docs/how-to/capable-model.md)** — re-render skills so long runs finish the task, post one-line updates, and end with a recap that stands alone.
 - **[Editor support](https://github.com/jepegit/issue-flow/blob/main/docs/editors.md)** — what gets scaffolded per editor (Cursor, Claude Code, opencode, Codex), and how multi-root workspaces resolve the right repo.
 - **[Folder of repos](https://github.com/jepegit/issue-flow/blob/main/docs/how-to/workspaces.md)** — `workspace bootstrap` / `init` / `update` from a parent folder.
 - **[Graphify integration](https://github.com/jepegit/issue-flow/blob/main/docs/graphify.md)** — optional knowledge graph of your codebase that agents can read instead of grepping; enabled simply by installing `graphifyy`.

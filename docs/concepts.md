@@ -246,6 +246,7 @@ Medium solid arrows are the usual path; thin dotted arrows are opt-in knobs.
 | `cycle_max_issues` / `cycle_onfail` / `cycle_nonyolo` | Cycle queue size, failure policy, non-yolo merge policy | `10` / `stop` / `merge` |
 | `auto_adversarial_loops` | Auto review-and-fix loops per stage before it asks | `2` |
 | `model_label_flows` | Pick announces deep/fast model from labels | `false` |
+| `capable_model` | Prompt posture for Claude Fable 5.2 and similar models (`issue-flow prep fable`) | `false` |
 
 Per-run tokens (`inplace`, `worktree`, `noplan`, `nobuild`, `noearly`, …) override
 the matching knob for that run only. See [Configuration](configuration.md) and
@@ -268,7 +269,10 @@ first:
 - **Hands-off runs:** `yolo`, `cycle`, `auto` and `drive` ask **once, up
   front**, listing everything they will do. After that they stop only when
   input is really needed: failing tests, a refused merge, or a spec that turns
-  out to be bigger than it looked.
+  out to be bigger than it looked. `direct` treats the invocation as its
+  confirm, skips the plan file, and leaves the PR open.
+  [Prepare for a capable model](how-to/capable-model.md) is a separate knob
+  for Claude Fable 5.2 and similar models.
 - **Never:** force-pushing or rebasing the default branch, merging with admin
   override, or skipping CI.
 
@@ -281,6 +285,7 @@ behave as described here, see [Troubleshooting](how-to/troubleshooting.md).
 | Term | Meaning |
 | --- | --- |
 | **Adversarial review** | In [auto mode](how-to/auto-mode.md), a check after each epic stage: did the merged PRs really meet the stage goal? Gaps get issues reopened or new ones created. |
+| **Capable model** | The prompt posture from `issue-flow prep fable`: finish the task, one-line progress, a recap that stands alone. For Claude Fable 5.2 and similar models. See [Prepare for a capable model](how-to/capable-model.md). |
 | **Command** | One of the eleven `/iflow-*` actions. Delivered as an Agent Skill (opencode also gets a one-line slash-command wrapper). |
 | **Command mode** | The first word after a merged command, such as `cycle` in `iflow run cycle` or `epic` in `iflow issue epic 42`. Each one has its own file in the skill folder. Not the same as a scaffolding **Mode**. |
 | **Dispatcher** | `iflow` with no step name. It reads the focus issue's files and runs capture, plan, build or close. |

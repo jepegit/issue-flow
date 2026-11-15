@@ -73,6 +73,7 @@ GitHub issues ranked for you.
 | Guide | When to use it |
 | --- | --- |
 | [Use pstack skills](pstack-skills.md) | Opt-in unslop / tdd / blast-radius and friends |
+| [Prepare for a capable model](capable-model.md) | `issue-flow prep fable` for Claude Fable 5.2 and similar models |
 
 ## Something went wrong?
 

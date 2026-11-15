@@ -399,6 +399,8 @@ still waits for Accept. `/iflow-run direct` still skips the plan file.
 leaves `caveman_default` as it is. Turning the posture on asks once unless
 `--yes`.
 
+Step-by-step: [Prepare for a capable model](how-to/capable-model.md).
+
 ## `issue-flow config add` { #issue-flow-config-add }
 
 Creates `.issueflows/config.toml`, seeded from `.env` (or issue-flow defaults).

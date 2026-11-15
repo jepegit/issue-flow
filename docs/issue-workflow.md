@@ -42,7 +42,7 @@ Merged commands take a **mode** as their first word, for example `iflow run cycl
 - After drafting a plan (`/iflow-plan`).
 - Before deleting anything: local branches (`-d` and, separately, `-D` for squash-landed branches), remote branches, archived issue files.
 - Hands-off modes (`/iflow-run …`) ask **once** up front and then stop only when a human decision is needed.
-- `/iflow-run direct` treats the invocation as its confirm, skips the plan gate, and opens a PR without merging.
+- `/iflow-run direct` treats the invocation as its confirm, skips the plan gate, and opens a PR without merging. `issue-flow prep fable` prepares the rendered skills for Claude Fable 5.2 and similar models.
 
 ## Status file contract
 

@@ -44,4 +44,5 @@ after each lifecycle skill. You can turn it on in any mode.
 - [Configuration — Modes](../configuration.md#modes)
 - [Getting started](../getting-started.md)
 - [Use pstack skills](pstack-skills.md) — opt-in rigor skills next to iflow-*
+- [Prepare for a capable model](capable-model.md) — prompt posture for Claude Fable 5.2 and similar models
 - [Create and run epics](epics.md) — needs a mode that includes epic (not novice)
